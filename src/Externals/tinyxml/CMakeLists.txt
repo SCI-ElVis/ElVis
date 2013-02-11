@@ -1,0 +1,21 @@
+###########################################
+# TinyXML project
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(TinyXML)
+SET(TinyXML_Library TinyXML CACHE INTERNAL "Boost library name." FORCE)
+
+SET(TINYXML_SOURCES
+    tinyxml.cpp
+    tinyxmlparser.cpp 
+    tinyxmlerror.cpp 
+    tinystr.cpp
+)
+
+SET(TINYXML_HEADERS
+    tinystr.h
+    tinyxml.h
+)
+
+#ADD_ELVIS_LIBRARY(tinyxml STATIC ${TINYXML_SOURCES} ${TINYXML_HEADERS})
+ADD_LIBRARY(${TinyXML_Library} STATIC ${TINYXML_SOURCES} ${TINYXML_HEADERS})

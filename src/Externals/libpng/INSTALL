@@ -1,0 +1,7 @@
+Installing libpng version 1.2.35 - February 14, 2009
+
+Using the custom SCI CMakeLists.txt on Unix systems:
+
+   cmake . [-DPNG_MMX=YES] -DCMAKE_INSTALL_PREFIX=/path 
+   make
+   make install

@@ -1,0 +1,7 @@
+<ColorMap name="Black-Body Radiation" space="RGB">
+  <Point x="0" o="0.5" r="0" g="0" b="0"/>
+  <Point x="0.4" o="0.5" r="0.901961" g="0" b="0"/>
+  <Point x="0.8" o="0.5" r="0.901961" g="0.901961" b="0"/>
+  <Point x="1" o="0.5" r="1" g="1" b="1"/>
+  <NaN r="0" g="0.498039" b="1"/>
+</ColorMap>

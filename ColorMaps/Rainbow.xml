@@ -1,0 +1,8 @@
+<ColorMap name="Rainbow" space="RGB">
+  <Point x="0" o="0.5" r="0" g="0" b="1"/>
+  <Point x=".25" o="0.5" r="0" g="1" b="1"/>
+  <Point x=".5" o="0.5" r="0" g="1" b="0"/>
+  <Point x=".75" o="0.5" r="1" g="1" b="0"/>
+  <Point x="1" o="0.5" r="1" g="0" b="0"/>
+  <NaN r="0.498039" g="0.498039" b="0.498039"/>
+</ColorMap>

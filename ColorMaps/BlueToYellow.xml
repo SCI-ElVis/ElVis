@@ -1,0 +1,5 @@
+<ColorMap name="Blue to Yellow" space="RGB">
+  <Point x="0" o="0.5" r="0.0392157" g="0.0392157" b="0.94902"/>
+  <Point x="1" o="0.5" r="0.94902" g="0.94902" b="0.0392157"/>
+  <NaN r="1" g="0" b="0"/>
+</ColorMap>

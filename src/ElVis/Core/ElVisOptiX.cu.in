@@ -1,0 +1,151 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// The MIT License
+//
+// Copyright (c) 2006 Scientific Computing and Imaging Institute,
+// University of Utah (USA)
+//
+// License for the specific language governing rights and limitations under
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#define ELVIS_OPTIX_MODULE
+
+#include <ElVis/Core/Cuda.h>
+#include <ElVis/Core/Float.cu>
+#include <ElVis/Core/OptixVariables.cu>
+#include <ElVis/Core/Printf.cu>
+#include <ElVis/Core/ReferencePointParameter.h>
+#include <ElVis/Core/typedefs.cu>
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Begin Interface
+//
+// The following methods represent the interface to the OptiX portion of ElVis.
+// Each method must be implemented in a file called ExtensionOptiXInterface.cu 
+// in the extension's directory.
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+/// \brief Converts a point from world space to the given element's reference space.
+/// \param elementId The element's id.
+/// \param elementType The element's type.
+/// \param wp The world point to be converted.
+/// \param referenceType Describes the meaning of result.  If eReferencePointIsInvalid then
+///        result will only be used for output. If eReferencePointIsInitialGuess, then result is
+///        a guess for the actual location of the reference point.
+/// \param result On input, it can be an initial guess.  On output, the actual reference point corresponding to wp.
+/// \returns
+ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& wp,
+                                                          ElVis::ReferencePointParameterType referenceType, ReferencePoint& result);
+
+/// \brief Evaluates a scalar field at the given point.
+/// \param elementId The element's id.
+/// \param elementType The element's type.
+/// \param fieldId The field to be evaluated.
+/// \param point The point at which the field will be evaluated.
+/// \param result The result of the evaluation.
+/// \returns
+///
+/// This method is designed to be used for evaluation at a single reference point (x0, x1, x2) and at
+/// an interval of the reference space ([x0_low, x0_high], [x1_low, x1_high], [x2_low, x2_high]).
+template<typename PointType, typename ResultType>
+ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, int elementType, int fieldId,
+                                                               const PointType& worldPoint,
+                                                               const PointType& referencePoint,
+                                                               ResultType& result);
+
+/// \brief Returns the number of vertices associated with the given face.
+ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result);
+
+ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result);
+
+/// \brief Returns true if the reference point is valid for this face, false otherwise.
+ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& point, bool& result);
+
+/// \brief Evaluates the Jacobian of the given face's mapping function.
+/// \param faceId The face.
+/// \param p The point on the face at which the Jacobian is to be evaluated.
+template<typename T>
+ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoint& p,
+                                             T& dx_dr, T& dx_ds,
+                                             T& dy_dr, T& dy_ds,
+                                             T& dz_dr, T& dz_ds);
+
+/// \brief Get the world space normal vector for the given point on a face.  This version is called when
+///        we know the world space location of the point on the face, but do not know the reference coordinate.
+///        This only occurs for planar faces.
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, int faceId, ElVisFloat3& result);
+
+/// \brief Get the world space normal vector for the given point on a face.
+/// \param pointOnFace The point in world space coordinates.
+/// \param refPoint The point in the face's reference coordinates.
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, int faceId,
+                                      ElVisFloat3& result);
+
+// Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
+ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
+                               WorldPoint& result);
+
+#include <ElVis/Extensions/@ProjectName@/ExtensionOptiXInterface.cu>
+
+///////////////////////////////////////////////////////////////////////////////
+// End Interface
+// 
+// The methods and code below are not part of the interface.
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& referencePoint)
+{
+    if( referenceType != ElVis::eReferencePointIsValid )
+    {
+        ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, referenceType, referencePoint);
+    }
+    ElVisFloat result = MAKE_FLOAT(0.0);
+    SampleScalarFieldAtReferencePointOptiX(elementId, elementType, fieldId, worldPoint, referencePoint, result);
+    return result;
+}
+
+ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint)
+{
+    ElVisFloat3 dummy;
+    return EvaluateFieldOptiX(elementId, elementType, fieldId, worldPoint, ElVis::eReferencePointIsInvalid, dummy);
+}
+
+// Many algorithms work via customization of the objects in the scene
+// graph, after which using the primary ray module is all that remains
+// to be done.
+#include <ElVis/Core/PrimaryRayModule.cu>
+#include <ElVis/Core/triangle.cu>
+#include <ElVis/Core/Plane.cu>
+#include <ElVis/Core/OpenGLLighting.cu>
+
+#include <ElVis/Core/TextureColorMap.cu>
+#include <ElVis/Core/SurfaceObject.cu>
+#include <ElVis/Core/SampleVolumeSamplerObject.cu>
+#include <ElVis/Core/CutCylinder.cu>
+
+#include <ElVis/Core/CutSurfaceContourModule.cu>
+#include <ElVis/Core/VolumeRenderingOptiXModule.cu>
+

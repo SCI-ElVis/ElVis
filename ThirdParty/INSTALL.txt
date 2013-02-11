@@ -1,0 +1,15 @@
+Open projects/visualc71/libpng.sln in Visual Studio 9.  This runs a conversion wizard.  Use the default options.  The conversion should proceed without a problem.
+Extract zlib-1.2.6 in the same directory.  rename to zlib.
+
+
+Build Zlib
+http://www.zlib.net/
+Zlib is required for the png library, which is used for screenshots.
+Unpack the zip file, and use cmake to configure.  Set the install prefix to an appropriate location for your system.  Note that the zlib packaged with ElVis has a slightly modified CMakeLists.txt to fix a compile error.  If you download a version manually, you will need to make similar modifications.
+
+Build libPNG.
+http://www.libpng.org/pub/png/libpng.html
+Unpack and run cmake.
+Set ZLIB_INCLUDE_DIR to the include directory from the previous step.
+Set ZLIB_LIBRARY to /lib/zlib.lib
+Set install dir to a reasonable value.

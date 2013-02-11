@@ -1,0 +1,286 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// The MIT License
+//
+// Copyright (c) 2006 Scientific Computing and Imaging Institute,
+// University of Utah (USA)
+//
+// License for the specific language governing rights and limitations under
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#include <ElVis/Core/TransferFunction.h>
+#include <ElVis/Core/HostTransferFunction.h>
+
+//#include <cutil.h>
+#include <cuda_runtime_api.h>
+//#include <cutil_inline_drvapi.h>
+
+namespace ElVis
+{
+    HostTransferFunction::HostTransferFunction() :
+        m_breakpoints(),
+        m_deviceDensityBreakpoints(0),
+        m_deviceRedBreakpoints(0),
+        m_deviceGreenBreakpoints(0),
+        m_deviceBlueBreakpoints(0),
+        m_deviceDensityValues(0),
+        m_deviceRedValues(0),
+        m_deviceGreenValues(0),
+        m_deviceBlueValues(0),
+        m_deviceObject(0),
+        m_localDeviceTransferFunction(),
+        m_dirty(true)
+    {
+        m_localDeviceTransferFunction.Initialize();
+    }
+        
+    CUdeviceptr HostTransferFunction::GetDeviceObject()
+    {
+        SynchronizeDeviceIfNeeded();
+        return m_deviceObject;
+    }
+
+    void HostTransferFunction::InitializeArrayIfNeeded(CUdeviceptr& devicePtr, ElVisFloat* data, int size)
+    {
+        if( devicePtr != 0 ) return;
+
+        cuMemAlloc(&devicePtr, size*sizeof(ElVisFloat));
+        cuMemcpyHtoD(devicePtr, data, size*sizeof(ElVisFloat));
+    }
+
+    void HostTransferFunction::FreeDeviceMemory()
+    {
+        // Free existing memory.
+        if( m_deviceDensityBreakpoints != 0 ) 
+        {
+            cuMemFree(m_deviceDensityBreakpoints);
+            m_deviceDensityBreakpoints = 0;
+            //delete [] m_localDeviceTransferFunction.DensityBreakpoints();
+            m_localDeviceTransferFunction.DensityBreakpoints() = 0;
+        }
+
+        if( m_deviceRedBreakpoints != 0 ) 
+        {
+            cuMemFree(m_deviceRedBreakpoints);
+            m_deviceRedBreakpoints = 0;
+            //delete [] m_localDeviceTransferFunction.RedBreakpoints();
+            m_localDeviceTransferFunction.RedBreakpoints() = 0;
+        }
+
+        if( m_deviceGreenBreakpoints != 0 ) 
+        {
+            cuMemFree(m_deviceGreenBreakpoints);
+            m_deviceGreenBreakpoints = 0;
+            //delete [] m_localDeviceTransferFunction.GreenBreakpoints();
+            m_localDeviceTransferFunction.GreenBreakpoints() = 0;
+        }
+
+        if( m_deviceBlueBreakpoints != 0 ) 
+        {
+            cuMemFree(m_deviceBlueBreakpoints);
+            m_deviceBlueBreakpoints = 0;
+            //delete [] m_localDeviceTransferFunction.BlueBreakpoints();
+            m_localDeviceTransferFunction.BlueBreakpoints() = 0;
+        }
+
+        if( m_deviceDensityValues != 0 ) 
+        {
+            cuMemFree(m_deviceDensityValues);
+            m_deviceDensityValues = 0;
+            //delete [] m_localDeviceTransferFunction.DensityValues();
+            m_localDeviceTransferFunction.DensityValues() = 0;
+        }
+
+        if( m_deviceRedValues != 0 ) 
+        {
+            cuMemFree(m_deviceRedValues);
+            m_deviceRedValues = 0;
+            //delete [] m_localDeviceTransferFunction.RedValues();
+            m_localDeviceTransferFunction.RedValues() = 0;
+        }
+
+        if( m_deviceGreenValues != 0 ) 
+        {
+            cuMemFree(m_deviceGreenValues);
+            m_deviceGreenValues = 0;
+            //delete [] m_localDeviceTransferFunction.GreenValues();
+            m_localDeviceTransferFunction.GreenValues() = 0;
+        }
+
+        if( m_deviceBlueValues != 0 ) 
+        {
+            cuMemFree(m_deviceBlueValues);
+            m_deviceBlueValues = 0;
+            //delete [] m_localDeviceTransferFunction.BlueValues();
+            m_localDeviceTransferFunction.BlueValues() = 0;
+        }
+
+        m_localDeviceTransferFunction.NumDensityBreakpoints() = 0;
+        m_localDeviceTransferFunction.NumRedBreakpoints() = 0;
+        m_localDeviceTransferFunction.NumGreenBreakpoints() = 0;
+        m_localDeviceTransferFunction.NumBlueBreakpoints() = 0;
+
+        if( m_deviceObject != 0 ) 
+        {
+            cuMemFree(m_deviceObject);
+            m_deviceObject = 0;
+        }
+    }
+
+    void HostTransferFunction::AllocateDeviceMemory()
+    {
+        cuMemAlloc(&m_deviceDensityBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemAlloc(&m_deviceRedBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemAlloc(&m_deviceGreenBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemAlloc(&m_deviceBlueBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+
+        cuMemAlloc(&m_deviceDensityValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemAlloc(&m_deviceRedValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemAlloc(&m_deviceGreenValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemAlloc(&m_deviceBlueValues, m_breakpoints.size()*sizeof(ElVisFloat));
+
+        cuMemAlloc(&m_deviceObject, sizeof(TransferFunction));
+    }
+
+    void HostTransferFunction::CopyToDeviceMemory()
+    {
+        ElVisFloat* DensityBreakpoints = new ElVisFloat[m_breakpoints.size()];
+        ElVisFloat* RedBreakpoints = new ElVisFloat[m_breakpoints.size()];
+        ElVisFloat* GreenBreakpoints = new ElVisFloat[m_breakpoints.size()];
+        ElVisFloat* BlueBreakpoints = new ElVisFloat[m_breakpoints.size()];
+
+        ElVisFloat* DensityValues = new ElVisFloat[m_breakpoints.size()];
+        ElVisFloat* RedValues = new ElVisFloat[m_breakpoints.size()];
+        ElVisFloat* GreenValues = new ElVisFloat[m_breakpoints.size()];
+        ElVisFloat* BlueValues = new ElVisFloat[m_breakpoints.size()];
+
+        int index = 0;
+        for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
+        {
+            DensityBreakpoints[index] = (*iter).first;
+            DensityValues[index] = (*iter).second.Density;
+            ++index;
+        }
+
+        index = 0;
+        for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
+        {
+            RedBreakpoints[index] = (*iter).first;
+            RedValues[index] = (*iter).second.Col.Red();
+            ++index;
+        }
+
+        index = 0;
+        for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
+        {
+            GreenBreakpoints[index] = (*iter).first;
+            GreenValues[index] = (*iter).second.Col.Green();
+            ++index;
+        }
+
+        index = 0;
+        for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
+        {
+            BlueBreakpoints[index] = (*iter).first;
+            BlueValues[index] = (*iter).second.Col.Blue();
+            ++index;
+        }
+           
+        cuMemcpyHtoD(m_deviceDensityBreakpoints, DensityBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemcpyHtoD(m_deviceRedBreakpoints, RedBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemcpyHtoD(m_deviceGreenBreakpoints, GreenBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemcpyHtoD(m_deviceBlueBreakpoints, BlueBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+
+        cuMemcpyHtoD(m_deviceDensityValues, DensityValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemcpyHtoD(m_deviceRedValues, RedValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemcpyHtoD(m_deviceGreenValues, GreenValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        cuMemcpyHtoD(m_deviceBlueValues, BlueValues, m_breakpoints.size()*sizeof(ElVisFloat));
+
+        m_localDeviceTransferFunction.RedBreakpoints() = (ElVisFloat*)(m_deviceRedBreakpoints);
+        m_localDeviceTransferFunction.GreenBreakpoints() = (ElVisFloat*)(m_deviceGreenBreakpoints);
+        m_localDeviceTransferFunction.BlueBreakpoints() = (ElVisFloat*)(m_deviceBlueBreakpoints);
+        m_localDeviceTransferFunction.DensityBreakpoints() = (ElVisFloat*)(m_deviceDensityBreakpoints);
+
+        m_localDeviceTransferFunction.RedValues() = (ElVisFloat*)(m_deviceRedValues);
+        m_localDeviceTransferFunction.GreenValues() = (ElVisFloat*)(m_deviceGreenValues);
+        m_localDeviceTransferFunction.BlueValues() = (ElVisFloat*)(m_deviceBlueValues);
+        m_localDeviceTransferFunction.DensityValues() = (ElVisFloat*)(m_deviceDensityValues);
+
+        m_localDeviceTransferFunction.NumDensityBreakpoints() = m_breakpoints.size();
+        m_localDeviceTransferFunction.NumRedBreakpoints() = m_breakpoints.size();
+        m_localDeviceTransferFunction.NumGreenBreakpoints() = m_breakpoints.size();
+        m_localDeviceTransferFunction.NumBlueBreakpoints() = m_breakpoints.size();
+
+        cuMemcpyHtoD(m_deviceObject, &m_localDeviceTransferFunction, sizeof(TransferFunction));
+
+        delete [] DensityBreakpoints;
+        delete [] RedBreakpoints;
+        delete [] GreenBreakpoints;
+        delete [] BlueBreakpoints;
+
+        delete [] DensityValues;
+        delete [] RedValues;
+        delete [] GreenValues;
+        delete [] BlueValues;
+
+    }
+
+    void HostTransferFunction::SynchronizeDeviceIfNeeded()
+    {
+        if (!m_dirty) return;
+
+        FreeDeviceMemory();
+        AllocateDeviceMemory();
+        CopyToDeviceMemory();
+
+        m_dirty = false;
+    }
+
+
+
+    void HostTransferFunction::SetBreakpoint(double s, const Color& c)
+    {
+        SetBreakpoint(s, c, c.Alpha());
+    }
+
+    void HostTransferFunction::SetBreakpoint(double s, const Color& c, const ElVisFloat& density)
+    {
+        if( m_breakpoints.find(s) == m_breakpoints.end() )
+        {
+            m_breakpoints[s].Col = c;
+            m_breakpoints[s].Density = density;
+            m_breakpoints[s].Scalar = s;
+            m_dirty = true;
+            OnTransferFunctionChanged();
+        }
+    }
+
+    void HostTransferFunction::Clear()
+    {
+        if( m_breakpoints.size() > 0 )
+        {
+            m_breakpoints = std::map<double, Breakpoint>();
+            m_dirty = true;
+            OnTransferFunctionChanged();
+        }
+    }
+
+}

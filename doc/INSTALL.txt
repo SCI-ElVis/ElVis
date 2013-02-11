@@ -1,0 +1,40 @@
+
+PRE-REQUISITES
+-------------
+1.  Nektar++.  ElVis uses Nektar++ for the underlying data and mesh manipulation.  Get the latest version from http://nektar.info.  The website has instructions on how to prepare, compile, and install Nektar++.
+
+You can save compilation time by setting the following CMAKE flags when setting up Nektar++:
+
+NEKTAR_BUILD_DEMOS              OFF
+NEKTAR_BUILD_TIMINGS            OFF
+NEKTAR_BUILD_UNIT_TESTS      OFF
+
+These items are useful to verify the Nektar++ installation, but aren't used by ElVis.
+
+2.  Vistrails (http://www.vistrails.org/index.php/Main_Page#Download).  
+
+Vistrails provides the GUI components for creating workflows and providing user interaction with ElVis.  
+
+3. OptiX 2.0 (http://www.nvidia.com/object/optix.html).  OptiX is the ray tracing engine that executes the bulk of ElVis computations on compatible GPUs.  
+
+OptiX 2.1 appears to work, but we haven't perfomed exhaustive tests.
+
+4.  Cuda 3.0 (http://developer.nvidia.com/object/gpucomputing.html).  OptiX 2.0 requires Cuda 3.0.  If you wish to use Cuda 3.1 or Cuda 3.2, you will need OptiX 2.1, but those combinations have not been tested.
+
+5.  Python.  Python is required for operation with VisTrails.  We have been using Python 2.5.  Other versions should work, but they haven't been tested.
+
+6.  After installing the third party dependencies, create the project files for your build system by using cmake.  See cmake.org for details on how to use CMake if you have not used it before.
+
+Some more information about several of the CMake variables follows:
+
+Nektar++_DIR - Set this variable to the location of the Nektar++ installation.  If your Nektar++ directory is ~/Nektar++, the build directory is typically ~/Nektar++/builds/dist.  It will be different if you specified a custom CMAKE_INSTALL_PREFIX when building Nektar++.
+
+ELVIS_USE_DOUBLE_PRECISION - Set this to perform calculations in the GPU in double precision.  The default is single precision.
+
+ELVIS_USE_VTK - Turn this option off.  There are some modules that use VTK that are experimental and will cause the build to fail if turned on.
+
+CMAKE_INSTALL_PREFIX - This should be set to the userpackages VisTrails directory.  If your userpackages directory is ~/.vistrails/userpackages, then set CMAKE_INSTALL_PREFIX to ~/.vistrails/userpackages/ElVis.
+
+- TO ADD
+- Additional Boost libraries that must be built.  
+- 

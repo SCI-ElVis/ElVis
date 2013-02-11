@@ -1,0 +1,45 @@
+
+
+ 
+SET(ProjectName ElVisModelConverter)
+
+
+FIND_PACKAGE(Nektar++ REQUIRED)
+
+IF( NEKTAR++_FOUND )
+    SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${NEKTAR++_ROOT_DIR} ${CMAKE_MODULE_PATH})
+    FIND_PACKAGE( Boost REQUIRED COMPONENTS thread iostreams zlib date_time filesystem system)
+
+ENDIF()
+
+SET(Boost_USE_MULTITHREAD ON)
+FIND_PACKAGE( Boost 1.40.0 REQUIRED COMPONENTS program_options filesystem system)
+LINK_DIRECTORIES(${Boost_LIBRARY_DIRS} ${NEKTAR++_LIBRARY_DIRS})
+                   
+SET(HEADERS
+) 
+
+SET(SOURCES
+ 	main.cpp
+)
+
+INCLUDE_DIRECTORIES(${NEKTAR++_INCLUDE_DIRS})
+
+ADD_ELVIS_EXECUTABLE(${ProjectName} ${HEADERS} ${SOURCES} )
+
+TARGET_LINK_LIBRARIES(${ProjectName} 
+	${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${NEKTAR++_LIBRARIES}
+    tinyxml
+    ElVisModelConversion
+)
+
+IF( UNIX )
+TARGET_LINK_LIBRARIES(${ProjectName} dl)
+ENDIF()
+
+SET_LAPACK_LINK_LIBRARIES(${ProjectName})
+
+

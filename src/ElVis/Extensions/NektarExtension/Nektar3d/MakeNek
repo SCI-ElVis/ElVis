@@ -1,0 +1,38 @@
+ifeq ($(LTYPE),g)	# turn on debug flag 
+CPPFLAGS := -DDEBUG $(CPPFLAGS)
+CXXFLAGS := $(DEBUG) $(CCWOFF)
+CFLAGS := $(DEBUG) $(CWOFF)
+FFLAGS := $(DEBUGF) $(FWOFF)
+LDFLAGS	:= $(DEBUGLD)
+else			# Maximal optimization flags
+ifeq ($(LTYPE),mopt)
+CXXFLAGS := $(MOPTXX)
+CFLAGS := $(MOPT)
+FFLAGS := $(MOPTF)
+LDFLAGS	:= $(MOPTLD)
+else			# Regular optimization flags
+ifeq ($(LTYPE),opt)
+CXXFLAGS := $(OPTXX)
+CFLAGS := $(OPT)
+FFLAGS := $(OPTF)
+LDFLAGS	:= $(OPTLD)
+endif
+endif
+endif
+
+ifdef PARALLEL
+HLIB = $(HLIBDIR)/libhybrid$(LTYPE)-prl.a
+override LIBS   := -L$(HLIBDIR) -lhybrid$(LTYPE)-prl $(LIBS)
+else
+HLIB = $(HLIBDIR)/libhybrid$(LTYPE).a
+override LIBS   := -L$(HLIBDIR) -lhybrid$(LTYPE) $(LIBS)
+endif
+
+OBJS    = $(foreach module, $(ALL) $(SPECIAL), $(module).o)
+SRCE    = $(foreach module, $(ALL) $(SPECIAL), $(module).C)
+
+$(PROG): $(OBJS) $(HDRS) $(HLIB)
+	$(LD)  $(LDFLAGS) -o $(PROG).tmp $(OBJS)  $(LIBS) 
+	mv $(PROG).tmp $(PROG)
+clean :
+	rm -r $(OBJS)

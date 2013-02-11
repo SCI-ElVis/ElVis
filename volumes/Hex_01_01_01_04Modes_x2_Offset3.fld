@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<NEKTAR>
+    <ELEMENTS FIELDS="p" SHAPE="Hexahedron" BASIS="Modified_A,Modified_A,Modified_A" NUMMODESPERDIR="UNIORDER:4,4,4" ID="0">eJyb8B8EDB0u/IPQPhIMQCBwIGeVXCirSffeHX8h4hug6rK+gWj+A5vTvl5Zfipu7+b5EL7vawgNVvZ/6155FovUTZ87bA9OvpMv0NJk2/1u3XaZkw57ldj/BrEuW7531qFZbJ8ettoqgNWLOzBB6ayPEHPu+4X+mPpBY++iPxDxOVD6DBPEffP2ch3uiQ7c6/sF6p4PEPo82JyFtt++5ktJnS3bq3TVTCms1dVW5Nhr1ozNmbYSd8Vf/LKt3jvlgkjGpa2JtsH3IfrsfkDol4wMG/7fa9sbGiHd9dRt1l5WPoh97FC6mYHhxJ0zU23VDbKd/87wt334//91b81ttuv+/7+/qal777v//3Mf2Jyxffn7f2qb6k7bs/XaD35fnmC7P0nbOK5+2t6zr+xFLLM22v5+H3FK+Mp823q/JVHdVbW2Pl9sQ5IP5drO+sR6d2XbLNv1WzbNio2r2/uf9WGo3+0C277k7V4vJybaKvH+UgqrnGi7ZrWOyfu0SXsz//YL9jJW7s34Ia8sxZxkewzkTIYJtovVDSY9tCuyrSo9wtU+JXPvOsWpnb/83W2n8Av1uzin7V3yYivTx5mdtgC68BtV</ELEMENTS>
+</NEKTAR>

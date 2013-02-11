@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<NEKTAR>
+    <ELEMENTS FIELDS="p" SHAPE="Hexahedron" BASIS="Modified_A,Modified_A,Modified_A" NUMMODESPERDIR="UNIORDER:3,3,3" ID="0">eJzjYAABNYcv/0FA1eEAmOY/wAQV/wAVb4CKN/yD0DB1YGUMAXshNAdUPbuDA5gvcEABKs6AQgscgJnHgGIOA4PDf2zmJ9jitxcGEHwARf1ZawAA</ELEMENTS>
+</NEKTAR>
