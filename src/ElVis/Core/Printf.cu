@@ -51,8 +51,8 @@
 
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include <cutil.h>
-#include <cutil_inline_drvapi.h>
+//#include <cutil.h>
+//#include <cutil_inline_drvapi.h>
 
 
 //The macro CUPRINTF is defined for architectures

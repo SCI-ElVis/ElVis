@@ -38,7 +38,7 @@ PROJECT(ZLIB)
 ###########################################
 # Test for some required system information.
 
-INCLUDE (CMakeBackwardCompatibilityC)
+#INCLUDE (CMakeBackwardCompatibilityC)
 
 ###########################################
 # Source files for zlib

@@ -6,9 +6,9 @@ FIND_PACKAGE(OpenGL REQUIRED)
 # Default location
 IF( MSVC )
     SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
+    SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
+    SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut32.lib)
 ENDIF()
-SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
-SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut32.lib)
 
 SET(CUDA_USE_COMPUTE_CAPABILITY_10 false CACHE BOOL "Use Compute Capability 1.0")
 SET(CUDA_USE_COMPUTE_CAPABILITY_11 false CACHE BOOL "Use Compute Capability 1.1")
@@ -254,6 +254,10 @@ INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries
 								RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR}
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
+
+if(APPLE)	
+	set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
+endif(APPLE)
 								
 INSTALL(FILES ${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
     Nodes.txt Weights.txt MonomialConversionTables.txt

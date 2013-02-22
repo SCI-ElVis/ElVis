@@ -77,14 +77,16 @@ namespace ElVis
                 r = cuModuleGetGlobal(&m_deviceGlobalBuffer, &size, m_module, m_name.c_str());
                 if( r != CUDA_SUCCESS )
                 {
-                    std::cout << "Error locating global buffer " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                    //std::cout << "Error locating global buffer " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                    std::cout << "Error locating global buffer " << m_name << std::endl;
                 }
 
                 // Copy the address of the device memory we allocated earlier to the global variable.
                 r = cuMemcpyHtoD(m_deviceGlobalBuffer, &m_deviceMemory, sizeof(CUdeviceptr));
                 if( r != CUDA_SUCCESS )
                 {
-                    std::cout << "Error copying address to global buffer " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                    //std::cout << "Error copying address to global buffer " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                    std::cout << "Error copying address to global buffer " << m_name << std::endl;
                 }
             }
 

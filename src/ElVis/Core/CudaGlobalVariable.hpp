@@ -67,7 +67,8 @@ namespace ElVis
                     CUresult r = cuModuleGetGlobal(&m_devicePointer, &size, m_module, m_name.c_str());
                     if( r != CUDA_SUCCESS )
                     {
-                        std::cout << "Error locating global variable " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                        //std::cout << "Error locating global variable " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                        std::cout << "Error locating global variable " << m_name << std::endl;
                     }
 
                     if( size != sizeof(T) )
@@ -79,7 +80,8 @@ namespace ElVis
                 CUresult r = cuMemcpyHtoD(m_devicePointer, &data, sizeof(T));
                 if( r != CUDA_SUCCESS )
                 {
-                    std::cout << "Error writing global variable " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                    //std::cout << "Error writing global variable " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
+                    std::cout << "Error writing global variable " << m_name << std::endl;
                 }
             }
 
