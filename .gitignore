@@ -1,0 +1,5 @@
+.DS_Store
+bin/
+build_make/
+build_xcode/
+makebin/
