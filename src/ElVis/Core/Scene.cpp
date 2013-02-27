@@ -42,7 +42,7 @@
 
 #include <iostream>
 
-#include <ElVis/tinyxml/tinyxml.h>
+#include <tinyxml.h>
 
 #include <cudaGL.h>
 #include <cuda_gl_interop.h>
