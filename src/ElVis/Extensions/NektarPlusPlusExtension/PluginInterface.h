@@ -37,8 +37,8 @@
 
 extern "C"
 {
-    NEKTAR_PLUS_PLUS_EXTENSION_EXPORT const char* GetPluginName();
+    NEKTAR_PLUS_PLUS_EXTENSION_EXPORT std::string GetPluginName();
     NEKTAR_PLUS_PLUS_EXTENSION_EXPORT ElVis::Model* LoadModel(const char* path);
-    NEKTAR_PLUS_PLUS_EXTENSION_EXPORT const char* GetVolumeFileFilter();
+    NEKTAR_PLUS_PLUS_EXTENSION_EXPORT std::string GetVolumeFileFilter();
 }
 #endif //ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_PLUGIN_INTERFACE_H

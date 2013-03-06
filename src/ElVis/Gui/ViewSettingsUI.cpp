@@ -28,6 +28,7 @@
 
 #include <ElVis/Gui/ViewSettingsUI.h>
 #include <QScrollArea>
+#include <boost/typeof/typeof.hpp>
 
 namespace ElVis
 {
@@ -45,7 +46,10 @@ namespace ElVis
             m_spinBoxFactory(new QtSpinBoxFactory()),
             m_viewportProperty(0),
             m_viewportXProperty(0),
-            m_viewportYProperty(0)
+            m_viewportYProperty(0),
+            m_enumPropertyManager(new QtEnumPropertyManager()),
+            m_enumEditorFactory(new QtEnumEditorFactory()),
+            m_projectionTypeProperty(0)
         {
             this->setObjectName("ViewSettings");
             QScrollArea* m_scrollArea = new QScrollArea();
@@ -73,6 +77,16 @@ namespace ElVis
             m_intPropertyManager->setValue(m_viewportYProperty, m_appData->GetSurfaceSceneView()->GetHeight());
             m_appData->GetSurfaceSceneView()->OnWindowSizeChanged.connect(boost::bind(&ViewSettingsUI::HandleWindowSizeChanged, this, _1, _2));
 
+            m_projectionTypeProperty = m_enumPropertyManager->addProperty("Projection Type");
+            QStringList names;
+            names.push_back("Perspective");
+            names.push_back("Orthographic");
+            m_enumPropertyManager->setEnumNames(m_projectionTypeProperty, names);
+            m_browser->addProperty(m_projectionTypeProperty);
+            m_browser->setFactoryForManager(m_enumPropertyManager, m_enumEditorFactory);
+
+            connect(m_enumPropertyManager, SIGNAL(valueChanged(QtProperty*,int)), this, SLOT(HandleProjectionChangedInGui(QtProperty*,int)));
+
             m_scrollArea->setWidget(m_browser);
             m_layout = new QGridLayout(m_scrollArea);
 
@@ -88,6 +102,16 @@ namespace ElVis
         {
             m_intPropertyManager->setValue(m_viewportXProperty, m_appData->GetSurfaceSceneView()->GetWidth());
             m_intPropertyManager->setValue(m_viewportYProperty, m_appData->GetSurfaceSceneView()->GetHeight());
+        }
+
+        void ViewSettingsUI::HandleProjectionChangedInGui(QtProperty* prop, int value)
+        {
+            SceneViewProjection newProjectionType = static_cast<SceneViewProjection>(value);
+            BOOST_AUTO(view, m_appData->GetSurfaceSceneView());
+            if( view && view->GetProjectionType() != newProjectionType )
+            {
+                view->SetProjectionType(newProjectionType);
+            }
         }
     }
 }

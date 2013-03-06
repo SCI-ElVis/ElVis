@@ -11,12 +11,15 @@ ENDIF()
 SET(ProjectName ElVisCLI)
 
 # Default location
-#IF( MSVC )
-#    SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
-#ENDIF()
+IF( MSVC )
+	SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
+    SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut64.lib)
+ELSE()
+	FIND_PACKAGE(GLUT REQUIRED)
+ENDIF()
+
 #SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
 #SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut64.lib)
-FIND_PACKAGE(GLUT REQUIRED)
 
 
 INCLUDE_DIRECTORIES(
@@ -46,7 +49,7 @@ SET(SOURCES
 
 
 ADD_ELVIS_EXECUTABLE(${ProjectName} ${HEADERS} ${SOURCES} )
-
+SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 
 TARGET_LINK_LIBRARIES(${ProjectName} 
     ${OPENGL_LIBRARIES}
@@ -64,7 +67,8 @@ SET(BaselineDir ${CMAKE_SOURCE_DIR}/../Testing/${ELVIS_FLOAT}/${CMAKE_HOST_SYSTE
 
 IF( ELVIS_ENABLE_JACOBI_EXTENSION )
     GET_PROPERTY(JacobiExtensionPath TARGET JacobiExtension PROPERTY RELEASE_LOCATION)
-    ADD_TEST(NAME BulletCutSurfaceP2 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName CutSurfaceBullet
+    ADD_TEST(NAME BulletCutSurfaceP2 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} 
+        --TestName CutSurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
         --Module ${JacobiExtensionPath}
         --Width 1000

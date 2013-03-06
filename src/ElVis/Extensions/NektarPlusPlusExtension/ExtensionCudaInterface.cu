@@ -34,38 +34,18 @@
 #include <ElVis/Core/typedefs.cu>
 #include <ElVis/Core/Interval.hpp>
 #include <ElVis/Extensions/NektarPlusPlusExtension/CudaHexahedron.cu>
+#include <ElVis/Extensions/NektarPlusPlusExtension/CudaTriangle.cu>
+#include <ElVis/Extensions/NektarPlusPlusExtension/CudaQuad.cu>
 #include <ElVis/Core/IntervalPoint.cu>
+#include <LibUtilities/Foundations/BasisType.h>
 
 __device__ ElVisFloat4* FaceVertexBuffer;
 __device__ ElVisFloat4* FaceNormalBuffer;
 
-
-
-ELVIS_DEVICE void EstimateRangeCuda(unsigned int elementId, unsigned int elementType, int fieldId,
-                                          const ElVisFloat3& p0, const ElVisFloat3& p1,
-                                          ElVis::Interval<ElVisFloat>& result)
-{
-//    TensorPoint t0 = ConvertToTensorSpaceCuda(elementId, elementType, p0);
-//    TensorPoint t1 = ConvertToTensorSpaceCuda(elementId, elementType, p1);
-//    IntervalPoint interval(t0, t1);
-//    result = EvaluateFieldAtTensorPointCuda(elementId, elementType, fieldId, interval.x, interval.y, interval.z);
-////    if( elementType == 0 )
-////    {
-////        ElVisFloat3 t0 = TransformWorldToTensor(elementId, p0);
-////        ElVisFloat3 t1 = TransformWorldToTensor(elementId, p1);
-
-////        IntervalPoint interval(t0, t1);
-////        result = EvaluateHexFieldAtTensorPoint<ElVis::Interval<ElVisFloat> >(elementId, interval);
-////    }
-////    else if( elementType == 1 )
-////    {
-////        ElVisFloat3 t0 = TransformPrismWorldToTensor(PrismVertexBuffer, elementId, p0);
-////        ElVisFloat3 t1 = TransformPrismWorldToTensor(PrismVertexBuffer, elementId, p1);
-
-////        IntervalPoint interval(t0, t1);
-////        result = EvaluatePrismFieldAtTensorPoint<ElVis::Interval<ElVisFloat> >(elementId, interval);
-////    }
-}
+__device__ uint* FieldCoefficientStart;
+__device__ uint* SumPrefixNumberOfFieldCoefficients;
+__device__ uint3* FieldModes;
+__device__ Nektar::LibUtilities::BasisType* FieldBases;
 
 ELVIS_DEVICE void CalculateTransposedInvertedMappingJacobianCuda(unsigned int elementId, unsigned int elementType, int fieldId, const TensorPoint& tp, ElVisFloat* J)
 {
@@ -92,17 +72,12 @@ ELVIS_DEVICE void CalculateTransposedInvertedMappingJacobianCuda(unsigned int el
 ELVIS_DEVICE ElVisFloat3 CalculateTensorGradient(unsigned int elementId, unsigned int elementType, int fieldId, const TensorPoint& p)
 {
     ElVisFloat3 result = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
-    //if( elementType == 0 )
-    //{
-    //    uint3 degree = HexDegrees[elementId];
-
-    //    uint coefficientIndex = HexCoefficientIndices[elementId];
-    //    ElVisFloat* coeffs = &(HexCoefficients[coefficientIndex]);
-
-    //    result.x = EvaluateHexGradientDir1AtTensorPoint(degree, p.x, p.y, p.z, coeffs);
-    //    result.y = EvaluateHexGradientDir2AtTensorPoint(degree, p.x, p.y, p.z, coeffs);
-    //    result.z = EvaluateHexGradientDir3AtTensorPoint(degree, p.x, p.y, p.z, coeffs);
-    //}
+    if( elementType == 0 )
+    {
+        result.x = EvaluateHexGradientDir1AtTensorPoint(elementId, p.x, p.y, p.z);
+        result.y = EvaluateHexGradientDir2AtTensorPoint(elementId, p.x, p.y, p.z);
+        result.z = EvaluateHexGradientDir3AtTensorPoint(elementId, p.x, p.y, p.z);
+    }
     //else if( elementType == 1 )
     //{
     //    uint3 degree = PrismDegrees[elementId];
@@ -148,7 +123,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointCuda(int elementId, int
     ElVisError returnVal = eNoError;
     if( elementType == 0 )
     {
-        result = EvaluateNektarPlusPlusHexAtTensorPointCuda(elementId, tp);
+        result = EvaluateNektarPlusPlusHexAtTensorPointCuda(elementId, tp.x, tp.y, tp.z);
     }
     else
     {
@@ -178,5 +153,19 @@ ELVIS_DEVICE ElVisFloat3 EvaluateNormalCuda(unsigned int elementId, unsigned int
     return result;
 }
 
+ELVIS_DEVICE ElVisError SampleReferenceGradientCuda(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
+{
+    gradient = CalculateTensorGradient(elementId, elementType, fieldId, refPoint);
+    return eNoError;
+}
+
+ELVIS_DEVICE ElVisError SampleGeometryMappingJacobian(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
+{
+    if( elementType == 0 )
+    {
+        calculateTensorToWorldSpaceMappingJacobian(elementId, refPoint, J);
+    }
+    return eNoError;
+}
 
 #endif

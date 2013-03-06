@@ -34,9 +34,9 @@
 
 #include <boost/filesystem.hpp>
 
-const char* GetPluginName()
+std::string GetPluginName()
 {
-    static const char* result = "NektarPlusPlus";
+    static std::string result("NektarPlusPlus");
     return result;
 }
 
@@ -59,8 +59,8 @@ ElVis::Model* LoadModel(const char* path)
     return result;
 }
 
-const char* GetVolumeFileFilter()
+std::string GetVolumeFileFilter()
 {
-    static const char* result = "Nektar Volumes (*.fld *.xml)";
+    static std::string result("Nektar Volumes (*.fld *.xml)");
     return result;
 }

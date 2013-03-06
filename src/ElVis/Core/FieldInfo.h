@@ -33,6 +33,7 @@
 
 namespace ElVis
 {
+    /// \brief This class contains information about a scalar field.
     struct FieldInfo
     {
         FieldInfo() :

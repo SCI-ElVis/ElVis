@@ -140,8 +140,8 @@ namespace ElVis
                             &enableTrace, &tracex, &tracey,
                             &screen_x, &screen_y,
                             &m_gaussLegendreNodesBuffer, &m_gaussLegendreWeightsBuffer, &m_monomialConversionTableBuffer, &sampleBuffer, &intersectionBuffer};
-            cuLaunchKernel(m_findIsosurfaceFunction, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_findIsosurfaceFunction, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -174,38 +174,19 @@ namespace ElVis
 
             if( !m_findIsosurfaceFunction )
             {
-                cuModuleGetFunction(&m_findIsosurfaceFunction, module, "FindIsosurfaceInSegment");
+                checkedCudaCall(cuModuleGetFunction(&m_findIsosurfaceFunction, module, "FindIsosurfaceInSegment"));
             }
 
-            if( m_isovalues.size() > 0 )
-            {
-                if( !m_isovalueBuffer )
-                {
-                    cuMemAlloc(&m_isovalueBuffer, sizeof(ElVisFloat)*m_isovalues.size());
-                    m_isovalueBufferSize = m_isovalues.size();
-                }
 
-                if( m_isovalueBufferSize != m_isovalues.size())
-                {
-                    cuMemFree(m_isovalueBuffer);
-                    cuMemAlloc(&m_isovalueBuffer, sizeof(ElVisFloat)*m_isovalues.size());
-                    m_isovalueBufferSize = m_isovalues.size();
-                }
-
-                ElVisFloat* isovalueData = new ElVisFloat[m_isovalues.size()];
-                std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData);
-                cuMemcpyHtoD(m_isovalueBuffer, isovalueData, sizeof(ElVisFloat)*m_isovalues.size());
-                delete [] isovalueData;
-            }
 
             if( !m_gaussLegendreNodesBuffer )
             {
                 std::vector<ElVisFloat> nodes;
                 ReadFloatVector("Nodes.txt", nodes);
-                cuMemAlloc(&m_gaussLegendreNodesBuffer, sizeof(ElVisFloat)*nodes.size());
+                checkedCudaCall(cuMemAlloc(&m_gaussLegendreNodesBuffer, sizeof(ElVisFloat)*nodes.size()));
                 ElVisFloat* nodeData = new ElVisFloat[nodes.size()];
                 std::copy(nodes.begin(), nodes.end(), nodeData);
-                cuMemcpyHtoD(m_gaussLegendreNodesBuffer, nodeData, sizeof(ElVisFloat)*nodes.size());
+                checkedCudaCall(cuMemcpyHtoD(m_gaussLegendreNodesBuffer, nodeData, sizeof(ElVisFloat)*nodes.size()));
                 delete [] nodeData;
             }
 
@@ -213,10 +194,10 @@ namespace ElVis
             {
                 std::vector<ElVisFloat> weights;
                 ReadFloatVector("Weights.txt", weights);
-                cuMemAlloc(&m_gaussLegendreWeightsBuffer, sizeof(ElVisFloat)*weights.size());
+                checkedCudaCall(cuMemAlloc(&m_gaussLegendreWeightsBuffer, sizeof(ElVisFloat)*weights.size()));
                 ElVisFloat* data = new ElVisFloat[weights.size()];
                 std::copy(weights.begin(), weights.end(), data);
-                cuMemcpyHtoD(m_gaussLegendreWeightsBuffer, data, sizeof(ElVisFloat)*weights.size());
+                checkedCudaCall(cuMemcpyHtoD(m_gaussLegendreWeightsBuffer, data, sizeof(ElVisFloat)*weights.size()));
                 delete [] data;
             }
 
@@ -224,10 +205,10 @@ namespace ElVis
             {
                 std::vector<ElVisFloat> monomialCoversionData;
                 ReadFloatVector("MonomialConversionTables.txt", monomialCoversionData);
-                cuMemAlloc(&m_monomialConversionTableBuffer, sizeof(ElVisFloat)*monomialCoversionData.size());
+                checkedCudaCall(cuMemAlloc(&m_monomialConversionTableBuffer, sizeof(ElVisFloat)*monomialCoversionData.size()));
                 ElVisFloat* data = new ElVisFloat[monomialCoversionData.size()];
                 std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data);
-                cuMemcpyHtoD(m_monomialConversionTableBuffer, data, sizeof(ElVisFloat)*monomialCoversionData.size());
+                checkedCudaCall(cuMemcpyHtoD(m_monomialConversionTableBuffer, data, sizeof(ElVisFloat)*monomialCoversionData.size()));
                 delete [] data;
             }
 
@@ -248,6 +229,31 @@ namespace ElVis
         catch(...)
         {
             std::cout << "Exception encountered setting up isosurface." << std::endl;
+        }
+    }
+
+    void IsosurfaceModule::DoSynchronize(SceneView* view)
+    {
+        std::cout << "Isosurface Module Sync." << std::endl;
+        if( m_isovalues.size() > 0 )
+        {
+            if( !m_isovalueBuffer )
+            {
+                checkedCudaCall(cuMemAlloc(&m_isovalueBuffer, sizeof(ElVisFloat)*m_isovalues.size()));
+                m_isovalueBufferSize = m_isovalues.size();
+            }
+
+            if( m_isovalueBufferSize != m_isovalues.size())
+            {
+                checkedCudaCall(cuMemFree(m_isovalueBuffer));
+                checkedCudaCall(cuMemAlloc(&m_isovalueBuffer, sizeof(ElVisFloat)*m_isovalues.size()));
+                m_isovalueBufferSize = m_isovalues.size();
+            }
+
+            ElVisFloat* isovalueData = new ElVisFloat[m_isovalues.size()];
+            std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData);
+            checkedCudaCall(cuMemcpyHtoD(m_isovalueBuffer, isovalueData, sizeof(ElVisFloat)*m_isovalues.size()));
+            delete [] isovalueData;
         }
     }
 

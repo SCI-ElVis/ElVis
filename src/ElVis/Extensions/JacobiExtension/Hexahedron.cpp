@@ -112,7 +112,7 @@ namespace ElVis
 
             readBasisCoefficients(inFile, numCoefficients, reverseBytes);
 
-            setInterpolatingPolynomialDegree(degree(0)+degree(1)+degree(2));
+            //setInterpolatingPolynomialDegree(degree(0)+degree(1)+degree(2));
             calculateFaceNormals();
 
             //m_scalarField = new HexahedralJacobiExpansion<double>(degree(0),

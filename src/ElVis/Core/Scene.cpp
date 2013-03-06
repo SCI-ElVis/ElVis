@@ -42,13 +42,16 @@
 
 #include <iostream>
 
-#include <tinyxml.h>
+#include <ElVis/tinyxml/tinyxml.h>
 
-#include <cudaGL.h>
-#include <cuda_gl_interop.h>
+#include <ElVis/Core/Cuda.h>
+//#include <cudaGL.h>
+//#include <cuda_gl_interop.h>
 //#include <cutil.h>
-#include <cuda_runtime_api.h>
+//#include <cuda_runtime_api.h>
 //#include <cutil_inline_drvapi.h>
+
+using namespace tinyxml;
 
 namespace ElVis
 {
@@ -65,7 +68,7 @@ namespace ElVis
         m_enableOptiXTrace(false),
         m_optiXTraceBufferSize(100000),
         m_optixTraceIndex(),
-        m_enableOptiXExceptions(true),
+        m_enableOptiXExceptions(false),
         m_optixDataDirty(true),
         m_tracePixelDirty(true),
         m_enableTraceDirty(true),
@@ -85,13 +88,25 @@ namespace ElVis
         m_optixTraceIndex.SetX(0);
         m_optixTraceIndex.SetY(0);
         m_optixTraceIndex.SetZ(-1);
+
+        // For some reason in gcc, setting this in the constructor initialization list
+        // doesn't work.
+        m_enableOptiXExceptions = false;
+        if( m_enableOptiXExceptions )
+        {
+            std::cout << "Enabling optix exceptions in scene constructor." << std::endl;
+        }
+        else
+        {
+            std::cout << "Disabling optix exceptions in scene constructor.." << std::endl;
+        }
     }
 
     Scene::~Scene()
     {
         if( m_cudaContext )
         {
-            cuCtxDestroy(m_cudaContext);
+            checkedCudaCall(cuCtxDestroy(m_cudaContext));
             m_cudaContext = 0;
         }
 
@@ -123,33 +138,33 @@ namespace ElVis
     {
         if( m_cudaContext ) return;
 
-        cuInit(0);
+        checkedCudaCall(cuInit(0));
 
         int driverVersion = 0;
-        cuDriverGetVersion(&driverVersion);
+        checkedCudaCall(cuDriverGetVersion(&driverVersion));
 
         std::cout << "Driver version " << driverVersion << std::endl;
 
         int deviceCount = 0;
-        cuDeviceGetCount(&deviceCount);
+        checkedCudaCall(cuDeviceGetCount(&deviceCount));
 
         std::cout << "Number of available devices: " << deviceCount << std::endl;
 
         CUdevice curDevice;
-        cuDeviceGet(&curDevice, 0);
+        checkedCudaCall(cuDeviceGet(&curDevice, 0));
 
         // In order to use OpenGL interop, we need cuGLCtxCreate.
         // A valid OpenGL context must have been created first, which 
         // we assume has been done.
-        cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice);
+        checkedCudaCall(cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice));
 
         #ifdef _MSC_VER
-            std::string modulePath = GetCubinPath() + "/" + m_model->GetCUBinPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
+            std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
         #else
-            std::string modulePath = GetCubinPath() + "/" + m_model->GetCUBinPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
+            std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
         #endif
         std::cout << "Loading module from " << modulePath << std::endl;
-        cuModuleLoad(&m_cudaModule, modulePath.c_str());
+        checkedCudaCall(cuModuleLoad(&m_cudaModule, modulePath.c_str()));
     }
 
     void Scene::SetOptixStackSize(int size)
@@ -272,23 +287,7 @@ namespace ElVis
                     std::cout << "Min Extent: " << GetModel()->MinExtent() << std::endl;
                     std::cout << "Max Extent: " << GetModel()->MaxExtent() << std::endl;
 
-                    std::vector<optixu::GeometryGroup> elements = GetModel()->GetCellGeometry(this, m_context, GetCudaModule());
-                    optixu::Group volumeGroup = m_context->createGroup();
-                    volumeGroup->setChildCount(elements.size());
-
-                    // No acceleration provides better performance since there are only a couple of nodes and the
-                    // bounding box of each overlap each other.
-                    optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("NoAccel","NoAccel");
-                    //optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-
-                    volumeGroup->setAcceleration( m_elementGroupAcceleration );
-                    int childIndex = 0;
-                    for(std::vector<optixu::GeometryGroup>::iterator iter = elements.begin(); iter != elements.end(); ++iter)
-                    {
-                        volumeGroup->setChild(childIndex, *iter);
-                        ++childIndex;
-                    }
-                    m_context["element_group"]->set(volumeGroup);
+                    Get3DModelInformation();
 
                     //////////////////////////////////////////
                     // Module min/max
@@ -304,9 +303,6 @@ namespace ElVis
                 GetModel()->SetupCudaContext(GetCudaModule());
 
                 m_context->setStackSize(m_optixStackSize);
-
-
-
                 m_context->setPrintLaunchIndex(-1, -1, -1);
 
                 //// Miss program
@@ -314,7 +310,6 @@ namespace ElVis
                 //m_context["bg_color"]->setFloat( 1.0f, 1.0f, 1.0f );
 
                 SynchronizeWithOptiXIfNeeded();
-
                 OnSceneInitialized(*this);
             }
         }
@@ -325,6 +320,29 @@ namespace ElVis
             std::cout << e.getErrorString().c_str() << std::endl;
         }
         return m_context;
+    }
+
+    void Scene::Get3DModelInformation()
+    {
+        //if( GetModel()->GetModelDimension() != 3 ) return;
+
+        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context, GetCudaModule());
+        optixu::Group volumeGroup = m_context->createGroup();
+        volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
+
+        // No acceleration provides better performance since there are only a couple of nodes and the
+        // bounding box of each overlap each other.
+        optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("NoAccel","NoAccel");
+        //optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("Sbvh","Bvh");
+
+        volumeGroup->setAcceleration( m_elementGroupAcceleration );
+        int childIndex = 0;
+        for(std::vector<optixu::GeometryGroup>::iterator iter = elements.begin(); iter != elements.end(); ++iter)
+        {
+            volumeGroup->setChild(childIndex, *iter);
+            ++childIndex;
+        }
+        m_context["PointLocationGroup"]->set(volumeGroup);
     }
 
     void Scene::InitializeFaces()
@@ -427,7 +445,16 @@ namespace ElVis
 
         if( m_context->getExceptionEnabled(RT_EXCEPTION_ALL) != m_enableOptiXExceptions )
         {
-            std::cout << "Setting exception flag to " << m_enableOptiXExceptions << std::endl;
+            if( m_enableOptiXExceptions )
+            {
+                std::cout << "Enabling optix exceptions." << std::endl;
+            }
+            else
+            {
+                std::cout << "Disabling optix exceptions." << std::endl;
+            }
+
+            std::cout << "Setting exception flag to " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
             m_context->setExceptionEnabled(RT_EXCEPTION_ALL, m_enableOptiXExceptions);
         }
 

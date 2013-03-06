@@ -60,6 +60,7 @@ namespace ElVis
 
         protected:
 
+            ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
             ELVIS_EXPORT virtual void DoSetupAfterInteropModule(SceneView* view);
             ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
             ELVIS_EXPORT virtual bool HasWork() const { return m_isovalues.size() > 0; }

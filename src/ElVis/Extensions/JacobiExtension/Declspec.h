@@ -1,8 +1,4 @@
 ////////////////////////////////////////////////////////////////////////////////
-//
-//  File: hoWriters.h
-//
-//
 //  The MIT License
 //
 //  Copyright (c) 2006 Division of Applied Mathematics, Brown University (USA),

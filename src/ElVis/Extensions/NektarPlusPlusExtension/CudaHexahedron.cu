@@ -41,7 +41,7 @@
 __device__ uint* HexVertexIndices;
 __device__ uint3* NumberOfModes;
 __device__ ElVisFloat* Coefficients;
-__device__ uint* CoefficientIndices;
+__device__ uint* CoefficientOffsets;
 __device__ ElVisFloat4* Vertices;
 __device__ ElVisFloat4* HexPlaneBuffer;
 __device__ uint4* Hexvertex_face_index;
@@ -69,21 +69,6 @@ ELVIS_DEVICE WorldPoint TransformReferenceToWorld(int hexId, const ReferencePoin
     ElVisFloat t6 = (MAKE_FLOAT(1.0)+r)*(MAKE_FLOAT(1.0)-s)*(MAKE_FLOAT(1.0)+t);
     ElVisFloat t7 = (MAKE_FLOAT(1.0)+r)*(MAKE_FLOAT(1.0)+s)*(MAKE_FLOAT(1.0)+t);
     ElVisFloat t8 = (MAKE_FLOAT(1.0)-r)*(MAKE_FLOAT(1.0)+s)*(MAKE_FLOAT(1.0)+t);
-
-//    ElVisFloat x = MAKE_FLOAT(.125) * (t1*GetVertex(hexId, 0).x + t2*GetVertex(hexId, 1).x +
-//        t3*GetVertex(hexId, 2).x + t4*GetVertex(hexId, 3).x +
-//        t5*GetVertex(hexId, 4).x + t6*GetVertex(hexId, 5).x +
-//        t7*GetVertex(hexId, 6).x + t8*GetVertex(hexId, 7).x);
-
-//    ElVisFloat y = MAKE_FLOAT(.125) * (t1*GetVertex(hexId, 0).y + t2*GetVertex(hexId, 1).y +
-//        t3*GetVertex(hexId, 2).y + t4*GetVertex(hexId, 3).y +
-//        t5*GetVertex(hexId, 4).y + t6*GetVertex(hexId, 5).y +
-//        t7*GetVertex(hexId, 6).y + t8*GetVertex(hexId, 7).y);
-
-//    ElVisFloat z = MAKE_FLOAT(.125) * (t1*GetVertex(hexId, 0).z + t2*GetVertex(hexId, 1).z +
-//        t3*GetVertex(hexId, 2).z + t4*GetVertex(hexId, 3).z +
-//        t5*GetVertex(hexId, 4).z + t6*GetVertex(hexId, 5).z +
-//        t7*GetVertex(hexId, 6).z + t8*GetVertex(hexId, 7).z);
 
     const ElVisFloat4& v0 = GetVertex(hexId, 0);
     const ElVisFloat4& v1 = GetVertex(hexId, 1);
@@ -278,32 +263,26 @@ ELVIS_DEVICE TensorPoint TransformNektarPlusPlusHexWorldToTensorCuda(int hexId, 
 }
 
 
-ELVIS_DEVICE ElVisFloat EvaluateNektarPlusPlusHexAtTensorPointCuda(unsigned int elementId, const TensorPoint& p)
+template<typename T>
+ELVIS_DEVICE T EvaluateNektarPlusPlusHexAtTensorPointCuda(unsigned int elementId, const T& x, const T& y, const T& z)
 {
     uint3 modes = NumberOfModes[elementId];
-    uint coefficientIndex = CoefficientIndices[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
 
-    ElVisFloat result = MAKE_FLOAT(0.0);
+    T result(MAKE_FLOAT(0.0));
 
-//    ElVisFloat value_k[8];
-//    ElVisFloat value_j[8];
-//    ElVisFloat value_i[8];
-
-//    ModifiedA(modes.z-1, p.z, value_k);
-//    ModifiedA(modes.y-1, p.y, value_j);
-//    ModifiedA(modes.x-1, p.x, value_i);
 
     for(int k = 0; k < modes.z; ++k)
     {
-        ElVisFloat value_k = ModifiedA(k, p.z);
+        T value_k = ModifiedA(k, z);
         for(int j = 0; j < modes.y; ++j)
         {
-            ElVisFloat value_j = ModifiedA(j, p.y);
+            T value_j = ModifiedA(j, y);
             for(int i = 0; i < modes.x; ++i)
             {
                 result += Coefficients[coefficientIndex] *
                         //value_k[k] * value_j[j]*value_i[i];
-                    ModifiedA(i, p.x) *
+                    ModifiedA(i, x) *
                     value_j *
                     value_k;
                 ++coefficientIndex;
@@ -314,27 +293,26 @@ ELVIS_DEVICE ElVisFloat EvaluateNektarPlusPlusHexAtTensorPointCuda(unsigned int 
     return result;
 }
 
-
-
-ELVIS_DEVICE ElVis::Interval<ElVisFloat> EvaluateNektarPlusPlusHexAtTensorPointCuda(unsigned int elementId, const IntervalPoint& p)
+template<typename T>
+__device__ __forceinline__ T EvaluateHexGradientDir1AtTensorPoint(unsigned int elementId, const T& x, const T& y, const T& z)
 {
     uint3 modes = NumberOfModes[elementId];
-    uint coefficientIndex = CoefficientIndices[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
 
-    ElVis::Interval<ElVisFloat> result = MAKE_FLOAT(0.0);
+    T result(MAKE_FLOAT(0.0));
 
-    //for(unsigned int i = 0; i < modes.x; ++i)
-    for(unsigned int k = 0; k < modes.z; ++k)
+
+    for(int k = 0; k < modes.z; ++k)
     {
-        ElVis::Interval<ElVisFloat> value_k = ModifiedA(k, p.z);
-        for(unsigned int j = 0; j < modes.y; ++j)
+        T value_k = ModifiedA(k, z);
+        for(int j = 0; j < modes.y; ++j)
         {
-            ElVis::Interval<ElVisFloat> value_j = ModifiedA(j, p.y);
-            for(unsigned int i = 0; i < modes.x; ++i)
-            //for(unsigned int k = 0; k < modes.z; ++k)
+            T value_j = ModifiedA(j, y);
+            for(int i = 0; i < modes.x; ++i)
             {
                 result += Coefficients[coefficientIndex] *
-                    ModifiedA(i, p.x) *
+                        //value_k[k] * value_j[j]*value_i[i];
+                    ModifiedAPrime(i, x) *
                     value_j *
                     value_k;
                 ++coefficientIndex;
@@ -344,6 +322,96 @@ ELVIS_DEVICE ElVis::Interval<ElVisFloat> EvaluateNektarPlusPlusHexAtTensorPointC
 
     return result;
 }
+
+template<typename T>
+__device__ __forceinline__ T EvaluateHexGradientDir2AtTensorPoint(unsigned int elementId, const T& x, const T& y, const T& z)
+{
+    uint3 modes = NumberOfModes[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
+
+    T result(MAKE_FLOAT(0.0));
+
+
+    for(int k = 0; k < modes.z; ++k)
+    {
+        T value_k = ModifiedA(k, z);
+        for(int j = 0; j < modes.y; ++j)
+        {
+            T value_j = ModifiedAPrime(j, y);
+            for(int i = 0; i < modes.x; ++i)
+            {
+                result += Coefficients[coefficientIndex] *
+                        //value_k[k] * value_j[j]*value_i[i];
+                    ModifiedA(i, x) *
+                    value_j *
+                    value_k;
+                ++coefficientIndex;
+            }
+        }
+    }
+
+    return result;
+}
+
+template<typename T>
+__device__ __forceinline__ T EvaluateHexGradientDir3AtTensorPoint(unsigned int elementId, const T& x, const T& y, const T& z)
+{
+    uint3 modes = NumberOfModes[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
+
+    T result(MAKE_FLOAT(0.0));
+
+
+    for(int k = 0; k < modes.z; ++k)
+    {
+        T value_k = ModifiedAPrime(k, z);
+        for(int j = 0; j < modes.y; ++j)
+        {
+            T value_j = ModifiedA(j, y);
+            for(int i = 0; i < modes.x; ++i)
+            {
+                result += Coefficients[coefficientIndex] *
+                        //value_k[k] * value_j[j]*value_i[i];
+                    ModifiedA(i, x) *
+                    value_j *
+                    value_k;
+                ++coefficientIndex;
+            }
+        }
+    }
+
+    return result;
+}
+
+
+//ELVIS_DEVICE ElVis::Interval<ElVisFloat> EvaluateNektarPlusPlusHexAtTensorPointCuda(unsigned int elementId, const IntervalPoint& p)
+//{
+//    uint3 modes = NumberOfModes[elementId];
+//    uint coefficientIndex = CoefficientOffsets[elementId];
+//
+//    ElVis::Interval<ElVisFloat> result = MAKE_FLOAT(0.0);
+//
+//    //for(unsigned int i = 0; i < modes.x; ++i)
+//    for(unsigned int k = 0; k < modes.z; ++k)
+//    {
+//        ElVis::Interval<ElVisFloat> value_k = ModifiedA(k, p.z);
+//        for(unsigned int j = 0; j < modes.y; ++j)
+//        {
+//            ElVis::Interval<ElVisFloat> value_j = ModifiedA(j, p.y);
+//            for(unsigned int i = 0; i < modes.x; ++i)
+//            //for(unsigned int k = 0; k < modes.z; ++k)
+//            {
+//                result += Coefficients[coefficientIndex] *
+//                    ModifiedA(i, p.x) *
+//                    value_j *
+//                    value_k;
+//                ++coefficientIndex;
+//            }
+//        }
+//    }
+//
+//    return result;
+//}
 
 
 #endif 

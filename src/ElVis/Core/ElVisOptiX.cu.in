@@ -54,7 +54,17 @@
 ///        result will only be used for output. If eReferencePointIsInitialGuess, then result is
 ///        a guess for the actual location of the reference point.
 /// \param result On input, it can be an initial guess.  On output, the actual reference point corresponding to wp.
-/// \returns
+/// \returns eNoError if a valid reference point is found
+///          ePointOutsideElement if the world point does not fall inside this element
+///          eInvalidElementId if the requested element id is invalid
+///          eInvalidElementType if the requested element type is invalid
+///          eConvergenceFailure if the reference point cannot be found due to convergence errors.
+///
+/// This method is responsible for transforming a given world-space coordinate to 
+/// the corresponding reference space coordinate for the specified element.  It 
+/// is assumed that an iterative method will be used to find the reference space coordinate, 
+/// although this is not required if analytic methods are available.  To aid convergence 
+/// of iterative methods, ElVis will provide an initial guess to this method when possible.
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& wp,
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& result);
 
@@ -106,7 +116,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result);
 
-#include <ElVis/Extensions/@ProjectName@/ExtensionOptiXInterface.cu>
+#include <@ExtensionPath@/ExtensionOptiXInterface.cu>
 
 ///////////////////////////////////////////////////////////////////////////////
 // End Interface

@@ -51,6 +51,8 @@ namespace ElVis
 
             public Q_SLOTS:
                 void HandleWindowSizeChanged(int w, int h);
+                void HandleProjectionChangedInGui(QtProperty* prop, int value);
+
             protected:
 
             private:
@@ -68,6 +70,9 @@ namespace ElVis
                 QtProperty* m_viewportProperty;
                 QtProperty* m_viewportXProperty;
                 QtProperty* m_viewportYProperty;
+                QtEnumPropertyManager* m_enumPropertyManager;
+                QtEnumEditorFactory* m_enumEditorFactory;
+                QtProperty* m_projectionTypeProperty;
         };
 
     }

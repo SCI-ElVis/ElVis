@@ -58,6 +58,7 @@ namespace ElVis
 
     void ElementTraversalModule::DoSetup(SceneView* view)
     {
+        std::cout << "ElementTraversalModule::DoSetup." << std::endl;
         optixu::Context context = view->GetContext();
         CUmodule module = view->GetScene()->GetCudaModule();
 
@@ -91,7 +92,7 @@ namespace ElVis
             m_SomeSegmentsNeedToBeIntegrated = context->createBuffer(RT_BUFFER_INPUT_OUTPUT, RT_FORMAT_INT, 1);
             context["SomeSegmentsNeedToBeIntegrated"]->set(m_SomeSegmentsNeedToBeIntegrated);
 
-            cuModuleGetFunction(&m_copyElementIdKeyData, module, "CopyToElementId");
+            checkedCudaCall(cuModuleGetFunction(&m_copyElementIdKeyData, module, "CopyToElementId"));
         }
 
         DoSetupAfterInteropModule(view);
@@ -167,8 +168,8 @@ namespace ElVis
 
             void* args[] = {&idBuffer, &typeBuffer, &keyBuffer,
                             &enableTrace, &tracex, &tracey, &n};
-            cuLaunchKernel(m_copyElementIdKeyData, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_copyElementIdKeyData, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             m_IdSortBuffer.UnmapCudaPtr();

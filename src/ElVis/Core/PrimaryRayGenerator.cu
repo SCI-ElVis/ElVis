@@ -36,6 +36,9 @@
 #include <ElVis/Core/Float.cu>
 #include <ElVis/Core/matrix.cu>
 #include <ElVis/Core/OptixVariables.cu>
+#include <ElVis/Core/SceneViewProjection.h>
+
+rtDeclareVariable(ElVis::SceneViewProjection , ProjectionType, , );
 
 rtDeclareVariable(ElVisFloat3, eye, , );
 rtDeclareVariable(ElVisFloat3, U, , );
@@ -47,18 +50,31 @@ __device__ __forceinline__ optix::Ray GeneratePrimaryRay(const optix::size_t2& s
 {
     ElVisFloat2 d = MakeFloat2(launch_index) / MakeFloat2(screen) * MAKE_FLOAT(2.0) - MAKE_FLOAT(1.0);
 
-    ElVisFloat3 ray_origin = eye;
-    ElVisFloat3 ray_direction = normalize(d.x*U + d.y*V + W);
+    if( ProjectionType == ElVis::ePerspective )
+    {
+        ELVIS_PRINTF("GeneratePrimaryRay: Perspective projection.\n");
+        ElVisFloat3 ray_origin = eye;
+        ElVisFloat3 ray_direction = normalize(d.x*U + d.y*V + W);
 
-    optix::Ray ray = optix::make_Ray( ConvertToFloat3(ray_origin), ConvertToFloat3(ray_direction), rayTypeId, tolerance, RT_DEFAULT_MAX);
+        optix::Ray ray = optix::make_Ray( ConvertToFloat3(ray_origin), ConvertToFloat3(ray_direction), rayTypeId, tolerance, RT_DEFAULT_MAX);
 
-    //ELVIS_PRINTF("Screen (%d, %d)\n", screen.x, screen.y);
-//    ELVIS_PRINTF("d (%f, %f)\n", d.x, d.y);
-//    ELVIS_PRINTF("U (%f, %f, %f)\n", U.x, U.y, U.z);
-//    ELVIS_PRINTF("V (%f, %f, %f)\n", V.x, V.y, V.z);
-//    ELVIS_PRINTF("W (%f, %f, %f)\n", W.x, W.y, W.z);
+        //ELVIS_PRINTF("Screen (%d, %d)\n", screen.x, screen.y);
+        //ELVIS_PRINTF("d (%f, %f)\n", d.x, d.y);
+        //ELVIS_PRINTF("U (%f, %f, %f)\n", U.x, U.y, U.z);
+        //ELVIS_PRINTF("V (%f, %f, %f)\n", V.x, V.y, V.z);
+        //ELVIS_PRINTF("W (%f, %f, %f)\n", W.x, W.y, W.z);
 
-    return ray;
+        return ray;
+    }
+    else
+    {
+        ELVIS_PRINTF("GeneratePrimaryRay: Orthographic projection.\n");
+        ElVisFloat3 newEye = eye + near*W + d.x*U + d.y*V;
+        ElVisFloat3 dir = normalize(W);
+        optix::Ray ray = optix::make_Ray(ConvertToFloat3(newEye), ConvertToFloat3(dir), rayTypeId, tolerance, RT_DEFAULT_MAX);
+        return ray;
+    }
+
 }
 
 #endif

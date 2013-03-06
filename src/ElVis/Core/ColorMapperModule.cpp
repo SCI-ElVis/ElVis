@@ -68,6 +68,9 @@ namespace ElVis
         // Testing has shown that textures are slightly slower and take longer to compile
         context["ColorMapTexture"]->set(m_data);
 
+        context["TextureMaxScalar"]->setFloat(m_min);
+        context["TextureMinScalar"]->setFloat(m_max);
+
 //        m_textureSampler = context->createTextureSampler();
 //        m_textureSampler->setWrapMode(0, RT_WRAP_REPEAT);
 //        m_textureSampler->setWrapMode(1, RT_WRAP_REPEAT);

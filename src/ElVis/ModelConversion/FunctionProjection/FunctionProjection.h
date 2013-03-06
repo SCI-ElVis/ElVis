@@ -86,7 +86,7 @@ namespace ElVis
             FunctionProjection& operator=(const FunctionProjection& rhs);
 
 
-            ElVis::NektarPlusPlusExtension::NektarModel m_model;
+            ElVis::NektarPlusPlusExtension::NektarModel* m_model;
             SpatialDomains::BoundaryConditions* bcs;
             std::vector<ElVis::WorldPoint> m_allPoints;
     };

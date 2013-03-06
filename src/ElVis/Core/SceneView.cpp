@@ -95,8 +95,10 @@ namespace ElVis
         m_exceptionProgram(),
         //m_backgroundColor(0.0, 0.0, 0.0)
         m_backgroundColor(1.0, 1.0, 1.0),
-        m_scalarFieldIndex(0)
+        m_scalarFieldIndex(0),
+        m_projectionType(ePerspective)
     {
+        m_projectionType.OnDirtyFlagChanged.connect(boost::bind(&SceneView::HandleSynchedObjectChanged<SceneViewProjection>, this, _1));
         m_viewSettings->OnCameraChanged.connect(boost::bind(&SceneView::SetupCamera, this));
     }
 
@@ -138,7 +140,10 @@ namespace ElVis
 
     void SceneView::Resize(int width, int height) 
     {
-        if( width == m_width && height == m_height ) return;
+        if( width == m_width && height == m_height ) 
+        {
+            return;
+        }
         m_width = width;
         m_height = height;
         WindowSizeHasChanged();
@@ -216,19 +221,6 @@ namespace ElVis
         }
 
         OnSceneViewChanged(*this);
-
-//        typedef std::map<std::string, RayGeneratorProgram>::value_type IterType;
-//        BOOST_FOREACH( IterType iter, m_rayGenerationPrograms)
-//        {
-//            optixu::Program p = iter.second.Program;
-//            SetFloat(p["eye"], cam_eye);
-//            SetFloat(p["U"], u);
-//            SetFloat(p["V"], v);
-//            SetFloat(p["W"], w);
-//            p["near"]->setFloat(m_viewSettings->GetNear());
-//            p["far"]->setFloat(m_viewSettings->GetFar());
-//        }
-
     }
 
     void SceneView::WriteDepthBuffer(const std::string& filePrefix)
@@ -298,34 +290,20 @@ namespace ElVis
         boost::gil::png_write_view(fileName + ".png", boost::gil::const_view(forPng));
         m_colorBuffer.UnmapOptiXPointer();
 
-        //ElVisFloat3* rawColorBuffer = m_rawColorBuffer.MapOptiXPointer();
-        //std::string floatingPointFileName = fileName + ".bin";
-        //FILE* outFile = fopen(floatingPointFileName.c_str(), "wb");
-        //unsigned int w = GetWidth();
-        //unsigned int h = GetHeight();
-        //fwrite(&w, sizeof(unsigned int), 1, outFile);
-        //fwrite(&h, sizeof(unsigned int), 1, outFile);
-        //fwrite(rawColorBuffer, sizeof(ElVisFloat3), GetWidth()*GetHeight(), outFile);
-        //fclose(outFile);
-        //m_rawColorBuffer.UnmapOptiXPointer();
-
-//        BOOST_FOREACH(boost::shared_ptr<RenderModule>  module, m_allRenderModules)
-//        {
-//            boost::shared_ptr<VolumeRenderingModule> volModule = boost::dynamic_pointer_cast<VolumeRenderingModule>(module);
-//            if( !volModule) continue;
-
-//            volModule->WriteAccumulatedDensityBuffer(fileName, this);
-//        }
         std::cout << "Done writing images." << std::endl;
     }
 
-    void SceneView::Draw()
+    Timer SceneView::Draw()
     {
-        if( !GetScene() ) return;
-        if( !GetScene()->GetModel() ) return;
+        Timer result;
+
+        if( !GetScene() ) return result;
+        if( !GetScene()->GetModel() ) return result;
 
         try
         {
+            result.Start();
+
             PrepareForDisplay();
 //            ClearDepthBuffer();
             ClearColorBuffer();
@@ -363,6 +341,8 @@ namespace ElVis
                     printf("Module %s time = %e.\n", moduleName.c_str(), elapsed);
                 }
             }
+            result.Stop();
+            return result;
         }
         catch(optixu::Exception& e)
         {
@@ -379,6 +359,7 @@ namespace ElVis
         {
             std::cout << "Exception encountered in SceneView::Draw" << std::endl;
         }
+        return result;
     }    
 
     void SceneView::AddRenderModule(boost::shared_ptr<RenderModule>  module)
@@ -390,6 +371,8 @@ namespace ElVis
         // need to re-render, but don't necessarily need to redo their setup.
 
         OnWindowSizeChanged.connect(boost::bind(&RenderModule::SetRenderRequired, module.get()));
+
+        OnSceneViewChanged.connect(boost::bind(&RenderModule::SetRenderRequired, module));
     }
 
     void SceneView::HandleRenderModuleChanged(const RenderModule&)
@@ -679,20 +662,20 @@ namespace ElVis
             // Add a cut plane primitive to the scene to make it so we don't have to have
             // a separate recompile.  This may not be the best long term solution for all
             // possible shapes.
-            {
-                // Default to a cut plane that spans the volume with a normal (1,0,0).
-                WorldPoint normal(1.0, 0.0, 0.0);
-                WorldPoint p(1e10, 1e10, 1e10);
-                boost::shared_ptr<ElVis::Plane> cutPlane(new ElVis::Plane(normal, p));
+//            {
+//                // Default to a cut plane that spans the volume with a normal (1,0,0).
+//                WorldPoint normal(1.0, 0.0, 0.0);
+//                WorldPoint p(1e10, 1e10, 1e10);
+//                boost::shared_ptr<ElVis::Plane> cutPlane(new ElVis::Plane(normal, p));
 
-                boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule = GetPrimaryRayModule();
+//                boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule = GetPrimaryRayModule();
 
-                boost::shared_ptr<ElVis::SampleVolumeSamplerObject> sampler(new ElVis::SampleVolumeSamplerObject(cutPlane));
-                if( primaryRayModule )
-                {
-                    primaryRayModule->AddObject(sampler);   
-                }
-            }
+//                boost::shared_ptr<ElVis::SampleVolumeSamplerObject> sampler(new ElVis::SampleVolumeSamplerObject(cutPlane));
+//                if( primaryRayModule )
+//                {
+//                    primaryRayModule->AddObject(sampler);
+//                }
+//            }
             ///////////////////////////////////
             // End Test Code
             //////////////////////////////////
@@ -772,6 +755,14 @@ namespace ElVis
             SetFloat(context["BGColor"], bgColor);
             m_backgroundColorIsDirty = false;
         }
+
+        if( m_projectionType.IsDirty() )
+        {
+            std::cout << "Setting projection type." << std::endl;
+            ElVis::SceneViewProjection data = *m_projectionType;
+            context["ProjectionType"]->setUserData(sizeof(ElVis::SceneViewProjection), &data);
+            m_projectionType.MarkClean();
+        }
     }
 
     const Color& SceneView::GetHeadlightColor() const
@@ -809,5 +800,17 @@ namespace ElVis
         m_sampleBuffer.UnmapOptiXPointer();
         return result;
     }
+
+
+    void SceneView::SetProjectionType(SceneViewProjection type)
+    {
+        m_projectionType = type;
+    }
+
+    SceneViewProjection SceneView::GetProjectionType() const
+    {
+        return *m_projectionType;
+    }
+
 
 }

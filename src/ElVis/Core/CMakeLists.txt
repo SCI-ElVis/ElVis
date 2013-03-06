@@ -65,7 +65,6 @@ SET(ELVIS_HEADERS
     Camera.h
     Color.h
     ColorMap.h
-    ColorMapperModule.h
     Cuda.h
     CudaGlobalBuffer.hpp
     CudaGlobalVariable.hpp
@@ -82,49 +81,41 @@ SET(ELVIS_HEADERS
     ${CMAKE_BINARY_DIR}/ElVis/Core/Float.h
     Float.h.in
     FieldInfo.h
-    ElementTraversalModule.h
     ElVisDeclspec.h
     ExtensionPTXConfig.cpp.in
     ExtensionPTXConfig.h.in
     HostTransferFunction.h
     InteropBuffer.hpp
     Interval.hpp
-    IsosurfaceModule.h
     IsosurfaceObject.h
     Jacobi.hpp
     Light.h
-    LightingModule.h
     Model.h
-    Object.h
     Octree.hpp
     OpenGL.h
     OptiXExtensions.hpp
-    Plane.h
     Plugin.h
     Point.hpp
     PointLight.h
-    PrimaryRayModule.h
-    PrimaryRayObject.h
     PtxManager.h
     RayGeneratorProgram.h
     ReferencePointParameter.h
-    RenderModule.h
-    SampleFaceObject.h
-    SampleOntoNrrdModule.h
-    SampleVolumeSamplerObject.h
     Scene.h
     SceneView.h
+    SceneViewProjection.h
     Spaces.h
     Stat.h
-    SurfaceObject.h
     sutil.h
+    SynchedObject.hpp
     Timer.h
     TransferFunction.h
     Triangle.h
     Util.hpp
     Vector.hpp
     VolumeRenderingIntegrationCategory.h
-    VolumeRenderingModule.h
+) 
+
+SET(ELVIS_MATH_HEADERS
     ../Math/AdaptiveQuadrature.hpp
     ../Math/GaussLegendreQuadrature.hpp
     ../Math/Integration.hpp
@@ -132,45 +123,72 @@ SET(ELVIS_HEADERS
     ../Math/Polynomial.hpp
     ../Math/PolynomialProjection.hpp
     ../Math/TrapezoidalIntegration.hpp
-) 
+)
 
 SET(ELVIS_SOURCES
     Buffer.cpp
     Camera.cpp
     Color.cpp
     ColorMap.cpp
-    ColorMapperModule.cpp
     CutSurfaceContourModule.cpp
     CutSurfaceMeshModule.cpp
     Cylinder.cpp
     DirectionalLight.cpp
     DynamicLib.cpp
-    ElementTraversalModule.cpp
     ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp
     FaceObject.cpp
-    IsosurfaceModule.cpp
     IsosurfaceObject.cpp
     Light.cpp
-    LightingModule.cpp
     Model.cpp
-    Object.cpp
-    Plane.cpp
     Plugin.cpp
     PointLight.cpp
-    PrimaryRayModule.cpp
-    PrimaryRayObject.cpp
     PtxManager.cpp
-    RenderModule.cpp
-    SampleFaceObject.cpp
-    SampleOntoNrrdModule.cpp
-    SampleVolumeSamplerObject.cpp
     Scene.cpp
     SceneView.cpp
-    SurfaceObject.cpp
     Timer.cpp
     TransferFunction.cpp
     Triangle.cpp
     Util.cpp
+)
+
+SET(ObjectFiles
+    Object.h
+    Object.cpp
+    Plane.h
+    Plane.cpp
+    TwoDPrimaryElements.h
+    TwoDPrimaryElements.cpp
+)
+
+SET(PrimaryRayObjectFiles
+    PrimaryRayObject.h
+    PrimaryRayObject.cpp
+    SampleFaceObject.h
+    SampleFaceObject.cpp
+    SampleVolumeSamplerObject.h
+    SampleVolumeSamplerObject.cpp
+    SurfaceObject.h
+    SurfaceObject.cpp
+    TwoDPrimaryElementsPrimaryObject.h
+    TwoDPrimaryElementsPrimaryObject.cpp
+)
+
+SET(ModuleFiles
+    ColorMapperModule.h
+    ColorMapperModule.cpp
+    ElementTraversalModule.h
+    ElementTraversalModule.cpp
+    IsosurfaceModule.h
+    IsosurfaceModule.cpp
+    LightingModule.h
+    LightingModule.cpp
+    PrimaryRayModule.h
+    PrimaryRayModule.cpp
+    RenderModule.h
+    RenderModule.cpp
+    SampleOntoNrrdModule.h
+    SampleOntoNrrdModule.cpp
+    VolumeRenderingModule.h
     VolumeRenderingModule.cpp
 )
 
@@ -251,8 +269,8 @@ TARGET_LINK_LIBRARIES(${ProjectName}
     ${TinyXML_Library}
 )
 
-INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries 
-								RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
+
+INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR}
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 
@@ -265,5 +283,19 @@ INSTALL(FILES ${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
     DESTINATION ${ELVIS_BIN_DIR}
 )
 
+INSTALL(FILES ${ELVIS_HEADERS} ${ELVIS_CUDA_HEADERS}
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
+    DESTINATION ${ELVIS_INCLUDE_DIR}/ElVis/Core)
+
+INSTALL(FILES ${ELVIS_MATH_HEADERS}
+    DESTINATION ${ELVIS_INCLUDE_DIR}/ElVis/Math)
+
+
+
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in
                ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
+
+

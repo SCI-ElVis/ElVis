@@ -1963,6 +1963,20 @@ namespace NumericalIntegration
                 }
             }
 
+            static void DeInitializeNodesAndWeights()
+            {
+                for(int i = 0; i < nodes.size(); ++i)
+                {
+                    if( nodes[i] ) delete nodes[i];
+                }
+
+                for(int i = 0; i < weights.size(); ++i)
+                {
+                    if( weights[i] ) delete weights[i];
+                }
+
+            }
+
             static void GenerateGaussLegendreNodesAndWeights(const std::vector<Type>*& x,
                 const std::vector<Type>*& w, unsigned int n)
             {

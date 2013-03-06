@@ -83,7 +83,7 @@ RT_PROGRAM void ElementByElementVolumeTraversalInit()
     payload0.Initialize();
 
     optix::Ray ray0 = optix::make_Ray(initialRay.origin, initialRay.direction, 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(element_group, ray0, payload0);
+    //rtTrace(PointLocationGroup, ray0, payload0);
     rtTrace(faceForTraversalGroup, ray0, payload0);
     //rtTrace(faceGroup, ray0, payload0);
 
@@ -102,7 +102,7 @@ RT_PROGRAM void ElementByElementVolumeTraversalInit()
 
     ElVisFloat3 origin1 = origin0 + payload0.IntersectionT*rayDirection;
     optix::Ray ray1 = optix::make_Ray(ConvertToFloat3(origin1), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(element_group, ray1, payload1);
+    //rtTrace(PointLocationGroup, ray1, payload1);
     rtTrace(faceForTraversalGroup, ray1, payload1);
     //rtTrace(faceGroup, ray1, payload1);
 
@@ -175,7 +175,7 @@ RT_PROGRAM void ElementByElementVolumeTraversal()
     ElVisFloat3 origin = eye + startingT*rayDirection;
 
     optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(element_group, ray, payload);
+    //rtTrace(PointLocationGroup, ray, payload);
     rtTrace(faceForTraversalGroup, ray, payload);
     //rtTrace(faceGroup, ray, payload);
 

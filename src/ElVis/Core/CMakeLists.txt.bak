@@ -1,0 +1,301 @@
+ 
+SET(ProjectName ElVisCore)
+
+FIND_PACKAGE(OpenGL REQUIRED)
+#FIND_PACKAGE(GLEW REQUIRED)
+# Default location
+IF( MSVC )
+    SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
+    SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
+    SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut32.lib)
+ENDIF()
+
+SET(CUDA_USE_COMPUTE_CAPABILITY_10 false CACHE BOOL "Use Compute Capability 1.0")
+SET(CUDA_USE_COMPUTE_CAPABILITY_11 false CACHE BOOL "Use Compute Capability 1.1")
+SET(CUDA_USE_COMPUTE_CAPABILITY_12 false CACHE BOOL "Use Compute Capability 1.2")
+SET(CUDA_USE_COMPUTE_CAPABILITY_13 false CACHE BOOL "Use Compute Capability 1.3")
+SET(CUDA_USE_COMPUTE_CAPABILITY_20 true CACHE BOOL "Use Compute Capability 2.0")
+SET(CUDA_USE_COMPUTE_CAPABILITY_21 false CACHE BOOL "Use Compute Capability 2.1")
+
+IF(CUDA_USE_COMPUTE_CAPABILITY_10)
+	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_10")
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_11)
+	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_11")
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_12)
+	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_12")
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_13)
+	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_13")
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_20)
+	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_20")
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_21)
+	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_21")
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+ENDIF()
+
+
+INCLUDE_DIRECTORIES(
+    ${OPENGL_INCLUDE_DIR} 
+    ${GLUT_INCLUDE_DIR}
+	${TINY_XML_DIR}
+)
+                    
+ADD_DEFINITIONS(-DELVIS_EXPORTS)
+
+
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisConfig.cpp.in
+               ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp @ONLY)
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/Float.h.in
+               ${CMAKE_BINARY_DIR}/ElVis/Core/Float.h @ONLY)
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/Float.cu.in
+               ${CMAKE_BINARY_DIR}/ElVis/Core/Float.cu )
+
+SET(ELVIS_HEADERS
+    Buffer.h
+    Camera.h
+    Color.h
+    ColorMap.h
+    Cuda.h
+    CudaGlobalBuffer.hpp
+    CudaGlobalVariable.hpp
+    CutSurfaceContourModule.h
+    CutSurfaceMeshModule.h
+    Cylinder.h
+    DirectionalLight.h
+    DynamicLib.h
+    ElementId.h
+    ElVisConfig.h
+    ElVisConfig.cpp.in
+    FaceDef.h
+    FaceObject.h
+    ${CMAKE_BINARY_DIR}/ElVis/Core/Float.h
+    Float.h.in
+    FieldInfo.h
+    ElVisDeclspec.h
+    ExtensionPTXConfig.cpp.in
+    ExtensionPTXConfig.h.in
+    HostTransferFunction.h
+    InteropBuffer.hpp
+    Interval.hpp
+    IsosurfaceObject.h
+    Jacobi.hpp
+    Light.h
+    Model.h
+    Octree.hpp
+    OpenGL.h
+    OptiXExtensions.hpp
+    Plugin.h
+    Point.hpp
+    PointLight.h
+    PtxManager.h
+    RayGeneratorProgram.h
+    ReferencePointParameter.h
+    Scene.h
+    SceneView.h
+    SceneViewProjection.h
+    Spaces.h
+    Stat.h
+    sutil.h
+    SynchedObject.hpp
+    Timer.h
+    TransferFunction.h
+    Triangle.h
+    Util.hpp
+    Vector.hpp
+    VolumeRenderingIntegrationCategory.h
+) 
+
+SET(ELVIS_MATH_HEADERS
+    ../Math/AdaptiveQuadrature.hpp
+    ../Math/GaussLegendreQuadrature.hpp
+    ../Math/Integration.hpp
+    ../Math/Jacobi.hpp
+    ../Math/Polynomial.hpp
+    ../Math/PolynomialProjection.hpp
+    ../Math/TrapezoidalIntegration.hpp
+)
+
+SET(ELVIS_SOURCES
+    Buffer.cpp
+    Camera.cpp
+    Color.cpp
+    ColorMap.cpp
+    CutSurfaceContourModule.cpp
+    CutSurfaceMeshModule.cpp
+    Cylinder.cpp
+    DirectionalLight.cpp
+    DynamicLib.cpp
+    ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp
+    FaceObject.cpp
+    IsosurfaceObject.cpp
+    Light.cpp
+    Model.cpp
+    Plugin.cpp
+    PointLight.cpp
+    PtxManager.cpp
+    Scene.cpp
+    SceneView.cpp
+    Timer.cpp
+    TransferFunction.cpp
+    Triangle.cpp
+    Util.cpp
+)
+
+SET(ObjectFiles
+    Object.h
+    Object.cpp
+    Plane.h
+    Plane.cpp
+    TwoDPrimaryElements.h
+    TwoDPrimaryElements.cpp
+)
+
+SET(PrimaryRayObjectFiles
+    PrimaryRayObject.h
+    PrimaryRayObject.cpp
+    SampleFaceObject.h
+    SampleFaceObject.cpp
+    SampleVolumeSamplerObject.h
+    SampleVolumeSamplerObject.cpp
+    SurfaceObject.h
+    SurfaceObject.cpp
+    TwoDPrimaryElementsPrimaryObject.h
+    TwoDPrimaryElementsPrimaryObject.cpp
+)
+
+SET(ModuleFiles
+    ColorMapperModule.h
+    ColorMapperModule.cpp
+    ElementTraversalModule.h
+    ElementTraversalModule.cpp
+    IsosurfaceModule.h
+    IsosurfaceModule.cpp
+    LightingModule.h
+    LightingModule.cpp
+    PrimaryRayModule.h
+    PrimaryRayModule.cpp
+    RenderModule.h
+    RenderModule.cpp
+    SampleOntoNrrdModule.h
+    SampleOntoNrrdModule.cpp
+    VolumeRenderingModule.h
+    VolumeRenderingModule.cpp
+)
+
+SET(ELVIS_CUDA_HEADERS
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ConvertToColor.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/CutCylinder.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/CutSurfaceContourModule.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/CutSurfacePayloads.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/DiffuseLighting.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversalModule.h
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/FieldEvaluator.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/FindElement.cu
+    ${CMAKE_BINARY_DIR}/ElVis/Core/Float.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/Float.cu.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/GaussKronrod.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/InnerIntegralAdaptiveTrapezoidal.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/IntervalMatrix.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/IntervalPoint.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/IsosurfaceModuleCuda.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/jacobi.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/matrix.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/OptixVariables.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/OuterIntegralAdaptiveTrapezoidal.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/Plane.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/PrimaryRayGenerator.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/PrimaryRayModule.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/Printf.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/OpenGLLighting.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ReentrantAdaptiveTrapezoidal.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/SampleVolumeSamplerObject.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/SurfaceObject.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/TextureColorMap.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/triangle.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/typedefs.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/util.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/VolumeRendering.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/VolumeRenderingFull.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/VolumeRenderingOptiXModule.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/VolumeRenderingSingleRayPerSegment.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/VolumeRenderingOptiXModule.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/VolumeRenderingPayload.cu
+) 
+
+INCLUDE_DIRECTORIES(
+    ${CUDA_TOOLKIT_INCLUDE}
+    ${PNG_INCLUDE}
+	${ZLIB_INCLUDE}
+)
+
+# Create a separate library for the Cuda code because the default way of compiling .cu
+# files in ElVis is directly to ptx, which I can't link to.
+#ADD_ELVIS_CUDA_LIBRARY(${ProjectName}CudaInterface ThrustInterface.cu)
+
+add_definitions(${PNG_DEFINITIONS})
+
+#LINK_DIRECTORIES(${BOOST_LIBRARY})
+SOURCE_GROUP("Cuda" FILES ${ELVIS_CUDA_HEADERS})
+SET_SOURCE_FILES_PROPERTIES(${ELVIS_CUDA_HEADERS} PROPERTIES HEADER_FILE_ONLY ON)
+
+
+ADD_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${ELVIS_SOURCES} ${ELVIS_CUDA_HEADERS})
+
+###########################################
+# Specific defines that need to be set
+# STATIC - we want glew to be a static library
+
+ADD_DEFINITIONS(-DGLEW_STATIC)
+
+TARGET_LINK_LIBRARIES(${ProjectName} 
+    ${BOOST_LIBRARY}
+    ${CUDA_CUDA_LIBRARY}
+    ${CUDA_CUDART_LIBRARY}
+    ${GLEW_LIBRARY}
+    ${GLUT_glut_LIBRARY}
+    ${PNG_LIBRARY}
+    ${TinyXML_Library}
+)
+
+INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries 
+								RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
+                                LIBRARY DESTINATION ${ELVIS_BIN_DIR}
+                                ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
+
+if(APPLE)	
+	set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
+endif(APPLE)
+								
+INSTALL(FILES ${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
+    Nodes.txt Weights.txt MonomialConversionTables.txt
+    DESTINATION ${ELVIS_BIN_DIR}
+)
+
+INSTALL(FILES ${ELVIS_HEADERS} ${ELVIS_CUDA_HEADERS}
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
+    DESTINATION ${ELVIS_INCLUDE_DIR}/ElVis/Core)
+
+INSTALL(FILES ${ELVIS_MATH_HEADERS}
+    DESTINATION ${ELVIS_INCLUDE_DIR}/ElVis/Math)
+
+
+
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in
+               ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
+
+

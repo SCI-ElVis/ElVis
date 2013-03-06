@@ -1,0 +1,113 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+//  The MIT License
+//
+//  Copyright (c) 2006 Division of Applied Mathematics, Brown University (USA),
+//  Department of Aeronautics, Imperial College London (UK), and Scientific
+//  Computing and Imaging Institute, University of Utah (USA).
+//
+//  License for the specific language governing rights and limitations under
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included
+//  in all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+//  Description:
+//
+////////////////////////////////////////////////////////////////////////////////
+
+#include <ElVis/Core/Model.h>
+#include "Model.h"
+
+namespace ElVis
+{
+    namespace @RUNTIME_EXTENSION_NAME@
+    {
+        @RUNTIME_EXTENSION_NAME@Model::@RUNTIME_EXTENSION_NAME@Model(const std::string& path) :
+            Model()
+        {
+        }
+        @RUNTIME_EXTENSION_NAME@Model::@RUNTIME_EXTENSION_NAME@Model() : Model()
+        {
+        }
+
+        @RUNTIME_EXTENSION_NAME@Model::~@RUNTIME_EXTENSION_NAME@Model()
+        {
+        }
+
+        int @RUNTIME_EXTENSION_NAME@Model::DoGetNumFields() const
+        {
+            return 1;
+        }
+
+        FieldInfo @RUNTIME_EXTENSION_NAME@Model::DoGetFieldInfo(unsigned int index) const
+        {
+            FieldInfo result;
+            return result;
+        }
+
+        int @RUNTIME_EXTENSION_NAME@Model::DoGetNumberOfBoundarySurfaces() const
+        {
+            return 0;
+        }
+
+        void @RUNTIME_EXTENSION_NAME@Model::DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds)
+        {
+        }
+
+        void @RUNTIME_EXTENSION_NAME@Model::DoMapInteropBufferForCuda()
+        {
+        }
+
+        void @RUNTIME_EXTENSION_NAME@Model::DoUnMapInteropBufferForCuda()
+        {
+        }
+
+        void @RUNTIME_EXTENSION_NAME@Model::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
+        {
+        }
+
+        unsigned int @RUNTIME_EXTENSION_NAME@Model::DoGetNumberOfElements() const
+        {
+            return 0;
+        }
+
+
+        const std::string& @RUNTIME_EXTENSION_NAME@Model::DoGetPTXPrefix() const
+        {
+            static std::string result("@RUNTIME_EXTENSION_NAME@");
+            return result;
+        }
+
+        std::vector<optixu::GeometryGroup> @RUNTIME_EXTENSION_NAME@Model::DoGetCellGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        {
+            std::vector<optixu::GeometryGroup> result;
+
+            return result;
+        }
+
+        void @RUNTIME_EXTENSION_NAME@Model::DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces)
+        {
+        }
+
+        void @RUNTIME_EXTENSION_NAME@Model::DoSetupCudaContext(CUmodule module) const
+        {
+
+        }
+
+    }
+}
+

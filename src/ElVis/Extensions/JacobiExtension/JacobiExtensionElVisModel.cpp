@@ -163,21 +163,15 @@ namespace ElVis
             return m_vertices[id];
         }
 
-        unsigned int JacobiExtensionModel::DoGetNumberOfPoints() const
-        {
-            return m_vertices.size();
-        }
+        //unsigned int JacobiExtensionModel::DoGetNumberOfPoints() const
+        //{
+        //    return m_vertices.size();
+        //}
 
         void JacobiExtensionModel::DoSetupCudaContext(CUmodule module) const
         {
             CreateCudaGeometryForElementType<Hexahedron>(m_volume, module, "Hex");
             CreateCudaGeometryForElementType<Prism>(m_volume, module, "Prism");
-        }
-
-        const std::string& JacobiExtensionModel::DoGetCUBinPrefix() const
-        {
-            static std::string name("JacobiExtension");
-            return name;
         }
 
         unsigned int JacobiExtensionModel::DoGetNumberOfElements() const
@@ -279,7 +273,7 @@ namespace ElVis
             //curvedFaces->setPrimitiveCount(faces.size());
         }
 
-        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetCellGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module)
         {
             try
             {        
@@ -352,6 +346,16 @@ namespace ElVis
             }
         }
 
+        std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        {
+            return std::vector<optixu::GeometryInstance>();
+        }
+
+        optixu::Material JacobiExtensionModel::DoGet2DPrimaryGeometryMaterial(SceneView* view)
+        {
+            return optixu::Material();
+        }
+
         void JacobiExtensionModel::DoMapInteropBufferForCuda()
         {
             HexCoefficientBufferIndices.GetMappedCudaPtr();
@@ -409,37 +413,11 @@ namespace ElVis
 
         int JacobiExtensionModel::DoGetNumberOfBoundarySurfaces() const
         {
-            return 3;
+            return 0;
         }
 
         void JacobiExtensionModel::DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds)
         {
-            if( surfaceIndex == 0 )
-            {
-                name = "Test 1";
-                for(int i = 10; i < 50; ++i)
-                {
-                    faceIds.push_back(i);
-                }
-            }
-            else if( surfaceIndex == 1 )
-            {
-                name = "Test 2";
-
-                for(int i = 100; i < 150; ++i)
-                {
-                    faceIds.push_back(i);
-                }
-            }
-            else if( surfaceIndex == 2 )
-            {
-                name = "Test 3";
-
-                for(int i = 1000; i < 1200; ++i)
-                {
-                    faceIds.push_back(i);
-                }
-            }
         }
 
     }

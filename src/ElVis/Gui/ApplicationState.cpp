@@ -41,6 +41,8 @@
 #include <ElVis/Core/HostTransferFunction.h>
 #include <ElVis/Core/CutSurfaceContourModule.h>
 #include <ElVis/Core/CutSurfaceMeshModule.h>
+#include <ElVis/Core/TwoDPrimaryElements.h>
+#include <ElVis/Core/TwoDPrimaryElementsPrimaryObject.h>
 
 #include <boost/bind.hpp>
 
@@ -65,7 +67,6 @@ namespace ElVis
         ApplicationState::ApplicationState() :
             m_scene(new ElVis::Scene()),
             m_surfaceSceneView(new SceneView()),
-            m_volumeRenderSceneView(new SceneView()),
             m_selectedObject(),
             m_selectedTransferFunction(),
             m_colorMapperModule(),
@@ -81,7 +82,6 @@ namespace ElVis
             m_isosurfaceModule()
         {
             m_surfaceSceneView->SetScene(m_scene);
-            m_volumeRenderSceneView->SetScene(m_scene);
 
             {
                 m_primaryRayModule.reset(new PrimaryRayModule());
@@ -280,6 +280,10 @@ namespace ElVis
             boost::shared_ptr<FaceObject> faceObject(new FaceObject(GetScene()));
             m_faceSampler.reset(new SampleFaceObject(faceObject));
             m_primaryRayModule->AddObject(m_faceSampler);
+
+            boost::shared_ptr<TwoDPrimaryElements> twoDObject(new TwoDPrimaryElements(GetScene()));
+            boost::shared_ptr<TwoDPrimaryElementsPrimaryObject> wrapper(new TwoDPrimaryElementsPrimaryObject(twoDObject));
+            m_primaryRayModule->AddObject(wrapper);
 
         }
 

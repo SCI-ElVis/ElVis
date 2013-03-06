@@ -45,10 +45,6 @@ int main(int argc, char** argv)
 {
     try
     {
-        //Test3DNektarMassMatrix();
-        //return 0;
-        //TestMassMatrix();
-        //TestNektarMassMatrix();
         const char* inFileLabel = "InFile";
         const char* outFileLabel = "OutFile";
         const char* moduleLabel = "Module";
@@ -146,7 +142,7 @@ int main(int argc, char** argv)
                 edges[i] = convertedMesh.GetEdge(edgeIds[i]);
             }
 
-            Nektar::StdRegions::EdgeOrientation edgeOrientation[numEdges];
+            Nektar::StdRegions::Orientation edgeOrientation[numEdges];
             for(unsigned int i = 0; i < numEdges - 1; ++i)
             {
                 edgeOrientation[i] = Nektar::SpatialDomains::SegGeom::GetEdgeOrientation(*(edges[i]), *(edges[i+1]));
@@ -156,7 +152,7 @@ int main(int argc, char** argv)
             convertedMesh.AddTriangle(edges, edgeOrientation);
         }
 
-	std::cout << "Creating quad faces." << std::endl;
+	    std::cout << "Creating quad faces." << std::endl;
         for(unsigned int i = 0; i < converter->GetNumberOfQuadrilateralFaces(); ++i)
         {
             const unsigned int numEdges = 4;
@@ -169,7 +165,7 @@ int main(int argc, char** argv)
                 edges[i] = convertedMesh.GetEdge(edgeIds[i]);
             }
 
-            Nektar::StdRegions::EdgeOrientation edgeOrientation[numEdges];
+            Nektar::StdRegions::Orientation edgeOrientation[numEdges];
             for(unsigned int i = 0; i < numEdges - 1; ++i)
             {
                 edgeOrientation[i] = Nektar::SpatialDomains::SegGeom::GetEdgeOrientation(*(edges[i]), *(edges[i+1]));
@@ -180,7 +176,7 @@ int main(int argc, char** argv)
         }
 
 
-	std::cout << "Creating hexes." << std::endl;
+	    std::cout << "Creating hexes." << std::endl;
         for(unsigned int i = 0; i < converter->GetNumberOfHexahedra(); ++i)
         {
             unsigned int faceIds[Nektar::SpatialDomains::HexGeom::kNqfaces];
@@ -189,7 +185,8 @@ int main(int argc, char** argv)
 
             for(unsigned int j = 0; j < Nektar::SpatialDomains::HexGeom::kNqfaces; ++j)
             {
-                qfaces[j] = convertedMesh.GetAllQuadGeoms()[faceIds[j]];
+                qfaces[j] = (*convertedMesh.GetAllQuadGeoms().find(faceIds[j])).second;
+                    //convertedMesh.GetAllQuadGeoms()[faceIds[j]];
             }
 
             SpatialDomains::HexGeomSharedPtr hex = convertedMesh.AddHexahedron(qfaces);
@@ -213,7 +210,7 @@ int main(int argc, char** argv)
             convertedMesh.AddExpansion(expansion);
         }
 
-	std::cout << "Creating prisms." << std::endl;
+	    std::cout << "Creating prisms." << std::endl;
         for(unsigned int i = 0; i < converter->GetNumberOfPrisms(); ++i)
         {
             unsigned int quadFaceIds[Nektar::SpatialDomains::PrismGeom::kNqfaces];
@@ -227,12 +224,14 @@ int main(int argc, char** argv)
 
             for(unsigned int j = 0; j < Nektar::SpatialDomains::PrismGeom::kNqfaces; ++j)
             {
-                qfaces[j] = convertedMesh.GetAllQuadGeoms()[quadFaceIds[j]];
+                qfaces[j] = (*convertedMesh.GetAllQuadGeoms().find(quadFaceIds[j])).second;
+                    //convertedMesh.GetAllQuadGeoms()[quadFaceIds[j]];
             }
 
             for(unsigned int j = 0; j < Nektar::SpatialDomains::PrismGeom::kNtfaces; ++j)
             {
-                tfaces[j] = convertedMesh.GetAllTriGeoms()[triFaceIds[j]];
+                tfaces[j] = (*convertedMesh.GetAllTriGeoms().find(triFaceIds[j])).second;
+                    //convertedMesh.GetAllTriGeoms()[triFaceIds[j]];
             }
 
             SpatialDomains::PrismGeomSharedPtr prism = convertedMesh.AddPrism(tfaces, qfaces);

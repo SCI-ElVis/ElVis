@@ -40,6 +40,7 @@
 
 namespace ElVis
 {
+    /// \brief Adapts objects so they can be used by the primary ray module.
     class PrimaryRayObject
     {
         public:

@@ -117,14 +117,13 @@ void TestParam(boost::program_options::variables_map& vm, const char* p)
     if( vm.count(p) == 0 ) PrintUsage();
 }
 
+
 int main(int argc, char** argv)
 {
-    std::cout << "Starting ElVisCLI." << std::endl;
     const char* testNameLabel = "TestName";
     const char* modelPathLabel = "ModelPath";
     const char* widthLabel = "Width";
     const char* heightLabel = "Height";
-    const char* configFileLabel = "ConfigFile";
     const char* outFileLabel = "OutFile";
     const char* compareFileLabel = "CompareFile";
     const char* eyeLabel = "Eye";
@@ -135,12 +134,15 @@ int main(int argc, char** argv)
     const char* colorMapMinLabel = "ColorMapMin";
     const char* colorMapMaxLabel = "ColorMapMax";
 
+
     std::vector<ElVisFloat> eyeInput;
     std::vector<ElVisFloat> atInput;
     std::vector<ElVisFloat> upInput;
 
     double min = 0.0;
     double max = 1.0;
+
+    std::string configFile;
 
     boost::program_options::options_description desc("ElVisCLIOptions");
     desc.add_options()
@@ -152,7 +154,6 @@ int main(int argc, char** argv)
         (moduleLabel, boost::program_options::value<std::string>(), "Module")
         (widthLabel, boost::program_options::value<unsigned int>(), "Width")
         (heightLabel, boost::program_options::value<unsigned int>(), "Height")
-        (configFileLabel, boost::program_options::value<std::string>(), "Config File")
         (outFileLabel, boost::program_options::value<std::string>(), "Out File")
         (compareFileLabel, boost::program_options::value<std::string>(), "Compare File")
         (eyeLabel, boost::program_options::value<std::vector<ElVisFloat> >(&eyeInput)->multitoken(), "Eye")
@@ -160,10 +161,34 @@ int main(int argc, char** argv)
         (upLabel, boost::program_options::value<std::vector<ElVisFloat> >(&upInput)->multitoken(), "Up")
         ;
 
+    const char* configFileNameLabel = "ConfigFile";
+
+    boost::program_options::options_description configFileOptions("ConfigFileOptions");
+    configFileOptions.add_options()
+            (configFileNameLabel, boost::program_options::value<std::string>(&configFile), "Config File")
+            ;
+
+    boost::program_options::options_description commandLineOptions("CommandLineOptions");
+    commandLineOptions.add(desc).add(configFileOptions);
+
+
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).style(boost::program_options::command_line_style::allow_long |
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(commandLineOptions).style(boost::program_options::command_line_style::allow_long |
                                                                                                               boost::program_options::command_line_style::long_allow_adjacent).allow_unregistered().run(), vm);
     boost::program_options::notify(vm);
+
+    if( !configFile.empty() )
+    {
+        std::ifstream inFile(configFile.c_str());
+        std::cout << "Loading " << configFile << std::endl;
+        if( inFile )
+        {
+            boost::program_options::store(boost::program_options::parse_config_file(inFile, desc, true), vm);
+            boost::program_options::notify(vm);
+        }
+        inFile.close();
+    }
+
 
     
     TestParam(vm, testNameLabel);

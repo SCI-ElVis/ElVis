@@ -1,4 +1,5 @@
 SET(ProjectName "JacobiExtension")
+SET(ExtensionPath ElVis/Extensions/${ProjectName})
 
 ADD_DEFINITIONS(-DJACOBI_EXTENSION_EXPORTS)
 
@@ -122,6 +123,10 @@ SET(JACOBI_EXTENSION_CUDA
 # Create Libraries
 #################################3
 
+LINK_DIRECTORIES(
+    ${Boost_LIBRARY_DIRS}
+)
+
 # Need to use ADD_OPTIX_LIBRARY so the .cu files get routed to nvcc.
 ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR}
     ${JACOBI_EXTENSION_HEADERS} 
@@ -142,6 +147,8 @@ TARGET_LINK_LIBRARIES(${ProjectName}
     ElVisCore
 )
 
+SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Extensions/JacobiExtension")
+SET_PROPERTY(TARGET ${ProjectName}Cuda PROPERTY FOLDER "Extensions/JacobiExtension")
 
 SET_TARGET_PROPERTIES(${ProjectName} PROPERTIES VERSION ${ELVIS_VERSION})
 

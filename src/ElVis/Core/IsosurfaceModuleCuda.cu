@@ -32,6 +32,7 @@
 #include <ElVis/Core/Jacobi.hpp>
 #include <ElVis/Core/matrix.cu>
 #include <ElVis/Core/Cuda.h>
+#include <ElVis/Core/Interval.hpp>
 
 class OrthogonalLegendreBasis
 {
@@ -691,10 +692,10 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
                 ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[segmentIndex]);
             }
 
-            normal_buffer[segmentIndex] = EvaluateNormalCuda(elementId,
-                                                             elementTypeId,
-                                                             fieldId,
-                                                             foundIntersectionPoint);
+            EvaluateNormalCuda(elementId,
+                             elementTypeId,
+                             fieldId,
+                             foundIntersectionPoint, normal_buffer[segmentIndex]);
             depth_buffer[segmentIndex] = foundT;
             bestDepth = foundT;
             //        // This depth buffer is wrong, need accumulated.

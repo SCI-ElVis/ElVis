@@ -150,8 +150,18 @@ namespace ElVis
         {
             return Interval<T>();
         }
-        Interval<T> newRhs(1.0/rhs.GetHigh(), 1.0/rhs.GetLow());
-        return lhs*newRhs;
+
+        T a = lhs.GetLow();
+        T b = lhs.GetHigh();
+        T c = rhs.GetLow();
+        T d = rhs.GetHigh();
+        T v0 = a/c;
+        T v1 = a/d;
+        T v2 = b/c;
+        T v3 = b/d;
+
+        Interval<T> result(fminf(fminf(fminf(v0, v1), v2), v3), fmaxf(fmaxf(fmaxf(v0, v1), v2), v3));
+        return result;
     }
 
     template<typename T>
@@ -162,12 +172,35 @@ namespace ElVis
             return Interval<T>();
         }
         Interval<T> newRhs(rhs, rhs);
-        return lhs/rhs;
-        //return Interval<T>(lhs.GetLow()/rhs, lhs.GetHigh()/rhs);
+        return lhs/newRhs;
     }
 
     template<typename T>
+    ELVIS_DEVICE Interval<T> operator/(const Interval<T>& lhs, const float& rhs)
+    {
+        if( lhs.IsEmpty()  )
+        {
+            return Interval<T>();
+        }
+        Interval<T> newRhs(rhs, rhs);
+        return lhs/newRhs;
+    }
+
+
+    template<typename T>
     ELVIS_DEVICE Interval<T> operator/(const double& lhs, const Interval<T>& rhs)
+    {
+        if( rhs.IsEmpty()  )
+        {
+            return Interval<T>();
+        }
+        Interval<T> newLhs(lhs, lhs);
+        return newLhs/rhs;
+        //return Interval<T>(lhs/rhs.GetHigh(), lhs/rhs.GetLow());
+    }
+
+    template<typename T>
+    ELVIS_DEVICE Interval<T> operator/(const float& lhs, const Interval<T>& rhs)
     {
         if( rhs.IsEmpty()  )
         {

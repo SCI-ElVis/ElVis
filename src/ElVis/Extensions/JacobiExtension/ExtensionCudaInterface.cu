@@ -39,32 +39,6 @@ __device__ ElVisFloat4* FaceNormalBuffer;
 
 
 
-ELVIS_DEVICE void EstimateRangeCuda(unsigned int elementId, unsigned int elementType, int fieldId,
-                                          const ElVisFloat3& p0, const ElVisFloat3& p1,
-                                          ElVis::Interval<ElVisFloat>& result)
-{
-//    TensorPoint t0 = ConvertToTensorSpaceCuda(elementId, elementType, p0);
-//    TensorPoint t1 = ConvertToTensorSpaceCuda(elementId, elementType, p1);
-//    IntervalPoint interval(t0, t1);
-//    result = EvaluateFieldAtTensorPointCuda(elementId, elementType, fieldId, interval.x, interval.y, interval.z);
-////    if( elementType == 0 )
-////    {
-////        ElVisFloat3 t0 = TransformWorldToTensor(elementId, p0);
-////        ElVisFloat3 t1 = TransformWorldToTensor(elementId, p1);
-//
-////        IntervalPoint interval(t0, t1);
-////        result = EvaluateHexFieldAtTensorPoint<ElVis::Interval<ElVisFloat> >(elementId, interval);
-////    }
-////    else if( elementType == 1 )
-////    {
-////        ElVisFloat3 t0 = TransformPrismWorldToTensor(PrismVertexBuffer, elementId, p0);
-////        ElVisFloat3 t1 = TransformPrismWorldToTensor(PrismVertexBuffer, elementId, p1);
-//
-////        IntervalPoint interval(t0, t1);
-////        result = EvaluatePrismFieldAtTensorPoint<ElVis::Interval<ElVisFloat> >(elementId, interval);
-////    }
-}
-
 ELVIS_DEVICE void CalculateTransposedInvertedMappingJacobianCuda(unsigned int elementId, unsigned int elementType, int fieldId, const TensorPoint& tp, ElVisFloat* J)
 {
     ElVisFloat JInv[9];
@@ -156,7 +130,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointCuda(int elementId, int
         uint coefficientIndex = HexCoefficientIndices[elementId];
         ElVisFloat* coeffs = &(HexCoefficients[coefficientIndex]);
 
-        result = EvaluateHexFieldAtTensorPoint<ElVisFloat>(degree, tp.x, tp.y, tp.z, coeffs);
+        result = EvaluateHexFieldAtTensorPoint(degree, tp.x, tp.y, tp.z, coeffs);
     }
     else if( elementType == 1 )
     {
@@ -174,27 +148,46 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointCuda(int elementId, int
     return returnVal;
 }
 
-
-
-ELVIS_DEVICE ElVisFloat3 EvaluateNormalCuda(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint)
+ELVIS_DEVICE ElVisError SampleReferenceGradientCuda(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
 {
-    ElVisFloat3 result = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
-
-    ReferencePoint tp;
-    ConvertWorldToReferenceSpaceCuda(elementId, elementType, worldPoint, ElVis::eReferencePointIsInvalid, tp);
-
-    ElVisFloat3 tv = CalculateTensorGradient(elementId, elementType, fieldId, tp);
-
-    ElVisFloat J[9];
-    CalculateTransposedInvertedMappingJacobianCuda(elementId, elementType, fieldId, tp, J);
-
-    result.x = tv.x*J[0] + tv.y*J[1] + tv.z*J[2];
-    result.y = tv.x*J[3] + tv.y*J[4] + tv.z*J[5];
-    result.z = tv.x*J[6] + tv.y*J[7] + tv.z*J[8];
-
-//    ELVIS_PRINTF("Normal Vector %f, %f, %f\n", result.x, result.y, result.z);
-    return result;
+    gradient = CalculateTensorGradient(elementId, elementType, fieldId, refPoint);
+    return eNoError;
 }
+
+ELVIS_DEVICE ElVisError SampleGeometryMappingJacobian(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
+{
+    if( elementType == 0 )
+    {
+        calculateTensorToWorldSpaceMappingJacobian(HexVertexBuffer, elementId, refPoint, J);
+    }
+    else
+    {
+        GetPrismWorldToReferenceJacobian(PrismVertexBuffer, elementId, refPoint, J);
+    }
+    return eNoError;
+}
+
+
+
+//ELVIS_DEVICE ElVisFloat3 EvaluateNormalCuda(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint)
+//{
+//    ElVisFloat3 result = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+
+//    ReferencePoint tp;
+//    ConvertWorldToReferenceSpaceCuda(elementId, elementType, worldPoint, ElVis::eReferencePointIsInvalid, tp);
+
+//    ElVisFloat3 tv = CalculateTensorGradient(elementId, elementType, fieldId, tp);
+
+//    ElVisFloat J[9];
+//    CalculateTransposedInvertedMappingJacobianCuda(elementId, elementType, fieldId, tp, J);
+
+//    result.x = tv.x*J[0] + tv.y*J[1] + tv.z*J[2];
+//    result.y = tv.x*J[3] + tv.y*J[4] + tv.z*J[5];
+//    result.z = tv.x*J[6] + tv.y*J[7] + tv.z*J[8];
+
+////    ELVIS_PRINTF("Normal Vector %f, %f, %f\n", result.x, result.y, result.z);
+//    return result;
+//}
 
 #endif
 

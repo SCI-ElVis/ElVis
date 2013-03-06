@@ -32,12 +32,26 @@
 #include <SpatialDomains/MeshGraph2D.h>
 #include <SpatialDomains/MeshGraph3D.h>
 #include <MultiRegions/ExpList3D.h>
+#include <MultiRegions/ExpList2D.h>
 #include <ElVis/Core/Util.hpp>
 #include <ElVis/Core/PtxManager.h>
 #include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/Scene.h>
+#include <ElVis/Core/Jacobi.hpp>
+#include <ElVis/Core/SceneView.h>
+#include <ElVis/Core/Float.h>
+
+#include <boost/range.hpp>
+#include <boost/range/algorithm/for_each.hpp>
+#include <boost/range/adaptor/map.hpp>
+
+#include <algorithm>
+
+#include <math.h>
+
+#include <exception>
 
 #ifdef Max
 #undef Max
@@ -53,49 +67,72 @@ namespace ElVis
         const std::string NektarModel::HexahedronBoundingProgramName("HexahedronBounding");
 
         NektarModel::NektarModel(const std::string& modelPrefix) :
-            m_graph(),
-            m_session(),
-            m_deviceVertexBuffer("Vertices"),
-            m_deviceCoefficientBuffer("Coefficients"),
-            m_deviceCoefficientIndexBuffer("CoefficientIndices"),
-            m_deviceHexVertexIndices("HexVertexIndices"),
-            m_deviceHexPlaneBuffer("HexPlaneBuffer"),
-            m_deviceHexVertexFaceIndex("Hexvertex_face_index"),
-            m_deviceNumberOfModes("NumberOfModes"),
-            FaceVertexBuffer("FaceVertexBuffer"),
-            FaceNormalBuffer("FaceNormalBuffer")
+            m_impl()
+            ,m_graph()
+            ,m_globalExpansions()
+            ,m_fieldDefinitions()
+            ,m_session()
+            ,m_hexGeometryIntersectionProgram(0)
+            ,m_hexPointLocationProgram(0)
+            ,m_2DTriangleIntersectionProgram(0)
+            ,m_2DTriangleBoundingBoxProgram(0)
+            ,m_2DQuadIntersectionProgram(0)
+            ,m_2DQuadBoundingBoxProgram(0)
+            ,m_2DElementClosestHitProgram(0)
+            ,m_TwoDClosestHitProgram(0)
+            ,m_FieldBases("FieldBases")
+            ,m_FieldModes("FieldModes")
+            ,m_SumPrefixNumberOfFieldCoefficients("SumPrefixNumberOfFieldCoefficients")
+            ,m_deviceVertexBuffer("Vertices")
+            ,m_deviceCoefficientBuffer("Coefficients")
+            ,m_deviceCoefficientOffsetBuffer("CoefficientOffsets")
+            ,m_deviceHexVertexIndices("HexVertexIndices")
+            ,m_deviceHexPlaneBuffer("HexPlaneBuffer")
+            ,m_deviceHexVertexFaceIndex("Hexvertex_face_index")
+            ,m_deviceNumberOfModes("NumberOfModes")
+            ,FaceVertexBuffer("FaceVertexBuffer")
+            ,FaceNormalBuffer("FaceNormalBuffer")
+            ,m_deviceTriangleVertexIndexMap("TriangleVertexIndices")
+            ,m_TriangleModes("TriangleModes")
+            ,m_TriangleMappingCoeffsDir0("TriangleMappingCoeffsDir0")
+            ,m_TriangleMappingCoeffsDir1("TriangleMappingCoeffsDir1")
+            ,m_TriangleCoeffMappingDir0("TriangleCoeffMappingDir0")
+            ,m_TriangleCoeffMappingDir1("TriangleCoeffMappingDir1")
+            ,m_TriangleGlobalIdMap("TriangleGlobalIdMap")
+            ,m_QuadModes("QuadModes")
+            ,m_QuadMappingCoeffsDir0("QuadMappingCoeffsDir0")
+            ,m_QuadMappingCoeffsDir1("QuadMappingCoeffsDir1")
+            ,m_QuadCoeffMappingDir0("QuadCoeffMappingDir0")
+            ,m_QuadCoeffMappingDir1("QuadCoeffMappingDir1")
+            ,m_deviceQuadVertexIndexMap("QuadVertexIndices")
         {
-            std::string geometryFile = modelPrefix + ".xml";
-            std::string fieldFile = modelPrefix + ".fld";
-            InitializeWithGeometryAndField(geometryFile, fieldFile);
+            boost::filesystem::path geometryFile(modelPrefix + ".xml");
+            boost::filesystem::path fieldFile(modelPrefix + ".fld");
+
+            if( !boost::filesystem::exists(geometryFile) )
+            {
+                std::string message = std::string("File ") + geometryFile.string() + " does not exist.";
+                throw std::runtime_error(message.c_str());
+            }
+
+            Initialize(geometryFile, fieldFile);
         }
 
         NektarModel::~NektarModel()
         {
         }
 
-        unsigned int NektarModel::DoGetNumberOfPoints() const
-        {
-            return m_graph->GetNvertices();
-        }
-
         void NektarModel::DoCalculateExtents(ElVis::WorldPoint& minResult, ElVis::WorldPoint& maxResult)
         {
-            for(unsigned int i = 0; i < m_graph->GetNvertices(); ++i)
+            boost::for_each(boost::irange(0, m_graph->GetNvertices()), 
+                [&](unsigned int i)
             {
-                BOOST_AUTO(vertex, m_graph->GetVertex(i));
+                auto vertex = m_graph->GetVertex(i);
                 
                 ElVis::WorldPoint p(vertex->x(), vertex->y(), vertex->z());
                 minResult = CalcMin(minResult, p);
                 maxResult = CalcMax(maxResult, p);
-            }
-        }
-
-        WorldPoint NektarModel::DoGetPoint(unsigned int id) const
-        {
-            BOOST_AUTO(vertex, m_graph->GetVertex(id));
-            ElVis::WorldPoint result(vertex->x(), vertex->y(), vertex->z());
-            return result;
+            });
         }
 
         const std::string& NektarModel::DoGetPTXPrefix() const
@@ -104,40 +141,32 @@ namespace ElVis
             return prefix;
         }
 
-
-
-        const std::string& NektarModel::DoGetCUBinPrefix() const
+        Nektar::Array<Nektar::OneD, double> Create2DArray(double v0, double v1)
         {
-            static std::string prefix("NektarPlusPlusExtension");
-            return prefix;
+            double values[] = {v0, v1};
+            Nektar::Array<Nektar::OneD, double> result(2, values);
+            return result;
         }
 
-        void NektarModel::InitializeWithGeometryAndField(const std::string& geomFileName,
-            const std::string& fieldFileName)
+        // The desired result of this method is to load all of the data from the field
+        // so I can easily access the expansions defined for each element.  The 
+        // code as written seems to work OK for 3D hexes, but seems to be failing 
+        // for 2D elements
+        void NektarModel::LoadFields(const boost::filesystem::path& fieldFile)
         {
-            int argc = 3;
-            char* arg1 = "ElVis";
-            char* arg2 = strdup(geomFileName.c_str());
-            char* arg3 = strdup(fieldFileName.c_str());
-            char* argv[] = {arg1, arg2, arg3};
-            m_session = LibUtilities::SessionReader::CreateInstance(argc, argv);
-            free(arg2);
-            free(arg3);
-
-            arg2 = 0;
-            arg3 = 0;
-
-            m_graph = boost::dynamic_pointer_cast<Nektar::SpatialDomains::MeshGraph3D>(SpatialDomains::MeshGraph::Read(m_session->GetFilename(), false));
-            CalculateExtents();
-
-            std::vector<Nektar::SpatialDomains::FieldDefinitionsSharedPtr> fieldDefinitions;
             std::vector<std::vector<double> > fieldData;
 
-            m_graph->Import(fieldFileName, fieldDefinitions, fieldData);
+            // I assume that Import populates fieldDefinitions and fieldData with 
+            // one entry per defined field (so a simulation with pressure and 
+            // temperature would create 2 elements in each of these vectors).
+            m_graph->Import(fieldFile.string(), m_fieldDefinitions, fieldData);
 
-            //----------------------------------------------
-            // Set up Expansion information
-            for(int i = 0; i < fieldDefinitions.size(); ++i)
+            // I got this code from one of the demos a long time ago.  
+            // It doesn't seem to make sense in this context, but if I comment 
+            // it out, Nektar++ throws an exception later because the points 
+            // are not defined.  I'm not sure why I need to be defining them
+            // (shouldn't this be part of reading the field?).
+            for(int i = 0; i < m_fieldDefinitions.size(); ++i)
             {
                 vector<LibUtilities::PointsType> ptype;
                 for(int j = 0; j < 3; ++j)
@@ -145,99 +174,124 @@ namespace ElVis
                     ptype.push_back(LibUtilities::ePolyEvenlySpaced);
                 }
                 
-                fieldDefinitions[i]->m_pointsDef = true;
-                fieldDefinitions[i]->m_points    = ptype; 
+                m_fieldDefinitions[i]->m_pointsDef = true;
+                m_fieldDefinitions[i]->m_points    = ptype; 
                 
                 vector<unsigned int> porder;
-                if(fieldDefinitions[i]->m_numPointsDef == false)
+                if(m_fieldDefinitions[i]->m_numPointsDef == false)
                 {
-                    for(int j = 0; j < fieldDefinitions[i]->m_numModes.size(); ++j)
+                    for(int j = 0; j < m_fieldDefinitions[i]->m_numModes.size(); ++j)
                     {
-                        porder.push_back(fieldDefinitions[i]->m_numModes[j]);
+                        porder.push_back(m_fieldDefinitions[i]->m_numModes[j]);
                     }
                     
-                    fieldDefinitions[i]->m_numPointsDef = true;
+                    m_fieldDefinitions[i]->m_numPointsDef = true;
                 }
                 else
                 {
-                    for(int j = 0; j < fieldDefinitions[i]->m_numPoints.size(); ++j)
+                    for(int j = 0; j < m_fieldDefinitions[i]->m_numPoints.size(); ++j)
                     {
-                        porder.push_back(fieldDefinitions[i]->m_numPoints[j]);
+                        porder.push_back(m_fieldDefinitions[i]->m_numPoints[j]);
                     }
                 }
-                fieldDefinitions[i]->m_numPoints = porder;
+                m_fieldDefinitions[i]->m_numPoints = porder;
                 
             }
 
-            // It probably is possible to figure out which coefficients belong to which element
-            // at this point, but it will be easier to setup the expansions in the mesh graph
-            // and then have Nektar++ copy them over.  The SetExpansions call appears to be
-            // incomplete, so we'll just do it ourselves.
-            m_graph->SetExpansions(fieldDefinitions);
+            m_graph->SetExpansions(m_fieldDefinitions);
 
-            m_globalExpansion = MemoryManager<Nektar::MultiRegions::ExpList3D>
-                ::AllocateSharedPtr(m_session, m_graph);
-            for(unsigned int i = 0; i < fieldDefinitions.size(); ++i)
+            int expdim  = m_graph->GetMeshDimension();
+            int nfields = m_fieldDefinitions[0]->m_fields.size();
+
+            Nektar::SpatialDomains::MeshGraph3DSharedPtr as3d = boost::dynamic_pointer_cast<
+                Nektar::SpatialDomains::MeshGraph3D>(m_graph);
+            Nektar::SpatialDomains::MeshGraph2DSharedPtr as2d = boost::dynamic_pointer_cast<
+                Nektar::SpatialDomains::MeshGraph2D>(m_graph);
+
+            if( as3d )
             {
-                m_globalExpansion->ExtractDataToCoeffs(fieldDefinitions[i], fieldData[i], fieldDefinitions[i]->m_fields[0]);
+                Nektar::MultiRegions::ExpList3DSharedPtr exp = MemoryManager<Nektar::MultiRegions::ExpList3D>
+                    ::AllocateSharedPtr(m_session, m_graph);
+                m_globalExpansions.push_back(exp);
+                for(int i = 1; i < nfields; ++i)
+                {
+                    m_globalExpansions.push_back(MemoryManager<Nektar::MultiRegions::ExpList3D>
+                        ::AllocateSharedPtr(*exp));
+                }
             }
-
-            m_globalExpansion->BwdTrans(m_globalExpansion->GetCoeffs(), m_globalExpansion->UpdatePhys());
-
-            m_globalExpansion->PutCoeffsInToElmtExp();
-            m_globalExpansion->PutPhysInToElmtExp();
+            else
+            {
+                Nektar::MultiRegions::ExpList2DSharedPtr exp = MemoryManager<Nektar::MultiRegions::ExpList2D>
+                    ::AllocateSharedPtr(m_session, m_graph);
+                m_globalExpansions.push_back(exp);
+                for(int i = 1; i < nfields; ++i)
+            {
+                    m_globalExpansions.push_back(MemoryManager<Nektar::MultiRegions::ExpList2D>
+                        ::AllocateSharedPtr(*exp));
+            }
         }
                 
-        void NektarModel::SetupOptixCoefficientBuffers(optixu::Context context, CUmodule module)
+            for(int j = 0; j < nfields; ++j)
         {
-            // Coefficients are stored in a global array for all element types.
-            m_deviceCoefficientBuffer.SetContextInfo(context, module);
-            m_deviceCoefficientBuffer.SetDimensions(m_globalExpansion->GetNcoeffs());
-
-            ElVisFloat* coeffData = static_cast<ElVisFloat*>(m_deviceCoefficientBuffer.map());
-            for(unsigned int i = 0; i < m_globalExpansion->GetNcoeffs(); ++i)
+                for(int i = 0; i < fieldData.size(); ++i)
             {
-                coeffData[i] = m_globalExpansion->GetCoeff(i);
+                    m_globalExpansions[j]->ExtractDataToCoeffs(m_fieldDefinitions[i],
+                                                fieldData[i],
+                                                m_fieldDefinitions[i]->m_fields[j]);
+                }
+                m_globalExpansions[j]->BwdTrans(
+                    m_globalExpansions[j]->GetCoeffs(),
+                    m_globalExpansions[j]->UpdatePhys());
             }
-            m_deviceCoefficientBuffer.unmap();
 
-            m_deviceCoefficientIndexBuffer.SetContextInfo(context, module);
-            m_deviceCoefficientIndexBuffer.SetDimensions(m_globalExpansion->GetNumElmts());
-            int* coefficientIndicesData = static_cast<int*>(m_deviceCoefficientIndexBuffer.map());
+            //for(unsigned int i = 0; i < fieldDefinitions.size(); ++i)
+            //{
+            //    m_globalExpansion->ExtractDataToCoeffs(fieldDefinitions[i], fieldData[i], fieldDefinitions[i]->m_fields[0]);
+            //}
 
-            for(unsigned int i = 0; i < m_globalExpansion->GetNumElmts(); ++i)
-            {
-                coefficientIndicesData[i] = m_globalExpansion->GetCoeff_Offset(i);
-            }
-            m_deviceCoefficientIndexBuffer.unmap();
+            //m_globalExpansion->BwdTrans(m_globalExpansion->GetCoeffs(), m_globalExpansion->UpdatePhys());
 
+            //m_globalExpansion->PutCoeffsInToElmtExp();
+            //m_globalExpansion->PutPhysInToElmtExp();
         }
 
-        void NektarModel::SetupOptixVertexBuffers(optixu::Context context, CUmodule module)
+        void NektarModel::Initialize(const boost::filesystem::path& geomFile,
+            const boost::filesystem::path& fieldFile)
         {
-            m_deviceVertexBuffer.SetContextInfo(context, module);
-            m_deviceVertexBuffer.SetDimensions(m_graph->GetNvertices());
+            int argc = 3;
+            char* arg1 = strdup("ElVis");
+            char* arg2 = strdup(geomFile.string().c_str());
+            char* arg3 = strdup(fieldFile.string().c_str());
+            char* argv[] = {arg1, arg2, arg3};
+            m_session = LibUtilities::SessionReader::CreateInstance(argc, argv);
+            free(arg1);
+            free(arg2);
+            free(arg3);
 
-            ElVisFloat* vertexData = static_cast<ElVisFloat*>(m_deviceVertexBuffer.map());
-            for(unsigned int i = 0; i < m_graph->GetNvertices(); ++i)
+            arg1 = 0;
+            arg2 = 0;
+            arg3 = 0;
+
+            m_graph = SpatialDomains::MeshGraph::Read(m_session);
+
+            Nektar::SpatialDomains::MeshGraph3DSharedPtr as3d = boost::dynamic_pointer_cast<
+                Nektar::SpatialDomains::MeshGraph3D>(m_graph);
+            Nektar::SpatialDomains::MeshGraph2DSharedPtr as2d = boost::dynamic_pointer_cast<
+                Nektar::SpatialDomains::MeshGraph2D>(m_graph);
+
+            if( as3d )
             {
-                BOOST_AUTO(vertex, m_graph->GetVertex(i));
-                //std::cout << "(" << vertex->x() << ", " << vertex->y() << ", " << vertex->z() << ")" << std::endl;
-                vertexData[i*4] = vertex->x();
-                vertexData[i*4 + 1] = vertex->y();
-                vertexData[i*4 + 2] = vertex->z();
-                vertexData[i*4 + 3] = 1.0;
+                m_impl.reset(new ThreeDNektarModel(this, as3d));
             }
-            m_deviceVertexBuffer.unmap();
-        }
-
-        void NektarModel::DoSetupCudaContext(CUmodule module) const
+            else
         {
-            //CreateCudaGeometryForElementType<Hexahedron>(m_volume, module, "Hex");
+                m_impl.reset(new TwoDNektarModel(this, as2d));
+        }
+            CalculateExtents();
+            LoadFields(fieldFile);
         }
 
-        // Geometry for volume rendering, need ray/element intersections.
-        std::vector<optixu::GeometryGroup> NektarModel::DoGetCellGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module)
         {
            
             try
@@ -249,10 +303,8 @@ namespace ElVis
                 SetupOptixVertexBuffers(context, module);
 
                 optixu::Material m_hexCutSurfaceMaterial = context->createMaterial();
- 
                 optixu::Program hexBoundingProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), "NektarHexahedronBounding");
                 optixu::Program hexIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), HexahedronIntersectionProgramName);
-
                 optixu::GeometryInstance hexInstance = CreateGeometryForElementType<Nektar::SpatialDomains::HexGeom>(context, module, "Hex");
                 hexInstance->setMaterialCount(1);
                 hexInstance->setMaterial(0, m_hexCutSurfaceMaterial);
@@ -280,6 +332,201 @@ namespace ElVis
                 std::cerr << f.what() << std::endl;
                 throw;
             }
+        }
+
+        void NektarModel::SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context, CUmodule module)
+        {
+            m_SumPrefixNumberOfFieldCoefficients.SetContextInfo(context, module);
+            m_SumPrefixNumberOfFieldCoefficients.SetDimensions(m_globalExpansions.size());
+            uint* data = m_SumPrefixNumberOfFieldCoefficients.MapOptiXPointer();
+
+            data[0] = 0;
+
+            for(int i = 0; i < m_globalExpansions.size()-1; ++i)
+            {
+                data[i+1] = data[i] + m_globalExpansions[i]->GetNcoeffs();
+            }
+
+            m_SumPrefixNumberOfFieldCoefficients.UnmapOptiXPointer();
+        }
+
+        void NektarModel::SetupCoefficientOffsetBuffer(optixu::Context context, CUmodule module)
+        {
+            m_deviceCoefficientOffsetBuffer.SetContextInfo(context, module);
+            int numElements = m_globalExpansions[0]->GetNumElmts();
+            m_deviceCoefficientOffsetBuffer.SetDimensions(m_globalExpansions.size()*numElements);
+            
+            std::for_each(m_globalExpansions.begin(), m_globalExpansions.end(), 
+                [&](Nektar::MultiRegions::ExpListSharedPtr exp)
+            {
+                if( exp->GetNumElmts() != numElements )
+                {
+                    throw std::runtime_error("Expansions must have the same number of elements.");
+                }
+            });
+
+            // The offset is at elementId*numField + fieldId
+
+            uint* coefficientIndicesData = static_cast<uint*>(m_deviceCoefficientOffsetBuffer.map());
+
+            for(unsigned int expansionIndex = 0; expansionIndex < m_globalExpansions.size(); ++ expansionIndex)
+            {
+                for(unsigned int elementId = 0; elementId < numElements; ++elementId)
+                {
+                    auto exp = m_globalExpansions[expansionIndex];
+                    auto element = exp->GetExp(elementId);
+                    auto id = element->GetGeom()->GetGlobalID();
+                    auto offset = exp->GetCoeff_Offset(elementId);
+
+                    coefficientIndicesData[expansionIndex*numElements + id] = offset;
+                }
+            }
+            
+            m_deviceCoefficientOffsetBuffer.unmap();
+        }
+
+        void NektarModel::SetupFieldModes(optixu::Context context, CUmodule module)
+        {
+            int numElements = m_globalExpansions[0]->GetNumElmts();
+            int numFields = m_globalExpansions.size();
+            m_FieldModes.SetContextInfo(context, module);
+            m_FieldModes.SetDimensions(numElements*numFields);
+
+            uint3* data = m_FieldModes.MapOptiXPointer();
+
+            for(int fieldId = 0; fieldId < m_globalExpansions.size(); ++fieldId)
+            {
+                auto exp = m_globalExpansions[fieldId];
+                for(int elementId = 0; elementId < exp->GetNumElmts(); ++elementId)
+                {
+                    auto element = exp->GetExp(elementId);
+                    auto id = element->GetGeom()->GetGlobalID();
+                    auto bases = element->GetBase();
+                    uint3 value;
+                    value.x = bases[0]->GetNumModes();
+                    if( bases.num_elements() > 1 )
+                    {
+                        value.y = bases[1]->GetNumModes();
+                    }
+                    if( bases.num_elements() > 2 )
+                    {
+                        value.z = bases[2]->GetNumModes();
+                    }
+                    data[fieldId*numElements + id] = value;
+                }
+            }
+
+            m_FieldModes.UnmapOptiXPointer();
+        }
+
+        void NektarModel::SetupFieldBases(optixu::Context context, CUmodule module)
+        {
+            int numElements = m_globalExpansions[0]->GetNumElmts();
+            int numFields = m_globalExpansions.size();
+            m_FieldBases.SetContextInfo(context, module);
+            m_FieldBases.SetDimensions(numElements*numFields*3);
+
+            Nektar::LibUtilities::BasisType* data = m_FieldBases.MapOptiXPointer();
+
+            for(int fieldId = 0; fieldId < m_globalExpansions.size(); ++fieldId)
+            {
+                auto exp = m_globalExpansions[fieldId];
+                for(int elementId = 0; elementId < exp->GetNumElmts(); ++elementId)
+                {
+                    auto element = exp->GetExp(elementId);
+                    auto id = element->GetGeom()->GetGlobalID();
+                    auto bases = element->GetBase();
+
+                    int idx = fieldId*numElements + 3*id;
+
+                    uint3 value;
+                    data[idx] = bases[0]->GetBasisType();
+                    if( bases.num_elements() > 1 )
+                    {
+                        data[idx+1] = bases[1]->GetBasisType();
+                    }
+                    if( bases.num_elements() > 2 )
+                    {
+                        data[idx+2] = bases[2]->GetBasisType();
+                    }
+                }
+            }
+
+            m_FieldBases.UnmapOptiXPointer();
+
+        }
+
+        void NektarModel::SetupOptixCoefficientBuffers(optixu::Context context, CUmodule module)
+        {
+            context["NumElements"]->setUint(m_globalExpansions[0]->GetNumElmts());
+            SetupSumPrefixNumberOfFieldCoefficients(context, module);
+            SetupCoefficientOffsetBuffer(context, module);
+            SetupFieldBases(context, module);
+            SetupFieldModes(context, module);
+
+            int numCoeffs = std::accumulate(m_globalExpansions.begin(),
+                m_globalExpansions.end(), 0,
+                [](int oldValue, Nektar::MultiRegions::ExpListSharedPtr exp)
+            {
+                return oldValue + exp->GetNcoeffs();
+            });
+
+            m_deviceCoefficientBuffer.SetContextInfo(context, module);
+            m_deviceCoefficientBuffer.SetDimensions(numCoeffs);
+            
+            ElVisFloat* coeffData = static_cast<ElVisFloat*>(m_deviceCoefficientBuffer.map());
+            int coeffIndex = 0;
+            std::for_each(m_globalExpansions.begin(), m_globalExpansions.end(),
+                [&](Nektar::MultiRegions::ExpListSharedPtr exp)
+            {
+                for(unsigned int i = 0; i < exp->GetNcoeffs(); ++i)
+                {
+                    coeffData[coeffIndex] = exp->GetCoeff(i);
+                    ++coeffIndex;
+                }    
+            });
+            
+            m_deviceCoefficientBuffer.unmap();
+        }
+
+        void NektarModel::SetupOptixVertexBuffers(optixu::Context context, CUmodule module)
+        {
+            m_deviceVertexBuffer.SetContextInfo(context, module);
+            m_deviceVertexBuffer.SetDimensions(m_graph->GetNvertices());
+
+            ElVisFloat4* vertexData = m_deviceVertexBuffer.MapOptiXPointer();
+            for(unsigned int i = 0; i < m_graph->GetNvertices(); ++i)
+            {
+                auto vertex = m_graph->GetVertex(i);
+                vertexData[i] = ::MakeFloat4(vertex->x(), vertex->y(), vertex->z(), 1.0);
+            }
+            m_deviceVertexBuffer.UnmapOptiXPointer();
+        }
+
+        
+
+
+        LibUtilities::SessionReaderSharedPtr NektarModel::GetSession() const
+        {
+            return m_session;
+        }
+
+
+        void NektarModel::DoSetupCudaContext(CUmodule module) const
+        {
+        }
+
+        
+
+        int NektarModel::GetNumberOfFaces() const 
+        {
+            int numFaces = 0;
+            if( m_graph )
+            {
+                numFaces += m_graph->GetAllTriGeoms().size();
+                numFaces += m_graph->GetAllQuadGeoms().size();
+            }
+            return numFaces;
         }
 
         void NektarModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faceGeometry)
@@ -322,37 +569,715 @@ namespace ElVis
 
         int NektarModel::DoGetNumberOfBoundarySurfaces() const
         {
-            return 0;
+            return 1;
         }
 
         void NektarModel::DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds)
         {
+            name = std::string("All Faces");
+            for(int i = 0; i < GetNumberOfFaces(); ++i)
+            {
+                faceIds.push_back(i);
+            }
+        }
+
+        std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        {
+            std::vector<optixu::GeometryInstance> result;
+            if( m_graph->GetMeshDimension() != 2 )
+            {
+                return result;
+            }
+
+            int numChildren = 0;
+            int numTriangles = m_graph->GetAllTriGeoms().size();
+            int numQuads = m_graph->GetAllQuadGeoms().size();
+
+            if( numTriangles > 0 ) ++numChildren;
+            if( numQuads > 0 ) ++numChildren;
+
+            if( numChildren == 0 )
+            {
+                return result;
+            }
+
+            if( numTriangles > 0 )
+            {               
+                optixu::GeometryInstance instance = context->createGeometryInstance();
+                optixu::Geometry geometry = context->createGeometry();
+                geometry->setPrimitiveCount(numTriangles);
+                instance->setGeometry(geometry);
+
+                // Intersection Program
+                if( !m_2DTriangleIntersectionProgram )
+                {
+                    m_2DTriangleIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), "NektarTriangleIntersection");
+                }
+                if( !m_2DTriangleBoundingBoxProgram )
+                {
+                    m_2DTriangleBoundingBoxProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), "NektarTriangleBounding");
+                }
+                geometry->setBoundingBoxProgram(m_2DTriangleBoundingBoxProgram);
+                geometry->setIntersectionProgram(m_2DTriangleIntersectionProgram);
+
+                result.push_back(instance);
+
+                // Setup the vertex map.
+                m_deviceTriangleVertexIndexMap.SetContextInfo(context, module);
+                m_TriangleModes.SetContextInfo(context, module);
+                m_TriangleMappingCoeffsDir0.SetContextInfo(context, module);
+                m_TriangleMappingCoeffsDir1.SetContextInfo(context, module);
+                m_TriangleCoeffMappingDir0.SetContextInfo(context, module);
+                m_TriangleCoeffMappingDir1.SetContextInfo(context, module);
+                m_TriangleGlobalIdMap.SetContextInfo(context, module);
+
+                m_deviceTriangleVertexIndexMap.SetDimensions(3*numTriangles);
+                m_TriangleGlobalIdMap.SetDimensions(numTriangles);
+                uint* globalElementIdMap = m_TriangleGlobalIdMap.MapOptiXPointer();
+                uint* data = m_deviceTriangleVertexIndexMap.MapOptiXPointer();
+                int i = 0;
+                for( Nektar::SpatialDomains::TriGeomMap::const_iterator iter = m_graph->GetAllTriGeoms().begin();
+                    iter != m_graph->GetAllTriGeoms().end(); ++iter)
+                {
+                    auto tri = (*iter).second;
+                    int id0 = tri->GetVid(0);
+                    auto v0 = tri->GetVertex(0);
+                    auto gv0 = m_graph->GetVertex(id0);
+                    data[3*i] = tri->GetVid(0);
+                    data[3*i+1] = tri->GetVid(1);
+                    data[3*i+2] = tri->GetVid(2);
+
+                    globalElementIdMap[i] = tri->GetGlobalID();
+                    ++i;
+                }
+                m_deviceTriangleVertexIndexMap.UnmapOptiXPointer();
+                m_TriangleGlobalIdMap.UnmapOptiXPointer();
+
+                // Setup the geometric expansion information.
+                m_TriangleModes.SetDimensions(numTriangles);
+                m_TriangleCoeffMappingDir0.SetDimensions(numTriangles);
+                m_TriangleCoeffMappingDir1.SetDimensions(numTriangles);
+                uint2* modeArray = m_TriangleModes.MapOptiXPointer();
+                uint* coeffMapping0Array = m_TriangleCoeffMappingDir0.MapOptiXPointer();
+                uint* coeffMapping1Array = m_TriangleCoeffMappingDir1.MapOptiXPointer();
+
+                int expansionSize[] = {0, 0};
+
+                uint* expansion0Sizes = new uint[numTriangles];
+                uint* expansion1Sizes = new uint[numTriangles];
+                int idx = 0;
+                boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
+                    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
+                {
+                    Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+                    Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+                    Nektar::LibUtilities::BasisSharedPtr b0 = x0->GetBasis(0);
+                    Nektar::LibUtilities::BasisSharedPtr b1 = x0->GetBasis(1);
+
+                    modeArray[idx].x = b0->GetNumModes();
+                    modeArray[idx].y = b1->GetNumModes();
+                    
+                    expansionSize[0] += u0.num_elements();
+                    expansionSize[1] += u1.num_elements();
+
+                    expansion0Sizes[idx] = u0.num_elements();
+                    expansion1Sizes[idx] = u1.num_elements();
+                    
+                    ++idx;
+                });
+
+                coeffMapping0Array[0] = 0;
+                coeffMapping1Array[0] = 0;
+                for(int i = 1; i < numTriangles; ++i)
+                {
+                    coeffMapping0Array[i] = coeffMapping0Array[i-1] + expansion0Sizes[i-1];
+                    coeffMapping1Array[i] = coeffMapping1Array[i-1] + expansion1Sizes[i-1];
+                }
+
+                delete [] expansion0Sizes;
+                delete [] expansion1Sizes;
+
+                m_TriangleMappingCoeffsDir0.SetDimensions(expansionSize[0]);
+                m_TriangleMappingCoeffsDir1.SetDimensions(expansionSize[1]);
+                ElVisFloat* coeffs0 = m_TriangleMappingCoeffsDir0.MapOptiXPointer();
+                ElVisFloat* coeffs1 = m_TriangleMappingCoeffsDir1.MapOptiXPointer();
+
+                ElVisFloat* base0 = coeffs0;
+                ElVisFloat* base1 = coeffs1;
+                boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
+                    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
+                {
+                    Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+                    Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+
+                    std::copy(u0.begin(), u0.end(), coeffs0);
+                    std::copy(u1.begin(), u1.end(), coeffs1);
+                    coeffs0 += u0.num_elements();
+                    coeffs1 += u1.num_elements();
+                });
+
+                m_TriangleModes.UnmapOptiXPointer();
+                m_TriangleCoeffMappingDir0.UnmapOptiXPointer();
+                m_TriangleCoeffMappingDir1.UnmapOptiXPointer();
+                m_TriangleMappingCoeffsDir0.UnmapOptiXPointer();
+                m_TriangleMappingCoeffsDir1.UnmapOptiXPointer();
+
+                //boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
+                //    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
+                //{
+                //    // TODO - Check the correspondence between vertex id and global id. 
+                //    BOOST_AUTO(localExpansion, m_globalExpansion->GetExp(hex->GetGlobalID()));
+
+                //    modesData[i*3] = localExpansion->GetBasis(0)->GetNumModes();
+                //    modesData[i*3+1] = localExpansion->GetBasis(1)->GetNumModes();
+                //    modesData[i*3+2] = localExpansion->GetBasis(2)->GetNumModes();
+                //    ++i;
+                //});
+            }
+
+            //if( numQuads > 0 )
+            //{
+            //    optixu::GeometryInstance instance = context->createGeometryInstance();
+            //    optixu::Geometry geometry = context->createGeometry();
+            //    geometry->setPrimitiveCount(numQuads);
+            //    instance->setGeometry(geometry);
+
+            //    // Intersection Program
+            //    if( !m_2DQuadIntersectionProgram )
+            //    {
+            //        m_2DQuadIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), "NektarQuadIntersection");
+            //    }
+            //    if( !m_2DQuadBoundingBoxProgram )
+            //    {
+            //        m_2DQuadBoundingBoxProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), "NektarQuadBounding");
+            //    }
+            //    geometry->setBoundingBoxProgram(m_2DQuadBoundingBoxProgram);
+            //    geometry->setIntersectionProgram(m_2DQuadIntersectionProgram);
+
+            //    result.push_back(instance);
+
+            //    // Setup the vertex map.
+            //    m_deviceQuadVertexIndexMap.SetContextInfo(context, module);
+            //    m_QuadModes.SetContextInfo(context, module);
+            //    m_QuadMappingCoeffsDir0.SetContextInfo(context, module);
+            //    m_QuadMappingCoeffsDir1.SetContextInfo(context, module);
+            //    m_QuadCoeffMappingDir0.SetContextInfo(context, module);
+            //    m_QuadCoeffMappingDir1.SetContextInfo(context, module);
+
+            //    m_deviceQuadVertexIndexMap.SetDimensions(4*numQuads);
+            //    uint* data = m_deviceQuadVertexIndexMap.MapOptiXPointer();
+            //    int i = 0;
+            //    for( Nektar::SpatialDomains::QuadGeomMap::const_iterator iter = m_graph->GetAllQuadGeoms().begin();
+            //        iter != m_graph->GetAllQuadGeoms().end(); ++iter)
+            //    {
+            //        auto tri = (*iter).second;
+            //        int id0 = tri->GetVid(0);
+            //        auto v0 = tri->GetVertex(0);
+            //        auto gv0 = m_graph->GetVertex(id0);
+            //        data[4*i] = tri->GetVid(0);
+            //        data[4*i+1] = tri->GetVid(1);
+            //        data[4*i+2] = tri->GetVid(2);
+            //        data[4*i+3] = tri->GetVid(3);
+            //        ++i;
+            //    }
+            //    m_deviceQuadVertexIndexMap.UnmapOptiXPointer();
+
+            //    // Setup the geometric expansion information.
+            //    m_QuadModes.SetDimensions(numQuads);
+            //    m_QuadCoeffMappingDir0.SetDimensions(numQuads);
+            //    m_QuadCoeffMappingDir1.SetDimensions(numQuads);
+            //    uint2* modeArray = m_QuadModes.MapOptiXPointer();
+            //    uint* coeffMapping0Array = m_QuadCoeffMappingDir0.MapOptiXPointer();
+            //    uint* coeffMapping1Array = m_QuadCoeffMappingDir1.MapOptiXPointer();
+
+            //    int expansionSize[] = {0, 0};
+
+            //    uint* expansion0Sizes = new uint[numQuads];
+            //    uint* expansion1Sizes = new uint[numQuads];
+            //    int idx = 0;
+            //    boost::for_each(m_graph->GetAllQuadGeoms() | boost::adaptors::map_values, 
+            //        [&](Nektar::SpatialDomains::QuadGeomSharedPtr tri)
+            //    {
+            //        Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+            //        Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+            //        const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+            //        const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+            //        Nektar::LibUtilities::BasisSharedPtr b0 = x0->GetBasis(0);
+            //        Nektar::LibUtilities::BasisSharedPtr b1 = x0->GetBasis(1);
+
+            //        modeArray[idx].x = b0->GetNumModes();
+            //        modeArray[idx].y = b1->GetNumModes();
+            //        
+            //        expansionSize[0] += u0.num_elements();
+            //        expansionSize[1] += u1.num_elements();
+
+            //        expansion0Sizes[idx] = u0.num_elements();
+            //        expansion1Sizes[idx] = u1.num_elements();
+
+            //        ++idx;
+            //    });
+
+            //    coeffMapping0Array[0] = 0;
+            //    coeffMapping1Array[0] = 0;
+            //    for(int i = 1; i < numQuads; ++i)
+            //    {
+            //        coeffMapping0Array[i] = coeffMapping0Array[i-1] + expansion0Sizes[i-1];
+            //        coeffMapping1Array[i] = coeffMapping1Array[i-1] + expansion1Sizes[i-1];
+            //    }
+
+            //    delete [] expansion0Sizes;
+            //    delete [] expansion1Sizes;
+
+            //    m_QuadMappingCoeffsDir0.SetDimensions(expansionSize[0]);
+            //    m_QuadMappingCoeffsDir1.SetDimensions(expansionSize[1]);
+            //    ElVisFloat* coeffs0 = m_QuadMappingCoeffsDir0.MapOptiXPointer();
+            //    ElVisFloat* coeffs1 = m_QuadMappingCoeffsDir1.MapOptiXPointer();
+
+            //    ElVisFloat* base0 = coeffs0;
+            //    ElVisFloat* base1 = coeffs1;
+            //    boost::for_each(m_graph->GetAllQuadGeoms() | boost::adaptors::map_values, 
+            //        [&](Nektar::SpatialDomains::QuadGeomSharedPtr tri)
+            //    {
+            //        Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+            //        Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+            //        const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+            //        const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+
+            //        std::copy(u0.begin(), u0.end(), coeffs0);
+            //        std::copy(u1.begin(), u1.end(), coeffs1);
+            //        coeffs0 += u0.num_elements();
+            //        coeffs1 += u1.num_elements();
+            //    });
+
+            //    m_QuadModes.UnmapOptiXPointer();
+            //    m_QuadCoeffMappingDir0.UnmapOptiXPointer();
+            //    m_QuadCoeffMappingDir1.UnmapOptiXPointer();
+            //    m_QuadMappingCoeffsDir0.UnmapOptiXPointer();
+            //    m_QuadMappingCoeffsDir1.UnmapOptiXPointer();
+            //}
+            return result;
+        }
+
+        optixu::Material NektarModel::DoGet2DPrimaryGeometryMaterial(SceneView* view)
+        {
+            if( !m_TwoDClosestHitProgram.get() )
+            {
+                m_TwoDClosestHitProgram = PtxManager::LoadProgram(this->GetPTXPrefix(), "TwoDClosestHitProgram");
+            }
+            auto context = view->GetContext();
+            optixu::Material result = context->createMaterial();
+            result->setClosestHitProgram(0, m_TwoDClosestHitProgram);
+            return result;
+        }
+
+        unsigned int NektarModel::DoGetNumberOfElements() const
+        {
+            return 0;
+        }
+
+        int NektarModel::DoGetNumFields() const
+        {
+            return m_fieldDefinitions[0]->m_fields.size();
+        }
+
+        FieldInfo NektarModel::DoGetFieldInfo(unsigned int index) const
+        {
+            FieldInfo result;
+            result.Name =  m_fieldDefinitions[0]->m_fields[index];
+            result.Id = index;
+            result.Shortcut = "";
+            return result;
         }
 
         void NektarModel::DoMapInteropBufferForCuda()
         {
             m_deviceVertexBuffer.GetMappedCudaPtr();
             m_deviceCoefficientBuffer.GetMappedCudaPtr();
-            m_deviceCoefficientIndexBuffer.GetMappedCudaPtr();
+            m_deviceCoefficientOffsetBuffer.GetMappedCudaPtr();
 
             m_deviceHexVertexIndices.GetMappedCudaPtr();
             m_deviceHexPlaneBuffer.GetMappedCudaPtr();
             m_deviceHexVertexFaceIndex.GetMappedCudaPtr();
             m_deviceNumberOfModes.GetMappedCudaPtr();
+
+            FaceVertexBuffer.GetMappedCudaPtr();
+            FaceNormalBuffer.GetMappedCudaPtr();
         }
 
         void NektarModel::DoUnMapInteropBufferForCuda()
         {
             m_deviceVertexBuffer.UnmapCudaPtr();
             m_deviceCoefficientBuffer.UnmapCudaPtr();
-            m_deviceCoefficientIndexBuffer.UnmapCudaPtr();
+            m_deviceCoefficientOffsetBuffer.UnmapCudaPtr();
 
             m_deviceHexVertexIndices.UnmapCudaPtr();
             m_deviceHexPlaneBuffer.UnmapCudaPtr();
             m_deviceHexVertexFaceIndex.UnmapCudaPtr();
             m_deviceNumberOfModes.UnmapCudaPtr();
+
+            FaceVertexBuffer.UnmapCudaPtr();
+            FaceNormalBuffer.UnmapCudaPtr();
         }
+
+        int NektarModel::DoGetModelDimension() const
+        {
+            if( boost::dynamic_pointer_cast<ThreeDNektarModel>(m_impl) )
+            {
+                return 3;
+            }
+            else
+            {
+                return 2;
+            }
     }
 
+        NektarModelImpl::NektarModelImpl(NektarModel* model) :
+            boost::noncopyable()
+            ,m_model(model)
+        {
+        }
+
+        NektarModelImpl::~NektarModelImpl()
+        {
+        }
+
+                
+
+        ThreeDNektarModel::ThreeDNektarModel(NektarModel* model, Nektar::SpatialDomains::MeshGraph3DSharedPtr mesh) :
+            NektarModelImpl(model)
+            , m_mesh(mesh)
+        {
+        }
     
+        ThreeDNektarModel::~ThreeDNektarModel()
+        {
+        }
+
+        TwoDNektarModel::TwoDNektarModel(NektarModel* model, Nektar::SpatialDomains::MeshGraph2DSharedPtr mesh) :
+            NektarModelImpl(model)
+            , m_mesh(mesh)
+        {
+        }
+             
+        TwoDNektarModel::~TwoDNektarModel()
+        {
 }
+    }
+   
+}
+
+
+
+
+
+// Old Code
+//        template<typename T>
+//        T ModifiedA(unsigned int i, const T& x)
+//        {
+//            if( i == 0 )
+//            {
+//                return (1.0-x)/2.0;
+//            }
+//            else if( i == 1 )
+//            {
+//                return (1.0+x)/2.0;
+//            }
+//            else
+//            {
+//                return (1.0-x)/2.0 * 
+//                    (1.0 + x)/2.0 * 
+//                    ElVis::OrthoPoly::P(i-2, 1, 1, x);
+//            }
+//        }
+//
+//        template<typename T>
+//        T dModifiedA(unsigned int i, const T& x)
+//        {
+//            if( i == 0 )
+//            {
+//                return -.5;
+//            }
+//            else if( i == 1 )
+//            {
+//                return .5;
+//            }
+//            else
+//            {
+//                double poly = ElVis::OrthoPoly::P(i-2, 1, 1, x);
+//                double dpoly = ElVis::OrthoPoly::dP(i-2, 1, 1, x);
+//
+//                return .25*(1-x)*poly - .25 * (1+x)*poly + 
+//                    .25 * (1-x)*(1+x)*dpoly;
+//            }
+//        }
+//
+//        template<typename T>
+//        T ModifiedB(unsigned int i, unsigned int j, const T& x)
+//        {
+//            if( i == 0 )
+//            {
+//                return ModifiedA(j, x);
+//            }
+//            else if( j == 0 )
+//            {
+//                return pow((1.0-x)/2.0, (double)i);
+//            }
+//            else
+//            {
+//                double result = 1.0;
+//                result = pow((1.0-x)/2.0, (double)i);
+//                result *= (1.0+x)/2.0;
+//                result *= ElVis::OrthoPoly::P(j-1, 2*i-1, 1, x);
+//                return result;
+//            }
+//        }
+//
+//        
+//        template<typename T>
+//        T dModifiedB(unsigned int i, unsigned int j, const T& x)
+//        {
+//            if( i == 0 )
+//            {
+//                return dModifiedA(j, x);
+//            }
+//            else if( j == 0 )
+//            {
+//                double result = 1.0/pow(-2.0, (double)i);
+//                result *= i;
+//                result *= pow((1-x), (double)(i-1));
+//                return result;
+//            }
+//            else
+//            {
+//                double scale = 1.0/pow(2.0, (double)(i+1));
+//                double poly = ElVis::OrthoPoly::P(j-1, 2*i-1, 1, x);
+//                double dpoly = ElVis::OrthoPoly::dP(j-1, 2*i-1, 1, x);
+//                double result = pow(1.0-x, (double)i) * poly -
+//                    i*pow(1.0-x, (double)(i-1))*(1+x)*poly +
+//                    pow(1.0-x, (double)i)*(1+x)*dpoly;
+//                result *= scale;
+//                return result;
+//            }
+//        }
+//
+//void RefToWorldQuad(const ElVisFloat* u0,
+//    const ElVisFloat* u1, 
+//    int numModes1, int numModes2,
+//    const ElVisFloat2& local,
+//    ElVisFloat2& global)
+//{
+//    global.x = MAKE_FLOAT(0.0);
+//    global.y = MAKE_FLOAT(0.0);
+//    
+//    int idx = 0;
+//    for(int i = 0; i < numModes1; ++i)
+//    {
+//        ElVisFloat accum[] = {MAKE_FLOAT(0.0), MAKE_FLOAT(0.0)};
+//
+//        for(int j = 0; j < numModes2; ++j)
+//        {
+//            ElVisFloat poly = ModifiedA(j, local.y);
+//            accum[0] += u0[idx]*poly;
+//            accum[1] += u1[idx]*poly;
+//            ++idx;
+//        }
+//
+//        ElVisFloat outerPoly = ModifiedA(i, local.x);
+//        global.x += accum[0]*outerPoly;
+//        global.y += accum[1]*outerPoly;
+//    }
+//    //global.x += ModifiedA(1, local.x) * ModifiedB(0, 1, local.y) *
+//    //    u0[1];
+//    //global.y += ModifiedA(1, local.x) * ModifiedB(0, 1, local.y) *
+//    //    u1[1];
+//}
+//
+// ElVisFloat RefToWorldQuad_df_dr(const ElVisFloat* u, 
+//    int numModes1, int numModes2, 
+//    const ElVisFloat2& local)
+//{
+//    //ELVIS_PRINTF("RefToWorldQuad_df_dr Modes (%d, %d)\n", numModes1, numModes2);
+//    ElVisFloat result = MAKE_FLOAT(0.0);
+//    int idx = 0;
+//    for(int i = 0; i < numModes1; ++i)
+//    {
+//        ElVisFloat accum = MAKE_FLOAT(0.0);
+//        for(int j = 0; j < numModes2; ++j)
+//        {
+//            ElVisFloat poly = ModifiedA(j, local.y);
+//            accum += u[idx]*poly;
+//            //ELVIS_PRINTF("RefToWorldQuad_df_dr Poly (%2.15f) u (%2.15f)\n", poly, u[idx]);
+//            ++idx;
+//        }
+//
+//        ElVisFloat outerPoly = dModifiedA(i, local.x);
+//        //ELVIS_PRINTF("RefToWorldTriangle_df_dr Outer poly (%2.15f)\n", outerPoly);
+//        result += accum*outerPoly;
+//    }
+//    //result += ModifiedAPrime(1, local.x) * ModifiedB(0, 1, local.y) *
+//    //    u[1];
+//    //ELVIS_PRINTF("RefToWorldQuad_df_dr Result (%2.15f)\n", result);
+//    return result;
+//}
+//
+//ElVisFloat RefToWorldQuad_df_ds(const ElVisFloat* u,
+//    int numModes1, int numModes2, 
+//    const ElVisFloat2& local)
+//{
+//    ElVisFloat result = MAKE_FLOAT(0.0);
+//    int idx = 0;
+//    for(int i = 0; i < numModes1; ++i)
+//    {
+//        ElVisFloat accum = MAKE_FLOAT(0.0);
+//        for(int j = 0; j < numModes2; ++j)
+//        {
+//            ElVisFloat poly = dModifiedA(j, local.y);
+//            accum += u[idx]*poly;
+//            //ELVIS_PRINTF("RefToWorldTriangle_df_ds poly(%f) accum (%f) u(%f)\n", poly, accum, u[idx]);
+//            ++idx;
+//        }
+//
+//        ElVisFloat outerPoly = ModifiedA(i, local.x);
+//        result += accum*outerPoly;
+//        //ELVIS_PRINTF("RefToWorldTriangle_df_ds outerPoly(%f) result (%f)\n", outerPoly, result);
+//    }
+//    //result += ModifiedA(1, local.x) * ModifiedBPrime(0, 1, local.y) *
+//    //    u[1];
+//    return result;
+//}
+//
+//        void RefToWorldTriangle(const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0,
+//            const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1, 
+//            int numModes1, int numModes2, 
+//            const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& local,
+//            Nektar::Array<Nektar::OneD, Nektar::NekDouble>& global)
+//        {
+//            global[0] = 0.0;
+//            global[1] = 0.0;
+//            int idx = 0;
+//            for(int i = 0; i < numModes1; ++i)
+//            {
+//                double accum[] = {0.0, 0.0};
+//
+//                for(int j = 0; j < numModes2-i; ++j)
+//                {
+//                    double poly = ModifiedB(i, j, local[1]);
+//                    accum[0] += u0[idx]*poly;
+//                    accum[1] += u1[idx]*poly;
+//                    ++idx;
+//                }
+//
+//                double outerPoly = ModifiedA(i, local[0]);
+//                global[0] += accum[0]*outerPoly;
+//                global[1] += accum[1]*outerPoly;
+//            }
+//            global[0] += ModifiedA(1, local[0]) * ModifiedB(0, 1, local[1]) *
+//                u0[1];
+//            global[1] += ModifiedA(1, local[0]) * ModifiedB(0, 1, local[1]) *
+//                u1[1];
+//        }
+//
+//        double RefToWorldTriangle_df_dr(const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u, 
+//            int numModes1, int numModes2, 
+//            const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& local)
+//        {
+//            double result = 0.0;
+//            int idx = 0;
+//            for(int i = 0; i < numModes1; ++i)
+//            {
+//                double accum = 0.0;
+//                for(int j = 0; j < numModes2-i; ++j)
+//                {
+//                    double poly = ModifiedB(i, j, local[1]);
+//                    accum += u[idx]*poly;
+//                    ++idx;
+//                }
+//
+//                double outerPoly = dModifiedA(i, local[0]);
+//                result += accum*outerPoly;
+//            }
+//            result += dModifiedA(1, local[0]) * ModifiedB(0, 1, local[1]) *
+//                u[1];
+//            return result;
+//        }
+//
+//        double RefToWorldTriangle_df_ds(const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u,
+//            int numModes1, int numModes2, 
+//            const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& local)
+//        {
+//            double result = 0.0;
+//            int idx = 0;
+//            for(int i = 0; i < numModes1; ++i)
+//            {
+//                double accum = 0.0;
+//                for(int j = 0; j < numModes2-i; ++j)
+//                {
+//                    double poly = dModifiedB(i, j, local[1]);
+//                    accum += u[idx]*poly;
+//                    ++idx;
+//                }
+//
+//                double outerPoly = ModifiedA(i, local[0]);
+//                result += accum*outerPoly;
+//            }
+//            result += ModifiedA(1, local[0]) * dModifiedB(0, 1, local[1]) *
+//                u[1];
+//            return result;
+//        }
+//
+//        ElVisFloat2 NektarQuadWorldPointToReference(ElVisFloat* u0, ElVisFloat* u1,
+//            uint2 modes,
+//            const ElVisFloat3& intersectionPoint)
+//        {
+//            // Now test the inverse and make sure I can get it right.
+//            // Start the search in the middle of the element.
+//            ElVisFloat2 local = MakeFloat2(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+//            ElVisFloat2 curGlobalPoint = MakeFloat2(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+//
+//            ElVisFloat J[4];
+//            ElVisFloat2 global = MakeFloat2(intersectionPoint.x, intersectionPoint.y);
+//
+//            unsigned int numIterations = 0;
+//            ElVisFloat tolerance = MAKE_FLOAT(1e-5);
+//            do
+//            {
+//                //exp->GetCoord(local, curGlobalPoint);
+//                RefToWorldQuad(u0, u1, modes.x, modes.y,
+//                    local, curGlobalPoint);
+//                ElVisFloat2 f;
+//                f.x = curGlobalPoint.x-global.x;
+//                f.y = curGlobalPoint.y-global.y;
+//
+//                J[0] = RefToWorldQuad_df_dr(u0, modes.x, modes.y, local);
+//                J[1] = RefToWorldQuad_df_ds(u0, modes.x, modes.y, local);
+//                J[2] = RefToWorldQuad_df_dr(u1, modes.x, modes.y, local);
+//                J[3] = RefToWorldQuad_df_ds(u1, modes.x, modes.y, local);
+//     
+//                ElVisFloat inverse[4];
+//                ElVisFloat denom = J[0]*J[3] - J[1]*J[2];
+//                ElVisFloat determinant = MAKE_FLOAT(1.0)/(denom);
+//                inverse[0] = determinant*J[3];
+//                inverse[1] = -determinant*J[1];
+//                inverse[2] = -determinant*J[2];
+//                inverse[3] = determinant*J[0];
+//                double r_adjust = inverse[0]*f.x + inverse[1]*f.y;
+//                double s_adjust = inverse[2]*f.x + inverse[3]*f.y;
+//
+//                if( fabsf(r_adjust) < tolerance &&
+//                    fabsf(s_adjust) < tolerance )
+//                {
+//                    break;
+//                }
+//
+//                local.x -= r_adjust;
+//                local.y -= s_adjust;
+//
+//                ++numIterations;
+//            }
+//            while( numIterations < 50);
+//            return local;
+//        }

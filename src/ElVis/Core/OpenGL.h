@@ -46,5 +46,8 @@
 #include <GL/glut.h>
 #endif
 
+#include <ElVis/Core/Cuda.h>
+#include <cudaGL.h>
+#include <cuda_gl_interop.h>
 
 #endif

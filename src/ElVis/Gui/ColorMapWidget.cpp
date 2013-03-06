@@ -31,6 +31,7 @@
 #include <ElVis/Gui/ColorMapWidget.h>
 #include <ElVis/Gui/ColorMapRect.h>
 #include <boost/bind.hpp>
+#include <boost/typeof/typeof.hpp>
 
 namespace ElVis
 {

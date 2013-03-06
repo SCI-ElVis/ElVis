@@ -37,6 +37,9 @@
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/SampleFaceObject.h>
 #include <ElVis/Core/Stat.h>
+#include <ElVis/Core/SceneViewProjection.h>
+#include <ElVis/Core/SynchedObject.hpp>
+#include <ElVis/Core/Timer.h>
 
 #include <optixu/optixpp.h>
 #include <ElVis/Core/Scene.h>
@@ -57,7 +60,7 @@ namespace ElVis
             ELVIS_EXPORT SceneView();
             ELVIS_EXPORT virtual ~SceneView();
 
-            ELVIS_EXPORT void Draw();
+            ELVIS_EXPORT Timer Draw();
             ELVIS_EXPORT void Resize(int width, int height);
 
             ELVIS_EXPORT int GetWidth() const { return m_width; }
@@ -147,6 +150,9 @@ namespace ElVis
 
             ELVIS_EXPORT Stat CalculateScalarSampleStats();
 
+            ELVIS_EXPORT void SetProjectionType(SceneViewProjection type);
+            ELVIS_EXPORT SceneViewProjection GetProjectionType() const;
+
             boost::signal<void (const SceneView&)> OnSceneViewChanged;
             boost::signal<void (int w, int h)> OnWindowSizeChanged;
             boost::signal<void (const SceneView&)> OnNeedsRedraw;
@@ -159,6 +165,14 @@ namespace ElVis
             SceneView(const SceneView&);
             SceneView& operator=(const SceneView& rhs);
             void SynchronizeWithGPUIfNeeded(optixu::Context context);
+
+            template<typename T>
+            void HandleSynchedObjectChanged(const SynchedObject<T>& obj)
+            {
+                OnSceneViewChanged(*this);
+            }
+
+
 
             static const std::string ColorBufferName;
             static const std::string DepthBufferName;
@@ -207,7 +221,7 @@ namespace ElVis
             optixu::Program m_exceptionProgram;
             Color m_backgroundColor;
             bool m_backgroundColorIsDirty;
-
+            SynchedObject<SceneViewProjection> m_projectionType;
 
     };
 }

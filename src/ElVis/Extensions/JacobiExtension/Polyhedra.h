@@ -229,31 +229,31 @@ namespace ElVis
             JACOBI_EXTENSION_EXPORT virtual int GetCellType() = 0;
 
 
-            void interpolatingPolynomialDegreeOverride(unsigned int override)
-            {
-                if( override > 0 )
-                {
-                    m_interpolatingPolynomialDegreeOverride = override;
-                }
-            }
+//            void interpolatingPolynomialDegreeOverride(unsigned int override)
+//            {
+//                if( override > 0 )
+//                {
+//                    m_interpolatingPolynomialDegreeOverride = override;
+//                }
+//            }
 
-            unsigned int interpolatingPolynomialDegreeOverride() const
-            {
-                return m_interpolatingPolynomialDegreeOverride;
-            }
+//            unsigned int interpolatingPolynomialDegreeOverride() const
+//            {
+//                return m_interpolatingPolynomialDegreeOverride;
+//            }
 
-            double referenceToWorldTolerance() const { return m_referenceToWorldTolerance; }
-            double referenceToWorldTolerance(double tol) { return m_referenceToWorldTolerance = tol; }
+//            double referenceToWorldTolerance() const { return m_referenceToWorldTolerance; }
+//            double referenceToWorldTolerance(double tol) { return m_referenceToWorldTolerance = tol; }
 
-            const std::vector<double>& relativeErrorStats() { return m_relativeErrorStats; }
-            const std::vector<double>& absoluteErrorStates() { return m_absoluteErrorStats; }
-            const std::vector<double>& interpolationL2NormStats() { return m_interpolationL2NormStats; }
-            const std::vector<double>& projectionL2NormStats() { return m_projectionL2NormStats; }
-            const std::vector<double>& interpolationInfinityNormStats() { return m_interpolationInfinityNormStats; }
-            const std::vector<double>& projectionInfinityNormStats() { return m_projectionInfinityNormStats; }
-            const std::vector<double>& interp_relativeErrorStats() { return m_interp_relativeErrorStats; }
-            const std::vector<double>& interp_absoluteErrorStats() { return m_interp_absoluteErrorStats; }
-            const std::vector<double>& rootFindingErrorStats() { return m_rootFindingErrorStats; }
+//            const std::vector<double>& relativeErrorStats() { return m_relativeErrorStats; }
+//            const std::vector<double>& absoluteErrorStates() { return m_absoluteErrorStats; }
+//            const std::vector<double>& interpolationL2NormStats() { return m_interpolationL2NormStats; }
+//            const std::vector<double>& projectionL2NormStats() { return m_projectionL2NormStats; }
+//            const std::vector<double>& interpolationInfinityNormStats() { return m_interpolationInfinityNormStats; }
+//            const std::vector<double>& projectionInfinityNormStats() { return m_projectionInfinityNormStats; }
+//            const std::vector<double>& interp_relativeErrorStats() { return m_interp_relativeErrorStats; }
+//            const std::vector<double>& interp_absoluteErrorStats() { return m_interp_absoluteErrorStats; }
+//            const std::vector<double>& rootFindingErrorStats() { return m_rootFindingErrorStats; }
 
 
             /// \brief Calculates the scalar value at the point.
@@ -444,13 +444,13 @@ namespace ElVis
             JACOBI_EXTENSION_EXPORT unsigned int NumberOfFaces() const { return DoNumberOfFaces(); }
             JACOBI_EXTENSION_EXPORT Face GetFace(unsigned int id) const { return DoGetFace(id); }
         protected:
-            JACOBI_EXTENSION_EXPORT void setInterpolatingPolynomialDegree(unsigned int newDegree) { m_interpolatingPolynomialDegree = newDegree; }
+//            JACOBI_EXTENSION_EXPORT void setInterpolatingPolynomialDegree(unsigned int newDegree) { m_interpolatingPolynomialDegree = newDegree; }
 
             // The actual degree of the interpolating polynomial which lies along
             // the ray.  This is defined to be the sum of the degrees in each
             // direction.
-            unsigned int m_interpolatingPolynomialDegree;
-            unsigned int m_interpolatingPolynomialDegreeOverride;
+//            unsigned int m_interpolatingPolynomialDegree;
+//            unsigned int m_interpolatingPolynomialDegreeOverride;
 
             // The degree of the interpolating polynomials in each direction.
             unsigned int m_degree[3];
@@ -510,18 +510,18 @@ namespace ElVis
 
             void assignId();
             void copy(const Polyhedron& rhs);
-            double m_referenceToWorldTolerance;
+//            double m_referenceToWorldTolerance;
 
             // Stats
-            std::vector<double> m_relativeErrorStats;
-            std::vector<double> m_rootFindingErrorStats;
-            std::vector<double> m_absoluteErrorStats;
-            std::vector<double> m_interp_relativeErrorStats;
-            std::vector<double> m_interp_absoluteErrorStats;
-            std::vector<double> m_interpolationL2NormStats;
-            std::vector<double> m_projectionL2NormStats;
-            std::vector<double> m_interpolationInfinityNormStats;
-            std::vector<double> m_projectionInfinityNormStats;
+//            std::vector<double> m_relativeErrorStats;
+//            std::vector<double> m_rootFindingErrorStats;
+//            std::vector<double> m_absoluteErrorStats;
+//            std::vector<double> m_interp_relativeErrorStats;
+//            std::vector<double> m_interp_absoluteErrorStats;
+//            std::vector<double> m_interpolationL2NormStats;
+//            std::vector<double> m_projectionL2NormStats;
+//            std::vector<double> m_interpolationInfinityNormStats;
+//            std::vector<double> m_projectionInfinityNormStats;
 
         };
 

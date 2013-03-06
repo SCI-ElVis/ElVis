@@ -187,9 +187,10 @@ int GenericCLIInterface(int argc, char** argv,
     glutInitWindowSize(100, 100);
     glutCreateWindow("fake");
 
+    std::cout << "Generic CLI Interface." << std::endl;
     const char* isovaluesLabel = "Isovalues";
-    const char* isosurfaceModuleEnabledLabel = "IsosurfaceEnabled";
-    const char* volumeRenderingModuleEnabledLabel = "VolumeRenderingEnabled";
+    const char* isosurfaceModuleEnabledLabel = "IsosurfaceModuleEnabled";
+    const char* volumeRenderingModuleEnabledLabel = "VolumeRenderingModuleEnabled";
     const char* contourModuleEnabledLabel = "ContourModuleEnabled";
     const char* meshModuleEnabledLabel = "MeshModuleEnabled";
     const char* boundarySurfacesLabel = "BoundarySurfaces";
@@ -209,6 +210,9 @@ int GenericCLIInterface(int argc, char** argv,
 
     const char* cutPlaneNormalLabel = "CutPlaneNormal";
     const char* cutPlanePointLabel= "CutPlanePoint";
+    const char* fieldLabel="Field";
+
+    const char* numTestsLabel = "NumTests";
 
     std::vector<double> cutPlaneNormal;
     std::vector<double> cutPlanePoint;
@@ -220,6 +224,9 @@ int GenericCLIInterface(int argc, char** argv,
     bool volumeRenderingModuleEnabled = false;
     bool contourModuleEnabled = false;
     bool meshModuleEnabled = false;
+    unsigned int numTests = 1;
+    std::string configFile;
+    int fieldIndex = 0;
 
     boost::program_options::options_description desc("GenericCLIOptions");
     desc.add_options()
@@ -240,16 +247,42 @@ int GenericCLIInterface(int argc, char** argv,
         (trackNumSamplesLabel, boost::program_options::value<int>(), "Track Num Samples")
         (renderIntegrationTypeLabel, boost::program_options::value<int>(), "RenderIntegrationType")
         (emptySpaceSkippingLabel, boost::program_options::value<int>(), "EnableEmptySpaceSkipping")
-
+        (numTestsLabel, boost::program_options::value<unsigned int>(&numTests), "Number of Tests")
         (cutPlaneNormalLabel, boost::program_options::value<std::vector<double> >(&cutPlaneNormal)->multitoken(), "Cut Plane Normal")
         (cutPlanePointLabel, boost::program_options::value<std::vector<double> >(&cutPlanePoint)->multitoken(), "Cut Plane Point")
+        (fieldLabel, boost::program_options::value<int>(&fieldIndex), "Field Index")
         ;
 
+    const char* configFileNameLabel = "ConfigFile";
+
+    boost::program_options::options_description configFileOptions("ConfigFileOptions");
+    configFileOptions.add_options()
+            (configFileNameLabel, boost::program_options::value<std::string>(&configFile), "Config File")
+            ;
+
+    boost::program_options::options_description commandLineOptions("CommandLineOptions");
+    commandLineOptions.add(desc).add(configFileOptions);
+
+
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).style(boost::program_options::command_line_style::allow_long |
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(commandLineOptions).style(boost::program_options::command_line_style::allow_long |
                                                                                                               boost::program_options::command_line_style::long_allow_adjacent).allow_unregistered().run(), vm);
     boost::program_options::notify(vm);
 
+    if( !configFile.empty() )
+    {
+        std::ifstream inFile(configFile.c_str());
+        if( inFile )
+        {
+            boost::program_options::store(boost::program_options::parse_config_file(inFile, desc, true), vm);
+            boost::program_options::notify(vm);
+        }
+        inFile.close();
+    }
+
+    #ifdef __GNUC__
+    system("nvidia-smi");
+    #endif
 
     ElVis::PointLight* l = new ElVis::PointLight();
     ElVis::Color lightColor;
@@ -272,6 +305,8 @@ int GenericCLIInterface(int argc, char** argv,
     view->SetCamera(c);
 
 
+    view->SetScalarFieldIndex(fieldIndex);
+
     boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(new ElVis::PrimaryRayModule());
     view->AddRenderModule(primaryRayModule);
 
@@ -288,6 +323,7 @@ int GenericCLIInterface(int argc, char** argv,
 
     if( contourModuleEnabled )
     {
+        std::cout << "Contour Module enabled.  Number of isovalues = " << isovalues.size() << std::endl;
         boost::shared_ptr<ElVis::CutSurfaceContourModule> contourModule(new ElVis::CutSurfaceContourModule());
         view->AddRenderModule(contourModule);
 
@@ -412,8 +448,33 @@ int GenericCLIInterface(int argc, char** argv,
 
     view->SetScene(scene);
     view->Resize(width, height);
+
+
+    // Don't time to take care of initialization artifacts.
     view->Draw();
 
+
+    ElVisFloat* times = new ElVisFloat[numTests-1];
+    for(unsigned int testNum = 1; testNum < numTests; ++testNum)
+    {
+        // Repeated redraws will do nothing if we don't signal that the view has changed in some way.
+        view->OnSceneViewChanged(*view);
+        ElVis::Timer t = view->Draw();
+        times[testNum-1] = t.TimePerTest(1);
+    }
+
     view->WriteColorBufferToFile(outFilePath.c_str());
+
+    if( numTests > 1 )
+    {
+        ElVis::Stat runtimeStats(times, std::numeric_limits<ElVisFloat>::max(), numTests-1, .95);
+        std::cout << "Average Time Per Run: " << runtimeStats.Mean << std::endl;
+        #ifdef __GNUC__
+        system("nvidia-smi");
+        #endif
+
+    }
+
+
     return 0;
 }

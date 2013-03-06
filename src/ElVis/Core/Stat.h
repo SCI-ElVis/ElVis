@@ -65,13 +65,42 @@ namespace ElVis
             }
 
 
-            Stat(const ElVisFloat* samples, ElVisFloat cutoff, int sampleSize/*, double confidence*/) :
+            Stat(const ElVisFloat* samples, ElVisFloat cutoff, int sampleSize, double confidence) :
                 Mean(0.0),
-    //            HalfWidth(0.0),
-    //            Confidence(0.0),
+                HalfWidth(0.0),
+                Confidence(confidence),
                 StdDev(0.0)
             {
-    //            Confidence = confidence;
+                Calculate(samples, cutoff, sampleSize);
+            }
+
+            Stat(const ElVisFloat* samples, ElVisFloat cutoff, int sampleSize) :
+                Mean(0.0),
+                HalfWidth(0.0),
+                Confidence(.95),
+                StdDev(0.0)
+            {
+                Calculate(samples, cutoff, sampleSize);
+            }
+
+            bool Overlaps(const Stat& other)
+            {
+                return (Low() >= other.Low() && Low() <= other.High()) ||
+                    (High() >= other.Low() && High() <= other.High());
+            }
+
+            double Low() const { return Mean - HalfWidth; }
+            double High() const { return Mean + HalfWidth; }
+            ElVisFloat Mean;
+            ElVisFloat HalfWidth;
+            ElVisFloat Confidence;
+            ElVisFloat StdDev;
+            ElVisFloat Min;
+            ElVisFloat Max;
+
+        private:
+            void Calculate(const ElVisFloat* samples, ElVisFloat cutoff, int sampleSize)
+            {
                 double sum = 0.0;
                 int numValidSamples = 0;
                 for(int i = 0; i < sampleSize; ++i)
@@ -101,25 +130,10 @@ namespace ElVis
                     StdDev = sqrt(StdDev/(numValidSamples-1));
                 }
 
-    //            boost::math::students_t dist(samples.size() - 1);
-    //            double T = boost::math::quantile(boost::math::complement(dist, (1.0-Confidence)/2.0));
-    //            HalfWidth = T*StdDev/sqrt(static_cast<double>(samples.size()));
+                boost::math::students_t dist(sampleSize);
+                double T = boost::math::quantile(boost::math::complement(dist, (1.0-Confidence)/2.0));
+                HalfWidth = T*StdDev/sqrt(static_cast<double>(sampleSize));
             }
-
-    //        bool Overlaps(const Stat& other)
-    //        {
-    //            return (Low() >= other.Low() && Low() <= other.High()) ||
-    //                (High() >= other.Low() && High() <= other.High());
-    //        }
-
-    //        double Low() const { return Mean - HalfWidth; }
-    //        double High() const { return Mean + HalfWidth; }
-            ElVisFloat Mean;
-    //        double HalfWidth;
-    //        double Confidence;
-            ElVisFloat StdDev;
-            ElVisFloat Min;
-            ElVisFloat Max;
     };
 }
 

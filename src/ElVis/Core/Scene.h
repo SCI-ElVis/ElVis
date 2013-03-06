@@ -130,6 +130,7 @@ namespace ElVis
             
             void InitializeCudaIfNeeded();
             void InitializeFaces();
+            void Get3DModelInformation();
 
             std::list<Light*> m_allLights;
             Color m_ambientLightColor;

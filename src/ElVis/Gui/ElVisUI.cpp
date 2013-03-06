@@ -436,8 +436,13 @@ namespace ElVis
             QStringList files = m_settings->value(RECENT_FILE_LIST).toStringList();
             QStringList filters = m_settings->value(RECENT_FILE_FILTER).toStringList();
 
-            files.removeAll(fileName);
-            filters.removeAll(filterName);
+            if( files.contains(fileName) )
+            {
+                return;
+            }
+
+//            files.removeAll(fileName);
+//            filters.removeAll(filterName);
 
             files.prepend(fileName);
             filters.prepend(filterName);

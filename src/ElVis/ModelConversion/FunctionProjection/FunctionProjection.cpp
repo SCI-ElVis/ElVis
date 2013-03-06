@@ -32,23 +32,28 @@
 namespace ElVis
 {
     FunctionProjection::FunctionProjection() :
-        bcs(0)
+        bcs(0),
+        m_model(0)
     {
     }
 
     FunctionProjection::FunctionProjection(const boost::filesystem::path& fileName) :
         IModelConverter(),
-        bcs(0)
+        bcs(0),
+        m_model(0)
     {
         SetInputFileName(fileName);
     }
 
     void FunctionProjection::SetInputFileName(const boost::filesystem::path& fileName)
     {
-        m_model.InitializeWithGeometry(fileName.string());
-        m_model.GetMesh()->ReadExpansions(fileName.string());
-        bcs = new SpatialDomains::BoundaryConditions(m_model.GetMesh().get());
-        bcs->Read(fileName.string());
+        boost::filesystem::path prefix = fileName.root_path();
+        prefix /= fileName.stem();
+        m_model = new ElVis::NektarPlusPlusExtension::NektarModel(prefix.string());
+        //m_model->InitializeWithGeometry(fileName.string());
+        //m_model->GetMesh()->ReadExpansions(fileName.string());
+        //bcs = new SpatialDomains::BoundaryConditions(m_model->GetMesh().get());
+        //bcs->Read(fileName.string());
 
         for(unsigned int i = 0; i < GetNumberOfVertices(); ++i)
         {
@@ -60,13 +65,13 @@ namespace ElVis
 
     unsigned int FunctionProjection::GetNumberOfVertices() const
     {
-        return m_model.GetMesh()->GetNvertices();
+        return m_model->GetMesh()->GetNvertices();
     }
 
     void FunctionProjection::GetVertex(unsigned int id, double& x, double& y, double& z) const
     {
         Nektar::SpatialDomains::VertexComponentSharedPtr vertex = 
-            m_model.GetMesh()->GetVertex(id);
+            m_model->GetMesh()->GetVertex(id);
 
         x = vertex->x();
         y = vertex->y();
@@ -75,24 +80,24 @@ namespace ElVis
 
     unsigned int FunctionProjection::GetNumberOfEdges() const
     {
-        return m_model.GetMesh()->GetAllSegGeoms().size();
+        return m_model->GetMesh()->GetAllSegGeoms().size();
     }
 
     void FunctionProjection::GetEdge(unsigned int id, unsigned int& vertex0Id, unsigned int& vertex1Id) const
     {
-        Nektar::SpatialDomains::SegGeomSharedPtr edge = m_model.GetMesh()->GetEdge(id);
+        Nektar::SpatialDomains::SegGeomSharedPtr edge = m_model->GetMesh()->GetEdge(id);
         vertex0Id = edge->GetVid(0);
         vertex1Id = edge->GetVid(1);
     }
 
     unsigned int FunctionProjection::GetNumberOfTriangularFaces() const
     {
-        return m_model.GetMesh()->GetAllTriGeoms().size();
+        return m_model->GetMesh()->GetAllTriGeoms().size();
     }
 
     unsigned int FunctionProjection::GetNumberOfQuadrilateralFaces() const
     {
-        return m_model.GetMesh()->GetAllQuadGeoms().size();
+        return m_model->GetMesh()->GetAllQuadGeoms().size();
     }
 
     void FunctionProjection::GetTriangleFaceEdgeIds(unsigned int faceId, unsigned int* edgeIds) const
@@ -107,53 +112,71 @@ namespace ElVis
 
     void FunctionProjection::GetQuadrilateralFaceEdgeIds(unsigned int faceId, unsigned int* edgeIds) const
     {
-        Nektar::SpatialDomains::QuadGeomSharedPtr quad = m_model.GetMesh()->GetAllQuadGeoms()[faceId];
-        for(unsigned int i = 0; i < 4; ++i)
+        BOOST_AUTO(mesh, m_model->GetMesh());
+        BOOST_AUTO(iter, mesh->GetAllQuadGeoms().find(faceId));
+        if( iter != mesh->GetAllQuadGeoms().end() )
         {
-            edgeIds[i] = quad->GetEid(i);
+            BOOST_AUTO(quad, (*iter).second);
+            for(unsigned int i = 0; i < 4; ++i)
+            {
+                edgeIds[i] = quad->GetEid(i);
+            }
         }
     }
 
     unsigned int FunctionProjection::GetNumberOfHexahedra() const
     {
-        return m_model.GetMesh()->GetAllHexGeoms().size();
+        return m_model->GetMesh()->GetAllHexGeoms().size();
     }
 
     void FunctionProjection::GetHexahedronFaceIds(unsigned int hexId, unsigned int* faceIds) const
     {
-        Nektar::SpatialDomains::HexGeomSharedPtr hex = 
-            m_model.GetMesh()->GetAllHexGeoms()[hexId];
-        for(unsigned int i = 0; i < 6; ++i)
+        BOOST_AUTO(mesh, m_model->GetMesh());
+        BOOST_AUTO(iter, mesh->GetAllHexGeoms().find(hexId));
+        if( iter != mesh->GetAllHexGeoms().end() )
         {
-            faceIds[i] = hex->GetFid(i);
+            BOOST_AUTO(hex, (*iter).second);
+            for(unsigned int i = 0; i < 6; ++i)
+            {
+                faceIds[i] = hex->GetFid(i);
+            }
         }
     }
 
     void FunctionProjection::GetHexahedronDegree(unsigned int hexId, unsigned int* degrees) const
     {
-        Nektar::SpatialDomains::HexGeomSharedPtr hex = 
-            m_model.GetMesh()->GetAllHexGeoms()[hexId];
-        Nektar::SpatialDomains::ExpansionShPtr expansion = m_model.GetMesh()->GetExpansion(hex);
-        for(int i = 0; i < 3; ++i)
+        BOOST_AUTO(mesh, m_model->GetMesh());
+        BOOST_AUTO(iter, mesh->GetAllHexGeoms().find(hexId));
+        if( iter != mesh->GetAllHexGeoms().end() )
         {
-            degrees[i] = expansion->m_basisKeyVector[i].GetNumModes()-1;
+            BOOST_AUTO(hex, (*iter).second);
+            Nektar::SpatialDomains::ExpansionShPtr expansion = mesh->GetExpansion(hex);
+            for(int i = 0; i < 3; ++i)
+            {
+                degrees[i] = expansion->m_basisKeyVector[i].GetNumModes()-1;
+            }
         }
     }
 
     void FunctionProjection::GetPrismDegree(unsigned int prismId, unsigned int* degrees) const
     {
-        Nektar::SpatialDomains::PrismGeomSharedPtr prism = 
-            m_model.GetMesh()->GetAllPrismGeoms()[prismId];
-        Nektar::SpatialDomains::ExpansionShPtr expansion = m_model.GetMesh()->GetExpansion(prism);
-        for(int i = 0; i < 3; ++i)
+        BOOST_AUTO(mesh, m_model->GetMesh());
+        BOOST_AUTO(iter, mesh->GetAllPrismGeoms().find(prismId));
+        if( iter != mesh->GetAllPrismGeoms().end() )
         {
-            degrees[i] = expansion->m_basisKeyVector[i].GetNumModes()-1;
+            BOOST_AUTO(prism, (*iter).second);
+        
+            Nektar::SpatialDomains::ExpansionShPtr expansion = mesh->GetExpansion(prism);
+            for(int i = 0; i < 3; ++i)
+            {
+                degrees[i] = expansion->m_basisKeyVector[i].GetNumModes()-1;
+            }
         }
     }
 
     unsigned int FunctionProjection::GetNumberOfPrisms() const
     {
-        return m_model.GetMesh()->GetAllPrismGeoms().size();
+        return m_model->GetMesh()->GetAllPrismGeoms().size();
     }
 
     void FunctionProjection::GetPrismQuadFaceIds(unsigned int prismId, unsigned int* faceIds) const
@@ -167,9 +190,11 @@ namespace ElVis
 
     double FunctionProjection::CalculateScalarValue(double x, double y, double z) const
     {
-        SpatialDomains::ConstExactSolutionShPtr ex_sol
-                                = bcs->GetExactSolution(bcs->GetVariable(0));
-        return ex_sol->Evaluate(x, y, z);
+        LibUtilities::EquationSharedPtr exac = m_model->GetSession()->GetFunction("ExactSolution", 0);
+        return exac->Evaluate(x, y, z);
+        //SpatialDomains::ConstExactSolutionShPtr ex_sol
+        //                        = bcs->GetExactSolution(bcs->GetVariable(0));
+        //return ex_sol->Evaluate(x, y, z);
     }
 
     double FunctionProjection::CalculateScalarValue(double x, double y, double z, unsigned int elementId) const

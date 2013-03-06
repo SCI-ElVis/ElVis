@@ -33,6 +33,8 @@
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/ReferencePointParameter.h>
 #include <ElVis/Core/typedefs.cu>
+#include <ElVis/Core/Interval.hpp>
+#include <ElVis/Core/IntervalPoint.cu>
 
 __device__ int* SegmentElementIdBuffer;
 __device__ int* SegmentElementTypeBuffer;
@@ -88,8 +90,15 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointCuda(int elementId, int
                                                               const PointType& worldPoint,
                                                               const PointType& referencePoint,
                                                               ResultType& result);
-                                                               
-#include <ElVis/Extensions/@ProjectName@/ExtensionCudaInterface.cu>
+
+
+ELVIS_DEVICE ElVisError SampleReferenceGradientCuda(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient);
+
+ELVIS_DEVICE ElVisError SampleGeometryMappingJacobian(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J);
+
+
+
+#include <@ExtensionPath@/ExtensionCudaInterface.cu>
 
 ///////////////////////////////////////////////////////////////////////////////
 // End Interface
@@ -115,6 +124,69 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldCuda(unsigned int elementId, unsigned int e
 {
     ElVisFloat3 dummy;
     return EvaluateFieldCuda(elementId, elementType, fieldId, worldPoint, ElVis::eReferencePointIsInvalid, dummy);
+}
+
+/// \brief
+ELVIS_DEVICE ElVisError EstimateRangeCuda(unsigned int elementId, unsigned int elementType, int fieldId,
+                                          const WorldPoint& p0, const WorldPoint& p1,
+                                          ElVis::Interval<ElVisFloat>& result)
+{
+    ReferencePoint r0, r1;
+    ElVisError e0 = ConvertWorldToReferenceSpaceCuda(elementId, elementType, p0, ElVis::eReferencePointIsInvalid, r0);
+    ElVisError e1 = ConvertWorldToReferenceSpaceCuda(elementId, elementType, p1, ElVis::eReferencePointIsInvalid, r1);
+
+    IntervalPoint referenceInterval(r0, r1);
+    IntervalPoint worldInterval(p0, p1);
+    ElVisError e2 = SampleScalarFieldAtReferencePointCuda(elementId, elementType, fieldId,
+                                                          worldInterval, referenceInterval, result);
+
+    return eNoError;
+}
+
+ELVIS_DEVICE ElVisError EvaluateNormalCuda(unsigned int elementId, unsigned int elementType, int fieldId,
+                                            const ElVisFloat3& worldPoint, ElVisFloat3& normal)
+{
+    ReferencePoint refPoint;
+    ElVisError e0 = ConvertWorldToReferenceSpaceCuda(elementId, elementType, worldPoint, ElVis::eReferencePointIsInvalid, refPoint);
+
+    ElVisFloat3 gradient;
+    ElVisError e1 = SampleReferenceGradientCuda(elementId, elementType, fieldId, refPoint, gradient);
+
+    ElVisFloat J[9], JInv[9];
+
+    ElVisError e2 = SampleGeometryMappingJacobian(elementId, elementType, refPoint, &J[0]);
+
+    // Invert
+    ElVisFloat determinant = (-J[0]*J[4]*J[8]+J[0]*J[5]*J[7]+J[3]*J[1]*J[8]-J[3]*J[2]*J[7]-J[6]*J[1]*J[5]+J[6]*J[2]*J[4]);
+    ElVisFloat i = MAKE_FLOAT(1.0)/determinant;
+    JInv[0] = (-J[4]*J[8]+J[5]*J[7])*i;
+    JInv[1] = -(-J[1]*J[8]+J[2]*J[7])*i;
+    JInv[2] = -(J[1]*J[5]-J[2]*J[4])*i;
+    JInv[3] = -(-J[3]*J[8]+J[5]*J[6])*i;
+    JInv[4] = (-J[0]*J[8]+J[2]*J[6])*i;
+    JInv[5] = (J[0]*J[5]-J[2]*J[3])*i;
+    JInv[6] = (-J[3]*J[7]+J[4]*J[6])*i;
+    JInv[7] = (J[0]*J[7]-J[1]*J[6])*i;
+    JInv[8] = -(J[0]*J[4]-J[1]*J[3])*i;
+
+    // Transpose
+    J[0] = JInv[0];
+    J[1] = JInv[3];
+    J[2] = JInv[6];
+
+    J[3] = JInv[1];
+    J[4] = JInv[4];
+    J[5] = JInv[7];
+
+    J[6] = JInv[2];
+    J[7] = JInv[5];
+    J[8] = JInv[8];
+
+    normal.x = gradient.x*J[0] + gradient.y*J[1] + gradient.z*J[2];
+    normal.y = gradient.x*J[3] + gradient.y*J[4] + gradient.z*J[5];
+    normal.z = gradient.x*J[6] + gradient.y*J[7] + gradient.z*J[8];
+
+    return eNoError;
 }
 
 #include <ElVis/Core/IsosurfaceModuleCuda.cu>

@@ -41,7 +41,7 @@ namespace ElVis
         try
         {
             std::string pathToPtx = GetPtxPath() + "/" +
-                    prefix + "_generated_ElVis.cu.ptx";
+                    prefix + "_generated_ElVisOptiX.cu.ptx";
             std::cout << "Loading program " << programName << " from PTX File: " << pathToPtx << std::endl;
             Timer timer;
             timer.Start();

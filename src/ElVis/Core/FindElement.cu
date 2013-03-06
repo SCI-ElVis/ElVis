@@ -45,7 +45,9 @@ __device__ __forceinline__ ElementFinderPayload FindElement(const ElVisFloat3& p
     ElementFinderPayload findElementPayload;
     findElementPayload.Initialize(p);
 
-    rtTrace( element_group, findElementRay, findElementPayload);
+    ELVIS_PRINTF("FindElement: Finding element enclosing point (%f, %f, %f)\n", p.x, p.y, p.z);
+    rtTrace( PointLocationGroup, findElementRay, findElementPayload);
+    ELVIS_PRINTF("FindElement: Found Element %d\n", findElementPayload.elementId);
     return findElementPayload;
 }
 

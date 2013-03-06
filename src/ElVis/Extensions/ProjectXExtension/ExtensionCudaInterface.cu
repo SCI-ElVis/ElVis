@@ -37,7 +37,7 @@
 #include <ElVis/Core/CutSurfacePayloads.cu>
 #include <ElVis/Core/typedefs.cu>
 #include <ElVis/Core/util.cu>
-
+#include <ElVis/Core/IntervalPoint.cu>
 
 #include <ElVis/Core/Interval.hpp>
 #include <Fundamentals/PX.h>
@@ -79,59 +79,57 @@ __device__ unsigned int* PXSimplexGlobalElemToCutCellBuffer;
 
 
 
-/// Evaluate the given field at the specified location in world space coordinates.
-///
-/// \param elementId The element's id.
-/// \param elementType the element's type.
-/// \param fieldId The field to evaluate.
-/// \param worldPoint The point in world space at which to evaluate the point.l
-/// \param initialGuessProvided Flags whether initialGuess is a valid starting point for the world point's reference space coordinates.
-/// \param initalGuess On input, an initial guess for the world point's reference coordinates. On output, the reference coordinates calculated for worldPoint.
-__device__ ElVisFloat EvaluateFieldCuda(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& initialGuess )
-{
-  int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
-  int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
+///// Evaluate the given field at the specified location in world space coordinates.
+/////
+///// \param elementId The element's id.
+///// \param elementType the element's type.
+///// \param fieldId The field to evaluate.
+///// \param worldPoint The point in world space at which to evaluate the point.l
+///// \param initialGuessProvided Flags whether initialGuess is a valid starting point for the world point's reference space coordinates.
+///// \param initalGuess On input, an initial guess for the world point's reference coordinates. On output, the reference coordinates calculated for worldPoint.
+//__device__ ElVisFloat EvaluateFieldCuda(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& initialGuess )
+//{
+//  int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
+//  int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
 
-  int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
-  //int nbfQ;
-  int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+//  int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
+//  //int nbfQ;
+//  int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
 
-  int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
-  int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
-  ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
+//  int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
+//  int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
+//  ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
 
 
-  //LinearSimplexGlob2Ref(Dim, localCoord, xglobal, xref);
+//  //LinearSimplexGlob2Ref(Dim, localCoord, xglobal, xref);
 
-    bool initialGuessProvided = (referenceType == ElVis::eReferencePointIsInitialGuess);
-  // ELVIS_PRINTF("egrp=%d,elem=%d,orderQ = %d, nbfQ = %d, result=%.8E\n",egrp,elem,orderQ, nbfQ, result);
-  //ELVIS_PRINTF("egrp=%d,elem=%d,order = %d, nbf = %d, result=%.8E\n",egrp,elem,order, nbf, result);
-  PX_EgrpData const *egrpData = &(PXSimplexEgrpDataBuffer[egrp]);
-  if(egrpData->cutCellFlag != (char) 1){
-    PX_REAL xref[3] = {initialGuess.x, initialGuess.y, initialGuess.z};
-    PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
-    PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, (enum PXE_Boolean) initialGuessProvided, PXE_False));
-    //ElVisFloat3 refPoint = MakeFloat3(xref[0],xref[1],xref[2]);
-    initialGuess.x = xref[0];
-    initialGuess.y = xref[1];
-    initialGuess.z = xref[2];
-  }else{
-    int shadowIndexStart = PXSimplexEgrpToShadowIndexBuffer[egrp];
-    localCoord = ((ElVisFloat*)&PXSimplexShadowCoordinateBuffer[0]) + shadowIndexStart + elem*DIM3D*SHADOW_NBF;
-  }
+//    bool initialGuessProvided = (referenceType == ElVis::eReferencePointIsInitialGuess);
+//  // ELVIS_PRINTF("egrp=%d,elem=%d,orderQ = %d, nbfQ = %d, result=%.8E\n",egrp,elem,orderQ, nbfQ, result);
+//  //ELVIS_PRINTF("egrp=%d,elem=%d,order = %d, nbf = %d, result=%.8E\n",egrp,elem,order, nbf, result);
+//  PX_EgrpData const *egrpData = &(PXSimplexEgrpDataBuffer[egrp]);
+//  if(egrpData->cutCellFlag != (char) 1){
+//    PX_REAL xref[3] = {initialGuess.x, initialGuess.y, initialGuess.z};
+//    PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
+//    PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, (enum PXE_Boolean) initialGuessProvided, PXE_False));
+//    //ElVisFloat3 refPoint = MakeFloat3(xref[0],xref[1],xref[2]);
+//    initialGuess.x = xref[0];
+//    initialGuess.y = xref[1];
+//    initialGuess.z = xref[2];
+//  }else{
+//    int shadowIndexStart = PXSimplexEgrpToShadowIndexBuffer[egrp];
+//    localCoord = ((ElVisFloat*)&PXSimplexShadowCoordinateBuffer[0]) + shadowIndexStart + elem*DIM3D*SHADOW_NBF;
+//  }
 
-  PX_SolutionOrderData *attachData = NULL;
-  ElVisFloat* localSolution = &PXSimplexSolutionBuffer[StateRank*solnIndexStart + elem*StateRank*nbf];
-  if(fieldId < 0){
-    attachData = &PXSimplexAttachDataBuffer[egrp];
-    localSolution = &PXSimplexAttachmentBuffer[elementId*((int)attachData->nbf)];
-  }
+//  PX_SolutionOrderData *attachData = NULL;
+//  ElVisFloat* localSolution = &PXSimplexSolutionBuffer[StateRank*solnIndexStart + elem*StateRank*nbf];
+//  if(fieldId < 0){
+//    attachData = &PXSimplexAttachDataBuffer[egrp];
+//    localSolution = &PXSimplexAttachmentBuffer[elementId*((int)attachData->nbf)];
+//  }
 
     
-  return EvaluateField(egrpData, attachData, localSolution, localCoord, StateRank, fieldId, worldPoint, initialGuess);
-  //return MAKE_FLOAT(0.0);
-  //return CalculateFieldValueCuda(elementId, elementType, 0, worldPoint);
-}
+//  return EvaluateField(egrpData, attachData, localSolution, localCoord, StateRank, fieldId, worldPoint, initialGuess);
+//}
 
 
 
@@ -168,11 +166,106 @@ __device__ ElVisFloat3 EvaluateNormalCuda(unsigned int elementId, unsigned int e
   //return MakeFloat3(0.0,0.0,0.0);
 }
 
-__device__
-void EstimateRangeCuda(unsigned int elementId, unsigned int elementType,  int fieldId,
-                                          const ElVisFloat3& p0, const ElVisFloat3& p1,
-                                          ElVis::Interval<ElVisFloat>& result)
+//__device__
+//void EstimateRangeCuda(unsigned int elementId, unsigned int elementType,  int fieldId,
+//                                          const ElVisFloat3& p0, const ElVisFloat3& p1,
+//                                          ElVis::Interval<ElVisFloat>& result)
+//{
+//}
+
+ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceCuda(int elementId, int elementType, const WorldPoint& worldPoint,
+                                                         ElVis::ReferencePointParameterType referenceType, ReferencePoint& result)
 {
+    int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
+    int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
+
+    int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
+    int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+
+    int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
+    int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
+    ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
+
+
+    //LinearSimplexGlob2Ref(Dim, localCoord, xglobal, xref);
+
+    bool initialGuessProvided = (referenceType == ElVis::eReferencePointIsInitialGuess);
+    // ELVIS_PRINTF("egrp=%d,elem=%d,orderQ = %d, nbfQ = %d, result=%.8E\n",egrp,elem,orderQ, nbfQ, result);
+    //ELVIS_PRINTF("egrp=%d,elem=%d,order = %d, nbf = %d, result=%.8E\n",egrp,elem,order, nbf, result);
+    PX_EgrpData const *egrpData = &(PXSimplexEgrpDataBuffer[egrp]);
+    if(egrpData->cutCellFlag != (char) 1)
+    {
+        PX_REAL xref[3] = {result.x, result.y, result.z};
+        PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
+        PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, (enum PXE_Boolean) initialGuessProvided, PXE_False));
+        //ElVisFloat3 refPoint = MakeFloat3(xref[0],xref[1],xref[2]);
+        result.x = xref[0];
+        result.y = xref[1];
+        result.z = xref[2];
+    }
+
+    return eNoError;
 }
+
+
+template<typename PointType, typename ResultType>
+ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointCuda(int elementId, int elementType, int fieldId,
+                                                              const PointType& worldPoint,
+                                                              const PointType& referencePoint,
+                                                              ResultType& result)
+{
+    int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
+    int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
+
+    int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
+    int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+
+    int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
+    int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
+    ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
+
+
+    // ELVIS_PRINTF("egrp=%d,elem=%d,orderQ = %d, nbfQ = %d, result=%.8E\n",egrp,elem,orderQ, nbfQ, result);
+    //ELVIS_PRINTF("egrp=%d,elem=%d,order = %d, nbf = %d, result=%.8E\n",egrp,elem,order, nbf, result);
+    PX_EgrpData const *egrpData = &(PXSimplexEgrpDataBuffer[egrp]);
+    if(egrpData->cutCellFlag == (char) 1)
+    {
+        int shadowIndexStart = PXSimplexEgrpToShadowIndexBuffer[egrp];
+        localCoord = ((ElVisFloat*)&PXSimplexShadowCoordinateBuffer[0]) + shadowIndexStart + elem*DIM3D*SHADOW_NBF;
+    }
+
+    PX_SolutionOrderData *attachData = NULL;
+    ElVisFloat* localSolution = &PXSimplexSolutionBuffer[StateRank*solnIndexStart + elem*StateRank*nbf];
+    if(fieldId < 0)
+    {
+        attachData = &PXSimplexAttachDataBuffer[egrp];
+        localSolution = &PXSimplexAttachmentBuffer[elementId*((int)attachData->nbf)];
+    }
+
+
+    result = EvaluateField(egrpData, attachData, localSolution, localCoord, StateRank, fieldId, worldPoint, referencePoint);
+    return eNoError;
+}
+
+
+// ProjectX does not yet support range estimation.
+ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointCuda(int elementId, int elementType, int fieldId,
+                                                              const IntervalPoint& worldPoint,
+                                                              const IntervalPoint& referencePoint,
+                                                              ElVis::Interval<ElVisFloat>& result)
+{
+    return eNoError;
+}
+
+ElVisError SampleReferenceGradientCuda(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
+{
+    return eNoError;
+}
+
+ElVisError SampleGeometryMappingJacobian(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
+{
+    return eNoError;
+}
+
 
 #endif //end _PX_EXTENSION_INTERFACE_CU

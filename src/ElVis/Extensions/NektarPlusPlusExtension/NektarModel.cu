@@ -30,18 +30,56 @@
 #define ELVIS_NEKTAR_MODEL_CU
 
 #include <ElVis/Core/Float.cu>
+#include <LibUtilities/Foundations/BasisType.h>
 
 
-// All variables are context level.
-
-
+// All coefficients for all fields for all elements.
+// Nektar++ numbers fields 0...n.  Since the number of coefficients 
+// per element is variable, to obtain the coefficients for an element,
+// we must use the CoefficientOffsets.
+//
+// ElVisFloat* startIndex = Coefficients[FieldId*
 rtBuffer<ElVisFloat> Coefficients;
 
+rtBuffer<uint> SumPrefixNumberOfFieldCoefficients;
+
 // Index of the start of the coefficient buffer by element.
-rtBuffer<uint> CoefficientIndices;
+rtBuffer<uint> CoefficientOffsets;
 
 // The vertices associated with this hex.
 rtBuffer<ElVisFloat4> Vertices;
 
+rtDeclareVariable(uint, NumElements, ,);
+
+rtBuffer<uint3> FieldModes;
+rtBuffer<Nektar::LibUtilities::BasisType> FieldBases;
+
+__device__ uint GetNumberOfFields()
+{
+    return SumPrefixNumberOfFieldCoefficients.size();
+}
+
+// Returns a pointer to the beginning of the coefficients for the field.
+__device__ ElVisFloat* GetFieldCoefficientStart(int fieldId)
+{
+    return &Coefficients[SumPrefixNumberOfFieldCoefficients[fieldId]];
+}
+
+__device__ ElVisFloat* GetFieldCoefficients(int fieldId, int elementId)
+{
+    ElVisFloat* base = GetFieldCoefficientStart(fieldId);
+    int offset = CoefficientOffsets[fieldId*NumElements+elementId];
+    return base+offset;
+}
+
+__device__ uint3 GetModes(int fieldId, int elementId)
+{
+    return FieldModes[fieldId*NumElements + elementId];
+}
+
+__device__ Nektar::LibUtilities::BasisType GetBasis(int fieldId, int elementId, int dir)
+{
+    return FieldBases[fieldId*NumElements + elementId*3 + dir];
+}
 
 #endif 

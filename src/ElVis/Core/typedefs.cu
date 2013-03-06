@@ -36,5 +36,7 @@
 
 typedef ElVisFloat3 WorldPoint;
 typedef ElVisFloat3 ReferencePoint;
+typedef ElVisFloat2 FaceReferencePoint;
+
 
 #endif //ELVIS_TYPEDEFS_CU

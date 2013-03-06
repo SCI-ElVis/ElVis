@@ -32,45 +32,47 @@
 #include <ElVis/Extensions/NektarPlusPlusExtension/typedefs.cu>
 #include <ElVis/Core/Float.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/OptixHexahedron.cu>
+#include <ElVis/Extensions/NektarPlusPlusExtension/OptixQuad.cu>
+#include <ElVis/Extensions/NektarPlusPlusExtension/OptixTriangle.cu>
+
 
 rtBuffer<ElVisFloat4> FaceVertexBuffer;
 rtBuffer<ElVisFloat4> FaceNormalBuffer;
-
 
 // Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result)
 {
-//    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-//    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-//    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-//    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
+    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
+    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
 
-//    ElVisFloat r = refPoint.x;
-//    ElVisFloat s = refPoint.y;
+    ElVisFloat r = refPoint.x;
+    ElVisFloat s = refPoint.y;
 
-//    if( v2 == v3 )
-//    {
-//        // Triangle.
-//        ElVisFloat s0 = ( MAKE_FLOAT(1.0)-r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
-//        ElVisFloat s1 = ( MAKE_FLOAT(1.0)+r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
-//        ElVisFloat s2 =  (MAKE_FLOAT(1.0) + s) * MAKE_FLOAT(.5);
+    if( v2 == v3 )
+    {
+        // Triangle.
+        ElVisFloat s0 = ( MAKE_FLOAT(1.0)-r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
+        ElVisFloat s1 = ( MAKE_FLOAT(1.0)+r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
+        ElVisFloat s2 =  (MAKE_FLOAT(1.0) + s) * MAKE_FLOAT(.5);
 
-//        result.x = s0*v0.x + s1*v1.x + s2*v2.x;
-//        result.y = s0*v0.y + s1*v1.y + s2*v2.y;
-//        result.z = s0*v0.z + s1*v1.z + s2*v2.z;
-//    }
-//    else
-//    {
-//        // Quad
-//        ElVisFloat s0 = ( MAKE_FLOAT(1.0)-r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
-//        ElVisFloat s1 = ( MAKE_FLOAT(1.0)+r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
-//        ElVisFloat s3 = ( MAKE_FLOAT(1.0)-r ) * (MAKE_FLOAT(1.0) + s) * MAKE_FLOAT(.25);
-//        ElVisFloat s2 = ( MAKE_FLOAT(1.0)+r ) * (MAKE_FLOAT(1.0) + s) * MAKE_FLOAT(.25);
-//        result.x = s0*v0.x + s1*v1.x + s2*v2.x + s3*v3.x;
-//        result.y = s0*v0.y + s1*v1.y + s2*v2.y + s3*v3.y;
-//        result.z = s0*v0.z + s1*v1.z + s2*v2.z + s3*v3.z;
-//    }
+        result.x = s0*v0.x + s1*v1.x + s2*v2.x;
+        result.y = s0*v0.y + s1*v1.y + s2*v2.y;
+        result.z = s0*v0.z + s1*v1.z + s2*v2.z;
+    }
+    else
+    {
+        // Quad
+        ElVisFloat s0 = ( MAKE_FLOAT(1.0)-r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
+        ElVisFloat s1 = ( MAKE_FLOAT(1.0)+r ) * (MAKE_FLOAT(1.0) - s) * MAKE_FLOAT(.25);
+        ElVisFloat s3 = ( MAKE_FLOAT(1.0)-r ) * (MAKE_FLOAT(1.0) + s) * MAKE_FLOAT(.25);
+        ElVisFloat s2 = ( MAKE_FLOAT(1.0)+r ) * (MAKE_FLOAT(1.0) + s) * MAKE_FLOAT(.25);
+        result.x = s0*v0.x + s1*v1.x + s2*v2.x + s3*v3.x;
+        result.y = s0*v0.y + s1*v1.y + s2*v2.y + s3*v3.y;
+        result.z = s0*v0.z + s1*v1.z + s2*v2.z + s3*v3.z;
+    }
     return eNoError;
 }
 
@@ -133,6 +135,7 @@ ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& res
 ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint&, bool& result)
 {
     //result = true;
+    result = true;
     return eNoError;
 }
 
@@ -142,80 +145,77 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds)
 {
-//    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-//    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-//    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-//    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
+    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
+    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
 
-//    const T& r = p.x;
-//    const T& s = p.y;
+    const T& r = p.x;
+    const T& s = p.y;
 
-//    if( v2 == v3 )
-//    {
-//        // df/dr
-//        {
-//            T s0 = -(MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
-//            T s1 = (MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
-//            T s2 = MAKE_FLOAT(0.0);
+    if( v2 == v3 )
+    {
+        // df/dr
+        {
+            T s0 = -(MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
+            T s1 = (MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
+            T s2 = MAKE_FLOAT(0.0);
 
-//            dx_dr = v0.x*s0 + v1.x*s1 + v2.x*s2;
-//            dy_dr = v0.y*s0 + v1.y*s1 + v2.y*s2;
-//            dz_dr = v0.z*s0 + v1.z*s1 + v2.z*s2;
-//        }
+            dx_dr = v0.x*s0 + v1.x*s1 + v2.x*s2;
+            dy_dr = v0.y*s0 + v1.y*s1 + v2.y*s2;
+            dz_dr = v0.z*s0 + v1.z*s1 + v2.z*s2;
+        }
 
-//        //df/ds
-//        {
-//            T s0 = -(MAKE_FLOAT(1.0)-r)*MAKE_FLOAT(.25);
-//            T s1 = -(MAKE_FLOAT(1.0)+r)*MAKE_FLOAT(.25);
-//            T s2 = MAKE_FLOAT(.5);
+        //df/ds
+        {
+            T s0 = -(MAKE_FLOAT(1.0)-r)*MAKE_FLOAT(.25);
+            T s1 = -(MAKE_FLOAT(1.0)+r)*MAKE_FLOAT(.25);
+            T s2 = MAKE_FLOAT(.5);
 
-//            dx_ds = v0.x*s0 + v1.x*s1 + v2.x*s2;
-//            dy_ds = v0.y*s0 + v1.y*s1 + v2.y*s2;
-//            dz_ds = v0.z*s0 + v1.z*s1 + v2.z*s2;
-//        }
-//    }
-//    else
-//    {
-//        // df/dr
-//        {
-//            T s0 = -(MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
-//            T s1 = (MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
-//            T s2 = (MAKE_FLOAT(1.0)+s)*MAKE_FLOAT(.25);
-//            T s3 = -(MAKE_FLOAT(1.0)+s)*MAKE_FLOAT(.25);
+            dx_ds = v0.x*s0 + v1.x*s1 + v2.x*s2;
+            dy_ds = v0.y*s0 + v1.y*s1 + v2.y*s2;
+            dz_ds = v0.z*s0 + v1.z*s1 + v2.z*s2;
+        }
+    }
+    else
+    {
+        // df/dr
+        {
+            T s0 = -(MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
+            T s1 = (MAKE_FLOAT(1.0)-s)*MAKE_FLOAT(.25);
+            T s2 = (MAKE_FLOAT(1.0)+s)*MAKE_FLOAT(.25);
+            T s3 = -(MAKE_FLOAT(1.0)+s)*MAKE_FLOAT(.25);
 
-//            dx_dr = v0.x*s0 + v1.x*s1 + v2.x*s2 + v3.x*s3;
-//            dy_dr = v0.y*s0 + v1.y*s1 + v2.y*s2 + v3.y*s3;
-//            dz_dr = v0.z*s0 + v1.z*s1 + v2.z*s2 + v3.z*s3;
-//        }
+            dx_dr = v0.x*s0 + v1.x*s1 + v2.x*s2 + v3.x*s3;
+            dy_dr = v0.y*s0 + v1.y*s1 + v2.y*s2 + v3.y*s3;
+            dz_dr = v0.z*s0 + v1.z*s1 + v2.z*s2 + v3.z*s3;
+        }
 
-//        // df/ds
-//        {
-//            T s0 = -(MAKE_FLOAT(1.0) - r) * MAKE_FLOAT(.25);
-//            T s1 = -(MAKE_FLOAT(1.0) + r) * MAKE_FLOAT(.25);
-//            T s2 = (MAKE_FLOAT(1.0) + r) * MAKE_FLOAT(.25);
-//            T s3 = (MAKE_FLOAT(1.0) - r) * MAKE_FLOAT(.25);
+        // df/ds
+        {
+            T s0 = -(MAKE_FLOAT(1.0) - r) * MAKE_FLOAT(.25);
+            T s1 = -(MAKE_FLOAT(1.0) + r) * MAKE_FLOAT(.25);
+            T s2 = (MAKE_FLOAT(1.0) + r) * MAKE_FLOAT(.25);
+            T s3 = (MAKE_FLOAT(1.0) - r) * MAKE_FLOAT(.25);
 
-//            dx_ds = v0.x*s0 + v1.x*s1 + v2.x*s2 + v3.x*s3;
-//            dy_ds = v0.y*s0 + v1.y*s1 + v2.y*s2 + v3.y*s3;
-//            dz_ds = v0.z*s0 + v1.z*s1 + v2.z*s2 + v3.z*s3;
-//        }
-//    }
+            dx_ds = v0.x*s0 + v1.x*s1 + v2.x*s2 + v3.x*s3;
+            dy_ds = v0.y*s0 + v1.y*s1 + v2.y*s2 + v3.y*s3;
+            dz_ds = v0.z*s0 + v1.z*s1 + v2.z*s2 + v3.z*s3;
+        }
+    }
     return eNoError;
 }
 
 
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& result)
 {
-    //result = MakeFloat3(FaceNormalBuffer[faceId]);
+    result = MakeFloat3(FaceNormalBuffer[faceId]);
     return eNoError;
 }
 
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, int faceId, ElVisFloat3& result)
 {
-//    result.x = MAKE_FLOAT(0.0);
-//    result.y = MAKE_FLOAT(0.0);
-//    result.z = MAKE_FLOAT(0.0);
-
+    result = MakeFloat3(FaceNormalBuffer[faceId]);
     return eNoError;
 }
 

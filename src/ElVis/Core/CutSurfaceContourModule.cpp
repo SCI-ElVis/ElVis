@@ -108,10 +108,13 @@ namespace ElVis
         
     void CutSurfaceContourModule::DoResize(unsigned int newWidth, unsigned int newHeight)
     {
-        m_contourSampleBuffer->setSize(newWidth+1, newHeight+1);
-        m_elementIdAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
-        m_elementTypeAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
-        (*m_referencePointAtIntersectionBuffer)->setSize(newWidth+1, newHeight+1);
+        if( *m_contourSampleBuffer )
+        {
+            m_contourSampleBuffer->setSize(newWidth+1, newHeight+1);
+            m_elementIdAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
+            m_elementTypeAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
+            (*m_referencePointAtIntersectionBuffer)->setSize(newWidth+1, newHeight+1);
+        }
     }
 
     std::string CutSurfaceContourModule::DoGetName() const

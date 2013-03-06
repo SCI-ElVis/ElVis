@@ -98,6 +98,7 @@ namespace ElVis
                 exit(1);
             }
 
+            //std::cout << "Read type " << type << std::endl;
             if( reverseBytes ) JacobiExtension::reverseBytes(type);
 
             if( type == HEXAHEDRON )
@@ -122,13 +123,13 @@ namespace ElVis
         }
 
         Polyhedron::Polyhedron() :
-        m_interpolatingPolynomialDegree(0),
-            m_interpolatingPolynomialDegreeOverride(0),
+            //m_interpolatingPolynomialDegree(0),
+            //m_interpolatingPolynomialDegreeOverride(0),
             m_id(0),
             m_basisCoefficients(),
             m_minValue(-std::numeric_limits<double>::max()),
-            m_maxValue(std::numeric_limits<double>::max()),
-            m_referenceToWorldTolerance(numeric_limits<double>::epsilon())
+            m_maxValue(std::numeric_limits<double>::max())//,
+            //m_referenceToWorldTolerance(numeric_limits<double>::epsilon())
         {
             m_degree[0] = 0;
             m_degree[1] = 0;
@@ -137,8 +138,8 @@ namespace ElVis
         }
 
         Polyhedron::Polyhedron(const Polyhedron& rhs) :
-        m_interpolatingPolynomialDegree(0),
-            m_interpolatingPolynomialDegreeOverride(0),
+            //m_interpolatingPolynomialDegree(0),
+            //m_interpolatingPolynomialDegreeOverride(0),
             m_id(0),
             m_basisCoefficients(),
             m_minValue(-std::numeric_limits<double>::max()),
@@ -162,8 +163,8 @@ namespace ElVis
         void Polyhedron::copy(const Polyhedron& rhs)
         {
             m_basisCoefficients = rhs.m_basisCoefficients;
-            m_interpolatingPolynomialDegree = rhs.m_interpolatingPolynomialDegree;
-            m_interpolatingPolynomialDegreeOverride = rhs.m_interpolatingPolynomialDegreeOverride;
+//            m_interpolatingPolynomialDegree = rhs.m_interpolatingPolynomialDegree;
+//            m_interpolatingPolynomialDegreeOverride = rhs.m_interpolatingPolynomialDegreeOverride;
             m_minValue = rhs.m_minValue;
             m_maxValue = rhs.m_maxValue;
             m_id = rhs.m_id;
@@ -723,13 +724,13 @@ namespace ElVis
                 //cout << "F: " << f << endl;
                 //cout << "Result: " << transformReferenceToWorld(result) << endl;
 
-                if( fabs(r_adjust) < m_referenceToWorldTolerance &&
-                    fabs(s_adjust) < m_referenceToWorldTolerance &&
-                    fabs(t_adjust) < m_referenceToWorldTolerance )
-                {
-                    ++tolerance;
-                    return result;
-                }
+//                if( fabs(r_adjust) < m_referenceToWorldTolerance &&
+//                    fabs(s_adjust) < m_referenceToWorldTolerance &&
+//                    fabs(t_adjust) < m_referenceToWorldTolerance )
+//                {
+//                    ++tolerance;
+//                    return result;
+//                }
 
                 ElVis::ReferencePoint pointAdjust(r_adjust, s_adjust, t_adjust);
 
@@ -910,6 +911,7 @@ namespace ElVis
                     JacobiExtension::reverseBytes(m_basisCoefficients[i]);
                 }
             }
+            std::vector<double>(m_basisCoefficients).swap(m_basisCoefficients);
         }
 
         //double Polyhedron::intersectsIsovalueDynamicProjectionAt(const rt::Ray& ray, double isovalue, rt::IntersectionInfo& hit,

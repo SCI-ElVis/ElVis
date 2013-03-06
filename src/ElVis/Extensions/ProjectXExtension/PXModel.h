@@ -77,7 +77,7 @@ namespace ElVis
     void LoadVolume(const std::string& filePath);
 
   protected:
-    virtual std::vector<optixu::GeometryGroup> DoGetCellGeometry(Scene* scene, optixu::Context context, CUmodule module);
+    virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module);
     virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces);
     virtual unsigned int DoGetNumberOfPoints() const;
     virtual WorldPoint DoGetPoint(unsigned int id) const;

@@ -81,13 +81,16 @@ namespace ElVis
             this->resize(100,100);
         }
 
-        void SceneViewWidget::HandleNeedsRedraw(const SceneView& view)
-        {
-            update();
-        }
 
         SceneViewWidget::~SceneViewWidget()
         {
+        }
+
+
+
+        void SceneViewWidget::HandleNeedsRedraw(const SceneView& view)
+        {
+            update();
         }
 
         void SceneViewWidget::SetupDefaultModelView()
@@ -99,6 +102,10 @@ namespace ElVis
             const WorldPoint& center = m_appData->GetScene()->GetModel()->GetMidpoint();
             WorldPoint eye = center;
             eye.SetZ(center.z() + (maxExtent.z()-minExtent.z()));
+            if( eye.z() == center.z() )
+            {
+                eye.SetX(center.x() + (maxExtent.x() - minExtent.x()));
+            }
             std::cout << "Center = " << center << std::endl;
             WorldVector up(0, 1, 0);
 
@@ -278,8 +285,8 @@ namespace ElVis
                 glEnd();
             }
 
-            GLdouble modelview[16];
-            GLdouble projection[16];
+            //GLdouble modelview[16];
+            //GLdouble projection[16];
 
 
 //            glGetDoublev(GL_MODELVIEW_MATRIX, &modelview[0]);

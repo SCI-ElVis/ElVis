@@ -22,6 +22,7 @@ RT_PROGRAM void IgnoreCutSurfacesOutOfVolume()
 
     if( !PointInBox(intersectionPoint, minBox, maxBox) )
     {
+        ELVIS_PRINTF("IgnoreCutSurfacesOutOfVolume: Ignoring intersection at %f\n", closest_t);
         rtIgnoreIntersection();
     }
 }
@@ -30,13 +31,14 @@ RT_PROGRAM void IgnoreCutSurfacesOutOfVolume()
 ///        value of the currently selected field at that point.
 RT_PROGRAM void SamplerVolumeClosestHit()
 {
+    ELVIS_PRINTF("SamplerVolumeClosestHit: Evaluating surface at t=%f\n", closest_t);
     const ElVisFloat3 intersectionPoint = MakeFloat3(ray.origin) + closest_t * MakeFloat3(ray.direction);   
     ElementFinderPayload findElementPayload = FindElement(intersectionPoint);
 
     // Now use the extension interface to sample the field.
     if( findElementPayload.elementId != -1 )
     {
-        //ELVIS_PRINTF("SamplerVolumeClosestHit: Element id is %d\n", findElementPayload.elementId);
+        ELVIS_PRINTF("SamplerVolumeClosestHit: Element id is %d\n", findElementPayload.elementId);
         payload.scalarValue = EvaluateFieldOptiX(findElementPayload.elementId, findElementPayload.elementType, FieldId, intersectionPoint, findElementPayload.ReferencePointType, findElementPayload.ReferenceIntersectionPoint);
         payload.isValid = true;
 
@@ -49,7 +51,7 @@ RT_PROGRAM void SamplerVolumeClosestHit()
     }
     else
     {
-        //ELVIS_PRINTF("SamplerVolumeClosestHit: No element found.\n");
+        ELVIS_PRINTF("SamplerVolumeClosestHit: No element found.\n");
         payload.scalarValue = ELVIS_FLOAT_MAX;
         payload.isValid = false;
 
@@ -151,7 +153,7 @@ rtDeclareVariable(ElVisFloat3, SampleOntoNrrdH, ,);
 rtBuffer<ElVisFloat, 2> SampledOntoNrrdSamples;
 rtDeclareVariable(ElVisFloat3, SampleOntoNrrdMinExtent, ,);
 rtDeclareVariable(int, SampleOntoNrrdPlane, , );
-
+rtDeclareVariable(ElVisFloat, SampleOntoNrrdMissValue, , );
 RT_PROGRAM void SampleOntoNrrd()
 {
     ElVisFloat3 intersectionPoint = MakeFloat3(
@@ -163,11 +165,11 @@ RT_PROGRAM void SampleOntoNrrd()
     // Now use the extension interface to sample the field.
     if( findElementPayload.elementId != -1 )
     {
-        SampledOntoNrrdSamples[launch_index] = EvaluateFieldOptiX(findElementPayload.elementId, findElementPayload.elementType, FieldId, intersectionPoint, ElVis::eReferencePointIsValid, findElementPayload.ReferenceIntersectionPoint);
+        SampledOntoNrrdSamples[launch_index] = EvaluateFieldOptiX(findElementPayload.elementId, findElementPayload.elementType, FieldId, intersectionPoint, findElementPayload.ReferencePointType, findElementPayload.ReferenceIntersectionPoint);
     }
     else
     {
-        SampledOntoNrrdSamples[launch_index] = 2.0;
+        SampledOntoNrrdSamples[launch_index] = SampleOntoNrrdMissValue;
     }
 }
 

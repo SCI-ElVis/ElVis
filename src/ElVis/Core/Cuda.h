@@ -31,8 +31,21 @@
 
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-//#include <cutil.h>
-//#include <cutil_inline_drvapi.h>
+
+
+#if CUDA_VERSION >= 5000
+
+#include <helper_cuda.h>
+#define checkedCudaCall(x) if( checkCudaErrors(x) ) throw std::runtime_error("Cuda error.");
+
+#else
+#include <cutil.h>
+#include <cutil_inline_drvapi.h>
+
+#define checkedCudaCall(x) cutilDrvSafeCallNoSync(x);
+
+#endif
+
 
 #if defined(ELVIS_OPTIX_MODULE)
     #define ELVIS_DEVICE __device__ __forceinline__
@@ -55,6 +68,8 @@ enum ElVisError
     eInvalidElementType,
 
     eInvalidFaceId,
+
+    eFieldNotDefinedOnFace,
 
     // Other failures.
     eConvergenceFailure

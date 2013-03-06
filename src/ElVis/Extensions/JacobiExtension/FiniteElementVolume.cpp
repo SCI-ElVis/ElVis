@@ -206,7 +206,7 @@ namespace ElVis
             }
 
             bool reverseBytes = (endianCheck != 1);
-
+            std::cout << "Reverse bytes: " << reverseBytes << std::endl;
             int numElements = 0;
 
             if( fread(&numElements, sizeof(int), 1, in) != 1 )
@@ -222,23 +222,24 @@ namespace ElVis
                 cerr << "Invalid number of elements specified." << endl;
                 exit(1);
             }
+            std::cout << "Number of elements: " << numElements << std::endl;
 
             for(int i = 0; i < numElements; i++)
             {
                 elements.push_back(createNewPolyhedron(in, reverseBytes));
             }
 
-            if( m_polynomialDegree > 0 )
-            {
-                std::for_each(elements.begin(), elements.end(), boost::bind(&Polyhedron::interpolatingPolynomialDegreeOverride,
-                    _1, m_polynomialDegree));
-            }
+//            if( m_polynomialDegree > 0 )
+//            {
+//                std::for_each(elements.begin(), elements.end(), boost::bind(&Polyhedron::interpolatingPolynomialDegreeOverride,
+//                    _1, m_polynomialDegree));
+//            }
 
-            if( m_tolerance > 0.0 )
-            {
-                std::for_each(elements.begin(), elements.end(), boost::bind(&Polyhedron::referenceToWorldTolerance,
-                    _1, m_tolerance));
-            }
+//            if( m_tolerance > 0.0 )
+//            {
+//                std::for_each(elements.begin(), elements.end(), boost::bind(&Polyhedron::referenceToWorldTolerance,
+//                    _1, m_tolerance));
+//            }
 
             /*
             // The file has now been read in.  We now need to go through
@@ -316,112 +317,112 @@ namespace ElVis
 
         void FiniteElementVolume::printStats(std::ostream& os, bool printHeader)
         {
-            std::vector<double> relative_error;
-            std::vector<double> absolute_error;
-            std::vector<double> root_finding_error;
-            //std::vector<double> interp_relative_error;
-            //std::vector<double> interp_absolute_error;
-            //std::vector<double> interpolation_l2_norm;
-            //std::vector<double> projection_l2_norm;
-            //std::vector<double> interpolation_infinity_norm;
-            //std::vector<double> projection_infinity_norm;
+//            std::vector<double> relative_error;
+//            std::vector<double> absolute_error;
+//            std::vector<double> root_finding_error;
+//            //std::vector<double> interp_relative_error;
+//            //std::vector<double> interp_absolute_error;
+//            //std::vector<double> interpolation_l2_norm;
+//            //std::vector<double> projection_l2_norm;
+//            //std::vector<double> interpolation_infinity_norm;
+//            //std::vector<double> projection_infinity_norm;
 
-            for(unsigned int i = 0; i < elements.size(); ++i)
-            {
-                boost::shared_ptr<Polyhedron> poly = elements[i];
-                relative_error.insert(relative_error.end(),
-                    poly->relativeErrorStats().begin(),
-                    poly->relativeErrorStats().end());
-                absolute_error.insert(absolute_error.end(),
-                    poly->absoluteErrorStates().begin(),
-                    poly->absoluteErrorStates().end());
-                root_finding_error.insert(root_finding_error.end(),
-                    poly->rootFindingErrorStats().begin(),
-                    poly->rootFindingErrorStats().end());
-                /*interpolation_l2_norm.insert(interpolation_l2_norm.end(),
-                poly->interpolationL2NormStats().begin(),
-                poly->interpolationL2NormStats().end());
-                projection_l2_norm.insert(projection_l2_norm.end(),
-                poly->projectionL2NormStats().begin(),
-                poly->projectionL2NormStats().end());
-                interpolation_infinity_norm.insert(interpolation_infinity_norm.end(),
-                poly->interpolationInfinityNormStats().begin(),
-                poly->interpolationInfinityNormStats().end());
-                projection_infinity_norm.insert(projection_infinity_norm.end(),
-                poly->projectionInfinityNormStats().begin(),
-                poly->projectionInfinityNormStats().end());
-                interp_relative_error.insert(interp_relative_error.end(),
-                poly->interp_relativeErrorStats().begin(),
-                poly->interp_relativeErrorStats().end());
-                interp_absolute_error.insert(interp_absolute_error.end(),
-                poly->interp_absoluteErrorStats().begin(),
-                poly->interp_absoluteErrorStats().end());*/
-            }
+//            for(unsigned int i = 0; i < elements.size(); ++i)
+//            {
+//                boost::shared_ptr<Polyhedron> poly = elements[i];
+//                relative_error.insert(relative_error.end(),
+//                    poly->relativeErrorStats().begin(),
+//                    poly->relativeErrorStats().end());
+//                absolute_error.insert(absolute_error.end(),
+//                    poly->absoluteErrorStates().begin(),
+//                    poly->absoluteErrorStates().end());
+//                root_finding_error.insert(root_finding_error.end(),
+//                    poly->rootFindingErrorStats().begin(),
+//                    poly->rootFindingErrorStats().end());
+//                /*interpolation_l2_norm.insert(interpolation_l2_norm.end(),
+//                poly->interpolationL2NormStats().begin(),
+//                poly->interpolationL2NormStats().end());
+//                projection_l2_norm.insert(projection_l2_norm.end(),
+//                poly->projectionL2NormStats().begin(),
+//                poly->projectionL2NormStats().end());
+//                interpolation_infinity_norm.insert(interpolation_infinity_norm.end(),
+//                poly->interpolationInfinityNormStats().begin(),
+//                poly->interpolationInfinityNormStats().end());
+//                projection_infinity_norm.insert(projection_infinity_norm.end(),
+//                poly->projectionInfinityNormStats().begin(),
+//                poly->projectionInfinityNormStats().end());
+//                interp_relative_error.insert(interp_relative_error.end(),
+//                poly->interp_relativeErrorStats().begin(),
+//                poly->interp_relativeErrorStats().end());
+//                interp_absolute_error.insert(interp_absolute_error.end(),
+//                poly->interp_absoluteErrorStats().begin(),
+//                poly->interp_absoluteErrorStats().end());*/
+//            }
 
-            double min;
-            double max;
-            double l_infinity;
-            double l_2;
-            double average;
+//            double min;
+//            double max;
+//            double l_infinity;
+//            double l_2;
+//            double average;
 
-            if( printHeader )
-            {
-                os << "VOLUME\tSTATISTIC\tISOVALUE\tPOLYNOMIAL_DEGREE\tTOLERANCE\tMIN\tMAX\tINFINITY\tL2\tAVERAGE" << endl;
-            }
+//            if( printHeader )
+//            {
+//                os << "VOLUME\tSTATISTIC\tISOVALUE\tPOLYNOMIAL_DEGREE\tTOLERANCE\tMIN\tMAX\tINFINITY\tL2\tAVERAGE" << endl;
+//            }
 
-            calcStats(relative_error, min, max, l_infinity, l_2, average);
-            os << m_fileName << "\t" << "RELATIVE\t" << m_isoval << "\t" <<
-                m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-                min << "\t" << max << "\t" << l_infinity << "\t" <<
-                l_2 << "\t" << average << endl;
+//            calcStats(relative_error, min, max, l_infinity, l_2, average);
+//            os << m_fileName << "\t" << "RELATIVE\t" << m_isoval << "\t" <<
+//                m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//                min << "\t" << max << "\t" << l_infinity << "\t" <<
+//                l_2 << "\t" << average << endl;
 
-            calcStats(absolute_error, min, max, l_infinity, l_2, average);
-            os << m_fileName << "\t" << "ABSOLUTE\t" << m_isoval << "\t" <<
-                m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-                min << "\t" << max << "\t" << l_infinity << "\t" <<
-                l_2 << "\t" << average << endl;
+//            calcStats(absolute_error, min, max, l_infinity, l_2, average);
+//            os << m_fileName << "\t" << "ABSOLUTE\t" << m_isoval << "\t" <<
+//                m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//                min << "\t" << max << "\t" << l_infinity << "\t" <<
+//                l_2 << "\t" << average << endl;
 
-            calcStats(root_finding_error, min, max, l_infinity, l_2, average);
-            os << m_fileName << "\t" << "ROOT_FINDING\t" << m_isoval << "\t" <<
-                m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-                min << "\t" << max << "\t" << l_infinity << "\t" <<
-                l_2 << "\t" << average << endl;
+//            calcStats(root_finding_error, min, max, l_infinity, l_2, average);
+//            os << m_fileName << "\t" << "ROOT_FINDING\t" << m_isoval << "\t" <<
+//                m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//                min << "\t" << max << "\t" << l_infinity << "\t" <<
+//                l_2 << "\t" << average << endl;
 
-            //calcStats(interpolation_l2_norm, min, max, l_infinity, l_2, average);
-            //os << m_fileName << "\t" << "INTERP_L2\t" << m_isoval << "\t" <<
-            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
-            //  l_2 << "\t" << average << endl;
-            //
-            //calcStats(projection_l2_norm, min, max, l_infinity, l_2, average);
-            //os << m_fileName << "\t" << "PROJECTION_L2\t" << m_isoval << "\t" <<
-            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
-            //  l_2 << "\t" << average << endl;
+//            //calcStats(interpolation_l2_norm, min, max, l_infinity, l_2, average);
+//            //os << m_fileName << "\t" << "INTERP_L2\t" << m_isoval << "\t" <<
+//            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
+//            //  l_2 << "\t" << average << endl;
+//            //
+//            //calcStats(projection_l2_norm, min, max, l_infinity, l_2, average);
+//            //os << m_fileName << "\t" << "PROJECTION_L2\t" << m_isoval << "\t" <<
+//            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
+//            //  l_2 << "\t" << average << endl;
 
-            //calcStats(interpolation_infinity_norm, min, max, l_infinity, l_2, average);
-            //os << m_fileName << "\t" << "INTERPOLATION_INFINITY\t" << m_isoval << "\t" <<
-            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
-            //  l_2 << "\t" << average << endl;
+//            //calcStats(interpolation_infinity_norm, min, max, l_infinity, l_2, average);
+//            //os << m_fileName << "\t" << "INTERPOLATION_INFINITY\t" << m_isoval << "\t" <<
+//            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
+//            //  l_2 << "\t" << average << endl;
 
-            //calcStats(projection_infinity_norm, min, max, l_infinity, l_2, average);
-            //os << m_fileName << "\t" << "PROJECTION_INFINITY\t" << m_isoval << "\t" <<
-            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
-            //  l_2 << "\t" << average << endl;
-            //
-            //calcStats(interp_relative_error, min, max, l_infinity, l_2, average);
-            //os << m_fileName << "\t" << "INTER_RELATIVE_ERRROR\t" << m_isoval << "\t" <<
-            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
-            //  l_2 << "\t" << average << endl;
-            //
-            //calcStats(interp_absolute_error, min, max, l_infinity, l_2, average);
-            //os << m_fileName << "\t" << "INTERP_ABSOLUTE_ERROR\t" << m_isoval << "\t" <<
-            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
-            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
-            //  l_2 << "\t" << average << endl;
+//            //calcStats(projection_infinity_norm, min, max, l_infinity, l_2, average);
+//            //os << m_fileName << "\t" << "PROJECTION_INFINITY\t" << m_isoval << "\t" <<
+//            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
+//            //  l_2 << "\t" << average << endl;
+//            //
+//            //calcStats(interp_relative_error, min, max, l_infinity, l_2, average);
+//            //os << m_fileName << "\t" << "INTER_RELATIVE_ERRROR\t" << m_isoval << "\t" <<
+//            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
+//            //  l_2 << "\t" << average << endl;
+//            //
+//            //calcStats(interp_absolute_error, min, max, l_infinity, l_2, average);
+//            //os << m_fileName << "\t" << "INTERP_ABSOLUTE_ERROR\t" << m_isoval << "\t" <<
+//            //  m_polynomialDegree << "\t" << m_tolerance << "\t" <<
+//            //  min << "\t" << max << "\t" << l_infinity << "\t" <<
+//            //  l_2 << "\t" << average << endl;
 
         }
 

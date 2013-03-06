@@ -30,8 +30,7 @@
 #ifndef ELVIS_CUDA_GLOBAL_BUFFER_HPP
 #define ELVIS_CUDA_GLOBAL_BUFFER_HPP
 
-#include <cuda.h>
-#include <cuda_runtime_api.h>
+#include <ElVis/Core/Cuda.h>
 #include <iostream>
 
 namespace ElVis
@@ -74,20 +73,10 @@ namespace ElVis
                 // Locate the global buffer.  This will cause an error if there are no variables in the module
                 // with the given name.
                 size_t size = 0;
-                r = cuModuleGetGlobal(&m_deviceGlobalBuffer, &size, m_module, m_name.c_str());
-                if( r != CUDA_SUCCESS )
-                {
-                    //std::cout << "Error locating global buffer " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
-                    std::cout << "Error locating global buffer " << m_name << std::endl;
-                }
+                checkedCudaCall(cuModuleGetGlobal(&m_deviceGlobalBuffer, &size, m_module, m_name.c_str()));
 
                 // Copy the address of the device memory we allocated earlier to the global variable.
-                r = cuMemcpyHtoD(m_deviceGlobalBuffer, &m_deviceMemory, sizeof(CUdeviceptr));
-                if( r != CUDA_SUCCESS )
-                {
-                    //std::cout << "Error copying address to global buffer " << m_name << " with error " << getCudaDrvErrorString(r) << std::endl;
-                    std::cout << "Error copying address to global buffer " << m_name << std::endl;
-                }
+                checkedCudaCall(cuMemcpyHtoD(m_deviceGlobalBuffer, &m_deviceMemory, sizeof(CUdeviceptr)));
             }
 
         private:

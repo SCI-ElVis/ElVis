@@ -31,6 +31,8 @@
 
 
 #include <SpatialDomains/MeshGraph3D.h>
+#include <SpatialDomains/MeshGraph2D.h>
+
 #include <MultiRegions/ExpList.h>
 #include <MultiRegions/ExpList3D.h>
 
@@ -44,55 +46,96 @@
 
 #include <ElVis/Extensions/NektarPlusPlusExtension/Declspec.h>
 
+#include <boost/filesystem/path.hpp>
+#include <boost/utility.hpp>
+
 namespace ElVis
 {
     namespace NektarPlusPlusExtension
     {
+        class NektarModel;
+
+        /// \brief Implementation of the Nektar model, broken up into subclasses
+        /// depending of if the mesh is 2D or 3D
+        class NektarModelImpl : public boost::noncopyable
+        {
+            public:
+                explicit NektarModelImpl(NektarModel* model);
+                virtual ~NektarModelImpl();
+
+                virtual Nektar::SpatialDomains::MeshGraphSharedPtr GetMesh() const = 0;
+            private:
+                NektarModel* m_model;
+        };
+
+        class ThreeDNektarModel : public NektarModelImpl
+        {
+            public:
+                ThreeDNektarModel(NektarModel* model, Nektar::SpatialDomains::MeshGraph3DSharedPtr mesh);
+                virtual ~ThreeDNektarModel();
+
+                virtual Nektar::SpatialDomains::MeshGraphSharedPtr GetMesh() const
+                {
+                    return m_mesh; 
+                }
+
+            private:
+                Nektar::SpatialDomains::MeshGraph3DSharedPtr m_mesh;
+        };
+
+        class TwoDNektarModel : public NektarModelImpl
+        {
+            public:
+                TwoDNektarModel(NektarModel* model, Nektar::SpatialDomains::MeshGraph2DSharedPtr mesh);
+                virtual ~TwoDNektarModel();
+
+                virtual Nektar::SpatialDomains::MeshGraphSharedPtr GetMesh() const
+                {
+                    return m_mesh; 
+                }
+
+            private:
+                Nektar::SpatialDomains::MeshGraph2DSharedPtr m_mesh;
+        };
+
         class NektarModel : public Model
         {
             public:
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT explicit NektarModel(const std::string& modelPrefix);
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual ~NektarModel();
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT void InitializeWithGeometryAndField(const std::string& geomFileName,
-                    const std::string& fieldFileName);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT void Initialize(const boost::filesystem::path& geomFile,
+                    const boost::filesystem::path& fieldFile);
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT Nektar::SpatialDomains::MeshGraph3DSharedPtr GetMesh() const { return m_graph; }
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT Nektar::MultiRegions::ExpList3DSharedPtr GetExpansion() const { return m_globalExpansion; }
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT Nektar::SpatialDomains::MeshGraphSharedPtr GetMesh() const { return m_graph; }
+                //NEKTAR_PLUS_PLUS_EXTENSION_EXPORT Nektar::MultiRegions::ExpListSharedPtr GetExpansion() const { return m_globalExpansion; }
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT int GetNumberOfFaces() const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT LibUtilities::SessionReaderSharedPtr GetSession() const;
 
             protected:
-                virtual std::vector<optixu::GeometryGroup> DoGetCellGeometry(Scene* scene, optixu::Context context, CUmodule module);
+                virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module);
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const;
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds);
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT void DoCalculateExtents(ElVis::WorldPoint &,ElVis::WorldPoint &);
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual unsigned int DoGetNumberOfPoints() const;
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual WorldPoint DoGetPoint(unsigned int id) const;
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual const std::string& DoGetPTXPrefix() const;
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoSetupCudaContext(CUmodule module) const;
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual const std::string& DoGetCUBinPrefix() const;
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual unsigned int DoGetNumberOfElements() const
-                {
-                    return 0;
-                }
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetNumFields() const
-                {
-                    return 1;
-                }
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual unsigned int DoGetNumberOfElements() const;
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual FieldInfo DoGetFieldInfo(unsigned int index) const
-                {
-                    FieldInfo result;
-                    result.Name = "Default";
-                    result.Id = 0;
-                    result.Shortcut = "";
-                    return result;
-                }
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetNumFields() const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual FieldInfo DoGetFieldInfo(unsigned int index) const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetModelDimension() const;
 
             private:
                 NektarModel(const NektarModel& rhs);
@@ -162,16 +205,36 @@ namespace ElVis
 
                         faceDefs[faceIndex].Type = ePlanar;
 
-                        Nektar::SpatialDomains::ElementFaceVectorSharedPtr elements = m_graph->GetElementsFromFace(geom);
-                        assert(elements->size() <= 2 );
-                        for(int elementId = 0; elementId < elements->size(); ++elementId)
+                        Nektar::SpatialDomains::MeshGraph3DSharedPtr castPtr = boost::dynamic_pointer_cast<Nektar::SpatialDomains::MeshGraph3D>(m_graph);
+                        if( castPtr )
                         {
-                            faceDefs[faceIndex].CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
-                            faceDefs[faceIndex].CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
+                            Nektar::SpatialDomains::ElementFaceVectorSharedPtr elements = castPtr->GetElementsFromFace(geom);
+                            assert(elements->size() <= 2 );
+                            for(int elementId = 0; elementId < elements->size(); ++elementId)
+                            {
+                                faceDefs[faceIndex].CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
+                                faceDefs[faceIndex].CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
+                            }
                         }
                         
-                        
                         // TODO - Normal.
+                        Nektar::NekVector<double> normal;
+                        if( geom->GetNumVerts() == 3 )
+                        {
+                            Nektar::NekVector<double> v0 = Nektar::createVectorFromPoints(*geom->GetVertex(0), *geom->GetVertex(1));
+                            Nektar::NekVector<double> v1 = Nektar::createVectorFromPoints(*geom->GetVertex(0), *geom->GetVertex(2));
+                            normal = Cross(v0, v1);
+                        }
+                        else if( geom->GetNumVerts() == 4 )
+                        {
+                            Nektar::NekVector<double> v0 = Nektar::createVectorFromPoints(*geom->GetVertex(0), *geom->GetVertex(1));
+                            Nektar::NekVector<double> v1 = Nektar::createVectorFromPoints(*geom->GetVertex(0), *geom->GetVertex(3));
+                            normal = Cross(v0, v1);
+                        }
+                        normalBuffer[faceIndex].x = normal.x();
+                        normalBuffer[faceIndex].y = normal.y();
+                        normalBuffer[faceIndex].z = normal.z();
+                        normalBuffer[faceIndex].w = 0.0;
                         ++faceIndex;
 
                     }
@@ -298,7 +361,7 @@ namespace ElVis
                     {
                         // TODO - Check the correspondence between vertex id and global id.
                         boost::shared_ptr<T> hex = (*iter).second; 
-                        BOOST_AUTO(localExpansion, m_globalExpansion->GetExp(hex->GetGlobalID()));
+                        BOOST_AUTO(localExpansion, m_globalExpansions[0]->GetExp(hex->GetGlobalID()));
 
                         modesData[i*3] = localExpansion->GetBasis(0)->GetNumModes();
                         modesData[i*3+1] = localExpansion->GetBasis(1)->GetNumModes();
@@ -330,24 +393,60 @@ namespace ElVis
 
                 }
 
-                Nektar::SpatialDomains::MeshGraph3DSharedPtr m_graph;
-                Nektar::MultiRegions::ExpList3DSharedPtr m_globalExpansion;
+                // Initialization methods.
+                void LoadFields(const boost::filesystem::path& fieldFile);
+
+                void SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context, CUmodule module);
+                void SetupCoefficientOffsetBuffer(optixu::Context context, CUmodule module);
+                void SetupFieldModes(optixu::Context context, CUmodule module);
+                void SetupFieldBases(optixu::Context context, CUmodule module);
+
+                // Data Members
+                boost::shared_ptr<NektarModelImpl> m_impl;
+
+                Nektar::SpatialDomains::MeshGraphSharedPtr m_graph;
+                std::vector<Nektar::MultiRegions::ExpListSharedPtr> m_globalExpansions;
+                std::vector<Nektar::SpatialDomains::FieldDefinitionsSharedPtr> m_fieldDefinitions;
                 LibUtilities::SessionReaderSharedPtr m_session;
 
                 optixu::Program m_hexGeometryIntersectionProgram;
                 optixu::Program m_hexPointLocationProgram;
+                optixu::Program m_2DTriangleIntersectionProgram;
+                optixu::Program m_2DTriangleBoundingBoxProgram;
+                optixu::Program m_2DQuadIntersectionProgram;
+                optixu::Program m_2DQuadBoundingBoxProgram;
+                optixu::Program m_2DElementClosestHitProgram;
+                optixu::Program m_TwoDClosestHitProgram;
 
+                ElVis::InteropBuffer<Nektar::LibUtilities::BasisType> m_FieldBases;
+                ElVis::InteropBuffer<uint3> m_FieldModes;
+                ElVis::InteropBuffer<uint> m_SumPrefixNumberOfFieldCoefficients;
                 ElVis::InteropBuffer<ElVisFloat4> m_deviceVertexBuffer;
                 ElVis::InteropBuffer<ElVisFloat> m_deviceCoefficientBuffer;
-                ElVis::InteropBuffer<unsigned int> m_deviceCoefficientIndexBuffer;
+                ElVis::InteropBuffer<uint> m_deviceCoefficientOffsetBuffer;
                 
-                ElVis::InteropBuffer<unsigned int> m_deviceHexVertexIndices;
+                ElVis::InteropBuffer<uint> m_deviceHexVertexIndices;
                 ElVis::InteropBuffer<ElVisFloat4> m_deviceHexPlaneBuffer;
                 ElVis::InteropBuffer<uint4> m_deviceHexVertexFaceIndex;
                 ElVis::InteropBuffer<uint3> m_deviceNumberOfModes;
 
                 ElVis::InteropBuffer<ElVisFloat4> FaceVertexBuffer;
                 ElVis::InteropBuffer<ElVisFloat4> FaceNormalBuffer;
+
+                ElVis::InteropBuffer<uint> m_deviceTriangleVertexIndexMap;
+                ElVis::InteropBuffer<uint2> m_TriangleModes;
+                ElVis::InteropBuffer<ElVisFloat> m_TriangleMappingCoeffsDir0;
+                ElVis::InteropBuffer<ElVisFloat> m_TriangleMappingCoeffsDir1;
+                ElVis::InteropBuffer<uint> m_TriangleCoeffMappingDir0;
+                ElVis::InteropBuffer<uint> m_TriangleCoeffMappingDir1;
+                ElVis::InteropBuffer<uint> m_TriangleGlobalIdMap;
+
+                ElVis::InteropBuffer<uint> m_deviceQuadVertexIndexMap;
+                ElVis::InteropBuffer<uint2> m_QuadModes;
+                ElVis::InteropBuffer<ElVisFloat> m_QuadMappingCoeffsDir0;
+                ElVis::InteropBuffer<ElVisFloat> m_QuadMappingCoeffsDir1;
+                ElVis::InteropBuffer<uint> m_QuadCoeffMappingDir0;
+                ElVis::InteropBuffer<uint> m_QuadCoeffMappingDir1;
 
         };
     }

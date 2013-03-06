@@ -1,4 +1,5 @@
 SET(ProjectName "ProjectXExtension")
+SET(ExtensionPath ElVis/Extensions/${ProjectName})
 
 SET(ProjectX_DIR ${CMAKE_SOURCE_DIR}/ElVis/Extensions/ProjectXExtension)
 SET(LEDA_DIR ${CMAKE_SOURCE_DIR}/ElVis/Extensions/ProjectXExtension)

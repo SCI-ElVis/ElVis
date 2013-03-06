@@ -101,7 +101,6 @@ namespace ElVis
 
                 boost::shared_ptr<Scene> GetScene() const { return m_scene; }
                 boost::shared_ptr<SceneView> GetSurfaceSceneView() const { return m_surfaceSceneView; }
-                boost::shared_ptr<SceneView> GetVolumeSceneView() const { return m_volumeRenderSceneView; }
 
                 boost::shared_ptr<PrimaryRayObject> GetSelectedObject() const { return m_selectedObject; }
                 void SetSelectedObject(boost::shared_ptr<PrimaryRayObject> obj)
@@ -158,9 +157,6 @@ namespace ElVis
 
                 // A view of the scene defined by surfaces (cut surfaces/isosurfaces/geometry)
                 boost::shared_ptr<SceneView> m_surfaceSceneView;
-
-                // A view of the scene defined by volume rendering.
-                boost::shared_ptr<SceneView> m_volumeRenderSceneView;
 
                 boost::shared_ptr<PrimaryRayObject> m_selectedObject;
 

@@ -59,8 +59,8 @@ namespace ElVis
             const static std::string LoadModelFunctionName;
             const static std::string GetVolumeFileFilterFunctionName;
 
-            typedef const char* (*GetNameFunction)();
-            typedef const char* (*GetVolumeFileFilterFunction)();
+            typedef std::string (*GetNameFunction)();
+            typedef std::string (*GetVolumeFileFilterFunction)();
             typedef ElVis::Model* (*LoadModelFunction)(const char* path);
 
             boost::filesystem::path m_path;

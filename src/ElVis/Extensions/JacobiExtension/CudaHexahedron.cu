@@ -31,18 +31,7 @@
 
 #include <ElVis/Core/matrix.cu>
 #include <ElVis/Core/util.cu>
-
-//#include <optixu/optixu_aabb.h>
-////#include "matrix.cu"
-//#include <ElVis/Core/CutSurfacePayloads.cu>
-//#include <ElVis/Core/VolumeRenderingPayload.cu>
-//#include <ElVis/Core/typedefs.cu>
 #include <ElVis/Core/jacobi.cu>
-
-//#include <ElVis/Core/OptixVariables.cu>
-//#include <ElVis/Core/Interval.hpp>
-//#include <ElVis/Core/IntervalPoint.cu>
-
 #include <ElVis/Extensions/JacobiExtension/HexahedronCommon.cu>
 
 //// The vertices associated with this hex.

@@ -177,17 +177,18 @@ namespace ElVis
             }
 
         protected:
-            virtual std::vector<optixu::GeometryGroup> DoGetCellGeometry(Scene* scene, optixu::Context context, CUmodule module);
+            virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module);
             virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces );
+            virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module);
+            virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
 
             virtual int DoGetNumberOfBoundarySurfaces() const;
             virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds);
 
             virtual void DoCalculateExtents(WorldPoint& min, WorldPoint& max);
-            virtual unsigned int DoGetNumberOfPoints() const;
+            //virtual unsigned int DoGetNumberOfPoints() const;
             virtual WorldPoint DoGetPoint(unsigned int id) const;
             virtual void DoSetupCudaContext(CUmodule module) const;
-            virtual const std::string& DoGetCUBinPrefix() const;
             virtual const std::string& DoGetPTXPrefix() const;
             virtual unsigned int DoGetNumberOfElements() const;
 
@@ -209,6 +210,7 @@ namespace ElVis
 
             virtual void DoMapInteropBufferForCuda();
             virtual void DoUnMapInteropBufferForCuda();
+            virtual int DoGetModelDimension() const { return 3; }
 
             unsigned int RequiredCoefficientStorage(unsigned int numberOfCoefficients, unsigned int alignment) const
             {
@@ -264,10 +266,10 @@ namespace ElVis
                 unsigned int numVertices = numElements*T::VertexCount;
                 unsigned int numCoefficients = NumCoefficientsForElementType<T>(coefficientAlignment);
 
-                if( numElements == 0 )
-                {
-                    return;
-                }
+//                if( numElements == 0 )
+//                {
+//                    return;
+//                }
                 std::string vertexBufferName = variablePrefix + "VertexBuffer";
                 CudaGlobalBuffer<ElVisFloat4> vertexBuffer(vertexBufferName, numVertices, module);
                 ElVisFloat* vertexData = static_cast<ElVisFloat*>(vertexBuffer.map());
@@ -367,10 +369,10 @@ namespace ElVis
                 std::cout << "Number of elements = " << numElements << std::endl;
                 std::cout << "Number of Coefficients = " << numCoefficients << std::endl;
 
-                if( numElements == 0 )
-                {
-                    return optixu::GeometryInstance();
-                }
+//                if( numElements == 0 )
+//                {
+//                    return optixu::GeometryInstance();
+//                }
                 std::string vertexBufferName = variablePrefix + "VertexBuffer";
                 FloatingPointBuffer VertexBuffer(vertexBufferName.c_str(), 4);
                 VertexBuffer.Create(context, RT_BUFFER_INPUT, numElements*T::VertexCount);

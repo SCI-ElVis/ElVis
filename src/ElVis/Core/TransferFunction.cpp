@@ -29,9 +29,7 @@
 #include <ElVis/Core/TransferFunction.h>
 #include <ElVis/Core/HostTransferFunction.h>
 
-//#include <cutil.h>
-#include <cuda_runtime_api.h>
-//#include <cutil_inline_drvapi.h>
+#include <ElVis/Core/Cuda.h>
 
 namespace ElVis
 {
@@ -62,8 +60,8 @@ namespace ElVis
     {
         if( devicePtr != 0 ) return;
 
-        cuMemAlloc(&devicePtr, size*sizeof(ElVisFloat));
-        cuMemcpyHtoD(devicePtr, data, size*sizeof(ElVisFloat));
+        checkedCudaCall(cuMemAlloc(&devicePtr, size*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemcpyHtoD(devicePtr, data, size*sizeof(ElVisFloat)));
     }
 
     void HostTransferFunction::FreeDeviceMemory()
@@ -71,7 +69,7 @@ namespace ElVis
         // Free existing memory.
         if( m_deviceDensityBreakpoints != 0 ) 
         {
-            cuMemFree(m_deviceDensityBreakpoints);
+            checkedCudaCall(cuMemFree(m_deviceDensityBreakpoints));
             m_deviceDensityBreakpoints = 0;
             //delete [] m_localDeviceTransferFunction.DensityBreakpoints();
             m_localDeviceTransferFunction.DensityBreakpoints() = 0;
@@ -79,7 +77,7 @@ namespace ElVis
 
         if( m_deviceRedBreakpoints != 0 ) 
         {
-            cuMemFree(m_deviceRedBreakpoints);
+            checkedCudaCall(cuMemFree(m_deviceRedBreakpoints));
             m_deviceRedBreakpoints = 0;
             //delete [] m_localDeviceTransferFunction.RedBreakpoints();
             m_localDeviceTransferFunction.RedBreakpoints() = 0;
@@ -87,7 +85,7 @@ namespace ElVis
 
         if( m_deviceGreenBreakpoints != 0 ) 
         {
-            cuMemFree(m_deviceGreenBreakpoints);
+            checkedCudaCall(cuMemFree(m_deviceGreenBreakpoints));
             m_deviceGreenBreakpoints = 0;
             //delete [] m_localDeviceTransferFunction.GreenBreakpoints();
             m_localDeviceTransferFunction.GreenBreakpoints() = 0;
@@ -95,7 +93,7 @@ namespace ElVis
 
         if( m_deviceBlueBreakpoints != 0 ) 
         {
-            cuMemFree(m_deviceBlueBreakpoints);
+            checkedCudaCall(cuMemFree(m_deviceBlueBreakpoints));
             m_deviceBlueBreakpoints = 0;
             //delete [] m_localDeviceTransferFunction.BlueBreakpoints();
             m_localDeviceTransferFunction.BlueBreakpoints() = 0;
@@ -103,7 +101,7 @@ namespace ElVis
 
         if( m_deviceDensityValues != 0 ) 
         {
-            cuMemFree(m_deviceDensityValues);
+            checkedCudaCall(cuMemFree(m_deviceDensityValues));
             m_deviceDensityValues = 0;
             //delete [] m_localDeviceTransferFunction.DensityValues();
             m_localDeviceTransferFunction.DensityValues() = 0;
@@ -111,7 +109,7 @@ namespace ElVis
 
         if( m_deviceRedValues != 0 ) 
         {
-            cuMemFree(m_deviceRedValues);
+            checkedCudaCall(cuMemFree(m_deviceRedValues));
             m_deviceRedValues = 0;
             //delete [] m_localDeviceTransferFunction.RedValues();
             m_localDeviceTransferFunction.RedValues() = 0;
@@ -119,7 +117,7 @@ namespace ElVis
 
         if( m_deviceGreenValues != 0 ) 
         {
-            cuMemFree(m_deviceGreenValues);
+            checkedCudaCall(cuMemFree(m_deviceGreenValues));
             m_deviceGreenValues = 0;
             //delete [] m_localDeviceTransferFunction.GreenValues();
             m_localDeviceTransferFunction.GreenValues() = 0;
@@ -127,7 +125,7 @@ namespace ElVis
 
         if( m_deviceBlueValues != 0 ) 
         {
-            cuMemFree(m_deviceBlueValues);
+            checkedCudaCall(cuMemFree(m_deviceBlueValues));
             m_deviceBlueValues = 0;
             //delete [] m_localDeviceTransferFunction.BlueValues();
             m_localDeviceTransferFunction.BlueValues() = 0;
@@ -140,24 +138,24 @@ namespace ElVis
 
         if( m_deviceObject != 0 ) 
         {
-            cuMemFree(m_deviceObject);
+            checkedCudaCall(cuMemFree(m_deviceObject));
             m_deviceObject = 0;
         }
     }
 
     void HostTransferFunction::AllocateDeviceMemory()
     {
-        cuMemAlloc(&m_deviceDensityBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemAlloc(&m_deviceRedBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemAlloc(&m_deviceGreenBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemAlloc(&m_deviceBlueBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        checkedCudaCall(cuMemAlloc(&m_deviceDensityBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemAlloc(&m_deviceRedBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemAlloc(&m_deviceGreenBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemAlloc(&m_deviceBlueBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
 
-        cuMemAlloc(&m_deviceDensityValues, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemAlloc(&m_deviceRedValues, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemAlloc(&m_deviceGreenValues, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemAlloc(&m_deviceBlueValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        checkedCudaCall(cuMemAlloc(&m_deviceDensityValues, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemAlloc(&m_deviceRedValues, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemAlloc(&m_deviceGreenValues, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemAlloc(&m_deviceBlueValues, m_breakpoints.size()*sizeof(ElVisFloat)));
 
-        cuMemAlloc(&m_deviceObject, sizeof(TransferFunction));
+        checkedCudaCall(cuMemAlloc(&m_deviceObject, sizeof(TransferFunction)));
     }
 
     void HostTransferFunction::CopyToDeviceMemory()
@@ -175,7 +173,7 @@ namespace ElVis
         int index = 0;
         for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
         {
-            DensityBreakpoints[index] = (*iter).first;
+            DensityBreakpoints[index] = static_cast<ElVisFloat>((*iter).first);
             DensityValues[index] = (*iter).second.Density;
             ++index;
         }
@@ -183,7 +181,7 @@ namespace ElVis
         index = 0;
         for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
         {
-            RedBreakpoints[index] = (*iter).first;
+            RedBreakpoints[index] = static_cast<ElVisFloat>((*iter).first);
             RedValues[index] = (*iter).second.Col.Red();
             ++index;
         }
@@ -191,7 +189,7 @@ namespace ElVis
         index = 0;
         for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
         {
-            GreenBreakpoints[index] = (*iter).first;
+            GreenBreakpoints[index] = static_cast<ElVisFloat>((*iter).first);
             GreenValues[index] = (*iter).second.Col.Green();
             ++index;
         }
@@ -199,20 +197,20 @@ namespace ElVis
         index = 0;
         for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
         {
-            BlueBreakpoints[index] = (*iter).first;
+            BlueBreakpoints[index] = static_cast<ElVisFloat>((*iter).first);
             BlueValues[index] = (*iter).second.Col.Blue();
             ++index;
         }
            
-        cuMemcpyHtoD(m_deviceDensityBreakpoints, DensityBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemcpyHtoD(m_deviceRedBreakpoints, RedBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemcpyHtoD(m_deviceGreenBreakpoints, GreenBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemcpyHtoD(m_deviceBlueBreakpoints, BlueBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceDensityBreakpoints, DensityBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceRedBreakpoints, RedBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceGreenBreakpoints, GreenBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceBlueBreakpoints, BlueBreakpoints, m_breakpoints.size()*sizeof(ElVisFloat)));
 
-        cuMemcpyHtoD(m_deviceDensityValues, DensityValues, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemcpyHtoD(m_deviceRedValues, RedValues, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemcpyHtoD(m_deviceGreenValues, GreenValues, m_breakpoints.size()*sizeof(ElVisFloat));
-        cuMemcpyHtoD(m_deviceBlueValues, BlueValues, m_breakpoints.size()*sizeof(ElVisFloat));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceDensityValues, DensityValues, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceRedValues, RedValues, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceGreenValues, GreenValues, m_breakpoints.size()*sizeof(ElVisFloat)));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceBlueValues, BlueValues, m_breakpoints.size()*sizeof(ElVisFloat)));
 
         m_localDeviceTransferFunction.RedBreakpoints() = (ElVisFloat*)(m_deviceRedBreakpoints);
         m_localDeviceTransferFunction.GreenBreakpoints() = (ElVisFloat*)(m_deviceGreenBreakpoints);
@@ -224,12 +222,12 @@ namespace ElVis
         m_localDeviceTransferFunction.BlueValues() = (ElVisFloat*)(m_deviceBlueValues);
         m_localDeviceTransferFunction.DensityValues() = (ElVisFloat*)(m_deviceDensityValues);
 
-        m_localDeviceTransferFunction.NumDensityBreakpoints() = m_breakpoints.size();
-        m_localDeviceTransferFunction.NumRedBreakpoints() = m_breakpoints.size();
-        m_localDeviceTransferFunction.NumGreenBreakpoints() = m_breakpoints.size();
-        m_localDeviceTransferFunction.NumBlueBreakpoints() = m_breakpoints.size();
+        m_localDeviceTransferFunction.NumDensityBreakpoints() = static_cast<int>(m_breakpoints.size());
+        m_localDeviceTransferFunction.NumRedBreakpoints() = static_cast<int>(m_breakpoints.size());
+        m_localDeviceTransferFunction.NumGreenBreakpoints() = static_cast<int>(m_breakpoints.size());
+        m_localDeviceTransferFunction.NumBlueBreakpoints() = static_cast<int>(m_breakpoints.size());
 
-        cuMemcpyHtoD(m_deviceObject, &m_localDeviceTransferFunction, sizeof(TransferFunction));
+        checkedCudaCall(cuMemcpyHtoD(m_deviceObject, &m_localDeviceTransferFunction, sizeof(TransferFunction)));
 
         delete [] DensityBreakpoints;
         delete [] RedBreakpoints;
@@ -267,7 +265,7 @@ namespace ElVis
         {
             m_breakpoints[s].Col = c;
             m_breakpoints[s].Density = density;
-            m_breakpoints[s].Scalar = s;
+            m_breakpoints[s].Scalar = static_cast<ElVisFloat>(s);
             m_dirty = true;
             OnTransferFunctionChanged();
         }

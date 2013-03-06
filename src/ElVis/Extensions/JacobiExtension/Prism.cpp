@@ -107,7 +107,7 @@ namespace ElVis
             int numCoefficients = (degree(0)+1)*(degree(1)+1)*(degree(2)+2)/2;
             readBasisCoefficients(inFile, numCoefficients, reverseBytes);
 
-            setInterpolatingPolynomialDegree(2*degree(0)+degree(1)+degree(2));
+            //setInterpolatingPolynomialDegree(2*degree(0)+degree(1)+degree(2));
 
             calculateFaceNormals();
 

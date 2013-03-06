@@ -440,7 +440,7 @@ RT_PROGRAM void NektarHexahedronBounding (int id, float result[6])
 __device__ __forceinline__ ElVisFloat EvaluateNektarPlusPlusHexAtTensorPoint(unsigned int elementId, const TensorPoint& p)
 {
     uint3 modes = NumberOfModes[elementId];
-    uint coefficientIndex = CoefficientIndices[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
 
     ElVisFloat result = MAKE_FLOAT(0.0);
 

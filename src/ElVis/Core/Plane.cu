@@ -42,20 +42,23 @@ RT_PROGRAM void Plane_intersect( int primIdx )
 {
     ElVisFloat t;
     FindPlaneIntersection(ray, PlaneNormal, t);
-//    ELVIS_PRINTF("Eye (%f, %f, %f), Dir (%f, %f, %f)\n",
-//        ray.origin.x, ray.origin.y, ray.origin.z,
-//        ray.direction.x, ray.direction.y, ray.direction.z);
-//    ELVIS_PRINTF("Plane intersection with normal (%f, %f, %f, %f) and point (%f, %f, %f) is %f\n",
-//        PlaneNormal.x,
-//        PlaneNormal.y,
-//        PlaneNormal.z,
-//        PlaneNormal.w,
-//        PlanePoint.x,
-//        PlanePoint.y,
-//        PlanePoint.z,
-//        t);
+
+    ELVIS_PRINTF("Eye (%f, %f, %f), Dir (%f, %f, %f)\n",
+        ray.origin.x, ray.origin.y, ray.origin.z,
+        ray.direction.x, ray.direction.y, ray.direction.z);
+    ELVIS_PRINTF("Plane intersection with normal (%f, %f, %f, %f) and point (%f, %f, %f) is %f\n",
+        PlaneNormal.x,
+        PlaneNormal.y,
+        PlaneNormal.z,
+        PlaneNormal.w,
+        PlanePoint.x,
+        PlanePoint.y,
+        PlanePoint.z,
+        t);
+
     if(  rtPotentialIntersection( t ) )
     {
+        ELVIS_PRINTF("Plane_intersect: Closest intersection found at %f\n", t);
         normal.x = PlaneNormal.x;
         normal.y = PlaneNormal.y;
         normal.z = PlaneNormal.z;

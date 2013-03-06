@@ -1,0 +1,128 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// The MIT License
+//
+// Copyright (c) 2006 Scientific Computing and Imaging Institute,
+// University of Utah (USA)
+//
+// License for the specific language governing rights and limitations under
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef ELVIS_EXTENSIONS_@RUNTIME_EXTENSION_NAME@_OPTIX_INTERFACE_CU
+#define ELVIS_EXTENSIONS_@RUNTIME_EXTENSION_NAME@_OPTIX_INTERFACE_CU
+
+// TODO - Implement each of these methods so they perform the actions described in the
+// comments.
+
+/// \brief Converts a point from world space to the given element's reference space.
+/// \param elementId The element's id.
+/// \param elementType The element's type.
+/// \param wp The world point to be converted.
+/// \param referenceType Describes the meaning of result.  If eReferencePointIsInvalid then
+///        result will only be used for output. If eReferencePointIsInitialGuess, then result is
+///        a guess for the actual location of the reference point.
+/// \param result On input, it can be an initial guess.  On output, the actual reference point corresponding to wp.
+/// \returns
+ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& wp,
+                                                          ElVis::ReferencePointParameterType referenceType, ReferencePoint& result)
+{
+    return eNoError;
+}
+
+/// \brief Evaluates a scalar field at the given point.
+/// \param elementId The element's id.
+/// \param elementType The element's type.
+/// \param fieldId The field to be evaluated.
+/// \param point The point at which the field will be evaluated.
+/// \param result The result of the evaluation.
+/// \returns
+///
+/// This method is designed to be used for evaluation at a single reference point (x0, x1, x2) and at
+/// an interval of the reference space ([x0_low, x0_high], [x1_low, x1_high], [x2_low, x2_high]).
+template<typename PointType, typename ResultType>
+ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, int elementType, int fieldId,
+                                                               const PointType& worldPoint,
+                                                               const PointType& referencePoint,
+                                                               ResultType& result)
+{
+    return eNoError;
+}
+
+/// \brief Returns the number of vertices associated with the given face.
+ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
+{
+    return eNoError;
+}
+
+
+ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
+{
+    return eNoError;
+}
+
+
+/// \brief Returns true if the reference point is valid for this face, false otherwise.
+ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& point, bool& result)
+{
+    return eNoError;
+}
+
+
+/// \brief Evaluates the Jacobian of the given face's mapping function.
+/// \param faceId The face.
+/// \param p The point on the face at which the Jacobian is to be evaluated.
+template<typename T>
+ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoint& p,
+                                             T& dx_dr, T& dx_ds,
+                                             T& dy_dr, T& dy_ds,
+                                             T& dz_dr, T& dz_ds)
+{
+    return eNoError;
+}
+
+
+/// \brief Get the world space normal vector for the given point on a face.  This version is called when
+///        we know the world space location of the point on the face, but do not know the reference coordinate.
+///        This only occurs for planar faces.
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, int faceId, ElVisFloat3& result)
+{
+    return eNoError;
+}
+
+
+/// \brief Get the world space normal vector for the given point on a face.
+/// \param pointOnFace The point in world space coordinates.
+/// \param refPoint The point in the face's reference coordinates.
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, int faceId,
+                                      ElVisFloat3& result)
+{
+    return eNoError;
+}
+
+
+// Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
+ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
+                               WorldPoint& result)
+{
+    return eNoError;
+}
+
+#endif

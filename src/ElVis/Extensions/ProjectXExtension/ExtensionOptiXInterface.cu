@@ -138,7 +138,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPo
 
 RT_PROGRAM void PXSimplexContainsOriginByCheckingPoint(int PXSimplexId)
 {
-    //ELVIS_PRINTF("I'm ray %d at START of PXSimplexContainsOriginByCheckingPoint\n", PXSimplexId);
+    ELVIS_PRINTF("PXSimplexContainsOriginByCheckingPoint: Checking element %d\n", PXSimplexId);
     PX_REAL xglobal[3] = {ray.origin.x, ray.origin.y, ray.origin.z};
     int boundingBoxFlag = 0;
 
@@ -281,8 +281,6 @@ RT_PROGRAM void PXSimplexContainsOriginByCheckingPoint(int PXSimplexId)
     }
 
 
-  //ELVIS_PRINTF("I'm ray %d in PXSimplexContainsOriginByCheckingPoint\n", PXSimplexId);
-
 }
 
 
@@ -393,6 +391,8 @@ RT_PROGRAM void PXSimplex_bounding (int id, float result[6])
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& worldPoint,
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& referencePoint)
 {
+    ELVIS_PRINTF("ConvertWorldToReferenceSpaceOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+                 elementId, worldPoint.x, worldPoint.y, worldPoint.z);
     if( referenceType != ElVis::eReferencePointIsValid )
     {
         int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
@@ -431,6 +431,8 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                const PointType& referencePoint,
                                                                ResultType& result)
 {
+    ELVIS_PRINTF("SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+                 elementId, worldPoint.x, worldPoint.y, worldPoint.z);
     int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
     int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
 

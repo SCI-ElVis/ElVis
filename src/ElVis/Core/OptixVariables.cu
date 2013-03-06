@@ -68,7 +68,7 @@ rtBuffer<int, 2> ElementTypeBuffer;
 
 rtDeclareVariable(float, closest_t, rtIntersectionDistance, );
 
-rtDeclareVariable(rtObject,      element_group, , );
+rtDeclareVariable(rtObject,      PointLocationGroup, , );
 
 rtBuffer<float, 2> depth_buffer;
 

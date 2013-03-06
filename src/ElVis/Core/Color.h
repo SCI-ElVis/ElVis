@@ -48,20 +48,20 @@ namespace ElVis
             template<typename T>
             Color(T r, T g, T b, T alpha) :
                 OnColorChanged(),
-                m_red(r),
-                m_green(g),
-                m_blue(b),
-                m_alpha(alpha)
+                m_red(static_cast<float>(r)),
+                m_green(static_cast<float>(g)),
+                m_blue(static_cast<float>(b)),
+                m_alpha(static_cast<float>(alpha))
             {
             }
 
             template<typename T>
             Color(T r, T g, T b) :
                 OnColorChanged(),
-                m_red(r),
-                m_green(g),
-                m_blue(b),
-                m_alpha(1.0)
+                m_red(static_cast<float>(r)),
+                m_green(static_cast<float>(g)),
+                m_blue(static_cast<float>(b)),
+                m_alpha(1.0f)
             {
             }
 

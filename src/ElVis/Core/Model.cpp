@@ -39,12 +39,6 @@ namespace ElVis
     {
     }
 
-    Model::Model(const Model& rhs) :
-        m_minExtent(rhs.m_minExtent),
-        m_maxExtent(rhs.m_maxExtent),
-        m_center(rhs.m_center)
-    {
-    }
 
     Model::~Model()
     {
@@ -67,9 +61,9 @@ namespace ElVis
         return m_center;
     }
 
-    std::vector<optixu::GeometryGroup> Model::GetCellGeometry(Scene* scene, optixu::Context context, CUmodule module)
+    std::vector<optixu::GeometryGroup> Model::GetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module)
     {
-        return DoGetCellGeometry(scene, context, module);
+        return DoGetPointLocationGeometry(scene, context, module);
     }
 
     void Model::GetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces)
@@ -85,5 +79,15 @@ namespace ElVis
     void Model::GetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds)
     {
         DoGetBoundarySurface(surfaceIndex, name, faceIds);
+    }
+
+    std::vector<optixu::GeometryInstance> Model::Get2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module)
+    {
+        return DoGet2DPrimaryGeometry(scene, context, module);
+    }
+
+    int Model::GetModelDimension() const
+    {
+        return DoGetModelDimension();
     }
 }

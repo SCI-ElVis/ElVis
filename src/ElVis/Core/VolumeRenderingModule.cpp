@@ -41,9 +41,12 @@
 
 #include <stdio.h>
 
-#include <cudaGL.h>
-#include <cuda_gl_interop.h>
-#include <cuda_runtime_api.h>
+#include <ElVis/Core/Cuda.h>
+//#include <cudaGL.h>
+//#include <cuda_gl_interop.h>
+//#include <cutil.h>
+//#include <cuda_runtime_api.h>
+//#include <cutil_inline_drvapi.h>
 
 #define png_infopp_NULL (png_infopp)NULL
 #define int_p_NULL (int*)NULL
@@ -100,12 +103,8 @@ namespace ElVis
                 // Clear the accumulator buffers.
                 
                 void* args[] = {&m_accumulatedOpacityBuf, &m_accumulatedColorBuf, &bufSize};
-                CUresult r = cuLaunchKernel(m_clearAccumlatorBuffers, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-                r = cuCtxSynchronize();
-                if( r != CUDA_SUCCESS )
-                {
-                    //std::cout << "Error running ClearAccumulatorBuffers " << getCudaDrvErrorString(r) << std::endl;
-                }
+                checkedCudaCall(cuLaunchKernel(m_clearAccumlatorBuffers, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+                checkedCudaCall(cuCtxSynchronize());
             }
             optixu::Context context = view->GetContext();
 
@@ -169,12 +168,8 @@ namespace ElVis
 
                 CUdeviceptr colorBuffer = view->GetColorBuffer().GetMappedCudaPtr();//view->GetDeviceColorBuffer();
                 void* args[] = {&m_accumulatedColorBuf, &m_accumulatedOpacityBuf, &colorBuffer, &bufSize, &color};
-                CUresult r = cuLaunchKernel(m_populateColorBuffer, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-                r = cuCtxSynchronize();
-                if( r != CUDA_SUCCESS )
-                {
-                    //std::cout << "Error running PopulateColorBuffer " << getCudaDrvErrorString(r) << std::endl;
-                }
+                checkedCudaCall(cuLaunchKernel(m_populateColorBuffer, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+                checkedCudaCall(cuCtxSynchronize());
                 view->GetColorBuffer().UnmapCudaPtr();
             }
 
@@ -183,7 +178,7 @@ namespace ElVis
                 int numSampleBuffer[] = {-1};
                 if( m_numSamples )
                 {
-                    cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int));
+                    checkedCudaCall(cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int)));
                 }
 
                 std::cout << "Total number of samples taken: " << numSampleBuffer[0] << std::endl;
@@ -231,16 +226,16 @@ namespace ElVis
         uchar3* imageData = new uchar3[numEntries];
         ElVisFloat* data = new ElVisFloat[numEntries];
 
-        cuMemcpyDtoH(data, m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight());
+        checkedCudaCall(cuMemcpyDtoH(data, m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight()));
 
         ElVisFloat* max = std::max_element(data, data+numEntries);
 
         std::cout << "Max element = " << *max << std::endl;
         for(unsigned int i = 0; i < numEntries; ++i)
         {
-            imageData[i].x = data[i]*255.0/(*max);
-            imageData[i].y = data[i]*255.0/(*max);
-            imageData[i].z = data[i]*255.0/(*max);
+            imageData[i].x = static_cast<unsigned char>(data[i]*255.0/(*max));
+            imageData[i].y = static_cast<unsigned char>(data[i]*255.0/(*max));
+            imageData[i].z = static_cast<unsigned char>(data[i]*255.0/(*max));
         }
 
 
@@ -253,7 +248,7 @@ namespace ElVis
         int numSampleBuffer[] = {-1};
         if( m_numSamples )
         {
-            cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int));
+            checkedCudaCall(cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int)));
         }
 
         std::cout << "Total number of samples taken: " << numSampleBuffer[0] << std::endl;
@@ -270,7 +265,7 @@ namespace ElVis
         fclose(outFile);
 
         ElVisFloat3* colorData = new ElVisFloat3[numEntries];
-        cuMemcpyDtoH(colorData, m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight());
+        checkedCudaCall(cuMemcpyDtoH(colorData, m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight()));
 
         std::cout << "Writing color file" << std::endl;
         std::string colorFileName = fileName + "_color.bin";
@@ -370,8 +365,8 @@ namespace ElVis
                             &m_enableTrace, &m_tracex, &m_tracey,
                             &m_numSamples,
                             &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-            cuLaunchKernel(m_Trapezoidal_SingleThreadPerRay, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_Trapezoidal_SingleThreadPerRay, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -419,8 +414,8 @@ namespace ElVis
                             &m_enableTrace, &m_tracex, &m_tracey,
                             &m_numSamples,
                             &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-            cuLaunchKernel(m_integrateSegmentSingleThreadPerRayRiemann, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_integrateSegmentSingleThreadPerRayRiemann, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -465,8 +460,8 @@ namespace ElVis
                             &fieldId,
                             &m_compositingStepSize, &transferFunction,
                             &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-            cuLaunchKernel(f, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(f, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -512,8 +507,8 @@ namespace ElVis
                             &fieldId,
                             &transferFunction, &m_epsilon, &m_enableTrace,
                             &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-            cuLaunchKernel(m_integrateFull, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_integrateFull, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -558,8 +553,8 @@ namespace ElVis
                             &fieldId,
                             &transferFunction, &m_epsilon, &m_enableTrace,
                             &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-            cuLaunchKernel(m_integrateFullSingleSegmentPerWarp, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_integrateFullSingleSegmentPerWarp, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -607,8 +602,8 @@ namespace ElVis
                             &m_renderIntegrationType,
                             &m_enableEmptySpaceSkipping,
                             &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-            cuLaunchKernel(m_gkOnly, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_gkOnly, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -658,8 +653,8 @@ namespace ElVis
                             &m_renderIntegrationType,
                             &m_enableEmptySpaceSkipping,
                             &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-            cuLaunchKernel(m_integrateSegmentSingleThreadPerRay, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0);
-            cuCtxSynchronize();
+            checkedCudaCall(cuLaunchKernel(m_integrateSegmentSingleThreadPerRay, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            checkedCudaCall(cuCtxSynchronize());
             GetSegmentElementIdBuffer().UnmapCudaPtr();
             GetSegmentElementTypeBuffer().UnmapCudaPtr();
             GetSegmentRayDirectionBuffer().UnmapCudaPtr();
@@ -707,19 +702,19 @@ namespace ElVis
 
         if( !m_initializationComplete )
         {
-            cuModuleGetFunction(&m_clearAccumlatorBuffers, module, "ClearAccumulatorBuffers");
-            cuModuleGetFunction(&m_populateColorBuffer, module, "PopulateColorBuffer");
-            cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRayRiemann, module, "IntegrateSegmentSingleThreadPerRayRiemann");
-            cuModuleGetFunction(&m_integrateFull, module, "IntegrateSegmentSingleThreadPerRayFullVersion");
-            cuModuleGetFunction(&m_integrateFullSingleSegmentPerWarp, module, "IntegrateSegmentWarpPerSegment");
-            cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRay, module, "IntegrateSegmentSingleThreadPerRay");
-            cuModuleGetFunction(&m_gkOnly, module, "GKOnly");
-            cuModuleGetFunction(&m_Trapezoidal_SingleThreadPerRay, module, "Trapezoidal_SingleThreadPerRay");
+            checkedCudaCall(cuModuleGetFunction(&m_clearAccumlatorBuffers, module, "ClearAccumulatorBuffers"));
+            checkedCudaCall(cuModuleGetFunction(&m_populateColorBuffer, module, "PopulateColorBuffer"));
+            checkedCudaCall(cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRayRiemann, module, "IntegrateSegmentSingleThreadPerRayRiemann"));
+            checkedCudaCall(cuModuleGetFunction(&m_integrateFull, module, "IntegrateSegmentSingleThreadPerRayFullVersion"));
+            checkedCudaCall(cuModuleGetFunction(&m_integrateFullSingleSegmentPerWarp, module, "IntegrateSegmentWarpPerSegment"));
+            checkedCudaCall(cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRay, module, "IntegrateSegmentSingleThreadPerRay"));
+            checkedCudaCall(cuModuleGetFunction(&m_gkOnly, module, "GKOnly"));
+            checkedCudaCall(cuModuleGetFunction(&m_Trapezoidal_SingleThreadPerRay, module, "Trapezoidal_SingleThreadPerRay"));
 
-            cuMemAlloc(&m_mappedSegmentIndex, sizeof(int)*view->GetWidth()*view->GetHeight());
-            cuMemAlloc(&m_pixelCategoryBuf, sizeof(VolumeRenderingIntegrationCategory)*view->GetWidth()*view->GetHeight());
-            cuMemAlloc(&m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight());
-            cuMemAlloc(&m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight());        
+            checkedCudaCall(cuMemAlloc(&m_mappedSegmentIndex, sizeof(int)*view->GetWidth()*view->GetHeight()));
+            checkedCudaCall(cuMemAlloc(&m_pixelCategoryBuf, sizeof(VolumeRenderingIntegrationCategory)*view->GetWidth()*view->GetHeight()));
+            checkedCudaCall(cuMemAlloc(&m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight()));
+            checkedCudaCall(cuMemAlloc(&m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight()));        
 
             m_initializationComplete = true;
         }
@@ -739,16 +734,16 @@ namespace ElVis
         {
             if( !m_numSamples )
             {
-                cuMemAlloc(&m_numSamples, sizeof(int));
+                checkedCudaCall(cuMemAlloc(&m_numSamples, sizeof(int)));
             }
             int data[] = {0};
-            cuMemcpyHtoD(m_numSamples, &data[0], sizeof(int));
+            checkedCudaCall(cuMemcpyHtoD(m_numSamples, &data[0], sizeof(int)));
         }
         else
         {
             if( m_numSamples )
             {
-                cuMemFree(m_numSamples);
+                checkedCudaCall(cuMemFree(m_numSamples));
                 m_numSamples = 0;
             }
         }

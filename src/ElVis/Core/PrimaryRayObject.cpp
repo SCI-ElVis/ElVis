@@ -57,6 +57,8 @@ namespace ElVis
     {
         m_object->CreateNode(view, transform, group);
 
+        if( !group.get() ) return;
+
         for(unsigned int i = 0; i < group->getChildCount(); ++i)
         {
             optixu::GeometryInstance instance = group->getChild(i);

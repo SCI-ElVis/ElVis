@@ -69,6 +69,8 @@ namespace ElVis
         std::string nrrdHeaderFileName = filePrefix + ".nhdr";
         std::string nrrdDataFileName = filePrefix + ".raw";
 
+        boost::filesystem::path p(nrrdDataFileName);
+
         std::ofstream nrrdHeaderFile(nrrdHeaderFileName.c_str(), std::ios::out);
         FILE* nrrdDataFile = fopen(nrrdDataFileName.c_str(), "wb");
 
@@ -76,10 +78,11 @@ namespace ElVis
         nrrdHeaderFile << "type: float" << std::endl;
         nrrdHeaderFile << "dimension: 3" << std::endl;
         nrrdHeaderFile << "sizes: " << n.x << " " << n.y << " " << n.z << std::endl;
-        nrrdHeaderFile << "spacings: " << h.x << " " << h.y << " " << h.z << std::endl;
         nrrdHeaderFile << "encoding: raw" << std::endl;
-        nrrdHeaderFile << "datafile: ./" << nrrdDataFileName << std::endl;
+        nrrdHeaderFile << "datafile: ./" << p.filename().string() << std::endl;
         nrrdHeaderFile << "endian: little" << std::endl;
+        nrrdHeaderFile << "space dimension: 3" << std::endl;
+        nrrdHeaderFile << "space directions: " << "(" << h.x << ",0,0) " << "(0," << h.y << ",0) " << "(0,0," << h.z << ")" << std::endl;
         nrrdHeaderFile << "space origin: (" << minExtent.x() << ", " << minExtent.y() << ", " << minExtent.z() << ")" << std::endl;
         nrrdHeaderFile << std::endl;
         nrrdHeaderFile.close();
@@ -91,9 +94,10 @@ namespace ElVis
         FloatingPointBuffer sampleBuffer("SampleOntoNrrdSamples", 1);
         sampleBuffer.Create(context, RT_BUFFER_OUTPUT, n.x, n.y);
         context["SampledOntoNrrdSamples"]->set(*sampleBuffer);
+
         float* convertBuffer = new float[n.x*n.y];
         SetFloat(context["SampleOntoNrrdMinExtent"], minExtent);
-
+        SetFloat(context["SampleOntoNrrdMissValue"], std::numeric_limits<ElVisFloat>::signaling_NaN());
         std::cout << "Validating and compiling." << std::endl;
         context->validate();
         context->compile();

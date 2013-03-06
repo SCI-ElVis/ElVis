@@ -41,34 +41,37 @@
 namespace ElVis
 {
     class Scene;
+    class SceneView;
 
     class Model
     {
         public:
             ELVIS_EXPORT Model();
-            ELVIS_EXPORT Model(const Model& rhs);
-            ELVIS_EXPORT ~Model();
+            ELVIS_EXPORT virtual ~Model();
 
             const WorldPoint& MinExtent() const { return m_minExtent; }
             const WorldPoint& MaxExtent() const { return m_maxExtent; }
 
-            ELVIS_EXPORT unsigned int GetNumberOfPoints() const { return DoGetNumberOfPoints(); }
-            ELVIS_EXPORT WorldPoint GetPoint(unsigned int id) const { return DoGetPoint(id); }
+            // These are for the conversion extension and shouldn't be here.
+//            ELVIS_EXPORT unsigned int GetNumberOfPoints() const { return DoGetNumberOfPoints(); }
+//            ELVIS_EXPORT WorldPoint GetPoint(unsigned int id) const { return DoGetPoint(id); }
 
             ELVIS_EXPORT unsigned int GetNumberOfElements() const { return DoGetNumberOfElements(); }
 
             ELVIS_EXPORT void SetupCudaContext(CUmodule module) const { return DoSetupCudaContext(module); }
 
-            /// \brief Generates teh OptiX geometry nodes necessary to perform ray/element intersections.
-            ELVIS_EXPORT std::vector<optixu::GeometryGroup> GetCellGeometry(Scene* scene, optixu::Context context, CUmodule module);
+            /// \brief Generates the OptiX geometry nodes necessary to perform ray/element intersections.
+            ELVIS_EXPORT std::vector<optixu::GeometryGroup> GetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module);
             ELVIS_EXPORT void GetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces);
+            ELVIS_EXPORT std::vector<optixu::GeometryInstance> Get2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module);
+            ELVIS_EXPORT virtual optixu::Material Get2DPrimaryGeometryMaterial(SceneView* view) { return DoGet2DPrimaryGeometryMaterial(view); }
+
+            ELVIS_EXPORT int GetModelDimension() const; 
 
             // This doesn't really belong in the model class, but is a good, quick place to put it for now.
             // It really should be a part of the SceneView class, but the individual extensions don't currently 
             // created customized SceneViews.
             ELVIS_EXPORT const std::string& GetPTXPrefix() const { return DoGetPTXPrefix(); }
-
-            ELVIS_EXPORT const std::string& GetCUBinPrefix() const { return DoGetCUBinPrefix(); }
 
             ELVIS_EXPORT void MapInteropBuffersForCuda() { return DoMapInteropBufferForCuda(); }
             ELVIS_EXPORT void UnMapInteropBuffersForCuda() { return DoUnMapInteropBufferForCuda(); }
@@ -82,41 +85,91 @@ namespace ElVis
             ELVIS_EXPORT void GetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds);
 
         protected:
-            ELVIS_EXPORT virtual std::vector<optixu::GeometryGroup> DoGetCellGeometry(Scene* scene, optixu::Context context, CUmodule module) = 0;
-            ELVIS_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces) = 0;
+            void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
+            void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }
+
+            /// The method listed below must be reimplemnted by each extension to provide
+            /// the customized behavior required for ElVis.
+
+            /// \brief Returns the number of scalar field supported by the model.
+            ///
+            /// Simulations often generate multiple fields (e.g., pressure, temperature) in a
+            /// single simulations.  This method returns how many fields the model has that
+            /// can be visualized.
+            virtual int DoGetNumFields() const = 0;
+
+            virtual int DoGetModelDimension() const = 0;
+
+            /// \brief Returns information about the requested field.
+            /// \param index A value in the range [0, DoGetNumFields()).
+            /// \return Information about the given field.
+            ///
+            /// This method returns additional information about the requested field.
+            /// The values of the FieldInfo struct are populated as follows:
+            ///
+            /// FieldInfo::Name - A user-readable name that is used in the gui to identify
+            /// the field.
+            ///
+            /// FieldInfo::Id - An unique identifier for the field.  This can be different
+            /// than the index parameter.  This id can be used to uniquely identify the field
+            /// in the extension.
+            virtual FieldInfo DoGetFieldInfo(unsigned int index) const = 0;
+
+            /// \brief Returns the number of boundary surfaces in the model.
+            ///
+            /// Some simulations are specifically interested in the behavior around certain
+            /// surfaces.  It is convenient to be able to access these surfaces directly in
+            /// ElVis.  If the model supports boundary surfaces, this method indicates how
+            /// many surfaces there are.
+            ELVIS_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const = 0;
+
+
+            /// \brief Returns the name of the given boundary surface and the element faces associated with it.
+            /// \param surfaceIndex The id of the requested surface, in the range [0, DoGetNumberOfBoundarySurfaces()).
+            /// \param name Output parameter that will return the surface's name.
+            /// \param faceIds Output parameter that returns the ids of each face that belongs to this surface.
+            ELVIS_EXPORT virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds) = 0;
+
 
             /// \brief Maps Opix/Cuda interop buffers to be used by Cuda.
             ///
             /// If the model has created any OptiX/Cuda interop buffers, they must be mapped here.
-            /// This method is called immediately before starting a cuda kernel.
+            /// This method is called immediately before starting a cuda kernel.  This method
+            /// will be called before ElVis runs any code in the cuda module.
             ELVIS_EXPORT virtual void DoMapInteropBufferForCuda() = 0;
 
             /// \brief Unmaps Opix/Cuda interop buffers to be used by OptiX.
             ///
             /// If the model has created any OptiX/Cuda interop buffers, they must be unmapped here.
-            /// This method is called immediately after a cuda kernel completes.
+            /// This method is called immediately after a cuda kernel completes.  This method
+            /// is called immediately after ElVis finishes running code in the cuda module.
             ELVIS_EXPORT virtual void DoUnMapInteropBufferForCuda() = 0;
 
-            ELVIS_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const = 0;
-            ELVIS_EXPORT virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds) = 0;
-
-            void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
-            void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }
-            
-
+            /// \brief Calculates the axis-aligned bounding box of the model.
+            /// \param min Output parameter storing the smallest point of the model's axis-aligned bounding box.
+            /// \param max Output parameter storing the smallest point of the model's axis-aligned bounding box.
             ELVIS_EXPORT virtual void DoCalculateExtents(WorldPoint& min, WorldPoint& max) = 0;
-            virtual unsigned int DoGetNumberOfPoints() const = 0;
-            virtual WorldPoint DoGetPoint(unsigned int id) const = 0;
+
+            /// \brief Returns the number of elements in the model.
+            virtual unsigned int DoGetNumberOfElements() const = 0;
+
+            virtual const std::string& DoGetPTXPrefix() const = 0;
+
+            ELVIS_EXPORT virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module) = 0;
+            ELVIS_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces) = 0;
+            ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module) = 0;
+            ELVIS_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view) = 0;
 
             virtual void DoSetupCudaContext(CUmodule module) const = 0;
-            virtual const std::string& DoGetCUBinPrefix() const = 0;
-            virtual const std::string& DoGetPTXPrefix() const = 0;
-            virtual unsigned int DoGetNumberOfElements() const = 0;
-            virtual int DoGetNumFields() const = 0;
-            virtual FieldInfo DoGetFieldInfo(unsigned int index) const = 0;
+
+
+            // These are for the conversion extension and shouldn't be here.
+            //            virtual unsigned int DoGetNumberOfPoints() const = 0;
+            //            virtual WorldPoint DoGetPoint(unsigned int id) const = 0;
 
         private:
             Model& operator=(const Model& rhs);
+            Model(const Model& rhs);
 
             WorldPoint m_minExtent;
             WorldPoint m_maxExtent;

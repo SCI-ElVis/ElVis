@@ -1,0 +1,132 @@
+# The MIT License
+#
+# Copyright (c) 2006 Scientific Computing and Imaging Institute,
+# University of Utah (USA)
+#
+# License for the specific language governing rights and limitations under
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+# This file provides the tools to configure an ElVis Runtime Extension.
+# Before using this file to create an extension, make the changes indicated
+# by the TODO comments below.
+
+cmake_minimum_required(VERSION 2.8)
+
+PROJECT(@RUNTIME_EXTENSION_NAME@)
+SET(ProjectName "@RUNTIME_EXTENSION_NAME@")
+SET(ExtensionPath ${CMAKE_SOURCE_DIR})
+
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH} ${ELVIS_DIR})
+
+FIND_PACKAGE(ElVis REQUIRED NO_MODULE NO_DEFAULT_PATH NO_CMAKE_BUILDS_PATH NO_CMAKE_PACKAGE_REGISTRY)
+
+INCLUDE_DIRECTORIES(${ELVIS_INCLUDE_DIR} ${Boost_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/../)
+
+# Configure the extension.  Since Cuda required all code to be
+# available at compile time, this step creates an extension specific version of these files that
+# can then be compiled into an extension specific version of ElVis.
+#CONFIGURE_FILE(${ELVIS_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in
+#               ${CMAKE_BINARY_DIR}/ElVis/Extensions/${ProjectName}/${ProjectName}PTXConfig.cpp @ONLY)
+#CONFIGURE_FILE(${ELVIS_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
+#               ${CMAKE_BINARY_DIR}/ElVis/Extensions/${ProjectName}Extension/${ProjectName}PTXConfig.h @ONLY)
+CONFIGURE_FILE(${ELVIS_INCLUDE_DIR}/ElVis/Core/ElVisOptiX.cu.in
+               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu @ONLY)
+CONFIGURE_FILE(${ELVIS_INCLUDE_DIR}/ElVis/Core/ElVisCuda.cu.in
+               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu @ONLY)
+
+#################################
+# Optix Source
+#
+# TODO - All cuda source files that will be used by the OptiX side of ElVis should be listed here.
+# By listing them here, they will appear in your IDE.
+#################################
+SET(EXTENSION_OPTIX_HEADER_ONLY
+    ExtensionOptiXInterface.cu
+)
+
+# Marking these files as header only will prevent the generated makefiles from trying to compile
+# each .cu file separately.
+SET_SOURCE_FILES_PROPERTIES(${EXTENSION_OPTIX_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
+
+SET(NEKTAR_PLUS_PLUS_EXTENSION_OPTIX
+    ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu
+)
+
+
+#################################
+# Cuda Source
+#
+# TODO - All cuda source files that will be used by the Cuda side of ElVis should be listed here.
+# This allows them to appear in your IDE.
+#################################
+SET(EXTENSION_CUDA_HEADER_ONLY
+    ExtensionCudaInterface.cu
+)
+SET_SOURCE_FILES_PROPERTIES(${EXTENSION_CUDA_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
+SET(EXTENSION_CUDA
+   ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu
+)
+
+
+#################################
+# C++ Source
+#
+# TODO - List all C++ header and source files that are used by your extension.  Only those files
+# listed here will be visible to the compiler and included in the extension.
+#################################
+SET(EXTENSION_HEADERS
+    Model.h
+    PluginInterface.h
+)
+
+SET(EXTENSION_SOURCES
+   Model.cpp
+   PluginInterface.cpp
+)
+
+LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+
+# Create the C++ library (which includes the OptiX side of ElVis).
+# Need to use ADD_OPTIX_LIBRARY so the .cu files get routed to nvcc.
+ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR}
+    ${EXTENSION_SOURCES}
+    ${EXTENSION_HEADERS}
+    ${EXTENSION_OPTIX_HEADER_ONLY}
+    ${EXTENSION_OPTIX}
+)
+
+TARGET_LINK_LIBRARIES(${ProjectName}
+#    ${NEKTAR++_LIBRARIES}
+#    tinyxml
+    ${Boost_LIBRARIES}
+    ElVisCore
+)
+
+# Create the Cuda side of ElVis
+ADD_ELVIS_CUDA_LIBRARY(${ProjectName}Cuda
+    ${EXTENSION_CUDA_HEADER_ONLY}
+    ${EXTENSION_CUDA}
+)
+
+SET_TARGET_PROPERTIES(${ProjectName} PROPERTIES VERSION ${ELVIS_VERSION})
+
+INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR}
+                               LIBRARY DESTINATION ${ELVIS_BIN_DIR}
+                               ARCHIVE DESTINATION ${ELVIS_BIN_DIR}  )
+

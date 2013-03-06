@@ -50,6 +50,8 @@ namespace ElVis
     namespace Gui
     {
 
+
+
         /// \brief Represents a specific view of a scene.
         ///
         /// The ElVis scene is represented by a Scene object.  This object
@@ -73,7 +75,7 @@ namespace ElVis
                 /// to the appropriate QGLWidget constructor.
                 SceneViewWidget(boost::shared_ptr<ApplicationState> appData,
                                 QWidget* parent = NULL, const char* name = NULL,
-                    const QGLWidget* shareWidget = NULL, Qt::WFlags f = 0);
+                                const QGLWidget* shareWidget = NULL, Qt::WFlags f = 0);
 
                 virtual ~SceneViewWidget();
 
@@ -85,9 +87,8 @@ namespace ElVis
                 GLfloat GetDepthClearValue() const;
 
                 boost::shared_ptr<ElVis::SceneView> GetSceneView() const;
-
-
                 void GetModelViewMatrixForVisual3(double* out);
+
 
             public Q_SLOTS:
                 void HandleNeedsRedraw(const SceneView& view);
