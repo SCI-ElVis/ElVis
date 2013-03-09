@@ -22,6 +22,31 @@ IF( OptiX_FOUND )
 
     INCLUDE_DIRECTORIES(${OptiX_INCLUDE} ${CUDA_TOOLKIT_INCLUDE})
 
+    # Cuda 5.0 does not have the SDK, but instead has a samples directory.
+    IF( NOT( CUDA_VERSION VERSION_LESS "5.0") )
+
+      FIND_PATH(CUDA_SAMPLE_DIR 
+          common/inc/helper_cuda.h
+          PATHS
+          "C:/ProgramData/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}"
+          /usr/local/cuda-${CUDA_VERSION}/samples
+          )
+
+      IF( NOT CUDA_SAMPLE_DIR )
+        MESSAGE(FATAL_ERROR "Error - CUDA_SAMPLE_DIR must be set.")
+      ENDIF()
+      # The default find cuda will find older versions of the SDK if multiple 
+      # cuda versions are installed.
+      SET(CUDA_SDK_ROOT_DIR "" CACHE PATH "" FORCE)
+    ENDIF()
+
+
+    IF( CUDA_VERSION VERSION_LESS "5.0" )
+        INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
+    ELSE()
+        INCLUDE_DIRECTORIES(${CUDA_SAMPLE_DIR}/common/inc)
+    ENDIF()
+
 # Add some useful default arguments to the nvcc flags.  This is an example of how we use
 # PASSED_FIRST_CONFIGURE.  Once you have configured, this variable is TRUE and following
 # block of code will not be executed leaving you free to edit the values as much as you
