@@ -20,7 +20,7 @@ IF( OptiX_FOUND )
     # Find at least a 3.0 version of CUDA.
     find_package(CUDA 3.0 REQUIRED)
 
-    INCLUDE_DIRECTORIES(${OptiX_INCLUDE} ${CUDA_TOOLKIT_INCLUDE})
+    #INCLUDE_DIRECTORIES(${OptiX_INCLUDE} ${CUDA_TOOLKIT_INCLUDE})
 
     # Cuda 5.0 does not have the SDK, but instead has a samples directory.
     IF( NOT( CUDA_VERSION VERSION_LESS "5.0") )
@@ -42,9 +42,11 @@ IF( OptiX_FOUND )
 
 
     IF( CUDA_VERSION VERSION_LESS "5.0" )
-        INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
+        #INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
+        SET(ELVIS_CUDA_INCLUDE ${CUDA_TOOLKIT_INCLUDE})
     ELSE()
-        INCLUDE_DIRECTORIES(${CUDA_SAMPLE_DIR}/common/inc)
+        #INCLUDE_DIRECTORIES(${CUDA_SAMPLE_DIR}/common/inc)
+        SET(ELVIS_CUDA_INCLUDE ${CUDA_TOOLKIT_INCLUDE} ${CUDA_SAMPLE_DIR}/common/inc)
     ENDIF()
 
 # Add some useful default arguments to the nvcc flags.  This is an example of how we use

@@ -30,7 +30,7 @@ ADD_SUBDIRECTORY(Externals)
 
 IF( NOT ELVIS_PASSED_FIRST_CONFIGURE )
     IF( CUDA_VERSION VERSION_LESS "5.0" )
-    LIST(APPEND CUDA_NVCC_FLAGS_DEBUG "-G0")
+      LIST(APPEND CUDA_NVCC_FLAGS_DEBUG "-G0")
     ENDIF()
     SET(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
     
@@ -40,10 +40,7 @@ IF( NOT ELVIS_PASSED_FIRST_CONFIGURE )
     SET(CUDA_BUILD_CUBIN ON CACHE BOOL "" FORCE)
 ENDIF() 
 
-INCLUDE_DIRECTORIES(
-    ${CUDA_TOOLKIT_INCLUDE}
-    ${CUDA_SDK_ROOT_DIR}/C/common/inc
-)
+
 
 OPTION(ELVIS_USE_DOUBLE_PRECISION "Use double precision value in GPU code.")
 OPTION(ELVIS_ENABLE_PRINTF "Enable the use of ELVIS_PRINTF in device code.")
@@ -67,7 +64,12 @@ INCLUDE_DIRECTORIES(
 	${BOOST_INCLUDE}
 	${GLEW_INCLUDE}
 	${GLUT_INCLUDE_DIR}
+  # Cuda includes must appear after other GL includes to prevent accidentally
+  # including the versions that ship with cuda.
+  ${OptiX_INCLUDE}
+  ${ELVIS_CUDA_INCLUDE}
 )
+
 
 SET(ELVIS_VERSION 0.1.1)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/bin ELVIS_BIN_DIR)

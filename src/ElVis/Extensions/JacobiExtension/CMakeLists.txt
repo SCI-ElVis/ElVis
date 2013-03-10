@@ -126,6 +126,7 @@ SET(JACOBI_EXTENSION_CUDA
 LINK_DIRECTORIES(
     ${Boost_LIBRARY_DIRS}
 )
+ADD_DEFINITIONS(-DGLEW_STATIC)
 
 # Need to use ADD_OPTIX_LIBRARY so the .cu files get routed to nvcc.
 ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR}
@@ -143,8 +144,10 @@ ADD_ELVIS_CUDA_LIBRARY(${ProjectName}Cuda
     ${JACOBI_EXTENSION_CUDA}
 )
 
+
 TARGET_LINK_LIBRARIES(${ProjectName} 
     ElVisCore
+    glew
 )
 
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Extensions/JacobiExtension")

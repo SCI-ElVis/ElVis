@@ -64,6 +64,7 @@ SET(GLEW_SRCS glew.c include/GL/glew.h include/GL/glxew.h include/GL/wglew.h)
 # Build the libary statically
 
 ADD_LIBRARY(${GLEW_LIBRARY} STATIC ${GLEW_SRCS})
+SET_PROPERTY(TARGET glew PROPERTY FOLDER "Externals")
 TARGET_LINK_LIBRARIES(${GLEW_LIBRARY} ${GL_LIBRARY})
 
 ###########################################
@@ -111,5 +112,4 @@ IF (APPLE)
 #    ADD_DEFINITIONS(-DGLEW_APPLE_GLX)
 #  ENDIF(X11_FOUND)
 ENDIF(APPLE)
-
 

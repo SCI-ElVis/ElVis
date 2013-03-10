@@ -42,7 +42,7 @@
 
 #include <iostream>
 
-#include <ElVis/tinyxml/tinyxml.h>
+#include <tinyxml.h>
 
 #include <ElVis/Core/Cuda.h>
 //#include <cudaGL.h>
@@ -51,7 +51,7 @@
 //#include <cuda_runtime_api.h>
 //#include <cutil_inline_drvapi.h>
 
-using namespace tinyxml;
+//using namespace tinyxml;
 
 namespace ElVis
 {

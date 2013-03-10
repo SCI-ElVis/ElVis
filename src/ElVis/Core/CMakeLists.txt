@@ -1,4 +1,4 @@
- 
+
 SET(ProjectName ElVisCore)
 
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -18,36 +18,36 @@ SET(CUDA_USE_COMPUTE_CAPABILITY_20 true CACHE BOOL "Use Compute Capability 2.0")
 SET(CUDA_USE_COMPUTE_CAPABILITY_21 false CACHE BOOL "Use Compute Capability 2.1")
 
 IF(CUDA_USE_COMPUTE_CAPABILITY_10)
-	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_10")
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+  LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_10")
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
 ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_11)
-	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_11")
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+  LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_11")
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
 ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_12)
-	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_12")
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+  LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_12")
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
 ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_13)
-	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_13")
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+  LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_13")
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
 ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_20)
-	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_20")
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+  LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_20")
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
 ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_21)
-	LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-	LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_21")
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+  LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_21")
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
 ENDIF()
 
 
 INCLUDE_DIRECTORIES(
     ${OPENGL_INCLUDE_DIR} 
     ${GLUT_INCLUDE_DIR}
-	${TINY_XML_DIR}
+  ${TINY_XML_DIR}
 )
                     
 ADD_DEFINITIONS(-DELVIS_EXPORTS)
@@ -237,7 +237,8 @@ SET(ELVIS_CUDA_HEADERS
 INCLUDE_DIRECTORIES(
     ${CUDA_TOOLKIT_INCLUDE}
     ${PNG_INCLUDE}
-	${ZLIB_INCLUDE}
+    ${ZLIB_INCLUDE}
+    ${CMAKE_SOURCE_DIR}/Externals/tinyxml
 )
 
 # Create a separate library for the Cuda code because the default way of compiling .cu
@@ -249,9 +250,12 @@ add_definitions(${PNG_DEFINITIONS})
 #LINK_DIRECTORIES(${BOOST_LIBRARY})
 SOURCE_GROUP("Cuda" FILES ${ELVIS_CUDA_HEADERS})
 SET_SOURCE_FILES_PROPERTIES(${ELVIS_CUDA_HEADERS} PROPERTIES HEADER_FILE_ONLY ON)
+SOURCE_GROUP("Modules" FILES ${ModuleFiles})
+SOURCE_GROUP("Primary Ray Objects" FILES ${PrimaryRayObjectFiles})
+SOURCE_GROUP("Objects" FILES ${ObjectFiles})
+ADD_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${PrimaryRayObjectFiles} ${ObjectFiles} ${ELVIS_MATH_HEADERS} ${ELVIS_SOURCES} ${ModuleFiles} ${ELVIS_CUDA_HEADERS})
 
-
-ADD_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${ELVIS_SOURCES} ${ELVIS_CUDA_HEADERS})
+SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 
 ###########################################
 # Specific defines that need to be set
@@ -267,6 +271,7 @@ TARGET_LINK_LIBRARIES(${ProjectName}
     ${GLUT_glut_LIBRARY}
     ${PNG_LIBRARY}
     ${TinyXML_Library}
+    ${optix_LIBRARY} ${optixu_LIBRARY}
 )
 
 
@@ -275,9 +280,9 @@ INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 
 if(APPLE)	
-	set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
+  set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
 endif(APPLE)
-								
+                
 INSTALL(FILES ${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
     Nodes.txt Weights.txt MonomialConversionTables.txt
     DESTINATION ${ELVIS_BIN_DIR}
