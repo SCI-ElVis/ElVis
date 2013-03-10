@@ -261,7 +261,7 @@ SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 # Specific defines that need to be set
 # STATIC - we want glew to be a static library
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+#ADD_DEFINITIONS(-DGLEW_STATIC)
 
 TARGET_LINK_LIBRARIES(${ProjectName} 
     ${BOOST_LIBRARY}
