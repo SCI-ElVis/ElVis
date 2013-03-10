@@ -124,15 +124,14 @@ namespace ElVis
 
         void NektarModel::DoCalculateExtents(ElVis::WorldPoint& minResult, ElVis::WorldPoint& maxResult)
         {
-            boost::for_each(boost::irange(0, m_graph->GetNvertices()), 
-                [&](unsigned int i)
+            for(unsigned int i = 0; i < m_graph->GetNvertices(); ++i)
             {
-                auto vertex = m_graph->GetVertex(i);
+                BOOST_AUTO(vertex, m_graph->GetVertex(i));
                 
                 ElVis::WorldPoint p(vertex->x(), vertex->y(), vertex->z());
                 minResult = CalcMin(minResult, p);
                 maxResult = CalcMax(maxResult, p);
-            });
+            };
         }
 
         const std::string& NektarModel::DoGetPTXPrefix() const
@@ -356,14 +355,14 @@ namespace ElVis
             int numElements = m_globalExpansions[0]->GetNumElmts();
             m_deviceCoefficientOffsetBuffer.SetDimensions(m_globalExpansions.size()*numElements);
             
-            std::for_each(m_globalExpansions.begin(), m_globalExpansions.end(), 
-                [&](Nektar::MultiRegions::ExpListSharedPtr exp)
+            for(unsigned int i = 0; i < m_globalExpansions.size(); ++i)
             {
+                BOOST_AUTO(exp, m_globalExpansions[i]);
                 if( exp->GetNumElmts() != numElements )
                 {
                     throw std::runtime_error("Expansions must have the same number of elements.");
                 }
-            });
+            }
 
             // The offset is at elementId*numField + fieldId
 
@@ -373,10 +372,10 @@ namespace ElVis
             {
                 for(unsigned int elementId = 0; elementId < numElements; ++elementId)
                 {
-                    auto exp = m_globalExpansions[expansionIndex];
-                    auto element = exp->GetExp(elementId);
-                    auto id = element->GetGeom()->GetGlobalID();
-                    auto offset = exp->GetCoeff_Offset(elementId);
+                    BOOST_AUTO(exp, m_globalExpansions[expansionIndex]);
+                    BOOST_AUTO(element, exp->GetExp(elementId));
+                    BOOST_AUTO(id, element->GetGeom()->GetGlobalID());
+                    BOOST_AUTO(offset, exp->GetCoeff_Offset(elementId));
 
                     coefficientIndicesData[expansionIndex*numElements + id] = offset;
                 }
@@ -396,12 +395,12 @@ namespace ElVis
 
             for(int fieldId = 0; fieldId < m_globalExpansions.size(); ++fieldId)
             {
-                auto exp = m_globalExpansions[fieldId];
+                BOOST_AUTO(exp, m_globalExpansions[fieldId]);
                 for(int elementId = 0; elementId < exp->GetNumElmts(); ++elementId)
                 {
-                    auto element = exp->GetExp(elementId);
-                    auto id = element->GetGeom()->GetGlobalID();
-                    auto bases = element->GetBase();
+                    BOOST_AUTO( element, exp->GetExp(elementId));
+                    BOOST_AUTO( id, element->GetGeom()->GetGlobalID());
+                    BOOST_AUTO( bases, element->GetBase());
                     uint3 value;
                     value.x = bases[0]->GetNumModes();
                     if( bases.num_elements() > 1 )
@@ -430,12 +429,12 @@ namespace ElVis
 
             for(int fieldId = 0; fieldId < m_globalExpansions.size(); ++fieldId)
             {
-                auto exp = m_globalExpansions[fieldId];
+                BOOST_AUTO( exp, m_globalExpansions[fieldId]);
                 for(int elementId = 0; elementId < exp->GetNumElmts(); ++elementId)
                 {
-                    auto element = exp->GetExp(elementId);
-                    auto id = element->GetGeom()->GetGlobalID();
-                    auto bases = element->GetBase();
+                    BOOST_AUTO(element, exp->GetExp(elementId));
+                    BOOST_AUTO( id, element->GetGeom()->GetGlobalID());
+                    BOOST_AUTO( bases, element->GetBase());
 
                     int idx = fieldId*numElements + 3*id;
 
@@ -476,15 +475,19 @@ namespace ElVis
             
             ElVisFloat* coeffData = static_cast<ElVisFloat*>(m_deviceCoefficientBuffer.map());
             int coeffIndex = 0;
-            std::for_each(m_globalExpansions.begin(), m_globalExpansions.end(),
-                [&](Nektar::MultiRegions::ExpListSharedPtr exp)
+
+            for(unsigned int i = 0; i < m_globalExpansions.size(); ++i)
+            //std::for_each(m_globalExpansions.begin(), m_globalExpansions.end(),
+            //    [&](Nektar::MultiRegions::ExpListSharedPtr exp)
+            //{
             {
+                BOOST_AUTO(exp, m_globalExpansions[i]);
                 for(unsigned int i = 0; i < exp->GetNcoeffs(); ++i)
                 {
                     coeffData[coeffIndex] = exp->GetCoeff(i);
                     ++coeffIndex;
                 }    
-            });
+            }
             
             m_deviceCoefficientBuffer.unmap();
         }
@@ -497,7 +500,7 @@ namespace ElVis
             ElVisFloat4* vertexData = m_deviceVertexBuffer.MapOptiXPointer();
             for(unsigned int i = 0; i < m_graph->GetNvertices(); ++i)
             {
-                auto vertex = m_graph->GetVertex(i);
+                BOOST_AUTO( vertex, m_graph->GetVertex(i));
                 vertexData[i] = ::MakeFloat4(vertex->x(), vertex->y(), vertex->z(), 1.0);
             }
             m_deviceVertexBuffer.UnmapOptiXPointer();
@@ -581,6 +584,48 @@ namespace ElVis
             }
         }
 
+        namespace detail
+        {
+            
+            void SetupTriangleModes(Nektar::SpatialDomains::TriGeomSharedPtr tri,
+              uint2* modeArray, uint* expansion0Sizes, uint* expansion1Sizes, 
+              int* expansionSize, int& idx)
+            {      
+                Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+                Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+                const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+                const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+                Nektar::LibUtilities::BasisSharedPtr b0 = x0->GetBasis(0);
+                Nektar::LibUtilities::BasisSharedPtr b1 = x0->GetBasis(1);
+
+                modeArray[idx].x = b0->GetNumModes();
+                modeArray[idx].y = b1->GetNumModes();
+                    
+                expansionSize[0] += u0.num_elements();
+                expansionSize[1] += u1.num_elements();
+
+                expansion0Sizes[idx] = u0.num_elements();
+                expansion1Sizes[idx] = u1.num_elements();
+                    
+                ++idx;
+            }
+
+            void CopyTriangleCoefficients(Nektar::SpatialDomains::TriGeomSharedPtr tri,
+              ElVisFloat*& coeffs0, ElVisFloat*& coeffs1)
+            {
+                Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+                Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+                const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+                const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+
+                std::copy(u0.begin(), u0.end(), coeffs0);
+                std::copy(u1.begin(), u1.end(), coeffs1);
+                coeffs0 += u0.num_elements();
+                coeffs1 += u1.num_elements();
+            }
+
+        }
+
         std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module)
         {
             std::vector<optixu::GeometryInstance> result;
@@ -639,10 +684,10 @@ namespace ElVis
                 for( Nektar::SpatialDomains::TriGeomMap::const_iterator iter = m_graph->GetAllTriGeoms().begin();
                     iter != m_graph->GetAllTriGeoms().end(); ++iter)
                 {
-                    auto tri = (*iter).second;
+                    BOOST_AUTO( tri, (*iter).second);
                     int id0 = tri->GetVid(0);
-                    auto v0 = tri->GetVertex(0);
-                    auto gv0 = m_graph->GetVertex(id0);
+                    BOOST_AUTO( v0, tri->GetVertex(0));
+                    BOOST_AUTO( gv0, m_graph->GetVertex(id0));
                     data[3*i] = tri->GetVid(0);
                     data[3*i+1] = tri->GetVid(1);
                     data[3*i+2] = tri->GetVid(2);
@@ -666,27 +711,31 @@ namespace ElVis
                 uint* expansion0Sizes = new uint[numTriangles];
                 uint* expansion1Sizes = new uint[numTriangles];
                 int idx = 0;
+
                 boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
-                    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
-                {
-                    Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
-                    Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
-                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
-                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
-                    Nektar::LibUtilities::BasisSharedPtr b0 = x0->GetBasis(0);
-                    Nektar::LibUtilities::BasisSharedPtr b1 = x0->GetBasis(1);
+                    boost::bind(&detail::SetupTriangleModes, _1,
+                    modeArray, expansion0Sizes, expansion1Sizes, expansionSize, boost::ref(idx)));
 
-                    modeArray[idx].x = b0->GetNumModes();
-                    modeArray[idx].y = b1->GetNumModes();
+                //    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
+                //{
+                //    Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+                //    Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+                //    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+                //    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+                //    Nektar::LibUtilities::BasisSharedPtr b0 = x0->GetBasis(0);
+                //    Nektar::LibUtilities::BasisSharedPtr b1 = x0->GetBasis(1);
                     
-                    expansionSize[0] += u0.num_elements();
-                    expansionSize[1] += u1.num_elements();
+                //    modeArray[idx].x = b0->GetNumModes();
+                //    modeArray[idx].y = b1->GetNumModes();
+                //    
+                //    expansionSize[0] += u0.num_elements();
+                //    expansionSize[1] += u1.num_elements();
 
-                    expansion0Sizes[idx] = u0.num_elements();
-                    expansion1Sizes[idx] = u1.num_elements();
-                    
-                    ++idx;
-                });
+                //    expansion0Sizes[idx] = u0.num_elements();
+                //    expansion1Sizes[idx] = u1.num_elements();
+                //    
+                //    ++idx;
+                //});
 
                 coeffMapping0Array[0] = 0;
                 coeffMapping1Array[0] = 0;
@@ -706,19 +755,23 @@ namespace ElVis
 
                 ElVisFloat* base0 = coeffs0;
                 ElVisFloat* base1 = coeffs1;
-                boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
-                    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
-                {
-                    Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
-                    Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
-                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
-                    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
 
-                    std::copy(u0.begin(), u0.end(), coeffs0);
-                    std::copy(u1.begin(), u1.end(), coeffs1);
-                    coeffs0 += u0.num_elements();
-                    coeffs1 += u1.num_elements();
-                });
+                boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
+                    boost::bind(&detail::CopyTriangleCoefficients, _1, boost::ref(coeffs0),
+                    boost::ref(coeffs1)));
+
+                //    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
+                //{
+                //    Nektar::StdRegions::StdExpansion2DSharedPtr x0 = tri->GetXmap(0);
+                //    Nektar::StdRegions::StdExpansion2DSharedPtr x1 = tri->GetXmap(1);
+                //    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u0 = x0->GetCoeffs();
+                //    const Nektar::Array<Nektar::OneD, const Nektar::NekDouble>& u1 = x1->GetCoeffs();
+
+                //    std::copy(u0.begin(), u0.end(), coeffs0);
+                //    std::copy(u1.begin(), u1.end(), coeffs1);
+                //    coeffs0 += u0.num_elements();
+                //    coeffs1 += u1.num_elements();
+                //});
 
                 m_TriangleModes.UnmapOptiXPointer();
                 m_TriangleCoeffMappingDir0.UnmapOptiXPointer();
@@ -868,7 +921,7 @@ namespace ElVis
             {
                 m_TwoDClosestHitProgram = PtxManager::LoadProgram(this->GetPTXPrefix(), "TwoDClosestHitProgram");
             }
-            auto context = view->GetContext();
+            BOOST_AUTO( context, view->GetContext());
             optixu::Material result = context->createMaterial();
             result->setClosestHitProgram(0, m_TwoDClosestHitProgram);
             return result;
