@@ -155,7 +155,10 @@ extern _CRTIMP void __cdecl exit(int);
 # define GLUTAPI extern
 # define GLUTCALLBACK
 /* Prototype exit for the non-Win32 case (see above). */
-extern void exit(int);
+
+// ELVIS - on Ubuntu 12.10, 64 bit with gcc 4.5.4, this signature does not
+// match the one in stdlib.h, which has a throw specification.
+//extern void exit(int);
 #endif
 
 /**

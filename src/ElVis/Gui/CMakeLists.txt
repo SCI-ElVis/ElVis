@@ -86,12 +86,13 @@ SET_PROPERTY(TARGET ${Project} PROPERTY FOLDER "Core")
 TARGET_LINK_LIBRARIES(${Project}
     ${QT_LIBRARIES}
     ${QT_QTOPENGL_LIBRARY}
-	${BOOST_LIBRARY}
+    ${BOOST_LIBRARY}
     ElVisCore
     QtPropertyBrowser
-    ${GLEW_LIBRARY}
+    glew
     ${PNG_LIBRARY}
     ${ZLIB_LIBRARY}
+    TinyXML
 )
 
 INSTALL(FILES ElVis.qss
