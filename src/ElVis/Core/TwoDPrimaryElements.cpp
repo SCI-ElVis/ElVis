@@ -40,6 +40,9 @@
 #include <boost/range.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 
+#include <boost/lambda/lambda.hpp>
+#include <boost/lambda/bind.hpp>
+
 namespace ElVis
 {
 
@@ -134,11 +137,14 @@ namespace ElVis
         group = context->createGeometryGroup();
         int idx = 0;
         group->setChildCount(twoDGroups.size());
-        boost::for_each(twoDGroups, [&](optixu::GeometryInstance childGroup)
-        {
-            group->setChild(idx, childGroup);
-            ++idx;
-        });
+
+        boost::for_each(twoDGroups, 
+          (boost::lambda::bind(&optixu::GeometryGroupObj::setChild, group.get(), idx, boost::lambda::_1), ++idx));
+        //boost::for_each(twoDGroups, [&](optixu::GeometryInstance childGroup)
+        //{
+        //    group->setChild(idx, childGroup);
+        //    ++idx;
+        //});
         
         
         optixu::Acceleration acc = context->createAcceleration("Sbvh","Bvh");

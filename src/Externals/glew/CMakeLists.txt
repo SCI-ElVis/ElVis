@@ -61,9 +61,16 @@ SET(GLEW_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "Public Glew
 SET(GLEW_SRCS glew.c include/GL/glew.h include/GL/glxew.h include/GL/wglew.h)
 
 ###########################################
-# Build the libary statically
+# Specific defines that need to be set
+# STATIC - we want glew to be a static library
 
-ADD_LIBRARY(${GLEW_LIBRARY} STATIC ${GLEW_SRCS})
+ADD_DEFINITIONS(-DGLEW_BUILD)
+
+###########################################
+# Build the libary 
+
+ADD_LIBRARY(${GLEW_LIBRARY} SHARED ${GLEW_SRCS})
+SET_PROPERTY(TARGET glew PROPERTY FOLDER "Externals")
 TARGET_LINK_LIBRARIES(${GLEW_LIBRARY} ${GL_LIBRARY})
 
 ###########################################
@@ -86,11 +93,7 @@ IF (NOT WIN32)
   )
 ENDIF (NOT WIN32)
 
-###########################################
-# Specific defines that need to be set
-# STATIC - we want glew to be a static library
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
 
 ###########################################
 # In case we build against X11.
@@ -112,4 +115,6 @@ IF (APPLE)
 #  ENDIF(X11_FOUND)
 ENDIF(APPLE)
 
-
+INSTALL(TARGETS ${GLEW_LIBRARY} RUNTIME DESTINATION ${ELVIS_BIN_DIR}
+                               LIBRARY DESTINATION ${ELVIS_BIN_DIR}
+                               ARCHIVE DESTINATION ${ELVIS_BIN_DIR}  )

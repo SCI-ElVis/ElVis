@@ -10,16 +10,22 @@ ENDIF()
  
 SET(ProjectName ElVisCLI)
 
+
+
+
+
 # Default location
 IF( MSVC )
-	SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
+  SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
+  SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
+  IF( CMAKE_CL_64 )
     SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut64.lib)
+  ELSE()
+    SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut32.lib)
+  ENDIF()
 ELSE()
-	FIND_PACKAGE(GLUT REQUIRED)
+  FIND_PACKAGE(GLUT REQUIRED)
 ENDIF()
-
-#SET(GLUT_INCLUDE_DIR ${GLUT_ROOT_PATH}/include)
-#SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut64.lib)
 
 
 INCLUDE_DIRECTORIES(
@@ -30,6 +36,7 @@ INCLUDE_DIRECTORIES(
     ${GLUT_INCLUDE_DIR}
     ${NEKTAR++_INCLUDE_DIRS}
     ${PNG_INCLUDE}
+    ${ZLIB_INCLUDE}
 )
 
 add_definitions(${PNG_DEFINITIONS})
@@ -41,9 +48,9 @@ SET(HEADERS
 ) 
 
 SET(SOURCES
-	main.cpp
-	Nektar++Models.cpp
-	NewApproachCanister.cpp
+  main.cpp
+  Nektar++Models.cpp
+  NewApproachCanister.cpp
     VolumeRendering.cpp
 )
 

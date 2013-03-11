@@ -212,6 +212,8 @@ INCLUDE_DIRECTORIES(${PNG_SOURCE_DIR} ${ZLIB_INCLUDE})
 # Add the library
 
 ADD_LIBRARY(${PNG_LIBRARY} STATIC ${libpng_sources})
+
+SET_PROPERTY(TARGET ${PNG_LIBRARY} PROPERTY FOLDER "Externals")
 TARGET_LINK_LIBRARIES(${PNG_LIBRARY} ${ZLIB_LIBRARY} ${M_LIBRARY})
 
 ###########################################

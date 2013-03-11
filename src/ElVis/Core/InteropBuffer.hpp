@@ -31,12 +31,6 @@
 
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/Cuda.h>
-//#include <cuda.h>
-//#include <cuda_gl_interop.h>
-//#include <cudaGL.h>
-//#include <cutil.h>
-//#include <cuda_runtime_api.h>
-//#include <cutil_inline_drvapi.h>
 
 #include <optixu/optixpp.h>
 #include <ElVis/Core/OptiXExtensions.hpp>
@@ -45,6 +39,7 @@
 
 namespace ElVis
 {
+
     /// \brief Creates a buffer that can be used by both Cuda and Optix.
     ///
     /// Cuda is unable to access memory allocated for OptiX, and vice-versa.
@@ -59,6 +54,7 @@ namespace ElVis
                 m_OpenGLId(0),
                 m_cudaResource(0),
                 m_optixBuffer(),
+                m_namedCudaVariable(0),
                 m_name(name),
                 m_width(1),
                 m_height(1),

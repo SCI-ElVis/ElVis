@@ -100,7 +100,7 @@ SET(ZLIB_MANGLE 1 CACHE INTERNAL "Tell the system that we have a mangled zlib." 
 # Add the library
 
 ADD_LIBRARY(${ZLIB_LIBRARY} STATIC ${ZLIB_SRCS})
-
+SET_PROPERTY(TARGET ${ZLIB_LIBRARY} PROPERTY FOLDER "Externals")
 
 ###########################################
 # Set Windows options (Visual Studio)
