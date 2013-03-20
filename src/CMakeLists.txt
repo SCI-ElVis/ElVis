@@ -108,8 +108,6 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
         SET(ADDITIONAL_COMPILE_FLAGS "")
     ENDIF()
     IF( CMAKE_COMPILER_IS_GNUCXX )
-        SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -std=c++0x")
-
         # Some versions of gcc can't handle -g3, but it is set by a cuda
         # CMakeLists
         SET(STR1 " ")
@@ -118,7 +116,7 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
         STRING(REPLACE "-g" "" STR2 ${STR1} )
         SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
   
-  STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
+        STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
         STRING(REPLACE "-g" "" STR4 ${STR3} )
         SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
     ENDIF()
@@ -127,13 +125,8 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
         # The static libraries must be compiled with position independent code
         # on 64 bit Linux.
         SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
-
     ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     
-    IF( CMAKE_COMPILER_IS_GNUCXX )
-        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS "-std=c++0x")   
-    ENDIF()
-
     IF( ADDITIONAL_COMPILE_FLAGS )
         SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
     ENDIF()

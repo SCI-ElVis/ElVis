@@ -37,6 +37,7 @@
 #include <ElVis/Core/Timer.h>
 #include <ElVis/Core/HostTransferFunction.h>
 #include <ElVis/Core/OptiXExtensions.hpp>
+#include <ElVis/Core/Cuda.h>
 
 #include <boost/foreach.hpp>
 
@@ -44,14 +45,7 @@
 
 #include <tinyxml.h>
 
-#include <ElVis/Core/Cuda.h>
-//#include <cudaGL.h>
-//#include <cuda_gl_interop.h>
-//#include <cutil.h>
-//#include <cuda_runtime_api.h>
-//#include <cutil_inline_drvapi.h>
 
-//using namespace tinyxml;
 
 namespace ElVis
 {
