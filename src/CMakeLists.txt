@@ -102,27 +102,57 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
 	SET_TARGET_PROPERTIES(${name} PROPERTIES MINSIZEREL_POSTFIX -ms)
 	SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
 
+    SET(ADDITIONAL_COMPILE_FLAGS "")
+    get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
+    IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
+        SET(ADDITIONAL_COMPILE_FLAGS "")
+    ENDIF()
+    IF( CMAKE_COMPILER_IS_GNUCXX )
+        SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -std=c++0x")
+
+        # Some versions of gcc can't handle -g3, but it is set by a cuda
+        # CMakeLists
+        SET(STR1 " ")
+        SET(STR2 " ")
+        STRING(REPLACE "-g3" "" STR1 ${CMAKE_CXX_FLAGS_DEBUG} )
+        STRING(REPLACE "-g" "" STR2 ${STR1} )
+        SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+  
+  STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
+        STRING(REPLACE "-g" "" STR4 ${STR3} )
+        SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+    ENDIF()
+
     IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-        # The static libraries must be compiled with position independent code 
+        # The static libraries must be compiled with position independent code
         # on 64 bit Linux.
-        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS "-fPIC")
+        SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
+
     ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    
+    IF( CMAKE_COMPILER_IS_GNUCXX )
+        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS "-std=c++0x")   
+    ENDIF()
+
+    IF( ADDITIONAL_COMPILE_FLAGS )
+        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
+    ENDIF()
 
     IF( MSVC )
-        # Disable the warnings about duplicate copy/assignment methods 
+        # Disable the warnings about duplicate copy/assignment methods
         #   (4521, 4522)
-        # Disable the warning that arrays are default intialized (4351)	
+        # Disable the warning that arrays are default intialized (4351)
         # Disable "forcing value to bool 'true' or 'false' (performance
         #   warning)" warning (4800)
 
         # /Za is necessary to prevent temporaries being bound to reference
         #   parameters.
-        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS 
+        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS
                                 "/wd4521 /wd4522 /wd4351 /wd4018 /wd4800 /wd4250")
 
-	    # Enable source level parallel builds.
+        # Enable source level parallel builds.
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-    ENDIF(  )	
+    ENDIF(  )
 ENDMACRO(SET_ELVIS_TARGET_PROPERTIES name)
 
 MACRO(ADD_ELVIS_EXECUTABLE name)
