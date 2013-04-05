@@ -307,5 +307,7 @@ INSTALL(FILES ${ELVIS_MATH_HEADERS}
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in
                ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
+			   
+SET (CORE_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "core build path")
 
 
