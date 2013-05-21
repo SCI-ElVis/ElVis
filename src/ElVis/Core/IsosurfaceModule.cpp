@@ -77,6 +77,48 @@ namespace ElVis
         }
     }
 
+    void IsosurfaceModule::DoRender(SceneView* view)
+    {
+        if( !HasWork() ) return;
+
+        try
+        {
+            //std::cout << "Element Traversal." << std::endl;
+            optixu::Context context = view->GetContext();
+
+            ResetSomeSegmentsNeedToBeIntegrated();
+            //std::cout << "Program index: " << GetInitTraversalProgram().Index << std::endl;
+            context->launch(GetInitTraversalProgram().Index, view->GetWidth(), view->GetHeight());
+
+            int someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
+            //std::cout << "Some segments need to be integrated: " <<someSegmentsNeedToBeIntegrated << std::endl;
+            int infiniteLoopGuard = 0;
+            while(someSegmentsNeedToBeIntegrated == 1 && infiniteLoopGuard < 200)
+            {
+                ResetSomeSegmentsNeedToBeIntegrated();
+                context->launch(GetTraveralProgram().Index, view->GetWidth(), view->GetHeight());
+                someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
+                ++infiniteLoopGuard;
+            }
+
+        }
+        catch(optixu::Exception& e)
+        {
+            std::cout << "Exception encountered rendering isosurface." << std::endl;
+            std::cerr << e.getErrorString() << std::endl;
+            std::cout << e.getErrorString().c_str() << std::endl;
+        }
+        catch(std::exception& e)
+        {
+            std::cout << "Exception encountered rendering isosurface." << std::endl;
+            std::cout << e.what() << std::endl;
+        }
+        catch(...)
+        {
+            std::cout << "Exception encountered rendering isosurface." << std::endl;
+        }
+    }
+
     void IsosurfaceModule::DoEvaluateSegment(SceneView* view)
     {
         try

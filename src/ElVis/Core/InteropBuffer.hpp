@@ -101,10 +101,10 @@ namespace ElVis
             CUdeviceptr GetMappedCudaPtr()
             {
                 CUdeviceptr result = 0;
-                checkedCudaCall(cuGraphicsMapResources(1, &m_cudaResource, 0));
+                //checkedCudaCall(cuGraphicsMapResources(1, &m_cudaResource, 0));
 
-                size_t numBytes = 0;
-                checkedCudaCall(cuGraphicsResourceGetMappedPointer(&result, &numBytes, m_cudaResource));
+                //size_t numBytes = 0;
+                //checkedCudaCall(cuGraphicsResourceGetMappedPointer(&result, &numBytes, m_cudaResource));
                 
                 return result;
             }
@@ -112,7 +112,7 @@ namespace ElVis
             void UnmapCudaPtr()
             {
                 // Do we have to unmap if OptiX is the one accessing it?  The user manual says OpenGL or Direct 3D.
-                checkedCudaCall(cuGraphicsUnmapResources(1, &m_cudaResource, 0));
+                //checkedCudaCall(cuGraphicsUnmapResources(1, &m_cudaResource, 0));
             }
 
             T* MapOptiXPointer()
@@ -125,7 +125,11 @@ namespace ElVis
                 m_optixBuffer->unmap();
             }
 
-            bool Initialized() { return m_OpenGLId != 0; }
+            bool Initialized() 
+            {
+              if( m_optixBuffer ) return true;
+              return false;
+            }
 
             void* map()
             {
@@ -136,9 +140,13 @@ namespace ElVis
             void unmap()
             {
                 // Copy data to device memory.
-                CUdeviceptr deviceMemory = GetMappedCudaPtr();
-                checkedCudaCall(cuMemcpyHtoD(deviceMemory, m_mapBuffer, m_width*m_height*sizeof(T)));
-                UnmapCudaPtr();
+                //CUdeviceptr deviceMemory = GetMappedCudaPtr();
+                //checkedCudaCall(cuMemcpyHtoD(deviceMemory, m_mapBuffer, m_width*m_height*sizeof(T)));
+                //UnmapCudaPtr();
+              
+                T* data = MapOptiXPointer();
+                memcpy(data, m_mapBuffer, m_width*m_height*sizeof(T));
+                UnmapOptiXPointer();
 
                 // Shouldn't need to copy via optix since memory is shared.
                 
@@ -166,51 +174,54 @@ namespace ElVis
 
             void ReleaseResourcesIfNecessary()
             {
-                if( m_OpenGLId )
-                {
-                    m_optixBuffer->unregisterGLBuffer();
+                //if( m_OpenGLId )
+                //{
+                //    m_optixBuffer->unregisterGLBuffer();
 
                     // Does this get rid of references in the context?
-                    m_optixBuffer->destroy();
-                    m_optixBuffer = optixu::Buffer();
+                    if( m_optixBuffer )
+                    {
+                        m_optixBuffer->destroy();
+                        m_optixBuffer = optixu::Buffer();
+                    }
 
-                    checkedCudaCall(cuGraphicsUnregisterResource(m_cudaResource));
-                    m_cudaResource=0;
-                    glDeleteBuffers(1, &m_OpenGLId);
-                    m_OpenGLId = 0;
-                }
+                //    checkedCudaCall(cuGraphicsUnregisterResource(m_cudaResource));
+                //    m_cudaResource=0;
+                //    glDeleteBuffers(1, &m_OpenGLId);
+                //    m_OpenGLId = 0;
+                //}
             }
 
             void ClaimResourcesIfNecessary()
             {
-                if( !m_OpenGLId )
-                {
-                    // Claim the memory through GL
-                    glGenBuffers(1, &m_OpenGLId);
-                    glBindBuffer(GL_ARRAY_BUFFER, m_OpenGLId);
-                    unsigned int bufferSize = sizeof(T)*m_width*m_height;
-                    glBufferData(GL_ARRAY_BUFFER, bufferSize, 0, GL_DYNAMIC_DRAW);
-                    glBindBuffer(GL_ARRAY_BUFFER, 0);
+                //if( !m_OpenGLId )
+                //{
+                //    // Claim the memory through GL
+                //    glGenBuffers(1, &m_OpenGLId);
+                //    glBindBuffer(GL_ARRAY_BUFFER, m_OpenGLId);
+                //    unsigned int bufferSize = sizeof(T)*m_width*m_height;
+                //    glBufferData(GL_ARRAY_BUFFER, bufferSize, 0, GL_DYNAMIC_DRAW);
+                //    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-                    // setup the memory in Cuda.
-                    checkedCudaCall(cuGraphicsGLRegisterBuffer(&m_cudaResource, m_OpenGLId, CU_GRAPHICS_REGISTER_FLAGS_NONE));
+                //    // setup the memory in Cuda.
+                //    checkedCudaCall(cuGraphicsGLRegisterBuffer(&m_cudaResource, m_OpenGLId, CU_GRAPHICS_REGISTER_FLAGS_NONE));
 
-                    // Locate the global buffer.  This will cause an error if there are no variables in the module
-                    // with the given name.
-                    size_t size = 0;
-                    checkedCudaCall(cuModuleGetGlobal(&m_namedCudaVariable, &size, m_module, m_name.c_str()));
+                //    // Locate the global buffer.  This will cause an error if there are no variables in the module
+                //    // with the given name.
+                //    size_t size = 0;
+                //    checkedCudaCall(cuModuleGetGlobal(&m_namedCudaVariable, &size, m_module, m_name.c_str()));
 
-                    // Copy the address of the device memory we allocated earlier to the global variable.
-                    CUdeviceptr temp = GetMappedCudaPtr();
-                    checkedCudaCall(cuMemcpyHtoD(m_namedCudaVariable, &temp, sizeof(CUdeviceptr)));
-                    UnmapCudaPtr();
+                //    // Copy the address of the device memory we allocated earlier to the global variable.
+                //    CUdeviceptr temp = GetMappedCudaPtr();
+                //    checkedCudaCall(cuMemcpyHtoD(m_namedCudaVariable, &temp, sizeof(CUdeviceptr)));
+                //    UnmapCudaPtr();
 
                     // At this point we should have a global variable in the Cuda context with the given name, and we can 
                     // access that memory through the named variable in cuda or throug GetMappedCudaPtr.
                     
 
                     // Setup the memory in OptiX.
-                    m_optixBuffer = m_context->createBufferFromGLBO(RT_BUFFER_INPUT_OUTPUT, m_OpenGLId);
+                    m_optixBuffer = m_context->createBuffer(RT_BUFFER_INPUT_OUTPUT);
                     if( m_height == 1 )
                     {
                         m_optixBuffer->setSize(m_width);
@@ -222,7 +233,7 @@ namespace ElVis
                     m_optixBuffer->setFormat(FormatMapping<T>::value);
                     FormatMapping<T>::SetElementSize(m_optixBuffer);
                     m_context[m_name.c_str()]->set(m_optixBuffer);
-                }
+                //}
             }
 
             GLuint m_OpenGLId;

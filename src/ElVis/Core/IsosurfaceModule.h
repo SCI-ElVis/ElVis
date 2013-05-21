@@ -49,6 +49,8 @@ namespace ElVis
             ELVIS_EXPORT IsosurfaceModule();
             ELVIS_EXPORT virtual ~IsosurfaceModule() {}
 
+            ELVIS_EXPORT virtual void DoRender(SceneView* view);
+
             ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
             ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
 
