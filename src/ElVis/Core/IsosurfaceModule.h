@@ -77,15 +77,21 @@ namespace ElVis
 
             void SynchronizeWithOptix();
             static void ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values);
+            static bool InitializeStaticForIsosuface();
 
             std::set<ElVisFloat> m_isovalues;
             unsigned int m_isovalueBufferSize;
-            CUdeviceptr m_isovalueBuffer;
-            CUdeviceptr m_gaussLegendreNodesBuffer;
-            CUdeviceptr m_gaussLegendreWeightsBuffer;
-            CUdeviceptr m_monomialConversionTableBuffer;
+
+            InteropBuffer<ElVisFloat> m_isovalueBuffer;
+            InteropBuffer<ElVisFloat> m_gaussLegendreNodesBuffer;
+            InteropBuffer<ElVisFloat> m_gaussLegendreWeightsBuffer;
+            InteropBuffer<ElVisFloat> m_monomialConversionTableBuffer;
 
             CUfunction m_findIsosurfaceFunction;
+
+            static RayGeneratorProgram m_ElementByElementVolumeTraversalInitProgramForIsosurface;
+            static RayGeneratorProgram m_ElementByElementVolumeTraversalProgramForIsosurface;
+            static bool Initialized;
 
     };
 }

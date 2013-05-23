@@ -209,6 +209,7 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/InnerIntegralAdaptiveTrapezoidal.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/IntervalMatrix.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/IntervalPoint.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/IsosurfaceOptiXModule.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/IsosurfaceModuleCuda.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/jacobi.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/matrix.cu
