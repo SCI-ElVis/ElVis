@@ -51,383 +51,372 @@
 
 class OrthogonalLegendreBasis
 {
-    public:
-        __device__ static ElVisFloat Eval(unsigned int i, const ElVisFloat& x)
-        {
-            return Sqrtf((MAKE_FLOAT(2.0)*i+MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0)) * ElVis::OrthoPoly::P(i, 0, 0, x);
-        }
+public:
+  __device__ static ElVisFloat Eval(unsigned int i, const ElVisFloat& x)
+  {
+    return Sqrtf((MAKE_FLOAT(2.0)*i+MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0)) * ElVis::OrthoPoly::P(i, 0, 0, x);
+  }
 };
 
 template<typename FuncType>
 __device__
-void GenerateLeastSquaresPolynomialProjection(unsigned int order, const ElVisFloat* __restrict__ allNodes, const ElVisFloat* __restrict__ allWeights, const FuncType& f, ElVisFloat* workspace, ElVisFloat* coeffs)
+  void GenerateLeastSquaresPolynomialProjection(unsigned int order, const ElVisFloat* __restrict__ allNodes, const ElVisFloat* __restrict__ allWeights, const FuncType& f, ElVisFloat* workspace, ElVisFloat* coeffs)
 {
-    // Nodes and weights start with two point rules
-    unsigned int index = (order-1)*(order);
-    index = index >> 1;
-    index += order-1;
+  // Nodes and weights start with two point rules
+  unsigned int index = (order-1)*(order);
+  index = index >> 1;
+  index += order-1;
 
-//    ELVIS_PRINTF("Index %d\n", index);
-    const ElVisFloat* nodes = &allNodes[index];
-    const ElVisFloat* weights = &allWeights[index];
+  //    ELVIS_PRINTF("Index %d\n", index);
+  const ElVisFloat* nodes = &allNodes[index];
+  const ElVisFloat* weights = &allWeights[index];
 
 
-    for(unsigned int j = 0; j <= order; ++j)
+  for(unsigned int j = 0; j <= order; ++j)
+  {
+    workspace[j] = f(nodes[j]);
+  }
+
+  for(unsigned int c_index = 0; c_index <= order; ++c_index)
+  {
+    coeffs[c_index] = MAKE_FLOAT(0.0);
+    for(unsigned int k = 0; k <= order; ++k)
     {
-        workspace[j] = f(nodes[j]);
+      //            ELVIS_PRINTF("K %d, node %2.15f, weight %2.15f, sample %2.15f, basis %2.15f\n",
+      //                     k, nodes[k], weights[k], workspace[k], OrthogonalLegendreBasis::Eval(c_index, nodes[k]));
+      coeffs[c_index] += workspace[k] * OrthogonalLegendreBasis::Eval(c_index, nodes[k]) *
+        weights[k];
     }
-
-    for(unsigned int c_index = 0; c_index <= order; ++c_index)
-    {
-        coeffs[c_index] = MAKE_FLOAT(0.0);
-        for(unsigned int k = 0; k <= order; ++k)
-        {
-//            ELVIS_PRINTF("K %d, node %2.15f, weight %2.15f, sample %2.15f, basis %2.15f\n",
-//                     k, nodes[k], weights[k], workspace[k], OrthogonalLegendreBasis::Eval(c_index, nodes[k]));
-            coeffs[c_index] += workspace[k] * OrthogonalLegendreBasis::Eval(c_index, nodes[k]) *
-                weights[k];
-        }
-    }
+  }
 }
 
 template<typename FuncType>
 __device__
-void GenerateLeastSquaresPolynomialProjectionParallel(unsigned int order, const ElVisFloat* __restrict__ allNodes, const ElVisFloat* __restrict__ allWeights, const FuncType& f, ElVisFloat* workspace, ElVisFloat* coeffs)
+  void GenerateLeastSquaresPolynomialProjectionParallel(unsigned int order, const ElVisFloat* __restrict__ allNodes, const ElVisFloat* __restrict__ allWeights, const FuncType& f, ElVisFloat* workspace, ElVisFloat* coeffs)
 {
 }
 
 __device__ ElVisFloat& AccessArray(ElVisFloat* a, int i, int j, int n)
 {
-    return a[i*n + j];
+  return a[i*n + j];
 }
 
 template<typename T1, typename T2>
 __device__ T1 SIGN(const T1 &a, const T2 &b)
-    {return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);}
+{return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);}
 
 __device__ void balance(SquareMatrix& a)
 {
-    int n = a.GetSize();
-    const ElVisFloat RADIX = 2;
-    bool done=false;
-    ElVisFloat sqrdx=RADIX*RADIX;
-    while (!done)
+  int n = a.GetSize();
+  const ElVisFloat RADIX = 2;
+  bool done=false;
+  ElVisFloat sqrdx=RADIX*RADIX;
+  while (!done)
+  {
+    done=true;
+    for (int i=0;i<n;i++)
     {
-        done=true;
-        for (int i=0;i<n;i++)
+      ElVisFloat r=0.0,c=0.0;
+      for (int j=0;j<n;j++)
+      {
+        if (j != i)
         {
-            ElVisFloat r=0.0,c=0.0;
-            for (int j=0;j<n;j++)
-            {
-                if (j != i)
-                {
-                    c += abs(a(j,i));
-                    r += abs(a(i,j));
-                }
-            }
-            if (c != 0.0 && r != 0.0)
-            {
-                ElVisFloat g=r/RADIX;
-                ElVisFloat f=1.0;
-                ElVisFloat s=c+r;
-                while (c<g)
-                {
-                    f *= RADIX;
-                    c *= sqrdx;
-                }
-                g=r*RADIX;
-                while (c>g)
-                {
-                    f /= RADIX;
-                    c /= sqrdx;
-                }
-                if ((c+r)/f < 0.95*s)
-                {
-                    done=false;
-                    g=1.0/f;
-                    //scale[i] *= f;
-                    for (int j=0;j<n;j++) a(i,j) *= g;
-                    for (int j=0;j<n;j++) a(j,i) *= f;
-                }
-            }
+          c += abs(a(j,i));
+          r += abs(a(i,j));
         }
+      }
+      if (c != 0.0 && r != 0.0)
+      {
+        ElVisFloat g=r/RADIX;
+        ElVisFloat f=1.0;
+        ElVisFloat s=c+r;
+        while (c<g)
+        {
+          f *= RADIX;
+          c *= sqrdx;
+        }
+        g=r*RADIX;
+        while (c>g)
+        {
+          f /= RADIX;
+          c /= sqrdx;
+        }
+        if ((c+r)/f < 0.95*s)
+        {
+          done=false;
+          g=1.0/f;
+          //scale[i] *= f;
+          for (int j=0;j<n;j++) a(i,j) *= g;
+          for (int j=0;j<n;j++) a(j,i) *= f;
+        }
+      }
     }
+  }
 }
 
 // returns roots in wri.  Since we don't care about complex roots, they are just set to -1.0
 __device__ void hqr(SquareMatrix& a, int n, ElVisFloat* wri)
 {
-    int nn,m,l,k,j,its,i,mmin;
-    ElVisFloat z,y,x,w,v,u,t,s,r,q,p,anorm=MAKE_FLOAT(0.0);
+  int nn,m,l,k,j,its,i,mmin;
+  ElVisFloat z,y,x,w,v,u,t,s,r,q,p,anorm=MAKE_FLOAT(0.0);
 
-    const ElVisFloat EPS=MAKE_FLOAT(1e-8);
+  const ElVisFloat EPS=MAKE_FLOAT(1e-8);
 
-    for (i=0;i<n;i++)
+  for (i=0;i<n;i++)
+  {
+    for (j=max(i-1,0);j<n;j++)
     {
-        for (j=max(i-1,0);j<n;j++)
+      anorm += abs(a(i, j));
+    }
+  }
+
+  nn=n-1;
+  t=0.0;
+  while (nn >= 0)
+  {
+    its=0;
+    do
+    {
+      for (l=nn;l>0;l--)
+      {
+        s=abs(a(l-1, l-1))+abs(a(l, l));
+        if (s == 0.0) s=anorm;
+        if (abs(a(l,l-1)) <= EPS*s)
         {
-            anorm += abs(a(i, j));
+          a(l,l-1) = 0.0;
+          break;
         }
-    }
-
-    nn=n-1;
-    t=0.0;
-    while (nn >= 0)
-    {
-        its=0;
-        do
+      }
+      x=a(nn,nn);
+      if (l == nn)
+      {
+        wri[nn--]=x+t;
+      } else
+      {
+        y=a(nn-1,nn-1);
+        w=a(nn,nn-1)*a(nn-1,nn);
+        if (l == nn-1)
         {
-            for (l=nn;l>0;l--)
+          p=0.5*(y-x);
+          q=p*p+w;
+          z=sqrt(abs(q));
+          x += t;
+          if (q >= 0.0)
+          {
+            z=p+SIGN(z,p);
+            wri[nn-1]=wri[nn]=x+z;
+            if (z != 0.0) wri[nn]=x-w/z;
+          } else
+          {
+            //wri[nn]=Complex(x+p,-z);
+            //wri[nn-1]=conj(wri[nn]);
+            wri[nn] = MAKE_FLOAT(-10.0);
+            wri[nn-1] = MAKE_FLOAT(-10.0);
+          }
+          nn -= 2;
+        }
+        else
+        {
+          if (its == 30) return;
+          if (its == 10 || its == 20)
+          {
+            t += x;
+            for (i=0;i<nn+1;i++) a(i,i) -= x;
+            s=abs(a(nn,nn-1))+abs(a(nn-1,nn-2));
+            y=x=0.75*s;
+            w = -0.4375*s*s;
+          }
+          ++its;
+          for (m=nn-2;m>=l;m--)
+          {
+            z=a(m,m);
+            r=x-z;
+            s=y-z;
+            p=(r*s-w)/a(m+1,m)+a(m,m+1);
+            q=a(m+1,m+1)-z-r-s;
+            r=a(m+2,m+1);
+            s=abs(p)+abs(q)+abs(r);
+            p /= s;
+            q /= s;
+            r /= s;
+            if (m == l) break;
+            u=abs(a(m,m-1))*(abs(q)+abs(r));
+            v=abs(p)*(abs(a(m-1,m-1))+abs(z)+abs(a(m+1,m+1)));
+            if (u <= EPS*v) break;
+          }
+          for (i=m;i<nn-1;i++)
+          {
+            a(i+2,i)=0.0;
+            if (i != m) a(i+2,i-1)=0.0;
+          }
+          for (k=m;k<nn;k++)
+          {
+            if (k != m)
             {
-                s=abs(a(l-1, l-1))+abs(a(l, l));
-                if (s == 0.0) s=anorm;
-                if (abs(a(l,l-1)) <= EPS*s)
-                {
-                    a(l,l-1) = 0.0;
-                    break;
-                }
+              p=a(k,k-1);
+              q=a(k+1,k-1);
+              r=0.0;
+              if (k+1 != nn) r=a(k+2,k-1);
+              if ((x=abs(p)+abs(q)+abs(r)) != 0.0)
+              {
+                p /= x;
+                q /= x;
+                r /= x;
+              }
             }
-            x=a(nn,nn);
-            if (l == nn)
+            if ((s=SIGN(sqrt(p*p+q*q+r*r),p)) != 0.0)
             {
-                wri[nn--]=x+t;
-            } else
-            {
-                y=a(nn-1,nn-1);
-                w=a(nn,nn-1)*a(nn-1,nn);
-                if (l == nn-1)
+              if (k == m)
+              {
+                if (l != m)
+                  a(k,k-1) = -a(k,k-1);
+              }
+              else
+              {
+                a(k,k-1) = -s*x;
+              }
+              p += s;
+              x=p/s;
+              y=q/s;
+              z=r/s;
+              q /= p;
+              r /= p;
+              for (j=k;j<nn+1;j++)
+              {
+                p=a(k,j)+q*a(k+1,j);
+                if (k+1 != nn)
                 {
-                    p=0.5*(y-x);
-                    q=p*p+w;
-                    z=sqrt(abs(q));
-                    x += t;
-                    if (q >= 0.0)
-                    {
-                        z=p+SIGN(z,p);
-                        wri[nn-1]=wri[nn]=x+z;
-                        if (z != 0.0) wri[nn]=x-w/z;
-                    } else
-                    {
-                        //wri[nn]=Complex(x+p,-z);
-                        //wri[nn-1]=conj(wri[nn]);
-                        wri[nn] = MAKE_FLOAT(-10.0);
-                        wri[nn-1] = MAKE_FLOAT(-10.0);
-                    }
-                    nn -= 2;
+                  p += r*a(k+2,j);
+                  a(k+2,j) -= p*z;
                 }
-                else
+                a(k+1,j) -= p*y;
+                a(k,j) -= p*x;
+              }
+              mmin = nn < k+3 ? nn : k+3;
+              for (i=l;i<mmin+1;i++)
+              {
+                p=x*a(i,k)+y*a(i,k+1);
+                if (k+1 != nn)
                 {
-                    if (its == 30) return;
-                    if (its == 10 || its == 20)
-                    {
-                        t += x;
-                        for (i=0;i<nn+1;i++) a(i,i) -= x;
-                        s=abs(a(nn,nn-1))+abs(a(nn-1,nn-2));
-                        y=x=0.75*s;
-                        w = -0.4375*s*s;
-                    }
-                    ++its;
-                    for (m=nn-2;m>=l;m--)
-                    {
-                        z=a(m,m);
-                        r=x-z;
-                        s=y-z;
-                        p=(r*s-w)/a(m+1,m)+a(m,m+1);
-                        q=a(m+1,m+1)-z-r-s;
-                        r=a(m+2,m+1);
-                        s=abs(p)+abs(q)+abs(r);
-                        p /= s;
-                        q /= s;
-                        r /= s;
-                        if (m == l) break;
-                        u=abs(a(m,m-1))*(abs(q)+abs(r));
-                        v=abs(p)*(abs(a(m-1,m-1))+abs(z)+abs(a(m+1,m+1)));
-                        if (u <= EPS*v) break;
-                    }
-                    for (i=m;i<nn-1;i++)
-                    {
-                        a(i+2,i)=0.0;
-                        if (i != m) a(i+2,i-1)=0.0;
-                    }
-                    for (k=m;k<nn;k++)
-                    {
-                        if (k != m)
-                        {
-                            p=a(k,k-1);
-                            q=a(k+1,k-1);
-                            r=0.0;
-                            if (k+1 != nn) r=a(k+2,k-1);
-                            if ((x=abs(p)+abs(q)+abs(r)) != 0.0)
-                            {
-                                p /= x;
-                                q /= x;
-                                r /= x;
-                            }
-                        }
-                        if ((s=SIGN(sqrt(p*p+q*q+r*r),p)) != 0.0)
-                        {
-                            if (k == m)
-                            {
-                                if (l != m)
-                                a(k,k-1) = -a(k,k-1);
-                            }
-                            else
-                            {
-                                a(k,k-1) = -s*x;
-                            }
-                            p += s;
-                            x=p/s;
-                            y=q/s;
-                            z=r/s;
-                            q /= p;
-                            r /= p;
-                            for (j=k;j<nn+1;j++)
-                            {
-                                p=a(k,j)+q*a(k+1,j);
-                                if (k+1 != nn)
-                                {
-                                    p += r*a(k+2,j);
-                                    a(k+2,j) -= p*z;
-                                }
-                                a(k+1,j) -= p*y;
-                                a(k,j) -= p*x;
-                            }
-                            mmin = nn < k+3 ? nn : k+3;
-                            for (i=l;i<mmin+1;i++)
-                            {
-                                p=x*a(i,k)+y*a(i,k+1);
-                                if (k+1 != nn)
-                                {
-                                    p += z*a(i,k+2);
-                                    a(i,k+2) -= p*r;
-                                }
-                                a(i,k+1) -= p*q;
-                                a(i,k) -= p;
-                            }
-                        }
-                    }
+                  p += z*a(i,k+2);
+                  a(i,k+2) -= p*r;
                 }
+                a(i,k+1) -= p*q;
+                a(i,k) -= p;
+              }
             }
-        } while (l+1 < nn);
-    }
+          }
+        }
+      }
+    } while (l+1 < nn);
+  }
 }
 
 struct IsosurfaceFieldEvaluator
 {
-    public:
-        ELVIS_DEVICE IsosurfaceFieldEvaluator() :
-            Origin(),
-            Direction(),
-            A(),
-            B(),
-            ElementId(0),
-            ElementType(0),
-            ReferencePointType(ElVis::eReferencePointIsInvalid),
-            InitialGuess()
-        {
-        }
+public:
+  ELVIS_DEVICE IsosurfaceFieldEvaluator() :
+      Origin(),
+        Direction(),
+        A(),
+        B(),
+        ElementId(0),
+        ElementType(0),
+        ReferencePointType(ElVis::eReferencePointIsInvalid),
+        InitialGuess()
+      {
+      }
 
-        __device__ ElVisFloat operator()(const ElVisFloat& t) const
-        {
-            // Incoming t is [-1..1], we need to scale to [A,B]
-            ElVisFloat scaledT = (t+MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (B-A) + A;
-            ElVisFloat3 p = Origin + scaledT*Direction;
-            ElVisFloat s = EvaluateFieldOptiX(ElementId, ElementType, FieldId, p, ReferencePointType, InitialGuess);
-            ReferencePointType = ElVis::eReferencePointIsInitialGuess;
-            return s;
-        }
+      __device__ ElVisFloat operator()(const ElVisFloat& t) const
+      {
+        // Incoming t is [-1..1], we need to scale to [A,B]
+        ElVisFloat scaledT = (t+MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (B-A) + A;
+        ElVisFloat3 p = Origin + scaledT*Direction;
+        ElVisFloat s = EvaluateFieldOptiX(ElementId, ElementType, FieldId, p, ReferencePointType, InitialGuess);
+        ReferencePointType = ElVis::eReferencePointIsInitialGuess;
+        return s;
+      }
 
-        ElVisFloat3 Origin;
-        ElVisFloat3 Direction;
-        ElVisFloat A;
-        ElVisFloat B;
-        unsigned int ElementId;
-        unsigned int ElementType;
-        int FieldId;
-        mutable ElVis::ReferencePointParameterType ReferencePointType;
-        mutable ElVisFloat3 InitialGuess;
+      ElVisFloat3 Origin;
+      ElVisFloat3 Direction;
+      ElVisFloat A;
+      ElVisFloat B;
+      unsigned int ElementId;
+      unsigned int ElementType;
+      int FieldId;
+      mutable ElVis::ReferencePointParameterType ReferencePointType;
+      mutable ElVisFloat3 InitialGuess;
 
-    private:
-        IsosurfaceFieldEvaluator(const IsosurfaceFieldEvaluator& rhs);
-        IsosurfaceFieldEvaluator& operator=(const IsosurfaceFieldEvaluator& rhs);
+private:
+  IsosurfaceFieldEvaluator(const IsosurfaceFieldEvaluator& rhs);
+  IsosurfaceFieldEvaluator& operator=(const IsosurfaceFieldEvaluator& rhs);
 };
 
 __device__ void GenerateRowMajorHessenbergMatrix(const ElVisFloat* monomialCoefficients, int n, SquareMatrix& h)
 {
 
-    // First row
+  // First row
+  for(int column = 0; column < n-1; ++column)
+  {
+    h(0, column) = MAKE_FLOAT(0.0);
+  }
+
+  for(int row = 1; row < n; ++row)
+  {
     for(int column = 0; column < n-1; ++column)
     {
-        h(0, column) = MAKE_FLOAT(0.0);
+      if( row == column+1 )
+      {
+        h(row, column) = MAKE_FLOAT(1.0);
+      }
+      else
+      {
+        h(row, column) = MAKE_FLOAT(0.0);
+      }
     }
+  }
 
-    for(int row = 1; row < n; ++row)
-    {
-        for(int column = 0; column < n-1; ++column)
-        {
-            if( row == column+1 )
-            {
-                h(row, column) = MAKE_FLOAT(1.0);
-            }
-            else
-            {
-                h(row, column) = MAKE_FLOAT(0.0);
-            }
-        }
-    }
-
-    ElVisFloat inverse = MAKE_FLOAT(-1.0)/monomialCoefficients[n];
-    for(int row = 0; row < n; ++row)
-    {
-        h(row, n-1) = monomialCoefficients[row]*inverse;
-    }
+  ElVisFloat inverse = MAKE_FLOAT(-1.0)/monomialCoefficients[n];
+  for(int row = 0; row < n; ++row)
+  {
+    h(row, n-1) = monomialCoefficients[row]*inverse;
+  }
 }
 
 __device__ void ConvertToMonomial(unsigned int order, ElVisFloat* monomialConversionBuffer, const ElVisFloat* legendreCoeffs, ElVisFloat* monomialCoeffs)
 {
-    int tableIndex = 0;
-    for(int i = 2; i <= order; ++i)
-    {
-        tableIndex += i*i;
-    }
-    //ELVIS_PRINTF("Table Index %d\n", tableIndex);
-    SquareMatrix m(&monomialConversionBuffer[tableIndex], order+1);
+  int tableIndex = 0;
+  for(int i = 2; i <= order; ++i)
+  {
+    tableIndex += i*i;
+  }
+  //ELVIS_PRINTF("Table Index %d\n", tableIndex);
+  SquareMatrix m(&monomialConversionBuffer[tableIndex], order+1);
 
-    // Now that we have the coefficient table we can convert.
-    for(unsigned int coeffIndex = 0; coeffIndex <= order; ++coeffIndex)
+  // Now that we have the coefficient table we can convert.
+  for(unsigned int coeffIndex = 0; coeffIndex <= order; ++coeffIndex)
+  {
+    monomialCoeffs[coeffIndex] = MAKE_FLOAT(0.0);
+    for(unsigned int legCoeffIndex = 0; legCoeffIndex <= order; ++legCoeffIndex)
     {
-        monomialCoeffs[coeffIndex] = MAKE_FLOAT(0.0);
-        for(unsigned int legCoeffIndex = 0; legCoeffIndex <= order; ++legCoeffIndex)
-        {
-            //ElVisFloat multiplier = AccessArray(buffer,legCoeffIndex,coeffIndex,order+1);
-            //ELVIS_PRINTF("Legendre Coeff %2.15f, multiplier %2.15f\n", legendreCoeffs[legCoeffIndex], multiplier);
-            monomialCoeffs[coeffIndex] += legendreCoeffs[legCoeffIndex]*
-                m(legCoeffIndex,coeffIndex);
-        }
+      //ElVisFloat multiplier = AccessArray(buffer,legCoeffIndex,coeffIndex,order+1);
+      //ELVIS_PRINTF("Legendre Coeff %2.15f, multiplier %2.15f\n", legendreCoeffs[legCoeffIndex], multiplier);
+      monomialCoeffs[coeffIndex] += legendreCoeffs[legCoeffIndex]*
+        m(legCoeffIndex,coeffIndex);
     }
+  }
 }
 
 __device__ void PrintMatrix(SquareMatrix& m)
 {
-    for(unsigned int row = 0; row < m.GetSize(); ++row)
+  for(unsigned int row = 0; row < m.GetSize(); ++row)
+  {
+    for(unsigned int column = 0; column < m.GetSize(); ++column)
     {
-        for(unsigned int column = 0; column < m.GetSize(); ++column)
-        {
-            ELVIS_PRINTF("%2.15f, ", m(row, column));
-        }
-        ELVIS_PRINTF("\n");
+      ELVIS_PRINTF("%2.15f, ", m(row, column));
     }
-}
-
-extern "C" __global__ void CopyToElementId(const int* __restrict__ elementIdBuffer, const int* __restrict__ elementTypeBuffer,
-                                           ElVis::ElementId* out, bool enableTrace, int tracex, int tracey,
-                                           int bufferSize)
-{
-    int index = threadIdx.x + blockDim.x*blockIdx.x;
-    if( index >= bufferSize ) return;
-
-    out[index].Id = elementIdBuffer[index];
-    out[index].Type = elementTypeBuffer[index];
+    ELVIS_PRINTF("\n");
+  }
 }
 
 rtDeclareVariable(uint, NumIsosurfaces, , );
@@ -436,99 +425,88 @@ rtBuffer<ElVisFloat> Nodes;
 rtBuffer<ElVisFloat> Weights;
 rtBuffer<ElVisFloat> MonomialConversionTable;
 
-__device__ void FindIsosurfaceInSegment(ElVisFloat3 origin)
+struct Segment
 {
-    //if( numIsosurfaces == 0 ) return;
+  __device__ Segment() :
+    Start(MAKE_FLOAT(0.0)),
+    End(MAKE_FLOAT(0.0)),
+    ElementId(-1),
+    ElementTypeId(-1),
+    RayDirection(MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0)))
+  {
+  }
 
-    optix::size_t2 screen = color_buffer.size();
-    int segmentIndex = screen.x*launch_index.y + launch_index.x;
+  ElVisFloat Start;
+  ElVisFloat End;
+  int ElementId;
+  int ElementTypeId;
+  ElVisFloat3 RayDirection;
+};
 
+__device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& origin)
+{
+  //if( numIsosurfaces == 0 ) return;
+  ELVIS_PRINTF("Find Isosurface in Segment\n");
+  optix::size_t2 screen = color_buffer.size();
 
+  if( seg.End < MAKE_FLOAT(0.0) )
+  {
+    ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because ray has left volume based on segment end\n");
+    return false;
+  }
 
-    //int2 trace = make_int2(tracex, tracey);
+  int elementId = seg.ElementId;
+  ELVIS_PRINTF("FindIsosurfaceInSegment: Element id %d\n", elementId);
 
-    //uint2 pixel;
-    //pixel.x = blockIdx.x * blockDim.x + threadIdx.x;
-    //pixel.y = blockIdx.y * blockDim.y + threadIdx.y;
+  if( elementId == -1 )
+  {
+    ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because element id is 0\n");
+    return false;
+  }
 
-    //bool traceEnabled = (pixel.x == trace.x && pixel.y == trace.y && enableTrace);
-    //if( traceEnabled )
-    //{
-    //    ELVIS_PRINTF("FindIsosurfaceInSegment: Find Isosurface .\n");
-    //}
+  int elementTypeId = seg.ElementTypeId;
 
-    //uint2 screen;
-    //screen.x = screen_x;
-    //screen.y = screen_y;
+  ElVisFloat a = seg.Start;
+  ElVisFloat b = seg.End;
 
-//    screen.x = gridDim.x * blockDim.x;
-//    screen.y = gridDim.y * blockDim.y;
+  ElVisFloat3 rayDirection = seg.RayDirection;
+  ElVisFloat d = (b-a);
 
-    //if( pixel.x >= screen.x ||
-    //    pixel.y >= screen.y )
-    //{
-    //    return;
-    //}
+  ELVIS_PRINTF("FindIsosurfaceInSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);
 
+  if( d == MAKE_FLOAT(0.0) )
+  {
+    ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because d is 0\n", rayDirection.x, rayDirection.y, rayDirection.z, d);
+    return false;
+  }
 
-    ELVIS_PRINTF("FindIsosurfaceInSegment: Segment index %d\n", segmentIndex);
-    if( SegmentEnd[segmentIndex] < MAKE_FLOAT(0.0) )
-    {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because ray has left volume based on segment end\n", segmentIndex);
-        return;
-    }
+  ElVisFloat bestDepth = depth_buffer[launch_index];
+  ELVIS_PRINTF("FindIsosurfaceInSegment: Best Depth %2.10f and a %2.10f\n", bestDepth, a);
+  //    if( bestDepth <= a )
+  //    {
+  //        if( traceEnabled )
+  //        {
+  //            ELVIS_PRINTF("Exiting because existing depth value %2.10f exists before segment start %2.10f\n", bestDepth, a);
+  //        }
+  //        return;
+  //    }
 
-    int elementId = SegmentElementIdBuffer[segmentIndex];
-    ELVIS_PRINTF("FindIsosurfaceInSegment: Element id %d\n", elementId);
+  ElVisFloat3 p0 = origin + a*rayDirection;
+  ElVisFloat3 p1 = origin + b*rayDirection;
+  ElVis::Interval<ElVisFloat> range;
+  //EstimateRangeOptiX(elementId, elementTypeId, FieldId, p0, p1, range);
 
-    if( elementId == -1 )
-    {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because element id is 0\n", segmentIndex);
-        return;
-    }
+  //ELVIS_PRINTF("Range of scalar field is (%2.10f, %2.10f)\n", range.GetLow(), range.GetHigh());
+  //ELVIS_PRINTF("Origin (%f, %f, %f)\n", origin.x, origin.y, origin.z);
 
-    int elementTypeId = SegmentElementTypeBuffer[segmentIndex];
+  //ELVIS_PRINTF("Direction (%f, %f, %f)\n", rayDirection.x, rayDirection.y, rayDirection.z);
+  //ELVIS_PRINTF("Integration domain [%f, %f]\n", a, b);
 
-    ElVisFloat a = SegmentStart[segmentIndex];
-    ElVisFloat b = SegmentEnd[segmentIndex];
+  unsigned int numIsosurfaces = SurfaceIsovalues.size();
 
-    ElVisFloat3 rayDirection = SegmentRayDirection[segmentIndex];
-    ElVisFloat d = (b-a);
-
-    ELVIS_PRINTF("FindIsosurfaceInSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);
-    
-    if( d == MAKE_FLOAT(0.0) )
-    {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because d is 0\n", rayDirection.x, rayDirection.y, rayDirection.z, d);
-        return;
-    }
-
-    ElVisFloat bestDepth = depth_buffer[launch_index];
-    ELVIS_PRINTF("FindIsosurfaceInSegment: Best Depth %2.10f and a %2.10f\n", bestDepth, a);
-//    if( bestDepth <= a )
-//    {
-//        if( traceEnabled )
-//        {
-//            ELVIS_PRINTF("Exiting because existing depth value %2.10f exists before segment start %2.10f\n", bestDepth, a);
-//        }
-//        return;
-//    }
-
-    ElVisFloat3 p0 = origin + a*rayDirection;
-    ElVisFloat3 p1 = origin + b*rayDirection;
-    ElVis::Interval<ElVisFloat> range;
-    //EstimateRangeOptiX(elementId, elementTypeId, FieldId, p0, p1, range);
-
-    //ELVIS_PRINTF("Range of scalar field is (%2.10f, %2.10f)\n", range.GetLow(), range.GetHigh());
-    //ELVIS_PRINTF("Origin (%f, %f, %f)\n", origin.x, origin.y, origin.z);
-
-    //ELVIS_PRINTF("Direction (%f, %f, %f)\n", rayDirection.x, rayDirection.y, rayDirection.z);
-    //ELVIS_PRINTF("Integration domain [%f, %f]\n", a, b);
-
-    unsigned int numIsosurfaces = SurfaceIsovalues.size();
-
-    for(int isosurfaceId = 0; isosurfaceId < numIsosurfaces; ++isosurfaceId )
-    {
+  bool result = false;
+  for(int isosurfaceId = 0; isosurfaceId < numIsosurfaces; ++isosurfaceId )
+  {
     //    if( !range.IsEmpty() && !range.Contains(isovalues[isosurfaceId]) )
     //    {
     //        continue;
@@ -536,320 +514,233 @@ __device__ void FindIsosurfaceInSegment(ElVisFloat3 origin)
 
 
 
-            ELVIS_PRINTF("Searching for isovalue %f\n", SurfaceIsovalues[isosurfaceId]);
+    ELVIS_PRINTF("Searching for isovalue %f\n", SurfaceIsovalues[isosurfaceId]);
 
 
-        // Project onto a polynomial along the ray.
-        // Generate an nth order polynomial projection.
-        // First pass, create an mth element local array to store the value, and exit out if the required order is
-        // too large.
-        ElVisFloat polynomialCoefficients[32];
-        ElVisFloat monomialCoefficients[32];
-        ElVisFloat workspace[32];
-        ElVisFloat h_data[10*10];
+    // Project onto a polynomial along the ray.
+    // Generate an nth order polynomial projection.
+    // First pass, create an mth element local array to store the value, and exit out if the required order is
+    // too large.
+    ElVisFloat polynomialCoefficients[32];
+    ElVisFloat monomialCoefficients[32];
+    ElVisFloat workspace[32];
+    ElVisFloat h_data[10*10];
 
-        int requiredOrder = 8;
-        for(int i = 0; i < 32; ++i)
-        {
-            polynomialCoefficients[i] = -73.45;
-            workspace[i] = -73.45;
-            monomialCoefficients[i] = -73.45;
-        }
-
-        IsosurfaceFieldEvaluator f;
-        f.Origin = origin;
-        f.Direction = rayDirection;
-        f.ElementId = elementId;
-        f.ElementType = elementTypeId;
-        f.A = a;
-        f.B = b;
-        f.FieldId = FieldId;
-
-
-        GenerateLeastSquaresPolynomialProjection(requiredOrder, &Nodes[0], &Weights[0], f, workspace, polynomialCoefficients);
-
-            ELVIS_PRINTF("Legendre %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-                 polynomialCoefficients[0],
-                 polynomialCoefficients[1],
-                 polynomialCoefficients[2],
-                 polynomialCoefficients[3],
-                 polynomialCoefficients[4],
-                 polynomialCoefficients[5],
-                 polynomialCoefficients[6],
-                 polynomialCoefficients[7],
-                 polynomialCoefficients[8]);
-
-
-        // Fix up the polynomial order if we requested higher than necessary.
-        int reducedOrder = requiredOrder;
-        ElVisFloat epsilon = MAKE_FLOAT(1e-8);
-
-        for(int i = requiredOrder; i >= 1; --i)
-        {
-            if( Fabsf(polynomialCoefficients[i]) > epsilon )
-            {
-                reducedOrder = i;
-                break;
-            }
-        }
-
-
-
-            ELVIS_PRINTF("Reduced order %d\n", reducedOrder );
-
-
-        ConvertToMonomial(reducedOrder, &MonomialConversionTable[0], polynomialCoefficients, monomialCoefficients);
-
-            ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-                 monomialCoefficients[0],
-                 monomialCoefficients[1],
-                 monomialCoefficients[2],
-                 monomialCoefficients[3],
-                 monomialCoefficients[4],
-                 monomialCoefficients[5],
-                 monomialCoefficients[6],
-                 monomialCoefficients[7],
-                 monomialCoefficients[8]);
-
-
-        monomialCoefficients[0] -= SurfaceIsovalues[isosurfaceId];
-
-        SquareMatrix h(h_data, reducedOrder);
-        GenerateRowMajorHessenbergMatrix(monomialCoefficients, reducedOrder, h);
-
-            ELVIS_PRINTF("Before balancing.\n");
-            PrintMatrix(h);
-
-
-        balance(h);
-
-
-            ELVIS_PRINTF("After balancing.\n");
-            PrintMatrix(h);
-
-        ElVisFloat roots[8];
-        for(int i = 0; i < 8; ++i)
-        {
-            roots[i] = -4582.23;
-        }
-
-        hqr(h, reducedOrder, roots);
-
-            ELVIS_PRINTF("Roots %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-                 roots[0],
-                 roots[1],
-                 roots[2],
-                 roots[3],
-                 roots[4],
-                 roots[5]);
-
-
-        ElVisFloat foundRoot = ELVIS_FLOAT_MAX;
-        for(int i = 0; i < reducedOrder; ++i)
-        {
-            ElVisFloat root = roots[i];
-            if( root >= MAKE_FLOAT(-1.0) &&
-                root <= MAKE_FLOAT(1.0) &&
-                root <= foundRoot )
-            {
-                ElVisFloat foundT = (root + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
-                if( foundT < bestDepth )
-                {
-                    foundRoot = root;
-                }
-            }
-        }
-
-        if( foundRoot != ELVIS_FLOAT_MAX )
-        {
-
-            ElVisFloat foundT = (foundRoot + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
-
-
-
-            ElVisFloat3 foundIntersectionPoint = origin + foundT*rayDirection;
-
-            intersection_buffer[launch_index] = foundIntersectionPoint;
-            SampleBuffer[launch_index] = EvaluateFieldOptiX(elementId,
-                                                           elementTypeId,
-                                                           FieldId,
-                                                           foundIntersectionPoint);
-
-            //    ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
-
-
-            EvaluateNormalOptiX(elementId,
-                             elementTypeId,
-                             FieldId,
-                             foundIntersectionPoint, normal_buffer[launch_index]);
-            depth_buffer[launch_index] = foundT;
-            bestDepth = foundT;
-            ////        // This depth buffer is wrong, need accumulated.
-            ////        depth_buffer[launch_index] = (far+near)/(far-near) - 2.0f/foundT * far*near/(far-near);
-            ////        depth_buffer[launch_index] = (depth_buffer[launch_index]+1.0)/2.0;
-
-        }
+    int requiredOrder = 8;
+    for(int i = 0; i < 32; ++i)
+    {
+      polynomialCoefficients[i] = -73.45;
+      workspace[i] = -73.45;
+      monomialCoefficients[i] = -73.45;
     }
 
+    IsosurfaceFieldEvaluator f;
+    f.Origin = origin;
+    f.Direction = rayDirection;
+    f.ElementId = elementId;
+    f.ElementType = elementTypeId;
+    f.A = a;
+    f.B = b;
+    f.FieldId = FieldId;
+
+
+    GenerateLeastSquaresPolynomialProjection(requiredOrder, &Nodes[0], &Weights[0], f, workspace, polynomialCoefficients);
+
+    // Fix up the polynomial order if we requested higher than necessary.
+    int reducedOrder = requiredOrder;
+    ElVisFloat epsilon = MAKE_FLOAT(1e-8);
+
+    for(int i = requiredOrder; i >= 1; --i)
+    {
+      if( Fabsf(polynomialCoefficients[i]) > epsilon )
+      {
+        reducedOrder = i;
+        break;
+      }
+    }
+
+
+
+    ELVIS_PRINTF("Reduced order %d\n", reducedOrder );
+
+
+    ConvertToMonomial(reducedOrder, &MonomialConversionTable[0], polynomialCoefficients, monomialCoefficients);
+
+    ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+      monomialCoefficients[0],
+      monomialCoefficients[1],
+      monomialCoefficients[2],
+      monomialCoefficients[3],
+      monomialCoefficients[4],
+      monomialCoefficients[5],
+      monomialCoefficients[6],
+      monomialCoefficients[7],
+      monomialCoefficients[8]);
+
+
+    monomialCoefficients[0] -= SurfaceIsovalues[isosurfaceId];
+
+    SquareMatrix h(h_data, reducedOrder);
+    GenerateRowMajorHessenbergMatrix(monomialCoefficients, reducedOrder, h);
+
+    ELVIS_PRINTF("Before balancing.\n");
+    PrintMatrix(h);
+
+
+    balance(h);
+
+
+    ELVIS_PRINTF("After balancing.\n");
+    PrintMatrix(h);
+
+    ElVisFloat roots[8];
+    for(int i = 0; i < 8; ++i)
+    {
+      roots[i] = -4582.23;
+    }
+
+    hqr(h, reducedOrder, roots);
+
+    ELVIS_PRINTF("Roots %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+      roots[0],
+      roots[1],
+      roots[2],
+      roots[3],
+      roots[4],
+      roots[5]);
+
+
+    ElVisFloat foundRoot = ELVIS_FLOAT_MAX;
+    for(int i = 0; i < reducedOrder; ++i)
+    {
+      ElVisFloat root = roots[i];
+      if( root >= MAKE_FLOAT(-1.0) &&
+        root <= MAKE_FLOAT(1.0) &&
+        root <= foundRoot )
+      {
+        ElVisFloat foundT = (root + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
+        if( foundT < bestDepth )
+        {
+          foundRoot = root;
+        }
+      }
+    }
+
+    if( foundRoot != ELVIS_FLOAT_MAX )
+    {
+
+      ElVisFloat foundT = (foundRoot + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
+
+
+
+      ElVisFloat3 foundIntersectionPoint = origin + foundT*rayDirection;
+
+      intersection_buffer[launch_index] = foundIntersectionPoint;
+      SampleBuffer[launch_index] = EvaluateFieldOptiX(elementId,
+        elementTypeId,
+        FieldId,
+        foundIntersectionPoint);
+
+      //    ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
+
+
+      EvaluateNormalOptiX(elementId,
+        elementTypeId,
+        FieldId,
+        foundIntersectionPoint, normal_buffer[launch_index]);
+      depth_buffer[launch_index] = foundT;
+      bestDepth = foundT;
+      result =true;
+      ////        // This depth buffer is wrong, need accumulated.
+      ////        depth_buffer[launch_index] = (far+near)/(far-near) - 2.0f/foundT * far*near/(far-near);
+      ////        depth_buffer[launch_index] = (depth_buffer[launch_index]+1.0)/2.0;
+
+    }
+  }
+  return result;
 }
 
 
 
-
-RT_PROGRAM void ElementByElementVolumeTraversalInitForIsosurface()
+__device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDirection)
 {
-    ELVIS_PRINTF("Entering ElementByElementVolumeTraversalInitForIsosurface\n");
-    optix::size_t2 screen = color_buffer.size();
-    int segmentIndex = screen.x*launch_index.y + launch_index.x;
-   
-    ELVIS_PRINTF("ElementByElementVolumeTraversalInitForIsosurface: Segment Index %d eye (%f, %f, %f)\n", segmentIndex, ray.origin.x, ray.origin.y, ray.origin.z);
+  optix::size_t2 screen = color_buffer.size();
+  ELVIS_PRINTF("FindNextSegmentAlongRay: Starting t %f \n", seg.Start);
 
-    SegmentIdBuffer[segmentIndex] = segmentIndex;
-    optix::Ray initialRay = GeneratePrimaryRay(screen, 2, 1e-3f);
+  // If we have already encountered an object we don't need to continue along this ray.
+  ElVisFloat depth = depth_buffer[launch_index];
+  ELVIS_PRINTF("FindNextSegmentAlongRay best depth so far %2.10f\n", depth_buffer[launch_index]);
+  if( depth < seg.Start )
+  {
+    return false;
+  }
 
-    ElVisFloat3 origin0 = MakeFloat3(initialRay.origin);
-    ElVisFloat3 rayDirection = MakeFloat3(initialRay.direction);
-    SegmentRayDirection[segmentIndex] = MakeFloat3(initialRay.direction);
+  VolumeRenderingPayload payload;
+  payload.FoundIntersection = 0;
+  ElVisFloat3 origin = eye + seg.Start*rayDirection;
 
-    VolumeRenderingPayload payload0;
-    payload0.Initialize();
+  optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
+  //rtTrace(PointLocationGroup, ray, payload);
+  rtTrace(faceForTraversalGroup, ray, payload);
+  //rtTrace(faceGroup, ray, payload);
 
-    optix::Ray ray0 = optix::make_Ray(initialRay.origin, initialRay.direction, 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray0, payload0);
-    rtTrace(faceForTraversalGroup, ray0, payload0);
-    //rtTrace(faceGroup, ray0, payload0);
+  if( payload.FoundIntersection == 0 )
+  {
+    ELVIS_PRINTF("Did not find element intersection.\n");
+    return false;
+  }
 
+  seg.End = seg.Start + payload.IntersectionT;
+  ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
 
-    if( payload0.FoundIntersection == 0 )
-    {
-         // Missed the volume entirely.
-        ELVIS_PRINTF("ElementByElementVolumeTraversalInitForIsosurface: Missed volume.\n");
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        return;
-    }
+  //    ElVisFloat3 normal;
+  //    ElVisFloat3 pointOnSecondFace = origin + payload.IntersectionT*rayDirection;
+  //    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload.FaceId, normal);
+  //    SegmentElementIdBuffer[segmentIndex] = element.Id;
+  //    SegmentElementTypeBuffer[segmentIndex] = element.Type;
 
-    // Cast a second ray to find where we leave the current element.
-    VolumeRenderingPayload payload1;
-    payload1.Initialize();
+  // Determine the element by casting rays.
+  // For linear volumes not much slower than the comparisons with the normals,
+  // but quite slow for curved.
+  double h = (payload.IntersectionT)*MAKE_FLOAT(.5);
+  ElementFinderPayload findElementPayload = FindElement(origin + h*rayDirection);
 
-    ElVisFloat3 origin1 = origin0 + payload0.IntersectionT*rayDirection;
-    optix::Ray ray1 = optix::make_Ray(ConvertToFloat3(origin1), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray1, payload1);
-    rtTrace(faceForTraversalGroup, ray1, payload1);
-    //rtTrace(faceGroup, ray1, payload1);
+  if( findElementPayload.elementId >= 0 )
+  {
+    seg.ElementId = findElementPayload.elementId;
+    seg.ElementTypeId = findElementPayload.elementType; 
+  }
+  else
+  {
+    seg.ElementId = -1;
+    seg.ElementTypeId = -1;
+  }
 
-    if( payload1.FoundIntersection == 0 )
-    {
-        // This means we just barely clipped a small portion of the volume, so we had
-        // an entrance, but no exit within the epsilon
-        ELVIS_PRINTF("ElementByElementVolumeTraversalInitForIsosurface: Clipped volume.\n");
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        return;
-    }
-
-    SomeSegmentsNeedToBeIntegrated[0] = 1;
-
-    SegmentStart[segmentIndex] = payload0.IntersectionT;
-    SegmentEnd[segmentIndex] = payload0.IntersectionT + payload1.IntersectionT;
-
-    ELVIS_PRINTF("ElementByElementVolumeTraversalInitForIsosurface: Found intersection %2.15f.\n", payload0.IntersectionT);
-
-//    ElVisFloat3 normal;
-//    ElVisFloat3 pointOnSecondFace = origin1 + payload1.IntersectionT*rayDirection;
-//    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload1.FaceId, normal);
-//    SegmentElementIdBuffer[segmentIndex] = element.Id;
-//    SegmentElementTypeBuffer[segmentIndex] = element.Type;
-
-    // Determine the element by casting rays.
-    // For linear volumes not much slower than the comparisons with the normals,
-    // but quite slow for curved.
-    ElementFinderPayload findElementPayload = FindElement(origin1 + (MAKE_FLOAT(.5)*payload1.IntersectionT)*rayDirection);
-
-    if( findElementPayload.elementId >= 0 )
-    {
-        SegmentElementIdBuffer[segmentIndex] = findElementPayload.elementId;
-        SegmentElementTypeBuffer[segmentIndex] = findElementPayload.elementType;
-        FindIsosurfaceInSegment(eye);
-    }
-    else
-    {
-        SegmentElementIdBuffer[segmentIndex] = -1;
-    }
-
+  return true;
 }
 
-RT_PROGRAM void ElementByElementVolumeTraversalForIsosurface()
+RT_PROGRAM void FindIsosurface()
 {
-    optix::size_t2 screen = color_buffer.size();
-    int segmentIndex = screen.x*launch_index.y + launch_index.x;
-   
-    if( SegmentEnd[segmentIndex] < MAKE_FLOAT(0.0) )
+  // Cast a single ray to find entrance to volume.
+  optix::size_t2 screen = color_buffer.size();
+  optix::Ray initialRay = GeneratePrimaryRay(screen, 2, 1e-3f);
+
+  ElVisFloat3 origin0 = MakeFloat3(initialRay.origin);
+  ElVisFloat3 rayDirection = MakeFloat3(initialRay.direction);
+
+  Segment seg;
+  seg.RayDirection = rayDirection;
+  int maxIter = 200;
+  int iter = 0;
+  while( FindNextSegmentAlongRay(seg, rayDirection) && iter < maxIter)
+  {
+    if( FindIsosurfaceInSegment(seg, origin0) )
     {
-        // This ray has already left the volume.
-        return;
+      return;
     }
-    ElVisFloat startingT = SegmentEnd[segmentIndex];
-    ElVisFloat3 rayDirection = SegmentRayDirection[segmentIndex];
-
-    ELVIS_PRINTF("ElementByElementVolumeTraversalForIsosurface: Starting t %f \n", startingT);
-
-    // If we have already encountered an object we don't need to continue along this ray.
-    ElVisFloat depth = depth_buffer[launch_index];
-    ELVIS_PRINTF("ElementByElementVolumeTraversalForIsosurface best depth so far %2.10f\n", depth_buffer[launch_index]);
-    if( depth < startingT )
-    {
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        SegmentElementIdBuffer[segmentIndex] = -1;
-        return;
-    }
-
-    VolumeRenderingPayload payload;
-    payload.FoundIntersection = 0;
-    ElVisFloat3 origin = eye + startingT*rayDirection;
-
-    optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray, payload);
-    rtTrace(faceForTraversalGroup, ray, payload);
-    //rtTrace(faceGroup, ray, payload);
-
-    if( payload.FoundIntersection == 0 )
-    {
-        // Left the volume.
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        SegmentElementIdBuffer[segmentIndex] = -1;
-        return;
-    }
-
-    SomeSegmentsNeedToBeIntegrated[0] = 1;
-    ElVisFloat endingT = startingT + payload.IntersectionT;
-    SegmentStart[segmentIndex] = startingT;
-    SegmentEnd[segmentIndex] = endingT;
-       
-
-//    ElVisFloat3 normal;
-//    ElVisFloat3 pointOnSecondFace = origin + payload.IntersectionT*rayDirection;
-//    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload.FaceId, normal);
-//    SegmentElementIdBuffer[segmentIndex] = element.Id;
-//    SegmentElementTypeBuffer[segmentIndex] = element.Type;
-
-    // Determine the element by casting rays.
-    // For linear volumes not much slower than the comparisons with the normals,
-    // but quite slow for curved.
-    double h = (payload.IntersectionT)*MAKE_FLOAT(.5);
-    ElementFinderPayload findElementPayload = FindElement(origin + h*rayDirection);
-
-    if( findElementPayload.elementId >= 0 )
-    {
-        SegmentElementIdBuffer[segmentIndex] = findElementPayload.elementId;
-        SegmentElementTypeBuffer[segmentIndex] = findElementPayload.elementType;
-        FindIsosurfaceInSegment(eye);
-    }
-    else
-    {
-        SegmentElementIdBuffer[segmentIndex] = -1;
-    }
+    seg.Start = seg.End;
+    ++iter;
+  }
 }
-
-
 
 #endif

@@ -91,6 +91,7 @@ namespace ElVis
 
             static RayGeneratorProgram m_ElementByElementVolumeTraversalInitProgramForIsosurface;
             static RayGeneratorProgram m_ElementByElementVolumeTraversalProgramForIsosurface;
+            static RayGeneratorProgram m_FindIsosurface;
             static bool Initialized;
 
     };
