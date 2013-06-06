@@ -566,16 +566,16 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
 
     ConvertToMonomial(reducedOrder, &MonomialConversionTable[0], polynomialCoefficients, monomialCoefficients);
 
-    ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-      monomialCoefficients[0],
-      monomialCoefficients[1],
-      monomialCoefficients[2],
-      monomialCoefficients[3],
-      monomialCoefficients[4],
-      monomialCoefficients[5],
-      monomialCoefficients[6],
-      monomialCoefficients[7],
-      monomialCoefficients[8]);
+    //ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+    //  monomialCoefficients[0],
+    //  monomialCoefficients[1],
+    //  monomialCoefficients[2],
+    //  monomialCoefficients[3],
+    //  monomialCoefficients[4],
+    //  monomialCoefficients[5],
+    //  monomialCoefficients[6],
+    //  monomialCoefficients[7],
+    //  monomialCoefficients[8]);
 
 
     monomialCoefficients[0] -= SurfaceIsovalues[isosurfaceId];
@@ -584,14 +584,14 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
     GenerateRowMajorHessenbergMatrix(monomialCoefficients, reducedOrder, h);
 
     ELVIS_PRINTF("Before balancing.\n");
-    PrintMatrix(h);
+    //PrintMatrix(h);
 
 
     balance(h);
 
 
     ELVIS_PRINTF("After balancing.\n");
-    PrintMatrix(h);
+    //PrintMatrix(h);
 
     ElVisFloat roots[8];
     for(int i = 0; i < 8; ++i)

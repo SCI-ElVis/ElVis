@@ -132,6 +132,7 @@ ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int el
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& referencePoint)
 {
+    ELVIS_PRINTF("EvaluateFieldOptiX 1\n");
     if( referenceType != ElVis::eReferencePointIsValid )
     {
         ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, referenceType, referencePoint);
@@ -143,6 +144,7 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint)
 {
+    ELVIS_PRINTF("EvaluateFieldOptiX 2\n");
     ElVisFloat3 dummy;
     return EvaluateFieldOptiX(elementId, elementType, fieldId, worldPoint, ElVis::eReferencePointIsInvalid, dummy);
 }
@@ -150,11 +152,12 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 ELVIS_DEVICE ElVisError EvaluateNormalOptiX(unsigned int elementId, unsigned int elementType, int fieldId,
                                             const ElVisFloat3& worldPoint, ElVisFloat3& normal)
 {
+    ELVIS_PRINTF("EvaluateNormalOptiX\n");
     ReferencePoint refPoint;
     ElVisError e0 = ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, ElVis::eReferencePointIsInvalid, refPoint);
 
     ElVisFloat3 gradient;
-    ElVisError e1 = SampleReferenceGradientCuda(elementId, elementType, fieldId, refPoint, gradient);
+    ElVisError e1 = SampleReferenceGradientOptiX(elementId, elementType, fieldId, refPoint, gradient);
 
     ElVisFloat J[9], JInv[9];
 
