@@ -37,6 +37,7 @@
 #include <ElVis/Core/IntervalPoint.cu>
 #include <ElVis/Core/IntervalMatrix.cu>
 #include <ElVis/Core/ElementId.h>
+#include <ElVis/Core/ElementTraversal.cu>
 
 #include <ElVis/Math/TrapezoidalIntegration.hpp>
 
@@ -60,9 +61,6 @@ rtBuffer<ElVis::ElementId> IdSortBuffer;
 
 rtBuffer<int> SomeSegmentsNeedToBeIntegrated;
 
-rtDeclareVariable(rtObject, faceGroup, , );
-rtDeclareVariable(ElVisFloat, FaceTolerance, , );
-rtDeclareVariable(rtObject, faceForTraversalGroup, ,);
 
 RT_PROGRAM void ElementByElementVolumeTraversalInit()
 {
@@ -941,6 +939,108 @@ RT_PROGRAM void FaceForTraversalBoundingBoxProgram(int primitiveId, float result
 
     aabb->m_min = make_float3(p0.x, p0.y, p0.z);
     aabb->m_max = make_float3(p1.x, p1.y, p1.z);
+}
+
+__device__ bool RiemannIntegration(const Segment& seg, const ElVisFloat3& origin)
+{
+  //optix::size_t2 screen = color_buffer.size();
+
+  //uint2 pixel;
+  //pixel.x = launch_index.x;
+  //pixel.y = launch_index.y;
+
+  //int segmentIndex = pixel.x + screen.x*pixel.y;
+  //if( segmentEnd[segmentIndex] < MAKE_FLOAT(0.0) )
+  //{
+  //  return;
+  //}
+
+  //int elementId = segmentElementId[segmentIndex];
+  //if( elementId == -1 )
+  //{
+  //  return;
+  //}
+
+  //int elementTypeId = segmentElementType[segmentIndex];
+  //ElVisFloat accumulatedDensity = densityAccumulator[segmentIndex];
+  //ElVisFloat3 color = colorAccumulator[segmentIndex];
+  //ElVisFloat a = segmentStart[segmentIndex];
+  //ElVisFloat b = segmentEnd[segmentIndex];
+
+  //ElVisFloat3 dir = segmentDirection[segmentIndex];
+  //ElVisFloat d = (b-a);
+
+  //if( d == MAKE_FLOAT(0.0) )
+  //{
+  //  return;
+  //}
+
+  //int n = Floor(d/desiredH);
+
+  //ElVisFloat h;
+
+  //if( n <= 1 )
+  //{
+  //  h = b-a;
+  //  n = 1;
+  //}
+  //else
+  //{
+  //  h= d/(ElVisFloat)(n-1);
+  //}
+
+  //if( traceEnabled )
+  //{
+  //  ELVIS_PRINTF("Total segment range: [%2.15f, %2.15f], segment Id %d\n", segmentStart[segmentIndex], segmentEnd[segmentIndex], segmentIndex);
+  //  ELVIS_PRINTF("D = %2.15f, H = %2.15f, N = %d\n", d, h, n);
+  //}
+
+  //// First test for density identically 0.  This means the segment does not contribute at
+  //// all to the integral and can be skipped.
+  //FieldEvaluator f;
+  //f.Origin = origin;
+  //f.Direction = dir;
+  //f.ElementId = elementId;
+  //f.ElementType = elementTypeId;
+  //f.sampleCount = numSamples;
+  //f.FieldId = fieldId;
+
+  //ElVisFloat s0 = f(a);
+  //ElVisFloat d0 = transferFunction->Sample(eDensity, s0);
+  //ElVisFloat3 color0 = transferFunction->SampleColor(s0);
+  //ElVisFloat atten = expf(-accumulatedDensity);
+  //color += h*color0*d0*atten;
+
+  //accumulatedDensity += d0*h;
+
+  //for(int i = 1; i < n; ++i)
+  //{
+  //  ElVisFloat t = a+i*h;
+  //  ElVisFloat sample = f(t);
+  //  ElVisFloat densityValue = transferFunction->Sample(eDensity, sample);
+
+  //  ElVisFloat3 sampleColor = transferFunction->SampleColor(sample);
+
+  //  ElVisFloat atten = expf(-accumulatedDensity);
+
+  //  color += h*sampleColor*densityValue*atten;
+
+  //  accumulatedDensity += densityValue*h;
+  //}
+
+  //densityAccumulator[segmentIndex] = accumulatedDensity;
+  //colorAccumulator[segmentIndex] = color;
+  return false;
+}
+
+__device__ bool UdpateVolumeRenderingForElement(const Segment& seg, const ElVisFloat3& origin)
+{
+  return false;
+}
+
+RT_PROGRAM void PerformVolumeRendering()
+{
+  ElementTraversal(RiemannIntegration);
 }
 
 #endif

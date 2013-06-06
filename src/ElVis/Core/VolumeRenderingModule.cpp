@@ -88,101 +88,101 @@ namespace ElVis
         std::cout << "Volume render." << std::endl;
         try
         {
-            {
-                int bufSize = view->GetWidth()*view->GetHeight();
+            //{
+            //    int bufSize = view->GetWidth()*view->GetHeight();
 
-                dim3 gridDim;
-                gridDim.x = bufSize/1024 + 1;
-                gridDim.y = 1;
-                gridDim.z = 1;
+            //    dim3 gridDim;
+            //    gridDim.x = bufSize/1024 + 1;
+            //    gridDim.y = 1;
+            //    gridDim.z = 1;
 
-                dim3 blockDim;
-                blockDim.x = 1024;
-                blockDim.y = 1;
-                blockDim.z = 1;
-                // Clear the accumulator buffers.
-                
-                void* args[] = {&m_accumulatedOpacityBuf, &m_accumulatedColorBuf, &bufSize};
-                checkedCudaCall(cuLaunchKernel(m_clearAccumlatorBuffers, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
-                checkedCudaCall(cuCtxSynchronize());
-            }
-            optixu::Context context = view->GetContext();
+            //    dim3 blockDim;
+            //    blockDim.x = 1024;
+            //    blockDim.y = 1;
+            //    blockDim.z = 1;
+            //    // Clear the accumulator buffers.
+            //    
+            //    void* args[] = {&m_accumulatedOpacityBuf, &m_accumulatedColorBuf, &bufSize};
+            //    checkedCudaCall(cuLaunchKernel(m_clearAccumlatorBuffers, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            //    checkedCudaCall(cuCtxSynchronize());
+            //}
+            //optixu::Context context = view->GetContext();
 
 
-            ResetSomeSegmentsNeedToBeIntegrated();
-            ResetSampleCount();
-            std::cout << "Program index: " << GetInitTraversalProgram().Index << std::endl;
-            context->launch(GetInitTraversalProgram().Index, view->GetWidth(), view->GetHeight());
+            //ResetSomeSegmentsNeedToBeIntegrated();
+            //ResetSampleCount();
+            //std::cout << "Program index: " << GetInitTraversalProgram().Index << std::endl;
+            //context->launch(GetInitTraversalProgram().Index, view->GetWidth(), view->GetHeight());
 
-            uint2 imageDimensions;
-            imageDimensions.x = view->GetWidth();
-            imageDimensions.y = view->GetHeight();
+            //uint2 imageDimensions;
+            //imageDimensions.x = view->GetWidth();
+            //imageDimensions.y = view->GetHeight();
 
-            ElVisFloat3 eye = MakeFloat3(view->GetEye());
-            ElVisFloat3 U = MakeFloat3(view->GetViewSettings()->GetU());
-            ElVisFloat3 V = MakeFloat3(view->GetViewSettings()->GetV());
-            ElVisFloat3 W = MakeFloat3(view->GetViewSettings()->GetW());
+            //ElVisFloat3 eye = MakeFloat3(view->GetEye());
+            //ElVisFloat3 U = MakeFloat3(view->GetViewSettings()->GetU());
+            //ElVisFloat3 V = MakeFloat3(view->GetViewSettings()->GetV());
+            //ElVisFloat3 W = MakeFloat3(view->GetViewSettings()->GetW());
 
-            dim3 gridDim;
-            gridDim.x = view->GetWidth()/4;
-            gridDim.y = view->GetHeight();
-            gridDim.z = 1;
+            //dim3 gridDim;
+            //gridDim.x = view->GetWidth()/4;
+            //gridDim.y = view->GetHeight();
+            //gridDim.z = 1;
 
-            dim3 blockDim;
-            blockDim.x = 32;
-            blockDim.y = 4;
-            blockDim.z = 1;
+            //dim3 blockDim;
+            //blockDim.x = 32;
+            //blockDim.y = 4;
+            //blockDim.z = 1;
 
-            int someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
-            std::cout << "Some segments need to be integrated: " <<someSegmentsNeedToBeIntegrated << std::endl;
-            int infiniteLoopGuard = 0;
-            while(someSegmentsNeedToBeIntegrated == 1 && infiniteLoopGuard < 200)
-            {
-                IntegrateSegment(view);
-                
-                ResetSomeSegmentsNeedToBeIntegrated();
-                context->launch(GetTraveralProgram().Index, view->GetWidth(), view->GetHeight());
-                someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
-                ++infiniteLoopGuard;
-            }
+            //int someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
+            //std::cout << "Some segments need to be integrated: " <<someSegmentsNeedToBeIntegrated << std::endl;
+            //int infiniteLoopGuard = 0;
+            //while(someSegmentsNeedToBeIntegrated == 1 && infiniteLoopGuard < 200)
+            //{
+            //    IntegrateSegment(view);
+            //    
+            //    ResetSomeSegmentsNeedToBeIntegrated();
+            //    context->launch(GetTraveralProgram().Index, view->GetWidth(), view->GetHeight());
+            //    someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
+            //    ++infiniteLoopGuard;
+            //}
            
-            {
-                int bufSize = view->GetWidth()*view->GetHeight();
+            //{
+            //    int bufSize = view->GetWidth()*view->GetHeight();
 
-                dim3 gridDim;
-                gridDim.x = bufSize/1024 + 1;
-                gridDim.y = 1;
-                gridDim.z = 1;
+            //    dim3 gridDim;
+            //    gridDim.x = bufSize/1024 + 1;
+            //    gridDim.y = 1;
+            //    gridDim.z = 1;
 
-                dim3 blockDim;
-                blockDim.x = 1024;
-                blockDim.y = 1;
-                blockDim.z = 1;
-                // Clear the accumulator buffers.
-                
-                Color c  = view->GetBackgroundColor();
-                ElVisFloat3 color;
-                color.x = c.Red();
-                color.y = c.Green();
-                color.z = c.Blue();
+            //    dim3 blockDim;
+            //    blockDim.x = 1024;
+            //    blockDim.y = 1;
+            //    blockDim.z = 1;
+            //    // Clear the accumulator buffers.
+            //    
+            //    Color c  = view->GetBackgroundColor();
+            //    ElVisFloat3 color;
+            //    color.x = c.Red();
+            //    color.y = c.Green();
+            //    color.z = c.Blue();
 
-                CUdeviceptr colorBuffer = view->GetColorBuffer().GetMappedCudaPtr();//view->GetDeviceColorBuffer();
-                void* args[] = {&m_accumulatedColorBuf, &m_accumulatedOpacityBuf, &colorBuffer, &bufSize, &color};
-                checkedCudaCall(cuLaunchKernel(m_populateColorBuffer, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
-                checkedCudaCall(cuCtxSynchronize());
-                view->GetColorBuffer().UnmapCudaPtr();
-            }
+            //    CUdeviceptr colorBuffer = view->GetColorBuffer().GetMappedCudaPtr();//view->GetDeviceColorBuffer();
+            //    void* args[] = {&m_accumulatedColorBuf, &m_accumulatedOpacityBuf, &colorBuffer, &bufSize, &color};
+            //    checkedCudaCall(cuLaunchKernel(m_populateColorBuffer, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
+            //    checkedCudaCall(cuCtxSynchronize());
+            //    view->GetColorBuffer().UnmapCudaPtr();
+            //}
 
-            if( m_numSamples )
-            {
-                int numSampleBuffer[] = {-1};
-                if( m_numSamples )
-                {
-                    checkedCudaCall(cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int)));
-                }
+            //if( m_numSamples )
+            //{
+            //    int numSampleBuffer[] = {-1};
+            //    if( m_numSamples )
+            //    {
+            //        checkedCudaCall(cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int)));
+            //    }
 
-                std::cout << "Total number of samples taken: " << numSampleBuffer[0] << std::endl;
-            }
+            //    std::cout << "Total number of samples taken: " << numSampleBuffer[0] << std::endl;
+            //}
         }
         catch(optixu::Exception& e)
         {
