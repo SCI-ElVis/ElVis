@@ -312,6 +312,8 @@ __device__ void hqr(SquareMatrix& a, int n, ElVisFloat* wri)
   }
 }
 
+// Field evaluator used when the t values are in [-1..1], rather than world
+// space.
 struct IsosurfaceFieldEvaluator
 {
 public:

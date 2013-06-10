@@ -56,8 +56,18 @@
 
 namespace ElVis
 {
+    RayGeneratorProgram VolumeRenderingModule::m_PerformVolumeRendering;
+
     VolumeRenderingModule::VolumeRenderingModule() :
-        ElementTraversalModule(),
+        ElementTraversalModule()
+        ,DensityBreakpoints("DensityBreakpoints", 1)
+        ,RedBreakpoints("RedBreakpoints", 1)
+        ,GreenBreakpoints("GreenBreakpoints", 1)
+        ,BlueBreakpoints("BlueBreakpoints", 1)
+        ,DensityValues("DensityValues", 1)
+        ,RedValues("RedValues", 1)
+        ,GreenValues("GreenValues", 1)
+        ,BlueValues("BlueValues", 1),
         m_segmentIntegrationType(eRiemann_SingleThreadPerRay),
         m_integrateSegmentSingleThreadPerRayRiemann(0),
         m_integrateFull(0),
@@ -88,6 +98,20 @@ namespace ElVis
         std::cout << "Volume render." << std::endl;
         try
         {
+          std::cout << "Volume Rendering Element Traversal." << std::endl;
+          optixu::Context context = view->GetContext();
+
+          if( m_transferFunction->Dirty() )
+          {
+              std::cout << "Updating transfer function." << std::endl;
+              m_transferFunction->CopyToOptix(context, DensityBreakpoints, DensityValues, eDensity);
+              m_transferFunction->CopyToOptix(context, RedBreakpoints, RedValues, eRed);
+              m_transferFunction->CopyToOptix(context, GreenBreakpoints, GreenValues, eGreen);
+              m_transferFunction->CopyToOptix(context, BlueBreakpoints, BlueValues, eBlue);
+              m_transferFunction->Dirty() = true;
+          }
+          SetFloat(context["desiredH"], m_compositingStepSize);
+          context->launch(m_PerformVolumeRendering.Index, view->GetWidth(), view->GetHeight());
             //{
             //    int bufSize = view->GetWidth()*view->GetHeight();
 
@@ -715,7 +739,26 @@ namespace ElVis
             checkedCudaCall(cuMemAlloc(&m_pixelCategoryBuf, sizeof(VolumeRenderingIntegrationCategory)*view->GetWidth()*view->GetHeight()));
             checkedCudaCall(cuMemAlloc(&m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight()));
             checkedCudaCall(cuMemAlloc(&m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight()));        
+            
+            //m_accumulatedOpacityBufOptiX.Create(context, RT_BUFFER_INPUT_OUTPUT, view->GetWidth(), view->GetHeight());
+            //context[m_accumulatedOpacityBufOptiX.Name().c_str()]->set(*m_accumulatedOpacityBufOptiX);
 
+            //m_accumulatedColorBufOptiX.Create(context,  RT_BUFFER_INPUT_OUTPUT, view->GetWidth(), view->GetHeight());
+            //context[m_accumulatedColorBufOptiX.Name().c_str()]->set(*m_accumulatedColorBufOptiX);
+
+            if( m_PerformVolumeRendering.Index == -1 )
+            {
+              m_PerformVolumeRendering = view->AddRayGenerationProgram("PerformVolumeRendering");
+            }
+            if( m_transferFunction->Dirty() )
+            {
+                auto context = view->GetContext();
+                m_transferFunction->CopyToOptix(context, DensityBreakpoints, DensityValues, eDensity);
+                m_transferFunction->CopyToOptix(context, RedBreakpoints, RedValues, eRed);
+                m_transferFunction->CopyToOptix(context, GreenBreakpoints, GreenValues, eGreen);
+                m_transferFunction->CopyToOptix(context, BlueBreakpoints, BlueValues, eBlue);
+                m_transferFunction->Dirty() = true;
+            }
             m_initializationComplete = true;
         }
     }

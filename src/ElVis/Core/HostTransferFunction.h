@@ -32,6 +32,7 @@
 #include <ElVis/Core/TransferFunction.h>
 #include <ElVis/Core/ColorMap.h>
 #include <boost/signals.hpp>
+#include <optixu/optixpp.h>
 
 namespace ElVis
 {
@@ -47,6 +48,7 @@ namespace ElVis
         public:
             ELVIS_EXPORT HostTransferFunction();
             ELVIS_EXPORT CUdeviceptr GetDeviceObject();
+            ELVIS_EXPORT TransferFunction GetOptixObject();
 
             ELVIS_EXPORT void SetBreakpoint(double s, const Color& c);
             ELVIS_EXPORT void SetBreakpoint(double s, const Color& c, const ElVisFloat& density);
@@ -60,7 +62,11 @@ namespace ElVis
 
             ELVIS_EXPORT void Clear();
 
+            ELVIS_EXPORT void CopyToOptix(optixu::Context context, FloatingPointBuffer& buffer, FloatingPointBuffer& values, TransferFunctionChannel channel);
+
             boost::signal<void (void)> OnTransferFunctionChanged;
+
+            bool& Dirty() { return m_dirty; }
 
         protected:
 
@@ -72,6 +78,7 @@ namespace ElVis
 
             void InitializeArrayIfNeeded(CUdeviceptr& devicePtr, ElVisFloat* data, int size);
             void SynchronizeDeviceIfNeeded();
+            void SynchronizeOptiXIfNeeded();
             void FreeDeviceMemory();
             void AllocateDeviceMemory();
             void CopyToDeviceMemory();

@@ -96,6 +96,10 @@ namespace ElVis
             VolumeRenderingModule& operator=(const VolumeRenderingModule& rhs);
             VolumeRenderingModule(const VolumeRenderingModule& rhs);
             
+            static bool InitializeStatic();
+            static bool Initialized;
+
+            //virtual void DoAfterSetup(SceneView* view);
 
             void IntegrateSegment(SceneView* view);
             void IntegrateSegmentSingleThreadPerRayRiemann(SceneView* view);
@@ -122,7 +126,18 @@ namespace ElVis
             ///////////////////////////////////////////////////////////
             void ResetSampleCount();
 
+            FloatingPointBuffer DensityBreakpoints;
+            FloatingPointBuffer RedBreakpoints;
+            FloatingPointBuffer GreenBreakpoints;
+            FloatingPointBuffer BlueBreakpoints;
+
+            FloatingPointBuffer DensityValues;
+            FloatingPointBuffer RedValues;
+            FloatingPointBuffer GreenValues;
+            FloatingPointBuffer BlueValues;
+
             RayGeneratorProgram m_program;
+            static RayGeneratorProgram m_PerformVolumeRendering;
 
             // Element by Element Approach
             VolumeRenderingIntegrationType m_segmentIntegrationType;
@@ -137,6 +152,7 @@ namespace ElVis
             CUdeviceptr m_pixelCategoryBuf;
             CUdeviceptr m_accumulatedOpacityBuf;
             CUdeviceptr m_accumulatedColorBuf;
+
             CUdeviceptr m_numSamples;
             bool m_enableSampleTracking;
             CUfunction m_clearAccumlatorBuffers;

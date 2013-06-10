@@ -26,62 +26,28 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVIS_CORE_FIELD_EVALUATOR_CU
-#define ELVIS_CORE_FIELD_EVALUATOR_CU
+#ifndef ELVIS_CORE_INNER_INTEGRAL_FUNCTOR_CU
+#define ELVIS_CORE_INNER_INTEGRAL_FUNCTOR_CU
 
-#include <ElVis/Core/Cuda.h>
+#include <ElVis/Core/Float.cu>
+#include <ElVis/Core/TransferFunction.h>
 
-struct FieldEvaluator
+namespace ElVis
 {
-    ELVIS_DEVICE FieldEvaluator() :
-      Origin(),
-      Direction(),
-      ElementId(0),
-      ElementType(0),
-      FieldId(0),
-      sampleCount(0)
+    struct InnerIntegralFunctor
     {
-    }
+        ELVIS_DEVICE ElVisFloat GetMaxValue(const Interval<ElVisFloat>& domain) const
+        {
+            return transferFunction->GetMaxValue(eDensity, domain);
+        }
 
-    ELVIS_DEVICE ElVisFloat operator()(const ElVisFloat& t) const
-    {
-        ElVisFloat3 p = Origin + t*Direction;
-#ifdef ELVIS_OPTIX_MODULE
-        ElVisFloat s = EvaluateFieldOptiX(ElementId, ElementType, FieldId, p);
-#else
-        ElVisFloat s = EvaluateFieldCuda(ElementId, ElementType, FieldId, p);
+
+        ELVIS_DEVICE ElVisFloat operator()(const ElVisFloat& t, const ElVisFloat& s, bool traceEnabled=false) const
+        {
+            return transferFunction->Sample(eDensity, s);
+        }
+        TransferFunction* transferFunction;
+    };
+}
+
 #endif
-
-        if( sampleCount )
-        {
-            atomicAdd(sampleCount, 1);
-        }
-        return s;
-    }
-
-    ELVIS_DEVICE ElVis::Interval<ElVisFloat> EstimateRange(const ElVisFloat& t0, const ElVisFloat& t1) const
-    {
-        //ElVisFloat3 p0 = Origin + t0*Direction;
-        //ElVisFloat3 p1 = Origin + t1*Direction;
-        ElVis::Interval<ElVisFloat> result;
-        //::EstimateRangeOptiX(ElementId, ElementType, FieldId, p0, p1, result);
-        return result;
-    }
-
-    ELVIS_DEVICE void AdjustSampleCount(int value)
-    {
-        if( sampleCount )
-        {
-            atomicAdd(sampleCount, value);
-        }
-    }
-
-    ElVisFloat3 Origin;
-    ElVisFloat3 Direction;
-    unsigned int ElementId;
-    unsigned int ElementType;
-    int FieldId;
-    int* sampleCount;
-};
-
-#endif //ELVIS_CORE_FIELD_EVALUATOR_CU

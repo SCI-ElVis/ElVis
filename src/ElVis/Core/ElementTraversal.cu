@@ -114,12 +114,6 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
 
 __device__ bool ValidateSegment(const Segment& seg)
 {
-  if( seg.End < MAKE_FLOAT(0.0) )
-  {
-    ELVIS_PRINTF("ValidateSegment: Exiting because ray has left volume based on segment end\n");
-    return false;
-  }
-
   int elementId = seg.ElementId;
   ELVIS_PRINTF("ValidateSegment: Element id %d\n", elementId);
 
@@ -149,7 +143,7 @@ __device__ bool ValidateSegment(const Segment& seg)
 }
 
 template<typename SegmentFunction>
-__device__ void ElementTraversal(const SegmentFunction& f)
+__device__ void ElementTraversal(SegmentFunction& f)
 {
   // Cast a single ray to find entrance to volume.
   optix::size_t2 screen = color_buffer.size();
@@ -164,10 +158,17 @@ __device__ void ElementTraversal(const SegmentFunction& f)
   int iter = 0;
   while( FindNextSegmentAlongRay(seg, rayDirection) && iter < maxIter)
   {
+    if( seg.End < MAKE_FLOAT(0.0) )
+    {
+      ELVIS_PRINTF("ValidateSegment: Exiting because ray has left volume based on segment end\n");
+      return;
+    }
+
     if(ValidateSegment(seg) && f(seg, origin0) )
     {
       return;
     }
+
     seg.Start = seg.End;
     ++iter;
   }

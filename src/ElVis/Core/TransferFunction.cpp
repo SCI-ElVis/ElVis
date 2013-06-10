@@ -158,6 +158,33 @@ namespace ElVis
         checkedCudaCall(cuMemAlloc(&m_deviceObject, sizeof(TransferFunction)));
     }
 
+    void HostTransferFunction::CopyToOptix(optixu::Context context, FloatingPointBuffer& breakpoints, FloatingPointBuffer& values, TransferFunctionChannel channel)
+    {
+        breakpoints.Create(context,RT_BUFFER_INPUT, m_breakpoints.size());
+        values.Create(context, RT_BUFFER_INPUT, m_breakpoints.size());
+        ElVisFloat* breakpointData = static_cast<ElVisFloat*>(breakpoints->map());
+        ElVisFloat* valueData = static_cast<ElVisFloat*>(values->map());
+
+        int index = 0;
+        for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
+        {
+            breakpointData[index] = (*iter).first;
+
+            if( channel == eDensity ) valueData[index] = (*iter).second.Density;
+            if( channel == eRed ) valueData[index] = (*iter).second.Col.Red();
+            if( channel == eGreen ) valueData[index] = (*iter).second.Col.Green();
+            if( channel == eBlue ) valueData[index] = (*iter).second.Col.Blue();
+
+            ++index;
+        }
+
+        breakpoints->unmap();
+        values->unmap();
+        context[breakpoints.Name().c_str()]->set(*breakpoints);
+        context[values.Name().c_str()]->set(*values);
+    }
+
+
     void HostTransferFunction::CopyToDeviceMemory()
     {
         ElVisFloat* DensityBreakpoints = new ElVisFloat[m_breakpoints.size()];
@@ -249,10 +276,14 @@ namespace ElVis
         AllocateDeviceMemory();
         CopyToDeviceMemory();
 
-        m_dirty = false;
+        // Reset after OptiX updates.
+        m_dirty = true;
     }
 
-
+    void HostTransferFunction::SynchronizeOptiXIfNeeded()
+    {
+        if( !m_dirty) return;
+    }
 
     void HostTransferFunction::SetBreakpoint(double s, const Color& c)
     {
