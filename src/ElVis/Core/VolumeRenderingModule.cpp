@@ -726,14 +726,14 @@ namespace ElVis
 
         if( !m_initializationComplete )
         {
-            checkedCudaCall(cuModuleGetFunction(&m_clearAccumlatorBuffers, module, "ClearAccumulatorBuffers"));
-            checkedCudaCall(cuModuleGetFunction(&m_populateColorBuffer, module, "PopulateColorBuffer"));
-            checkedCudaCall(cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRayRiemann, module, "IntegrateSegmentSingleThreadPerRayRiemann"));
-            checkedCudaCall(cuModuleGetFunction(&m_integrateFull, module, "IntegrateSegmentSingleThreadPerRayFullVersion"));
-            checkedCudaCall(cuModuleGetFunction(&m_integrateFullSingleSegmentPerWarp, module, "IntegrateSegmentWarpPerSegment"));
-            checkedCudaCall(cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRay, module, "IntegrateSegmentSingleThreadPerRay"));
-            checkedCudaCall(cuModuleGetFunction(&m_gkOnly, module, "GKOnly"));
-            checkedCudaCall(cuModuleGetFunction(&m_Trapezoidal_SingleThreadPerRay, module, "Trapezoidal_SingleThreadPerRay"));
+            //checkedCudaCall(cuModuleGetFunction(&m_clearAccumlatorBuffers, module, "ClearAccumulatorBuffers"));
+            //checkedCudaCall(cuModuleGetFunction(&m_populateColorBuffer, module, "PopulateColorBuffer"));
+            //checkedCudaCall(cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRayRiemann, module, "IntegrateSegmentSingleThreadPerRayRiemann"));
+            //checkedCudaCall(cuModuleGetFunction(&m_integrateFull, module, "IntegrateSegmentSingleThreadPerRayFullVersion"));
+            //checkedCudaCall(cuModuleGetFunction(&m_integrateFullSingleSegmentPerWarp, module, "IntegrateSegmentWarpPerSegment"));
+            //checkedCudaCall(cuModuleGetFunction(&m_integrateSegmentSingleThreadPerRay, module, "IntegrateSegmentSingleThreadPerRay"));
+            //checkedCudaCall(cuModuleGetFunction(&m_gkOnly, module, "GKOnly"));
+            //checkedCudaCall(cuModuleGetFunction(&m_Trapezoidal_SingleThreadPerRay, module, "Trapezoidal_SingleThreadPerRay"));
 
             checkedCudaCall(cuMemAlloc(&m_mappedSegmentIndex, sizeof(int)*view->GetWidth()*view->GetHeight()));
             checkedCudaCall(cuMemAlloc(&m_pixelCategoryBuf, sizeof(VolumeRenderingIntegrationCategory)*view->GetWidth()*view->GetHeight()));

@@ -106,17 +106,17 @@ SOURCE_GROUP("OptiX" FILES ${JACOBI_EXTENSION_OPTIX} ${JACOBI_EXTENSION_OPTIX_HE
 #################################3
 # Jacobi Cuda Source
 #################################3
-SET(JACOBI_EXTENSION_CUDA_HEADER_ONLY
-    CudaHexahedron.cu
-    CudaPrism.cu
-    HexahedronCommon.cu
-    ExtensionCudaInterface.cu
-    PrismCommon.cu
-)
-SET_SOURCE_FILES_PROPERTIES(${JACOBI_EXTENSION_CUDA_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
-SET(JACOBI_EXTENSION_CUDA
-    ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu
-)
+#SET(JACOBI_EXTENSION_CUDA_HEADER_ONLY
+#    CudaHexahedron.cu
+#    CudaPrism.cu
+#    HexahedronCommon.cu
+#    ExtensionCudaInterface.cu
+#    PrismCommon.cu
+#)
+#SET_SOURCE_FILES_PROPERTIES(${JACOBI_EXTENSION_CUDA_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
+#SET(JACOBI_EXTENSION_CUDA
+#    ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu
+#)
 
 
 #################################3
@@ -139,10 +139,10 @@ ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR}
     ${JACOBI_EXTENSION_OPTIX_HEADER_ONLY}
 )
 
-ADD_ELVIS_CUDA_LIBRARY(${ProjectName}Cuda 
-    ${JACOBI_EXTENSION_CUDA_HEADER_ONLY}
-    ${JACOBI_EXTENSION_CUDA}
-)
+#ADD_ELVIS_CUDA_LIBRARY(${ProjectName}Cuda 
+#    ${JACOBI_EXTENSION_CUDA_HEADER_ONLY}
+#    ${JACOBI_EXTENSION_CUDA}
+#)
 
 
 TARGET_LINK_LIBRARIES(${ProjectName} 
@@ -151,7 +151,7 @@ TARGET_LINK_LIBRARIES(${ProjectName}
 )
 
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Extensions/JacobiExtension")
-SET_PROPERTY(TARGET ${ProjectName}Cuda PROPERTY FOLDER "Extensions/JacobiExtension")
+#SET_PROPERTY(TARGET ${ProjectName}Cuda PROPERTY FOLDER "Extensions/JacobiExtension")
 
 SET_TARGET_PROPERTIES(${ProjectName} PROPERTIES VERSION ${ELVIS_VERSION})
 

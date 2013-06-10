@@ -147,18 +147,18 @@ namespace ElVis
         CUdevice curDevice;
         checkedCudaCall(cuDeviceGet(&curDevice, 0));
 
-        // In order to use OpenGL interop, we need cuGLCtxCreate.
-        // A valid OpenGL context must have been created first, which 
-        // we assume has been done.
-        checkedCudaCall(cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice));
+        //// In order to use OpenGL interop, we need cuGLCtxCreate.
+        //// A valid OpenGL context must have been created first, which 
+        //// we assume has been done.
+        //checkedCudaCall(cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice));
 
-        #ifdef _MSC_VER
-            std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
-        #else
-            std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
-        #endif
-        std::cout << "Loading module from " << modulePath << std::endl;
-        checkedCudaCall(cuModuleLoad(&m_cudaModule, modulePath.c_str()));
+        //#ifdef _MSC_VER
+        //    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
+        //#else
+        //    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
+        //#endif
+        //std::cout << "Loading module from " << modulePath << std::endl;
+        //checkedCudaCall(cuModuleLoad(&m_cudaModule, modulePath.c_str()));
     }
 
     void Scene::SetOptixStackSize(int size)

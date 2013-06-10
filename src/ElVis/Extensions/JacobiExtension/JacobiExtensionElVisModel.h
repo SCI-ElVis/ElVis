@@ -261,6 +261,7 @@ namespace ElVis
             template<typename T>
             void CreateCudaGeometryForElementType(boost::shared_ptr<FiniteElementVolume> volume, CUmodule module, const std::string& variablePrefix) const
             {
+                return;
                 unsigned int coefficientAlignment = 8;
                 unsigned int numElements = volume->NumElementsOfType<T>();
                 unsigned int numVertices = numElements*T::VertexCount;

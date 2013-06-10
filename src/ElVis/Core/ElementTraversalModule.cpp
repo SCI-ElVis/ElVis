@@ -92,7 +92,7 @@ namespace ElVis
             m_SomeSegmentsNeedToBeIntegrated = context->createBuffer(RT_BUFFER_INPUT_OUTPUT, RT_FORMAT_INT, 1);
             context["SomeSegmentsNeedToBeIntegrated"]->set(m_SomeSegmentsNeedToBeIntegrated);
 
-            checkedCudaCall(cuModuleGetFunction(&m_copyElementIdKeyData, module, "CopyToElementId"));
+            //checkedCudaCall(cuModuleGetFunction(&m_copyElementIdKeyData, module, "CopyToElementId"));
         }
 
         DoSetupAfterInteropModule(view);
