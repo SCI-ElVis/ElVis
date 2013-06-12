@@ -67,7 +67,7 @@ namespace ElVis
             ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
             ELVIS_EXPORT virtual bool HasWork() const { return m_isovalues.size() > 0; }
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
+            virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
             virtual void DoResize(unsigned int newWidth, unsigned int newHeight);
             virtual std::string DoGetName() const { return "Isosurface Rendering"; }
 
@@ -77,7 +77,6 @@ namespace ElVis
 
             void SynchronizeWithOptix();
             static void ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values);
-            static bool InitializeStaticForIsosuface();
 
             std::set<ElVisFloat> m_isovalues;
             unsigned int m_isovalueBufferSize;
@@ -87,12 +86,7 @@ namespace ElVis
             InteropBuffer<ElVisFloat> m_gaussLegendreWeightsBuffer;
             InteropBuffer<ElVisFloat> m_monomialConversionTableBuffer;
 
-            CUfunction m_findIsosurfaceFunction;
-
-            static RayGeneratorProgram m_ElementByElementVolumeTraversalInitProgramForIsosurface;
-            static RayGeneratorProgram m_ElementByElementVolumeTraversalProgramForIsosurface;
             static RayGeneratorProgram m_FindIsosurface;
-            static bool Initialized;
 
     };
 }

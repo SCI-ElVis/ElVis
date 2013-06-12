@@ -40,16 +40,7 @@
 
 namespace ElVis
 {
-  RayGeneratorProgram IsosurfaceModule::m_ElementByElementVolumeTraversalInitProgramForIsosurface;
-  RayGeneratorProgram IsosurfaceModule::m_ElementByElementVolumeTraversalProgramForIsosurface;
   RayGeneratorProgram IsosurfaceModule::m_FindIsosurface;
-
-  bool IsosurfaceModule::Initialized = IsosurfaceModule::InitializeStaticForIsosuface();
-
-  bool IsosurfaceModule::InitializeStaticForIsosuface()
-  {
-    return true;
-  }
 
   IsosurfaceModule::IsosurfaceModule() :
   ElementTraversalModule(),
@@ -60,8 +51,7 @@ namespace ElVis
     m_gaussLegendreNodesBuffer("Nodes"),
     m_gaussLegendreWeightsBuffer("Weights"),
     m_monomialConversionTableBuffer("MonomialConversionTable"),
-    m_isovalueBuffer("SurfaceIsovalues"),
-    m_findIsosurfaceFunction(0)
+    m_isovalueBuffer("SurfaceIsovalues")
   {
   }
 
@@ -98,22 +88,6 @@ namespace ElVis
       optixu::Context context = view->GetContext();
 
       context->launch(m_FindIsosurface.Index, view->GetWidth(), view->GetHeight());
-
-      //ResetSomeSegmentsNeedToBeIntegrated();
-      ////std::cout << "Program index: " << GetInitTraversalProgram().Index << std::endl;
-      //context->launch(m_ElementByElementVolumeTraversalInitProgramForIsosurface.Index, view->GetWidth(), view->GetHeight());
-
-      //int someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
-      ////std::cout << "Some segments need to be integrated: " <<someSegmentsNeedToBeIntegrated << std::endl;
-      //int infiniteLoopGuard = 0;
-      //while(someSegmentsNeedToBeIntegrated == 1 && infiniteLoopGuard < 200)
-      //{
-      //  ResetSomeSegmentsNeedToBeIntegrated();
-      //  context->launch(m_ElementByElementVolumeTraversalProgramForIsosurface.Index, view->GetWidth(), view->GetHeight());
-      //  someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
-      //  ++infiniteLoopGuard;
-      //}
-
     }
     catch(optixu::Exception& e)
     {
@@ -227,27 +201,10 @@ namespace ElVis
       std::cout << "Isourface setup." << std::endl;
       optixu::Context context = view->GetContext();
 
-      if( m_ElementByElementVolumeTraversalInitProgramForIsosurface.Index == -1 )
-      {
-        //m_ElementByElementVolumeTraversalInitProgramForIsosurface = view->AddRayGenerationProgram("ElementByElementVolumeTraversalInitForIsosurface");
-      }
-
-      if( m_ElementByElementVolumeTraversalProgramForIsosurface.Index == -1 )
-      {
-        //m_ElementByElementVolumeTraversalProgramForIsosurface = view->AddRayGenerationProgram("ElementByElementVolumeTraversalForIsosurface");
-      }
-
       if( m_FindIsosurface.Index == -1 )
       {
         m_FindIsosurface = view->AddRayGenerationProgram("FindIsosurface");
       }
-
-      //if( !m_findIsosurfaceFunction )
-      //{
-      //  checkedCudaCall(cuModuleGetFunction(&m_findIsosurfaceFunction, module, "FindIsosurfaceInSegment"));
-      //}
-
-
 
       if( !m_gaussLegendreNodesBuffer.Initialized() )
       {
