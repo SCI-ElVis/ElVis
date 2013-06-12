@@ -81,8 +81,6 @@ namespace ElVis
             ELVIS_EXPORT boost::shared_ptr<Model> GetModel() const { return m_model; }
 
             ELVIS_EXPORT optixu::Context GetContext();
-            ELVIS_EXPORT CUmodule GetCudaModule();
-            ELVIS_EXPORT CUcontext GetCudaContext();
 
             ELVIS_EXPORT void SetOptixStackSize(int size);
             ELVIS_EXPORT int GetOptixStackSize() const { return m_optixStackSize; }
@@ -139,8 +137,6 @@ namespace ElVis
 
             std::list<boost::shared_ptr<PrimaryRayObject> > m_allPrimaryObjects;
 
-            CUcontext m_cudaContext;
-            CUmodule m_cudaModule;
             int m_optixStackSize;
 
             std::map<std::string, ColorMapInfo> m_colorMaps;

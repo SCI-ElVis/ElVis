@@ -55,8 +55,6 @@ namespace ElVis
         m_model(),
         m_context(0),
         m_allPrimaryObjects(),
-        m_cudaContext(0),
-        m_cudaModule(0),
         m_optixStackSize(8000),
         m_colorMaps(),
         m_enableOptiXTrace(false),
@@ -98,15 +96,7 @@ namespace ElVis
 
     Scene::~Scene()
     {
-        if( m_cudaContext )
-        {
-            checkedCudaCall(cuCtxDestroy(m_cudaContext));
-            m_cudaContext = 0;
-        }
-
         m_context = 0;
-
-        m_cudaModule = 0;
     }
 
     void Scene::SetAmbientLightColor(const Color& value) 
@@ -116,49 +106,38 @@ namespace ElVis
         m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
     }
     
-    CUmodule Scene::GetCudaModule()
-    {
-        InitializeCudaIfNeeded();
-        return m_cudaModule;
-    }
-
-    CUcontext Scene::GetCudaContext()
-    {
-        InitializeCudaIfNeeded();
-        return m_cudaContext;
-    }
-
     void Scene::InitializeCudaIfNeeded()
     {
-        if( m_cudaContext ) return;
+        return;
+        //if( m_cudaContext ) return;
 
-        checkedCudaCall(cuInit(0));
+        //checkedCudaCall(cuInit(0));
 
-        int driverVersion = 0;
-        checkedCudaCall(cuDriverGetVersion(&driverVersion));
+        //int driverVersion = 0;
+        //checkedCudaCall(cuDriverGetVersion(&driverVersion));
 
-        std::cout << "Driver version " << driverVersion << std::endl;
+        ////std::cout << "Driver version " << driverVersion << std::endl;
 
-        int deviceCount = 0;
-        checkedCudaCall(cuDeviceGetCount(&deviceCount));
+        //int deviceCount = 0;
+        //checkedCudaCall(cuDeviceGetCount(&deviceCount));
 
-        std::cout << "Number of available devices: " << deviceCount << std::endl;
+        ////std::cout << "Number of available devices: " << deviceCount << std::endl;
 
-        CUdevice curDevice;
-        checkedCudaCall(cuDeviceGet(&curDevice, 0));
+        //CUdevice curDevice;
+        //checkedCudaCall(cuDeviceGet(&curDevice, 0));
 
-        //// In order to use OpenGL interop, we need cuGLCtxCreate.
-        //// A valid OpenGL context must have been created first, which 
-        //// we assume has been done.
-        //checkedCudaCall(cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice));
+        ////// In order to use OpenGL interop, we need cuGLCtxCreate.
+        ////// A valid OpenGL context must have been created first, which 
+        ////// we assume has been done.
+        ////checkedCudaCall(cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice));
 
-        //#ifdef _MSC_VER
-        //    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
-        //#else
-        //    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
-        //#endif
-        //std::cout << "Loading module from " << modulePath << std::endl;
-        //checkedCudaCall(cuModuleLoad(&m_cudaModule, modulePath.c_str()));
+        ////#ifdef _MSC_VER
+        ////    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
+        ////#else
+        ////    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
+        ////#endif
+        ////std::cout << "Loading module from " << modulePath << std::endl;
+        ////checkedCudaCall(cuModuleLoad(&m_cudaModule, modulePath.c_str()));
     }
 
     void Scene::SetOptixStackSize(int size)
@@ -293,9 +272,6 @@ namespace ElVis
                     InitializeFaces();
                 }
 
-                // Eventually get rid of this once the conversion for the Jacobi extension are done.
-                GetModel()->SetupCudaContext(GetCudaModule());
-
                 m_context->setStackSize(m_optixStackSize);
                 m_context->setPrintLaunchIndex(-1, -1, -1);
 
@@ -320,7 +296,7 @@ namespace ElVis
     {
         //if( GetModel()->GetModelDimension() != 3 ) return;
 
-        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context, GetCudaModule());
+        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context);
         optixu::Group volumeGroup = m_context->createGroup();
         volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
 
@@ -357,7 +333,7 @@ namespace ElVis
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
         m_faceGeometry = m_context->createGeometry();
         m_faceGeometry->setPrimitiveCount(0);
-        GetModel()->GetFaceGeometry(this, m_context, GetCudaModule(), m_faceGeometry);
+        GetModel()->GetFaceGeometry(this, m_context, m_faceGeometry);
         m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
         m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
 

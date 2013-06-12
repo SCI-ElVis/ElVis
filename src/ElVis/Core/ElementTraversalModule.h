@@ -64,9 +64,6 @@ namespace ElVis
 
             virtual void DoSetupAfterInteropModule(SceneView* view) = 0;
 
-            ELVIS_EXPORT int GetSomeSegmentsNeedToBeIntegrated();
-            ELVIS_EXPORT void ResetSomeSegmentsNeedToBeIntegrated();
-
             RayGeneratorProgram& GetInitTraversalProgram() { return m_ElementByElementVolumeTraversalInitProgram; }
             RayGeneratorProgram& GetTraveralProgram() { return m_ElementByElementVolumeTraversalProgram; }
             InteropBuffer<int>& GetSegmentElementIdBuffer() { return m_SegmentElementIdBuffer; }

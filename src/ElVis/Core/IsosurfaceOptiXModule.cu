@@ -550,7 +550,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
     ////PrintMatrix(h);
 
 
-    //balance(h);
+    balance(h);
 
 
     //ELVIS_PRINTF("After balancing.\n");

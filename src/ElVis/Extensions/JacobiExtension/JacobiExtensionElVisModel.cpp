@@ -163,17 +163,6 @@ namespace ElVis
             return m_vertices[id];
         }
 
-        //unsigned int JacobiExtensionModel::DoGetNumberOfPoints() const
-        //{
-        //    return m_vertices.size();
-        //}
-
-        void JacobiExtensionModel::DoSetupCudaContext(CUmodule module) const
-        {
-            CreateCudaGeometryForElementType<Hexahedron>(m_volume, module, "Hex");
-            CreateCudaGeometryForElementType<Prism>(m_volume, module, "Prism");
-        }
-
         unsigned int JacobiExtensionModel::DoGetNumberOfElements() const
         {
             return m_volume->numElements();
@@ -193,7 +182,7 @@ namespace ElVis
             return info;
         }
 
-        void JacobiExtensionModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faceGeometry)
+        void JacobiExtensionModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)
         {
             std::map<JacobiFace, FaceDef> faces;
 
@@ -205,15 +194,15 @@ namespace ElVis
 
             ElVisFloat3* minBuffer = static_cast<ElVisFloat3*>(scene->GetFaceMinExtentBuffer()->map());
             ElVisFloat3* maxBuffer = static_cast<ElVisFloat3*>(scene->GetFaceMaxExtentBuffer()->map());
-            FaceVertexBuffer.SetContextInfo(context, module);
+            FaceVertexBuffer.SetContextInfo(context);
             FaceVertexBuffer.SetDimensions(faces.size()*4);
-            FaceNormalBuffer.SetContextInfo(context, module);
+            FaceNormalBuffer.SetContextInfo(context);
             FaceNormalBuffer.SetDimensions(faces.size());
 
             scene->GetFaceIdBuffer()->setSize(faces.size());
             FaceDef* faceDefs = static_cast<FaceDef*>(scene->GetFaceIdBuffer()->map());
-            ElVisFloat4* faceVertexBuffer = static_cast<ElVisFloat4*>(FaceVertexBuffer.map());
-            ElVisFloat4* normalBuffer = static_cast<ElVisFloat4*>(FaceNormalBuffer.map());
+            ElVisFloat4* faceVertexBuffer = static_cast<ElVisFloat4*>(FaceVertexBuffer.MapOptiXPointer());
+            ElVisFloat4* normalBuffer = static_cast<ElVisFloat4*>(FaceNormalBuffer.MapOptiXPointer());
 
             int index = 0;
             for(std::map<JacobiFace, FaceDef>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
@@ -263,8 +252,8 @@ namespace ElVis
             scene->GetFaceMinExtentBuffer()->unmap();
             scene->GetFaceMaxExtentBuffer()->unmap();
             scene->GetFaceIdBuffer()->unmap();
-            FaceVertexBuffer.unmap();
-            FaceNormalBuffer.unmap();
+            FaceVertexBuffer.UnmapOptiXPointer();
+            FaceNormalBuffer.UnmapOptiXPointer();
 
             // All Jacobi faces are planar, but can be switched to curved for testing the
             // intersection routines.
@@ -273,7 +262,7 @@ namespace ElVis
             //curvedFaces->setPrimitiveCount(faces.size());
         }
 
-        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
         {
             try
             {        
@@ -282,7 +271,7 @@ namespace ElVis
 
                 std::vector<optixu::GeometryInstance> geometryWithPrimitives;
 
-                optixu::GeometryInstance hexInstance = CreateGeometryForElementType<Hexahedron>(m_volume, context, module, "Hex");
+                optixu::GeometryInstance hexInstance = CreateGeometryForElementType<Hexahedron>(m_volume, context, "Hex");
 
                 if( hexInstance )
                 {
@@ -300,7 +289,7 @@ namespace ElVis
                     hexGeometry->setIntersectionProgram( hexIntersectionProgram );
                 }
 
-                optixu::GeometryInstance prismInstance = CreateGeometryForElementType<Prism>(m_volume, context, module, "Prism");
+                optixu::GeometryInstance prismInstance = CreateGeometryForElementType<Prism>(m_volume, context, "Prism");
                 if( prismInstance )
                 {
                     optixu::Material prismCutSurfaceMaterial = context->createMaterial();
@@ -346,7 +335,7 @@ namespace ElVis
             }
         }
 
-        std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
         {
             return std::vector<optixu::GeometryInstance>();
         }
@@ -358,21 +347,11 @@ namespace ElVis
 
         void JacobiExtensionModel::DoMapInteropBufferForCuda()
         {
-            HexCoefficientBufferIndices.GetMappedCudaPtr();
-            PrismCoefficientBufferIndices.GetMappedCudaPtr();
-
-            HexCoefficientBuffer.GetMappedCudaPtr();
-            PrismCoefficientBuffer.GetMappedCudaPtr();
 
         }
 
         void JacobiExtensionModel::DoUnMapInteropBufferForCuda()
         {
-            HexCoefficientBufferIndices.UnmapCudaPtr();
-            PrismCoefficientBufferIndices.UnmapCudaPtr();
-
-            HexCoefficientBuffer.UnmapCudaPtr();
-            PrismCoefficientBuffer.UnmapCudaPtr();
         }
 
         template<>

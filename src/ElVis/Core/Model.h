@@ -58,12 +58,10 @@ namespace ElVis
 
             ELVIS_EXPORT unsigned int GetNumberOfElements() const { return DoGetNumberOfElements(); }
 
-            ELVIS_EXPORT void SetupCudaContext(CUmodule module) const { return DoSetupCudaContext(module); }
-
             /// \brief Generates the OptiX geometry nodes necessary to perform ray/element intersections.
-            ELVIS_EXPORT std::vector<optixu::GeometryGroup> GetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module);
-            ELVIS_EXPORT void GetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces);
-            ELVIS_EXPORT std::vector<optixu::GeometryInstance> Get2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module);
+            ELVIS_EXPORT std::vector<optixu::GeometryGroup> GetPointLocationGeometry(Scene* scene, optixu::Context context);
+            ELVIS_EXPORT void GetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
+            ELVIS_EXPORT std::vector<optixu::GeometryInstance> Get2DPrimaryGeometry(Scene* scene, optixu::Context context);
             ELVIS_EXPORT virtual optixu::Material Get2DPrimaryGeometryMaterial(SceneView* view) { return DoGet2DPrimaryGeometryMaterial(view); }
 
             ELVIS_EXPORT int GetModelDimension() const; 
@@ -155,12 +153,10 @@ namespace ElVis
 
             virtual const std::string& DoGetPTXPrefix() const = 0;
 
-            ELVIS_EXPORT virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module) = 0;
-            ELVIS_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces) = 0;
-            ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module) = 0;
+            ELVIS_EXPORT virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context) = 0;
+            ELVIS_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces) = 0;
+            ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context) = 0;
             ELVIS_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view) = 0;
-
-            virtual void DoSetupCudaContext(CUmodule module) const = 0;
 
 
             // These are for the conversion extension and shouldn't be here.

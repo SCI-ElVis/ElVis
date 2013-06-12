@@ -222,12 +222,10 @@ namespace ElVis
   void IsosurfaceModule::DoSetupAfterInteropModule(SceneView* view)
   {
     optixu::Context context = view->GetContext();
-    CUmodule module = view->GetScene()->GetCudaModule();
     try
     {
       std::cout << "Isourface setup." << std::endl;
       optixu::Context context = view->GetContext();
-      CUmodule module = view->GetScene()->GetCudaModule();
 
       if( m_ElementByElementVolumeTraversalInitProgramForIsosurface.Index == -1 )
       {
@@ -255,7 +253,7 @@ namespace ElVis
       {
         std::vector<ElVisFloat> nodes;
         ReadFloatVector("Nodes.txt", nodes);
-        m_gaussLegendreNodesBuffer.SetContextInfo(context, module);
+        m_gaussLegendreNodesBuffer.SetContextInfo(context);
         m_gaussLegendreNodesBuffer.SetDimensions(nodes.size());
         ElVisFloat* nodeData = m_gaussLegendreNodesBuffer.MapOptiXPointer();
         std::copy(nodes.begin(), nodes.end(), nodeData);
@@ -266,7 +264,7 @@ namespace ElVis
       {
         std::vector<ElVisFloat> weights;
         ReadFloatVector("Weights.txt", weights);
-        m_gaussLegendreWeightsBuffer.SetContextInfo(context, module);
+        m_gaussLegendreWeightsBuffer.SetContextInfo(context);
         m_gaussLegendreWeightsBuffer.SetDimensions(weights.size());
         ElVisFloat* data = m_gaussLegendreWeightsBuffer.MapOptiXPointer();
         std::copy(weights.begin(), weights.end(), data);
@@ -277,7 +275,7 @@ namespace ElVis
       {
         std::vector<ElVisFloat> monomialCoversionData;
         ReadFloatVector("MonomialConversionTables.txt", monomialCoversionData);
-        m_monomialConversionTableBuffer.SetContextInfo(context, module);
+        m_monomialConversionTableBuffer.SetContextInfo(context);
         m_monomialConversionTableBuffer.SetDimensions(monomialCoversionData.size());
         ElVisFloat* data = m_monomialConversionTableBuffer.MapOptiXPointer();
         std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data);
@@ -308,21 +306,20 @@ namespace ElVis
   void IsosurfaceModule::DoSynchronize(SceneView* view)
   {
     optixu::Context context = view->GetContext();
-    CUmodule module = view->GetScene()->GetCudaModule();
     std::cout << "Isosurface Module Sync." << std::endl;
     if( m_isovalues.size() > 0 )
     {
       std::cout << "Setting Isovalue buffer." << std::endl;
       if( !m_isovalueBuffer.Initialized() )
       {
-        m_isovalueBuffer.SetContextInfo(context, module);
+        m_isovalueBuffer.SetContextInfo(context);
         m_isovalueBuffer.SetDimensions(m_isovalues.size());
         m_isovalueBufferSize = m_isovalues.size();
       }
 
       if( m_isovalueBufferSize != m_isovalues.size())
       {
-        m_isovalueBuffer.SetContextInfo(context, module);
+        m_isovalueBuffer.SetContextInfo(context);
         m_isovalueBuffer.SetDimensions(m_isovalues.size());
         m_isovalueBufferSize = m_isovalues.size();
       }

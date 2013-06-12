@@ -66,8 +66,6 @@ SET(ELVIS_HEADERS
     Color.h
     ColorMap.h
     Cuda.h
-    CudaGlobalBuffer.hpp
-    CudaGlobalVariable.hpp
     CutSurfaceContourModule.h
     CutSurfaceMeshModule.h
     Cylinder.h

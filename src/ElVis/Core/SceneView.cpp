@@ -253,7 +253,7 @@ namespace ElVis
 
         if( m_depthBuffer.Initialized() )
         {
-            data = static_cast<float*>(m_depthBuffer.map());
+            data = static_cast<float*>(m_depthBuffer.MapOptiXPointer());
             max = std::max_element(data, data+numEntries);
             std::cout << "Max from optix depth buffer = " << *max << std::endl;
             for(unsigned int i = 0; i < numEntries; ++i)
@@ -262,7 +262,7 @@ namespace ElVis
                 imageData[i].y = data[i]*255.0/(*max);
                 imageData[i].z = data[i]*255.0/(*max);
             }
-            m_depthBuffer.unmap();
+            m_depthBuffer.UnmapOptiXPointer();
 
             {
 
@@ -385,12 +385,12 @@ namespace ElVis
     {
         if( m_depthBuffer.Initialized() )
         {
-            float* data = static_cast<float*>(m_depthBuffer.map());
+            float* data = static_cast<float*>(m_depthBuffer.MapOptiXPointer());
             for(int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i] = 1.0f;
             }
-            m_depthBuffer.unmap();
+            m_depthBuffer.UnmapOptiXPointer();
         }
     }
 
@@ -565,7 +565,6 @@ namespace ElVis
         try
         {
             optixu::Context m_context = GetScene()->GetContext();
-            CUmodule m_module = GetScene()->GetCudaModule();
             // Ray Type 0 - Primary rays that intersect actual geometry.  Closest
             // hit programs determine exactly how the geometry is handled.
             // Ray Type 1 - Rays that find the current element and evaluate the scalar
@@ -580,33 +579,33 @@ namespace ElVis
             // TODO - making the color and depth buffers INPUT/OUTPUT slows thing down
             // according to the documentation (the buffers are stored in main memory).
             // How does the SDK display to OpenGL without doing this?
-            m_colorBuffer.SetContextInfo(m_context, m_module);
+            m_colorBuffer.SetContextInfo(m_context);
             m_colorBuffer.SetDimensions(GetWidth(), GetHeight());
-            m_rawColorBuffer.SetContextInfo(m_context, m_module);
+            m_rawColorBuffer.SetContextInfo(m_context);
             m_rawColorBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int colorBuf = GetWidth() * GetHeight() * 4;
             
-            m_depthBuffer.SetContextInfo(m_context, m_module);
+            m_depthBuffer.SetContextInfo(m_context);
             m_depthBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int depthBuffSize = GetWidth() * GetHeight() * sizeof(float);
             
-            m_sampleBuffer.SetContextInfo(m_context, m_module);
+            m_sampleBuffer.SetContextInfo(m_context);
             m_sampleBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int sampleBufferSize = GetWidth() * GetHeight() * sizeof(float);
             
-            m_normalBuffer.SetContextInfo(m_context, m_module);
+            m_normalBuffer.SetContextInfo(m_context);
             m_normalBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int normalBufferSize = GetWidth() * GetHeight() * sizeof(float)*3;
             
             
-            m_intersectionBuffer.SetContextInfo(m_context, m_module);
+            m_intersectionBuffer.SetContextInfo(m_context);
             m_intersectionBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int intersectionSize = GetWidth() * GetHeight() * sizeof(float)*3;
 
-            m_elementIdBuffer.SetContextInfo(m_context, m_module);
+            m_elementIdBuffer.SetContextInfo(m_context);
             m_elementIdBuffer.SetDimensions(GetWidth(), GetHeight());
 
-            m_elementTypeBuffer.SetContextInfo(m_context, m_module);
+            m_elementTypeBuffer.SetContextInfo(m_context);
             m_elementTypeBuffer.SetDimensions(GetWidth(), GetHeight());
 
             m_exceptionProgram = PtxManager::LoadProgram(m_context, GetPTXPrefix(), "ExceptionProgram");

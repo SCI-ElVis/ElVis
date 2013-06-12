@@ -60,7 +60,6 @@ namespace ElVis
     {
         std::cout << "ElementTraversalModule::DoSetup." << std::endl;
         optixu::Context context = view->GetContext();
-        CUmodule module = view->GetScene()->GetCudaModule();
 
         if( m_ElementByElementVolumeTraversalInitProgram.Index == -1 )
         {
@@ -74,13 +73,13 @@ namespace ElVis
 
         if( !m_SegmentElementIdBuffer.Initialized() )
         {
-            m_SegmentElementIdBuffer.SetContextInfo(context, module);
-            m_SegmentElementTypeBuffer.SetContextInfo(context, module);
-            m_SegmentStart.SetContextInfo(context, module);
-            m_SegmentEnd.SetContextInfo(context, module);
-            m_SegmentRayDirection.SetContextInfo(context, module);
-            m_SegmentIdBuffer.SetContextInfo(context, module);
-            m_IdSortBuffer.SetContextInfo(context, module);
+            m_SegmentElementIdBuffer.SetContextInfo(context);
+            m_SegmentElementTypeBuffer.SetContextInfo(context);
+            m_SegmentStart.SetContextInfo(context);
+            m_SegmentEnd.SetContextInfo(context);
+            m_SegmentRayDirection.SetContextInfo(context);
+            m_SegmentIdBuffer.SetContextInfo(context);
+            m_IdSortBuffer.SetContextInfo(context);
 
             m_SegmentElementIdBuffer.SetDimensions(view->GetWidth()*view->GetHeight());
             m_SegmentElementTypeBuffer.SetDimensions(view->GetWidth()*view->GetHeight());
@@ -100,101 +99,48 @@ namespace ElVis
 
     void ElementTraversalModule::DoRender(SceneView* view)
     {
-        if( !HasWork() ) return;
+        //if( !HasWork() ) return;
 
-        try
-        {
-            //std::cout << "Element Traversal." << std::endl;
-            optixu::Context context = view->GetContext();
+        //try
+        //{
+        //    //std::cout << "Element Traversal." << std::endl;
+        //    optixu::Context context = view->GetContext();
 
-            ResetSomeSegmentsNeedToBeIntegrated();
-            //std::cout << "Program index: " << GetInitTraversalProgram().Index << std::endl;
-            context->launch(GetInitTraversalProgram().Index, view->GetWidth(), view->GetHeight());
+        //    ResetSomeSegmentsNeedToBeIntegrated();
+        //    //std::cout << "Program index: " << GetInitTraversalProgram().Index << std::endl;
+        //    context->launch(GetInitTraversalProgram().Index, view->GetWidth(), view->GetHeight());
 
-            int someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
-            //std::cout << "Some segments need to be integrated: " <<someSegmentsNeedToBeIntegrated << std::endl;
-            int infiniteLoopGuard = 0;
-            while(someSegmentsNeedToBeIntegrated == 1 && infiniteLoopGuard < 200)
-            {
-                DoEvaluateSegment(view);
-                ResetSomeSegmentsNeedToBeIntegrated();
-                context->launch(GetTraveralProgram().Index, view->GetWidth(), view->GetHeight());
-                someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
-                ++infiniteLoopGuard;
-            }
+        //    int someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
+        //    //std::cout << "Some segments need to be integrated: " <<someSegmentsNeedToBeIntegrated << std::endl;
+        //    int infiniteLoopGuard = 0;
+        //    while(someSegmentsNeedToBeIntegrated == 1 && infiniteLoopGuard < 200)
+        //    {
+        //        DoEvaluateSegment(view);
+        //        ResetSomeSegmentsNeedToBeIntegrated();
+        //        context->launch(GetTraveralProgram().Index, view->GetWidth(), view->GetHeight());
+        //        someSegmentsNeedToBeIntegrated = GetSomeSegmentsNeedToBeIntegrated();
+        //        ++infiniteLoopGuard;
+        //    }
 
-        }
-        catch(optixu::Exception& e)
-        {
-            std::cout << "Exception encountered rendering isosurface." << std::endl;
-            std::cerr << e.getErrorString() << std::endl;
-            std::cout << e.getErrorString().c_str() << std::endl;
-        }
-        catch(std::exception& e)
-        {
-            std::cout << "Exception encountered rendering isosurface." << std::endl;
-            std::cout << e.what() << std::endl;
-        }
-        catch(...)
-        {
-            std::cout << "Exception encountered rendering isosurface." << std::endl;
-        }
+        //}
+        //catch(optixu::Exception& e)
+        //{
+        //    std::cout << "Exception encountered rendering isosurface." << std::endl;
+        //    std::cerr << e.getErrorString() << std::endl;
+        //    std::cout << e.getErrorString().c_str() << std::endl;
+        //}
+        //catch(std::exception& e)
+        //{
+        //    std::cout << "Exception encountered rendering isosurface." << std::endl;
+        //    std::cout << e.what() << std::endl;
+        //}
+        //catch(...)
+        //{
+        //    std::cout << "Exception encountered rendering isosurface." << std::endl;
+        //}
     }
 
-
-
-    void ElementTraversalModule::RunCopyElementIdKeyData(SceneView* view)
-    {
-        try
-        {
-            dim3 gridDim;
-            gridDim.x = view->GetWidth()*view->GetHeight()/512 + 1;
-            gridDim.y = 1;
-            gridDim.z = 1;
-
-            dim3 blockDim;
-            blockDim.x = 512;
-            blockDim.y = 1;
-            blockDim.z = 1;
-
-            CUdeviceptr keyBuffer = m_IdSortBuffer.GetMappedCudaPtr();
-            CUdeviceptr idBuffer = GetSegmentElementIdBuffer().GetMappedCudaPtr();
-            CUdeviceptr typeBuffer = GetSegmentElementTypeBuffer().GetMappedCudaPtr();
-
-            bool enableTrace = view->GetScene()->GetEnableOptixTrace();
-            int tracex = view->GetScene()->GetOptixTracePixelIndex().x();
-            int tracey = view->GetHeight() - view->GetScene()->GetOptixTracePixelIndex().y() - 1;
-            int n = view->GetWidth() * view->GetHeight();
-
-            void* args[] = {&idBuffer, &typeBuffer, &keyBuffer,
-                            &enableTrace, &tracex, &tracey, &n};
-            checkedCudaCall(cuLaunchKernel(m_copyElementIdKeyData, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
-            checkedCudaCall(cuCtxSynchronize());
-            GetSegmentElementIdBuffer().UnmapCudaPtr();
-            GetSegmentElementTypeBuffer().UnmapCudaPtr();
-            m_IdSortBuffer.UnmapCudaPtr();
-        }
-        catch(std::exception& e)
-        {
-            std::cerr << e.what() << std::endl;
-        }
-    }
-
-    int ElementTraversalModule::GetSomeSegmentsNeedToBeIntegrated()
-    {
-        int* data = static_cast<int*>(GetSegmentsNeedToBeIntegratedBuffer()->map());
-        int result = data[0];
-        GetSegmentsNeedToBeIntegratedBuffer()->unmap();
-        return result;
-    }
-
-    void ElementTraversalModule::ResetSomeSegmentsNeedToBeIntegrated()
-    {
-        int* data = static_cast<int*>(GetSegmentsNeedToBeIntegratedBuffer()->map());
-        data[0] = 0;
-        GetSegmentsNeedToBeIntegratedBuffer()->unmap();
-    }
-
+    
     bool ElementTraversalModule::InitializeStatic()
     {
         PtxManager::GetOnPtxLoaded().connect(boost::bind(&ElementTraversalModule::LoadPrograms, _1, _2));
