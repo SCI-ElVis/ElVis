@@ -553,72 +553,72 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
     balance(h);
 
 
-    //ELVIS_PRINTF("After balancing.\n");
-    ////PrintMatrix(h);
+    ELVIS_PRINTF("After balancing.\n");
+    //PrintMatrix(h);
 
-    //ElVisFloat roots[8];
-    //for(int i = 0; i < 8; ++i)
-    //{
-    //  roots[i] = -4582.23;
-    //}
+    ElVisFloat roots[8];
+    for(int i = 0; i < 8; ++i)
+    {
+      roots[i] = -4582.23;
+    }
 
-    //hqr(h, reducedOrder, roots);
+    hqr(h, reducedOrder, roots);
 
-    //ELVIS_PRINTF("Roots %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-    //  roots[0],
-    //  roots[1],
-    //  roots[2],
-    //  roots[3],
-    //  roots[4],
-    //  roots[5]);
-
-
-    //ElVisFloat foundRoot = ELVIS_FLOAT_MAX;
-    //for(int i = 0; i < reducedOrder; ++i)
-    //{
-    //  ElVisFloat root = roots[i];
-    //  if( root >= MAKE_FLOAT(-1.0) &&
-    //    root <= MAKE_FLOAT(1.0) &&
-    //    root <= foundRoot )
-    //  {
-    //    ElVisFloat foundT = (root + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
-    //    if( foundT < bestDepth )
-    //    {
-    //      foundRoot = root;
-    //    }
-    //  }
-    //}
-
-    //if( foundRoot != ELVIS_FLOAT_MAX )
-    //{
-
-    //  ElVisFloat foundT = (foundRoot + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
+    ELVIS_PRINTF("Roots %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+      roots[0],
+      roots[1],
+      roots[2],
+      roots[3],
+      roots[4],
+      roots[5]);
 
 
+    ElVisFloat foundRoot = ELVIS_FLOAT_MAX;
+    for(int i = 0; i < reducedOrder; ++i)
+    {
+      ElVisFloat root = roots[i];
+      if( root >= MAKE_FLOAT(-1.0) &&
+        root <= MAKE_FLOAT(1.0) &&
+        root <= foundRoot )
+      {
+        ElVisFloat foundT = (root + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
+        if( foundT < bestDepth )
+        {
+          foundRoot = root;
+        }
+      }
+    }
 
-    //  ElVisFloat3 foundIntersectionPoint = origin + foundT*rayDirection;
+    if( foundRoot != ELVIS_FLOAT_MAX )
+    {
 
-    //  intersection_buffer[launch_index] = foundIntersectionPoint;
-    //  SampleBuffer[launch_index] = EvaluateFieldOptiX(elementId,
-    //    elementTypeId,
-    //    FieldId,
-    //    foundIntersectionPoint);
-
-    //  //    ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
+      ElVisFloat foundT = (foundRoot + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
 
 
-    //  EvaluateNormalOptiX(elementId,
-    //    elementTypeId,
-    //    FieldId,
-    //    foundIntersectionPoint, normal_buffer[launch_index]);
-    //  depth_buffer[launch_index] = foundT;
-    //  bestDepth = foundT;
-    //  result =true;
-    //  ////        // This depth buffer is wrong, need accumulated.
-    //  ////        depth_buffer[launch_index] = (far+near)/(far-near) - 2.0f/foundT * far*near/(far-near);
-    //  ////        depth_buffer[launch_index] = (depth_buffer[launch_index]+1.0)/2.0;
 
-    //}
+      ElVisFloat3 foundIntersectionPoint = origin + foundT*rayDirection;
+
+      intersection_buffer[launch_index] = foundIntersectionPoint;
+      SampleBuffer[launch_index] = EvaluateFieldOptiX(elementId,
+        elementTypeId,
+        FieldId,
+        foundIntersectionPoint);
+
+      ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
+
+
+      EvaluateNormalOptiX(elementId,
+        elementTypeId,
+        FieldId,
+        foundIntersectionPoint, normal_buffer[launch_index]);
+      depth_buffer[launch_index] = foundT;
+      bestDepth = foundT;
+      result =true;
+      ////        // This depth buffer is wrong, need accumulated.
+      ////        depth_buffer[launch_index] = (far+near)/(far-near) - 2.0f/foundT * far*near/(far-near);
+      ////        depth_buffer[launch_index] = (depth_buffer[launch_index]+1.0)/2.0;
+
+    }
   }
   return result;
 }

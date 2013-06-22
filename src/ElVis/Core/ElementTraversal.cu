@@ -62,7 +62,7 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
 
   // If we have already encountered an object we don't need to continue along this ray.
   ElVisFloat depth = depth_buffer[launch_index];
-  ELVIS_PRINTF("FindNextSegmentAlongRay best depth so far %2.10f\n", depth_buffer[launch_index]);
+  ELVIS_PRINTF("FindNextSegmentAlongRay best depth so far %2.10f\n", depth);
   if( depth < seg.Start )
   {
     return false;
@@ -119,7 +119,7 @@ __device__ bool ValidateSegment(const Segment& seg)
 
   if( elementId == -1 )
   {
-    ELVIS_PRINTF("ValidateSegment: Exiting because element id is 0\n");
+    ELVIS_PRINTF("ValidateSegment: Exiting because element id is -1\n");
     return false;
   }
 
@@ -152,6 +152,7 @@ __device__ void ElementTraversal(SegmentFunction& f)
   ElVisFloat3 origin0 = MakeFloat3(initialRay.origin);
   ElVisFloat3 rayDirection = MakeFloat3(initialRay.direction);
 
+  depth_buffer[launch_index] = ELVIS_FLOAT_MAX;
   Segment seg;
   seg.RayDirection = rayDirection;
   int maxIter = 200;
@@ -160,12 +161,13 @@ __device__ void ElementTraversal(SegmentFunction& f)
   {
     if( seg.End < MAKE_FLOAT(0.0) )
     {
-      ELVIS_PRINTF("ValidateSegment: Exiting because ray has left volume based on segment end\n");
+      ELVIS_PRINTF("ElementTraversal: Exiting because ray has left volume based on segment end\n");
       return;
     }
 
     if(ValidateSegment(seg) && f(seg, origin0) )
     {
+      ELVIS_PRINTF("ElementTraversal: Done because segment is valid and function indicates we are done.\n");
       return;
     }
 
