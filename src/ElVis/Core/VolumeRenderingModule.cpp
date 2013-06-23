@@ -733,7 +733,7 @@ namespace ElVis
             }
             if( m_transferFunction->Dirty() )
             {
-                auto context = view->GetContext();
+                optixu::Context context = view->GetContext();
                 m_transferFunction->CopyToOptix(context, DensityBreakpoints, DensityValues, eDensity);
                 m_transferFunction->CopyToOptix(context, RedBreakpoints, RedValues, eRed);
                 m_transferFunction->CopyToOptix(context, GreenBreakpoints, GreenValues, eGreen);
