@@ -174,8 +174,6 @@ SET(PrimaryRayObjectFiles
 SET(ModuleFiles
     ColorMapperModule.h
     ColorMapperModule.cpp
-    ElementTraversalModule.h
-    ElementTraversalModule.cpp
     IsosurfaceModule.h
     IsosurfaceModule.cpp
     LightingModule.h
@@ -197,7 +195,6 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/CutSurfacePayloads.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/DiffuseLighting.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversal.cu
-    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversalModule.h
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FieldEvaluator.cu

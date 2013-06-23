@@ -30,7 +30,7 @@
 #define ELVIS_VOLUME_RENDERING_MODULE_H
 
 #include <ElVis/Core/ElVisDeclspec.h>
-#include <ElVis/Core/ElementTraversalModule.h>
+#include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
@@ -55,7 +55,7 @@ namespace ElVis
     };
 
 
-    class VolumeRenderingModule : public ElementTraversalModule
+    class VolumeRenderingModule : public RenderModule
     {
         public:
             ELVIS_EXPORT VolumeRenderingModule();
@@ -85,7 +85,7 @@ namespace ElVis
 
         protected:
             ELVIS_EXPORT virtual void DoRender(SceneView* view);
-            ELVIS_EXPORT virtual void DoSetupAfterInteropModule(SceneView* view);
+            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
             ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
 
             virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }

@@ -31,11 +31,12 @@
 
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/RenderModule.h>
-#include <ElVis/Core/ElementTraversalModule.h>
+#include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
 #include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/ElementId.h>
+#include <ElVis/Core/InteropBuffer.hpp>
 
 #include <set>
 
@@ -43,7 +44,7 @@
 
 namespace ElVis
 {
-    class IsosurfaceModule : public ElementTraversalModule
+    class IsosurfaceModule : public RenderModule
     {
         public:
             ELVIS_EXPORT IsosurfaceModule();
@@ -63,7 +64,7 @@ namespace ElVis
         protected:
 
             ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
-            ELVIS_EXPORT virtual void DoSetupAfterInteropModule(SceneView* view);
+            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
             ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
             ELVIS_EXPORT virtual bool HasWork() const { return m_isovalues.size() > 0; }
 

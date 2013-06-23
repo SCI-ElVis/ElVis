@@ -43,7 +43,7 @@ namespace ElVis
   RayGeneratorProgram IsosurfaceModule::m_FindIsosurface;
 
   IsosurfaceModule::IsosurfaceModule() :
-  ElementTraversalModule(),
+  RenderModule(),
     OnIsovalueAdded(),
     OnIsovalueChanged(),
     m_isovalues(),
@@ -193,7 +193,7 @@ namespace ElVis
   {
   }
 
-  void IsosurfaceModule::DoSetupAfterInteropModule(SceneView* view)
+  void IsosurfaceModule::DoSetup(SceneView* view)
   {
     optixu::Context context = view->GetContext();
     try

@@ -56,15 +56,6 @@ rtBuffer<ElVisFloat2> OpacityTransferFunction;
 rtBuffer<ElVisFloat> IntensityBreakpoints;
 rtBuffer<ElVisFloat2> IntensityTransferFunction;
 
-rtBuffer<int> SegmentElementIdBuffer;
-rtBuffer<int> SegmentElementTypeBuffer;
-rtBuffer<ElVisFloat> SegmentStart;
-rtBuffer<ElVisFloat> SegmentEnd;
-rtBuffer<ElVisFloat3> SegmentRayDirection;
-rtBuffer<int> SegmentIdBuffer;
-rtBuffer<ElVis::ElementId> IdSortBuffer;
-
-rtBuffer<int> SomeSegmentsNeedToBeIntegrated;
 
 rtDeclareVariable(ElVisFloat, desiredH, , );
 
@@ -99,154 +90,12 @@ __device__ void GenerateTransferFunction(ElVis::TransferFunction& transferFuncti
 
 RT_PROGRAM void ElementByElementVolumeTraversalInit()
 {
-    ELVIS_PRINTF("Entering ElementByElementVolumeTraversalInit\n");
-    optix::size_t2 screen = color_buffer.size();
-    int segmentIndex = screen.x*launch_index.y + launch_index.x;
-   
-    ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Segment Index %d eye (%f, %f, %f)\n", segmentIndex, ray.origin.x, ray.origin.y, ray.origin.z);
-
-    SegmentIdBuffer[segmentIndex] = segmentIndex;
-    optix::Ray initialRay = GeneratePrimaryRay(screen, 2, 1e-3f);
-
-    ElVisFloat3 origin0 = MakeFloat3(initialRay.origin);
-    ElVisFloat3 rayDirection = MakeFloat3(initialRay.direction);
-    SegmentRayDirection[segmentIndex] = MakeFloat3(initialRay.direction);
-
-    VolumeRenderingPayload payload0;
-    payload0.Initialize();
-
-    optix::Ray ray0 = optix::make_Ray(initialRay.origin, initialRay.direction, 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray0, payload0);
-    rtTrace(faceForTraversalGroup, ray0, payload0);
-    //rtTrace(faceGroup, ray0, payload0);
-
-
-    if( payload0.FoundIntersection == 0 )
-    {
-         // Missed the volume entirely.
-        ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Missed volume.\n");
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        return;
-    }
-
-    // Cast a second ray to find where we leave the current element.
-    VolumeRenderingPayload payload1;
-    payload1.Initialize();
-
-    ElVisFloat3 origin1 = origin0 + payload0.IntersectionT*rayDirection;
-    optix::Ray ray1 = optix::make_Ray(ConvertToFloat3(origin1), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray1, payload1);
-    rtTrace(faceForTraversalGroup, ray1, payload1);
-    //rtTrace(faceGroup, ray1, payload1);
-
-    if( payload1.FoundIntersection == 0 )
-    {
-        // This means we just barely clipped a small portion of the volume, so we had
-        // an entrance, but no exit within the epsilon
-        ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Clipped volume.\n");
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        return;
-    }
-
-    SomeSegmentsNeedToBeIntegrated[0] = 1;
-
-    SegmentStart[segmentIndex] = payload0.IntersectionT;
-    SegmentEnd[segmentIndex] = payload0.IntersectionT + payload1.IntersectionT;
-
-    ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Found intersection %2.15f.\n", payload0.IntersectionT);
-
-//    ElVisFloat3 normal;
-//    ElVisFloat3 pointOnSecondFace = origin1 + payload1.IntersectionT*rayDirection;
-//    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload1.FaceId, normal);
-//    SegmentElementIdBuffer[segmentIndex] = element.Id;
-//    SegmentElementTypeBuffer[segmentIndex] = element.Type;
-
-    // Determine the element by casting rays.
-    // For linear volumes not much slower than the comparisons with the normals,
-    // but quite slow for curved.
-    ElementFinderPayload findElementPayload = FindElement(origin1 + (MAKE_FLOAT(.5)*payload1.IntersectionT)*rayDirection);
-
-    if( findElementPayload.elementId >= 0 )
-    {
-        SegmentElementIdBuffer[segmentIndex] = findElementPayload.elementId;
-        SegmentElementTypeBuffer[segmentIndex] = findElementPayload.elementType;
-    }
-    else
-    {
-        SegmentElementIdBuffer[segmentIndex] = -1;
-    }
 
 }
 
 RT_PROGRAM void ElementByElementVolumeTraversal()
 {
-    optix::size_t2 screen = color_buffer.size();
-    int segmentIndex = screen.x*launch_index.y + launch_index.x;
-   
-    if( SegmentEnd[segmentIndex] < MAKE_FLOAT(0.0) )
-    {
-        // This ray has already left the volume.
-        return;
-    }
-    ElVisFloat startingT = SegmentEnd[segmentIndex];
-    ElVisFloat3 rayDirection = SegmentRayDirection[segmentIndex];
 
-    ELVIS_PRINTF("ElementByElementVolumeTraversal: Starting t %f \n", startingT);
-
-    // If we have already encountered an object we don't need to continue along this ray.
-    ElVisFloat depth = depth_buffer[launch_index];
-    ELVIS_PRINTF("ElementByElementVolumeTraversal best depth so far %2.10f\n", depth_buffer[launch_index]);
-    if( depth < startingT )
-    {
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        SegmentElementIdBuffer[segmentIndex] = -1;
-        return;
-    }
-
-    VolumeRenderingPayload payload;
-    payload.FoundIntersection = 0;
-    ElVisFloat3 origin = eye + startingT*rayDirection;
-
-    optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray, payload);
-    rtTrace(faceForTraversalGroup, ray, payload);
-    //rtTrace(faceGroup, ray, payload);
-
-    if( payload.FoundIntersection == 0 )
-    {
-        // Left the volume.
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        SegmentElementIdBuffer[segmentIndex] = -1;
-        return;
-    }
-
-    SomeSegmentsNeedToBeIntegrated[0] = 1;
-    ElVisFloat endingT = startingT + payload.IntersectionT;
-    SegmentStart[segmentIndex] = startingT;
-    SegmentEnd[segmentIndex] = endingT;
-       
-
-//    ElVisFloat3 normal;
-//    ElVisFloat3 pointOnSecondFace = origin + payload.IntersectionT*rayDirection;
-//    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload.FaceId, normal);
-//    SegmentElementIdBuffer[segmentIndex] = element.Id;
-//    SegmentElementTypeBuffer[segmentIndex] = element.Type;
-
-    // Determine the element by casting rays.
-    // For linear volumes not much slower than the comparisons with the normals,
-    // but quite slow for curved.
-    double h = (payload.IntersectionT)*MAKE_FLOAT(.5);
-    ElementFinderPayload findElementPayload = FindElement(origin + h*rayDirection);
-
-    if( findElementPayload.elementId >= 0 )
-    {
-        SegmentElementIdBuffer[segmentIndex] = findElementPayload.elementId;
-        SegmentElementTypeBuffer[segmentIndex] = findElementPayload.elementType;
-    }
-    else
-    {
-        SegmentElementIdBuffer[segmentIndex] = -1;
-    }
 }
 
 

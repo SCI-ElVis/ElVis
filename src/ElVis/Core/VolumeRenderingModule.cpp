@@ -59,7 +59,7 @@ namespace ElVis
     RayGeneratorProgram VolumeRenderingModule::m_PerformVolumeRendering;
 
     VolumeRenderingModule::VolumeRenderingModule() :
-        ElementTraversalModule()
+        RenderModule()
         ,DensityBreakpoints("DensityBreakpoints", 1)
         ,RedBreakpoints("RedBreakpoints", 1)
         ,GreenBreakpoints("GreenBreakpoints", 1)
@@ -700,7 +700,7 @@ namespace ElVis
     }
 
 
-    void VolumeRenderingModule::DoSetupAfterInteropModule(SceneView* view)
+    void VolumeRenderingModule::DoSetup(SceneView* view)
     {
         optixu::Context context = view->GetContext();
         m_transferFunction->GetDeviceObject();
