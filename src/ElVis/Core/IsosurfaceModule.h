@@ -36,7 +36,7 @@
 #include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/ElementId.h>
-#include <ElVis/Core/InteropBuffer.hpp>
+#include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <set>
 
@@ -65,11 +65,9 @@ namespace ElVis
 
             ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
             ELVIS_EXPORT virtual void DoSetup(SceneView* view);
-            ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
             ELVIS_EXPORT virtual bool HasWork() const { return m_isovalues.size() > 0; }
 
             virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
-            virtual void DoResize(unsigned int newWidth, unsigned int newHeight);
             virtual std::string DoGetName() const { return "Isosurface Rendering"; }
 
         private:
@@ -82,10 +80,10 @@ namespace ElVis
             std::set<ElVisFloat> m_isovalues;
             unsigned int m_isovalueBufferSize;
 
-            InteropBuffer<ElVisFloat> m_isovalueBuffer;
-            InteropBuffer<ElVisFloat> m_gaussLegendreNodesBuffer;
-            InteropBuffer<ElVisFloat> m_gaussLegendreWeightsBuffer;
-            InteropBuffer<ElVisFloat> m_monomialConversionTableBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreWeightsBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_monomialConversionTableBuffer;
 
             static RayGeneratorProgram m_FindIsosurface;
 

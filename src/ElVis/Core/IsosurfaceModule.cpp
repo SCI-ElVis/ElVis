@@ -106,92 +106,6 @@ namespace ElVis
     }
   }
 
-  void IsosurfaceModule::DoEvaluateSegment(SceneView* view)
-  {
-    //        try
-    //        {
-    //
-    //
-    ////            // Sort data first.
-    ////            {
-    ////                RunCopyElementIdKeyData(view);
-    ////                CUdeviceptr keyBuffer = GetElementSortBuffer().GetMappedCudaPtr();
-    ////                CUdeviceptr idBuffer = GetSegmentIdBuffer().GetMappedCudaPtr();
-    //
-    ////                thrust::device_ptr<ElementId> keyPtr = thrust::device_ptr<ElementId>(reinterpret_cast<ElementId*>(keyBuffer));
-    ////                thrust::device_ptr<int> valuePtr = thrust::device_ptr<int>(reinterpret_cast<int*>(idBuffer));
-    ////                int n = view->GetWidth() * view->GetHeight();
-    ////                SortByElementIdAndType(keyPtr, valuePtr, n);
-    ////                GetElementSortBuffer().UnmapCudaPtr();
-    ////                GetSegmentIdBuffer().UnmapCudaPtr();
-    ////            }
-    //
-    //
-    //            if( m_isovalues.size() == 0 )
-    //            {
-    //                return;
-    //            }
-    //
-    //            ElVisFloat3 eye = MakeFloat3(view->GetEye());
-    //            dim3 gridDim;
-    //            gridDim.x = view->GetWidth()/8+1;
-    //            gridDim.y = view->GetHeight()/4+1;
-    //            gridDim.z = 1;
-    //
-    //            dim3 blockDim;
-    //            blockDim.x = 8;
-    //            blockDim.y = 4;
-    //            blockDim.z = 1;
-    //
-    //
-    //            view->GetScene()->GetModel()->MapInteropBuffersForCuda();
-    //            CUdeviceptr idBuffer = GetSegmentElementIdBuffer().GetMappedCudaPtr();
-    //            CUdeviceptr typeBuffer = GetSegmentElementTypeBuffer().GetMappedCudaPtr();
-    //            CUdeviceptr directionBuffer = GetSegmentRayDirectionBuffer().GetMappedCudaPtr();
-    //            CUdeviceptr segmentStartBuffer = GetSegmentStartBuffer().GetMappedCudaPtr();
-    //            CUdeviceptr segmentEndBuffer = GetSegmentEndBuffer().GetMappedCudaPtr();
-    //            CUdeviceptr sampleBuffer = view->GetSampleBuffer().GetMappedCudaPtr();
-    //            CUdeviceptr intersectionBuffer = view->GetIntersectionPointBuffer().GetMappedCudaPtr();
-    //            CUdeviceptr segmentIdBuffer = GetSegmentIdBuffer().GetMappedCudaPtr();
-    //
-    //
-    //            bool enableTrace = view->GetScene()->GetEnableOptixTrace();
-    //            int tracex = view->GetScene()->GetOptixTracePixelIndex().x();
-    //            int tracey = view->GetHeight() - view->GetScene()->GetOptixTracePixelIndex().y() - 1;
-    //            int fieldId = view->GetScalarFieldIndex();
-    //            int numIsosurfaces = m_isovalues.size();
-    //            int screen_x = view->GetWidth();
-    //            int screen_y = view->GetHeight();
-    //
-    //            void* args[] = {&eye, &idBuffer, &typeBuffer, &segmentIdBuffer,
-    //                            &directionBuffer, &segmentStartBuffer, &segmentEndBuffer, &fieldId,
-    //                            &numIsosurfaces, &m_isovalueBuffer,
-    //                            &enableTrace, &tracex, &tracey,
-    //                            &screen_x, &screen_y,
-    //                            &m_gaussLegendreNodesBuffer, &m_gaussLegendreWeightsBuffer, &m_monomialConversionTableBuffer, &sampleBuffer, &intersectionBuffer};
-    //            checkedCudaCall(cuLaunchKernel(m_findIsosurfaceFunction, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
-    //            checkedCudaCall(cuCtxSynchronize());
-    //            GetSegmentElementIdBuffer().UnmapCudaPtr();
-    //            GetSegmentElementTypeBuffer().UnmapCudaPtr();
-    //            GetSegmentRayDirectionBuffer().UnmapCudaPtr();
-    //            GetSegmentStartBuffer().UnmapCudaPtr();
-    //            GetSegmentEndBuffer().UnmapCudaPtr();
-    //            view->GetSampleBuffer().UnmapCudaPtr();
-    //            view->GetIntersectionPointBuffer().UnmapCudaPtr();
-    //            GetSegmentIdBuffer().UnmapCudaPtr();
-    //            view->GetScene()->GetModel()->UnMapInteropBuffersForCuda();
-    //        }
-    //        catch(std::exception& e)
-    //        {
-    //            std::cerr << e.what() << std::endl;
-    //        }
-
-  }
-
-
-  void IsosurfaceModule::DoResize(unsigned int newWidth, unsigned int newHeight)
-  {
-  }
 
   void IsosurfaceModule::DoSetup(SceneView* view)
   {
@@ -210,33 +124,30 @@ namespace ElVis
       {
         std::vector<ElVisFloat> nodes;
         ReadFloatVector("Nodes.txt", nodes);
-        m_gaussLegendreNodesBuffer.SetContextInfo(context);
+        m_gaussLegendreNodesBuffer.SetContext(context);
         m_gaussLegendreNodesBuffer.SetDimensions(nodes.size());
-        ElVisFloat* nodeData = m_gaussLegendreNodesBuffer.MapOptiXPointer();
-        std::copy(nodes.begin(), nodes.end(), nodeData);
-        m_gaussLegendreNodesBuffer.UnmapOptiXPointer();
+        BOOST_AUTO(nodeData, m_gaussLegendreNodesBuffer.Map());
+        std::copy(nodes.begin(), nodes.end(), nodeData.get());
       }
 
       if( !m_gaussLegendreWeightsBuffer.Initialized() )
       {
         std::vector<ElVisFloat> weights;
         ReadFloatVector("Weights.txt", weights);
-        m_gaussLegendreWeightsBuffer.SetContextInfo(context);
+        m_gaussLegendreWeightsBuffer.SetContext(context);
         m_gaussLegendreWeightsBuffer.SetDimensions(weights.size());
-        ElVisFloat* data = m_gaussLegendreWeightsBuffer.MapOptiXPointer();
-        std::copy(weights.begin(), weights.end(), data);
-        m_gaussLegendreWeightsBuffer.UnmapOptiXPointer();
+        BOOST_AUTO(data, m_gaussLegendreWeightsBuffer.Map());
+        std::copy(weights.begin(), weights.end(), data.get());
       }
 
       if( !m_monomialConversionTableBuffer.Initialized() )
       {
         std::vector<ElVisFloat> monomialCoversionData;
         ReadFloatVector("MonomialConversionTables.txt", monomialCoversionData);
-        m_monomialConversionTableBuffer.SetContextInfo(context);
+        m_monomialConversionTableBuffer.SetContext(context);
         m_monomialConversionTableBuffer.SetDimensions(monomialCoversionData.size());
-        ElVisFloat* data = m_monomialConversionTableBuffer.MapOptiXPointer();
-        std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data);
-        m_monomialConversionTableBuffer.UnmapOptiXPointer();
+        BOOST_AUTO(data, m_monomialConversionTableBuffer.Map());
+        std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data.get());
       }
 
 
@@ -269,21 +180,20 @@ namespace ElVis
       std::cout << "Setting Isovalue buffer." << std::endl;
       if( !m_isovalueBuffer.Initialized() )
       {
-        m_isovalueBuffer.SetContextInfo(context);
+        m_isovalueBuffer.SetContext(context);
         m_isovalueBuffer.SetDimensions(m_isovalues.size());
         m_isovalueBufferSize = m_isovalues.size();
       }
 
       if( m_isovalueBufferSize != m_isovalues.size())
       {
-        m_isovalueBuffer.SetContextInfo(context);
+        m_isovalueBuffer.SetContext(context);
         m_isovalueBuffer.SetDimensions(m_isovalues.size());
         m_isovalueBufferSize = m_isovalues.size();
       }
 
-      ElVisFloat* isovalueData = m_isovalueBuffer.MapOptiXPointer();
-      std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData);
-      m_isovalueBuffer.UnmapOptiXPointer();
+      BOOST_AUTO(isovalueData, m_isovalueBuffer.Map());
+      std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
     }
   }
 

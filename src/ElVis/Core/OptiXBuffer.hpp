@@ -47,10 +47,10 @@ namespace ElVis
     /// @param T the type to store in the buffer.
     /// @param BufferType one of   RT_BUFFER_INPUT, RT_BUFFER_OUTPUT, RT_BUFFER_INPUT_OUTPUT
     template<typename T, RTbuffertype BufferType = RT_BUFFER_INPUT_OUTPUT>
-    class OptixBuffer
+    class OptiXBuffer
     {
         public:
-            explicit OptixBuffer(const std::string& name) :
+            explicit OptiXBuffer(const std::string& name) :
                 m_optixBuffer(),
                 m_name(name),
                 m_width(1),
@@ -59,7 +59,7 @@ namespace ElVis
             {
             }
 
-            ~OptixBuffer()
+            ~OptiXBuffer()
             {
             }
 
@@ -89,7 +89,7 @@ namespace ElVis
             boost::shared_ptr<T> Map()
             {
                 return boost::shared_ptr<T>(static_cast<T*>(m_optixBuffer->map()),
-                                                            boost::bind(&OptixBuffer::Unmap, this, _1));
+                                                            boost::bind(&OptiXBuffer::Unmap, this, _1));
             }
 
 
@@ -118,8 +118,8 @@ namespace ElVis
                 m_optixBuffer->unmap();
             }
 
-            OptixBuffer& operator=(const OptixBuffer& rhs);
-            OptixBuffer(const OptixBuffer& rhs);
+            OptiXBuffer& operator=(const OptiXBuffer& rhs);
+            OptiXBuffer(const OptiXBuffer& rhs);
 
             void ReleaseResourcesIfNecessary()
             {
