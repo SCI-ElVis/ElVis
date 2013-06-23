@@ -91,6 +91,7 @@ SET(ELVIS_HEADERS
     Model.h
     Octree.hpp
     OpenGL.h
+    OptiXBuffer.hpp
     OptiXExtensions.hpp
     Plugin.h
     Point.hpp
