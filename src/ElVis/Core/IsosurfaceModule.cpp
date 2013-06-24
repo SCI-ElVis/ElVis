@@ -80,11 +80,10 @@ namespace ElVis
 
   void IsosurfaceModule::DoRender(SceneView* view)
   {
-    if( !HasWork() ) return;
+    if( m_isovalues.empty() ) return;
 
     try
     {
-      std::cout << "Isosurface Element Traversal." << std::endl;
       optixu::Context context = view->GetContext();
 
       context->launch(m_FindIsosurface.Index, view->GetWidth(), view->GetHeight());
@@ -109,7 +108,6 @@ namespace ElVis
 
   void IsosurfaceModule::DoSetup(SceneView* view)
   {
-    optixu::Context context = view->GetContext();
     try
     {
       std::cout << "Isourface setup." << std::endl;
@@ -149,10 +147,8 @@ namespace ElVis
         BOOST_AUTO(data, m_monomialConversionTableBuffer.Map());
         std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data.get());
       }
-
-
-      SynchronizeWithOptix();
-      DoSynchronize(view);
+      m_isovalueBuffer.SetContext(context);
+      m_isovalueBuffer.SetDimensions(0);
     }
     catch(optixu::Exception& e)
     {
@@ -173,48 +169,19 @@ namespace ElVis
 
   void IsosurfaceModule::DoSynchronize(SceneView* view)
   {
-    optixu::Context context = view->GetContext();
-    std::cout << "Isosurface Module Sync." << std::endl;
-    if( m_isovalues.size() > 0 )
-    {
-      std::cout << "Setting Isovalue buffer." << std::endl;
-      if( !m_isovalueBuffer.Initialized() )
+      if( m_isovalueBufferSize != m_isovalues.size()   )
       {
-        m_isovalueBuffer.SetContext(context);
         m_isovalueBuffer.SetDimensions(m_isovalues.size());
         m_isovalueBufferSize = m_isovalues.size();
       }
 
-      if( m_isovalueBufferSize != m_isovalues.size())
+      if( !m_isovalues.empty() )
       {
-        m_isovalueBuffer.SetContext(context);
-        m_isovalueBuffer.SetDimensions(m_isovalues.size());
-        m_isovalueBufferSize = m_isovalues.size();
+          BOOST_AUTO(isovalueData, m_isovalueBuffer.Map());
+          std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
       }
-
-      BOOST_AUTO(isovalueData, m_isovalueBuffer.Map());
-      std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
-    }
   }
 
-  void IsosurfaceModule::SynchronizeWithOptix()
-  {
-
-    //        RTsize curSize = 0;
-    //        m_isovalueBuffer->getSize(curSize);
-    //        if( curSize >= m_isovalues.size() )
-    //        {
-    //            m_isovalueBuffer->setSize(m_isovalues.size());
-    //        }
-
-    //        ElVisFloat* data = static_cast<ElVisFloat*>(m_isovalueBuffer->map());
-    //        BOOST_FOREACH(ElVisFloat isovalue, m_isovalues)
-    //        {
-    //            *data = isovalue;
-    //            data += 1;
-    //        }
-    //        m_isovalueBuffer->unmap();
-  }
 
   void IsosurfaceModule::ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values)
   {

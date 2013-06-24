@@ -65,7 +65,6 @@ namespace ElVis
 
             ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
             ELVIS_EXPORT virtual void DoSetup(SceneView* view);
-            ELVIS_EXPORT virtual bool HasWork() const { return m_isovalues.size() > 0; }
 
             virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
             virtual std::string DoGetName() const { return "Isosurface Rendering"; }
@@ -74,7 +73,6 @@ namespace ElVis
             IsosurfaceModule& operator=(const IsosurfaceModule& rhs);
             IsosurfaceModule(const IsosurfaceModule& rhs);
 
-            void SynchronizeWithOptix();
             static void ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values);
 
             std::set<ElVisFloat> m_isovalues;
