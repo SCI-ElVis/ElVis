@@ -246,64 +246,64 @@ namespace ElVis
 
     void VolumeRenderingModule::WriteAccumulatedDensityBuffer(const std::string& fileName, SceneView* view)
     {
-        unsigned int numEntries = view->GetWidth()*view->GetHeight();
-        uchar3* imageData = new uchar3[numEntries];
-        ElVisFloat* data = new ElVisFloat[numEntries];
+//        unsigned int numEntries = view->GetWidth()*view->GetHeight();
+//        uchar3* imageData = new uchar3[numEntries];
+//        ElVisFloat* data = new ElVisFloat[numEntries];
 
-        checkedCudaCall(cuMemcpyDtoH(data, m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight()));
+//        checkedCudaCall(cuMemcpyDtoH(data, m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight()));
 
-        ElVisFloat* max = std::max_element(data, data+numEntries);
+//        ElVisFloat* max = std::max_element(data, data+numEntries);
 
-        std::cout << "Max element = " << *max << std::endl;
-        for(unsigned int i = 0; i < numEntries; ++i)
-        {
-            imageData[i].x = static_cast<unsigned char>(data[i]*255.0/(*max));
-            imageData[i].y = static_cast<unsigned char>(data[i]*255.0/(*max));
-            imageData[i].z = static_cast<unsigned char>(data[i]*255.0/(*max));
-        }
-
-
-        boost::gil::rgb8_image_t forPng(view->GetWidth(), view->GetHeight());
-        boost::gil::copy_pixels( boost::gil::interleaved_view(view->GetWidth(), view->GetHeight(), (boost::gil::rgb8_pixel_t*)imageData, 3*view->GetWidth()), boost::gil::view(forPng));
-        boost::gil::png_write_view(fileName + "_density.png", boost::gil::const_view(forPng));
+//        std::cout << "Max element = " << *max << std::endl;
+//        for(unsigned int i = 0; i < numEntries; ++i)
+//        {
+//            imageData[i].x = static_cast<unsigned char>(data[i]*255.0/(*max));
+//            imageData[i].y = static_cast<unsigned char>(data[i]*255.0/(*max));
+//            imageData[i].z = static_cast<unsigned char>(data[i]*255.0/(*max));
+//        }
 
 
+//        boost::gil::rgb8_image_t forPng(view->GetWidth(), view->GetHeight());
+//        boost::gil::copy_pixels( boost::gil::interleaved_view(view->GetWidth(), view->GetHeight(), (boost::gil::rgb8_pixel_t*)imageData, 3*view->GetWidth()), boost::gil::view(forPng));
+//        boost::gil::png_write_view(fileName + "_density.png", boost::gil::const_view(forPng));
 
-        int numSampleBuffer[] = {-1};
-        if( m_numSamples )
-        {
-            checkedCudaCall(cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int)));
-        }
 
-        std::cout << "Total number of samples taken: " << numSampleBuffer[0] << std::endl;
 
-        std::cout << "Writing density file" << std::endl;
-        std::string floatingPointFileName = fileName + "_density.bin";
-        FILE* outFile = fopen(floatingPointFileName.c_str(), "wb");
-        unsigned int w = view->GetWidth();
-        unsigned int h = view->GetHeight();
-        fwrite(&w, sizeof(unsigned int), 1, outFile);
-        fwrite(&h, sizeof(unsigned int), 1, outFile);
-        fwrite(numSampleBuffer, sizeof(int), 1, outFile);
-        fwrite(data, sizeof(ElVisFloat), view->GetWidth()*view->GetHeight(), outFile);
-        fclose(outFile);
+//        int numSampleBuffer[] = {-1};
+//        if( m_numSamples )
+//        {
+//            checkedCudaCall(cuMemcpyDtoH(numSampleBuffer, m_numSamples, sizeof(int)));
+//        }
 
-        ElVisFloat3* colorData = new ElVisFloat3[numEntries];
-        checkedCudaCall(cuMemcpyDtoH(colorData, m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight()));
+//        std::cout << "Total number of samples taken: " << numSampleBuffer[0] << std::endl;
 
-        std::cout << "Writing color file" << std::endl;
-        std::string colorFileName = fileName + "_color.bin";
-        FILE* colorFile = fopen(colorFileName.c_str(), "wb");
-        fwrite(&w, sizeof(unsigned int), 1, colorFile);
-        fwrite(&h, sizeof(unsigned int), 1, colorFile);
-        fwrite(numSampleBuffer, sizeof(int), 1, colorFile);
-        fwrite(colorData, sizeof(ElVisFloat3), view->GetWidth()*view->GetHeight(), colorFile);
-        fclose(colorFile);
+//        std::cout << "Writing density file" << std::endl;
+//        std::string floatingPointFileName = fileName + "_density.bin";
+//        FILE* outFile = fopen(floatingPointFileName.c_str(), "wb");
+//        unsigned int w = view->GetWidth();
+//        unsigned int h = view->GetHeight();
+//        fwrite(&w, sizeof(unsigned int), 1, outFile);
+//        fwrite(&h, sizeof(unsigned int), 1, outFile);
+//        fwrite(numSampleBuffer, sizeof(int), 1, outFile);
+//        fwrite(data, sizeof(ElVisFloat), view->GetWidth()*view->GetHeight(), outFile);
+//        fclose(outFile);
 
-        delete [] colorData;
-        delete [] data;
-        delete [] imageData;
-        std::cout << "Done writing files." << std::endl;
+//        ElVisFloat3* colorData = new ElVisFloat3[numEntries];
+//        checkedCudaCall(cuMemcpyDtoH(colorData, m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight()));
+
+//        std::cout << "Writing color file" << std::endl;
+//        std::string colorFileName = fileName + "_color.bin";
+//        FILE* colorFile = fopen(colorFileName.c_str(), "wb");
+//        fwrite(&w, sizeof(unsigned int), 1, colorFile);
+//        fwrite(&h, sizeof(unsigned int), 1, colorFile);
+//        fwrite(numSampleBuffer, sizeof(int), 1, colorFile);
+//        fwrite(colorData, sizeof(ElVisFloat3), view->GetWidth()*view->GetHeight(), colorFile);
+//        fclose(colorFile);
+
+//        delete [] colorData;
+//        delete [] data;
+//        delete [] imageData;
+//        std::cout << "Done writing files." << std::endl;
     }
 
 
@@ -716,10 +716,10 @@ namespace ElVis
             //checkedCudaCall(cuModuleGetFunction(&m_gkOnly, module, "GKOnly"));
             //checkedCudaCall(cuModuleGetFunction(&m_Trapezoidal_SingleThreadPerRay, module, "Trapezoidal_SingleThreadPerRay"));
 
-            checkedCudaCall(cuMemAlloc(&m_mappedSegmentIndex, sizeof(int)*view->GetWidth()*view->GetHeight()));
-            checkedCudaCall(cuMemAlloc(&m_pixelCategoryBuf, sizeof(VolumeRenderingIntegrationCategory)*view->GetWidth()*view->GetHeight()));
-            checkedCudaCall(cuMemAlloc(&m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight()));
-            checkedCudaCall(cuMemAlloc(&m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight()));        
+//            checkedCudaCall(cuMemAlloc(&m_mappedSegmentIndex, sizeof(int)*view->GetWidth()*view->GetHeight()));
+//            checkedCudaCall(cuMemAlloc(&m_pixelCategoryBuf, sizeof(VolumeRenderingIntegrationCategory)*view->GetWidth()*view->GetHeight()));
+//            checkedCudaCall(cuMemAlloc(&m_accumulatedOpacityBuf, sizeof(ElVisFloat)*view->GetWidth()*view->GetHeight()));
+//            checkedCudaCall(cuMemAlloc(&m_accumulatedColorBuf, sizeof(ElVisFloat3)*view->GetWidth()*view->GetHeight()));
             
             //m_accumulatedOpacityBufOptiX.Create(context, RT_BUFFER_INPUT_OUTPUT, view->GetWidth(), view->GetHeight());
             //context[m_accumulatedOpacityBufOptiX.Name().c_str()]->set(*m_accumulatedOpacityBufOptiX);

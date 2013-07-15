@@ -2,7 +2,6 @@
 SET(ProjectName ElVisCore)
 
 FIND_PACKAGE(OpenGL REQUIRED)
-#FIND_PACKAGE(GLEW REQUIRED)
 # Default location
 IF( MSVC )
     SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
@@ -239,13 +238,8 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_SOURCE_DIR}/Externals/tinyxml
 )
 
-# Create a separate library for the Cuda code because the default way of compiling .cu
-# files in ElVis is directly to ptx, which I can't link to.
-#ADD_ELVIS_CUDA_LIBRARY(${ProjectName}CudaInterface ThrustInterface.cu)
-
 add_definitions(${PNG_DEFINITIONS})
 
-#LINK_DIRECTORIES(${BOOST_LIBRARY})
 SOURCE_GROUP("Cuda" FILES ${ELVIS_CUDA_HEADERS})
 SET_SOURCE_FILES_PROPERTIES(${ELVIS_CUDA_HEADERS} PROPERTIES HEADER_FILE_ONLY ON)
 SOURCE_GROUP("Modules" FILES ${ModuleFiles})
@@ -263,8 +257,6 @@ SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 
 TARGET_LINK_LIBRARIES(${ProjectName} 
     ${BOOST_LIBRARY}
-    ${CUDA_CUDA_LIBRARY}
-    ${CUDA_CUDART_LIBRARY}
     ${GLEW_LIBRARY}
     ${GLUT_glut_LIBRARY}
     ${PNG_LIBRARY}
@@ -277,9 +269,9 @@ INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR}
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 
-if(APPLE)	
-  set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
-endif(APPLE)
+#if(APPLE)	
+#  set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
+#endif(APPLE)
                 
 INSTALL(FILES ${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
     Nodes.txt Weights.txt MonomialConversionTables.txt

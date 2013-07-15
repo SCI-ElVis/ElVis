@@ -180,15 +180,6 @@ namespace ElVis
                 rtGetVersion(&optixVersion);
                 std::cout << "OptiX Version: " << optixVersion << std::endl;
 
-                cudaError_t cacheResult = cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-                if( cacheResult != cudaSuccess )
-                {
-                    std::cout << "Error setting cache: " << cudaGetErrorString(cacheResult) << std::endl;
-                }
-                cudaFuncCache cacheType;
-                
-                cudaDeviceGetCacheConfig(&cacheType);
-                std::cout << "Cache Type: " << cacheType << std::endl;
 
                 // Ray Type 0 - Primary rays that intersect actual geometry.  Closest
                 // hit programs determine exactly how the geometry is handled.
@@ -196,8 +187,6 @@ namespace ElVis
                 // value at a point.
                 // Ray Type 2 - Rays that perform volume rendering.
                 m_context->setRayTypeCount(3);
-
-
 
                 // Setup Lighting
                 // TODO - Move this into the base
