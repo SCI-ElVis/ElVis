@@ -36,8 +36,6 @@
 #include <vector>
 #include <ElVis/Core/ElVisDeclspec.h>
 
-#include <cuda.h>
-
 namespace ElVis
 {
     class Scene;

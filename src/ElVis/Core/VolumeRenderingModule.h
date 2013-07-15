@@ -43,8 +43,6 @@
 
 #include <vector>
 
-#include <cuda.h>
-
 namespace ElVis
 {
     enum VolumeRenderingIntegrationType
@@ -103,7 +101,6 @@ namespace ElVis
 
             void IntegrateSegment(SceneView* view);
             void IntegrateSegmentSingleThreadPerRayRiemann(SceneView* view);
-            void IntegrateSingleThreadPerRayWithSpacing(SceneView* view, CUfunction f);
             void IntegrateSingleThreadPerRayFull(SceneView* view);
             void IntegrateSingleWarpPerSegmentFull(SceneView* view);
             void IntegrateSegmentSingleThreadPerRay(SceneView* view);
@@ -141,22 +138,8 @@ namespace ElVis
 
             // Element by Element Approach
             VolumeRenderingIntegrationType m_segmentIntegrationType;
-            CUfunction m_integrateSegmentSingleThreadPerRayRiemann;
-            CUfunction m_integrateFull;
-            CUfunction m_integrateFullSingleSegmentPerWarp;
-            CUfunction m_integrateSegmentSingleThreadPerRay;
-            CUfunction m_gkOnly;
-            CUfunction m_Trapezoidal_SingleThreadPerRay;
 
-            CUdeviceptr m_mappedSegmentIndex;
-            CUdeviceptr m_pixelCategoryBuf;
-            CUdeviceptr m_accumulatedOpacityBuf;
-            CUdeviceptr m_accumulatedColorBuf;
-
-            CUdeviceptr m_numSamples;
             bool m_enableSampleTracking;
-            CUfunction m_clearAccumlatorBuffers;
-            CUfunction m_populateColorBuffer;
             boost::shared_ptr<HostTransferFunction> m_transferFunction;
             ElVisFloat m_compositingStepSize;
             ElVisFloat m_epsilon;

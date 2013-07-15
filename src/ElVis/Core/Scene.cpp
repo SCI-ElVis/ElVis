@@ -106,39 +106,6 @@ namespace ElVis
         m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
     }
     
-    void Scene::InitializeCudaIfNeeded()
-    {
-        return;
-        //if( m_cudaContext ) return;
-
-        //checkedCudaCall(cuInit(0));
-
-        //int driverVersion = 0;
-        //checkedCudaCall(cuDriverGetVersion(&driverVersion));
-
-        ////std::cout << "Driver version " << driverVersion << std::endl;
-
-        //int deviceCount = 0;
-        //checkedCudaCall(cuDeviceGetCount(&deviceCount));
-
-        ////std::cout << "Number of available devices: " << deviceCount << std::endl;
-
-        //CUdevice curDevice;
-        //checkedCudaCall(cuDeviceGet(&curDevice, 0));
-
-        ////// In order to use OpenGL interop, we need cuGLCtxCreate.
-        ////// A valid OpenGL context must have been created first, which 
-        ////// we assume has been done.
-        ////checkedCudaCall(cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice));
-
-        ////#ifdef _MSC_VER
-        ////    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
-        ////#else
-        ////    std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
-        ////#endif
-        ////std::cout << "Loading module from " << modulePath << std::endl;
-        ////checkedCudaCall(cuModuleLoad(&m_cudaModule, modulePath.c_str()));
-    }
 
     void Scene::SetOptixStackSize(int size)
     {
@@ -169,10 +136,8 @@ namespace ElVis
 
                 unsigned int deviceCount = 0;
                 rtDeviceGetDeviceCount(&deviceCount);
-                DeviceProperties();
 
                 m_context = optixu::Context::create();
-                InitializeCudaIfNeeded();
 
                 PtxManager::SetupContext(m_model->GetPTXPrefix(), m_context);
 

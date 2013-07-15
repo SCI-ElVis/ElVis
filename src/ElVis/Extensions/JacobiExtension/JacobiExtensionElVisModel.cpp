@@ -35,8 +35,6 @@
 #include <ElVis/Core/PtxManager.h>
 #include <ElVis/Core/Scene.h>
 
-#include <cuda.h>
-
 #include <ElVis/Core/Util.hpp>
 
 #include <list>

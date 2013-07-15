@@ -34,6 +34,7 @@
 #include <fstream>
 #include <string>
 #include <ElVis/Core/Cuda.h>
+#include <stdlib.h>
 
 class BinaryFile
 {

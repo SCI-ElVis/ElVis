@@ -45,8 +45,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 
-#include <cuda.h>
-
 namespace ElVis
 {
     class Model;
@@ -125,8 +123,7 @@ namespace ElVis
         private:
             Scene(const Scene& rhs);
             Scene& operator=(const Scene& rhs);
-            
-            void InitializeCudaIfNeeded();
+
             void InitializeFaces();
             void Get3DModelInformation();
 

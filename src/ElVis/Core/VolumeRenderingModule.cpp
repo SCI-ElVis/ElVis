@@ -69,20 +69,7 @@ namespace ElVis
         ,GreenValues("GreenValues", 1)
         ,BlueValues("BlueValues", 1),
         m_segmentIntegrationType(eRiemann_SingleThreadPerRay),
-        m_integrateSegmentSingleThreadPerRayRiemann(0),
-        m_integrateFull(0),
-        m_integrateFullSingleSegmentPerWarp(0),
-        m_integrateSegmentSingleThreadPerRay(0),
-        m_gkOnly(0),
-        m_Trapezoidal_SingleThreadPerRay(0),
-        m_mappedSegmentIndex(0),
-        m_pixelCategoryBuf(0),
-        m_accumulatedOpacityBuf(0),
-        m_accumulatedColorBuf(0),
-        m_numSamples(0),
         m_enableSampleTracking(false),
-        m_clearAccumlatorBuffers(0),
-        m_populateColorBuffer(0),
         m_transferFunction(new HostTransferFunction()),
         m_compositingStepSize(.01),
         m_epsilon(.001),
@@ -450,52 +437,6 @@ namespace ElVis
         {
             std::cerr << e.what() << std::endl;
         }*/
-    }
-
-    void VolumeRenderingModule::IntegrateSingleThreadPerRayWithSpacing(SceneView* view, CUfunction f)
-    {
-        //try
-        //{
-        //    ElVisFloat3 eye = MakeFloat3(view->GetEye());
-        //    dim3 gridDim;
-        //    gridDim.x = view->GetWidth()/8;
-        //    gridDim.y = view->GetHeight()/8;
-        //    gridDim.z = 1;
-
-        //    dim3 blockDim;
-        //    blockDim.x = 8;
-        //    blockDim.y = 8;
-        //    blockDim.z = 1;
-
-
-        //    CUdeviceptr idBuffer = GetSegmentElementIdBuffer().GetMappedCudaPtr();
-        //    CUdeviceptr typeBuffer = GetSegmentElementTypeBuffer().GetMappedCudaPtr();
-        //    CUdeviceptr directionBuffer = GetSegmentRayDirectionBuffer().GetMappedCudaPtr();
-        //    CUdeviceptr segmentStartBuffer = GetSegmentStartBuffer().GetMappedCudaPtr();
-        //    CUdeviceptr segmentEndBuffer = GetSegmentEndBuffer().GetMappedCudaPtr();
-        //    CUdeviceptr transferFunction = m_transferFunction->GetDeviceObject();
-
-        //    bool m_enableTrace = view->GetScene()->GetEnableOptixTrace();
-        //    int m_tracex = view->GetScene()->GetOptixTracePixelIndex().x();
-        //    int m_tracey = view->GetScene()->GetOptixTracePixelIndex().y();
-        //    int fieldId = view->GetScalarFieldIndex();
-
-        //    void* args[] = {&eye, &idBuffer, &typeBuffer, &directionBuffer, &segmentStartBuffer, &segmentEndBuffer,
-        //                    &fieldId,
-        //                    &m_compositingStepSize, &transferFunction,
-        //                    &m_accumulatedOpacityBuf, &m_accumulatedColorBuf};
-        //    checkedCudaCall(cuLaunchKernel(f, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
-        //    checkedCudaCall(cuCtxSynchronize());
-        //    GetSegmentElementIdBuffer().UnmapCudaPtr();
-        //    GetSegmentElementTypeBuffer().UnmapCudaPtr();
-        //    GetSegmentRayDirectionBuffer().UnmapCudaPtr();
-        //    GetSegmentStartBuffer().UnmapCudaPtr();
-        //    GetSegmentEndBuffer().UnmapCudaPtr();
-        //}
-        //catch(std::exception& e)
-        //{
-        //    std::cerr << e.what() << std::endl;
-        //}
     }
 
 
