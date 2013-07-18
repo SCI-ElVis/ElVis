@@ -84,7 +84,6 @@ namespace ElVis
             void SetContext(optixu::Context c)
             {
                 m_context = c;
-                ClaimResourcesIfNecessary();
             }
 
             boost::shared_array<T> Map()
