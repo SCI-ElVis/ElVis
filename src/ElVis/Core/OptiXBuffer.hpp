@@ -84,6 +84,7 @@ namespace ElVis
             void SetContext(optixu::Context c)
             {
                 m_context = c;
+                ClaimResourcesIfNecessary();
             }
 
             boost::shared_array<T> Map()
@@ -123,6 +124,7 @@ namespace ElVis
 
             void ReleaseResourcesIfNecessary()
             {
+              if( !m_context ) return;
               // Does this get rid of references in the context?
               if( m_optixBuffer )
               {
@@ -133,7 +135,7 @@ namespace ElVis
 
             void ClaimResourcesIfNecessary()
             {
-
+              if( !m_context ) return;
               // Setup the memory in OptiX.
               m_optixBuffer = m_context->createBuffer(BufferType);
               if( m_height == 1 )

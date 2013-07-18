@@ -36,6 +36,7 @@
 #include <ElVis/Core/Model.h>
 #include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <optixu/optixpp.h>
 #include <ElVis/Core/InteropBuffer.hpp>
@@ -272,10 +273,11 @@ namespace ElVis
 //                    return optixu::GeometryInstance();
 //                }
                 std::string vertexBufferName = variablePrefix + "VertexBuffer";
-                FloatingPointBuffer VertexBuffer(vertexBufferName.c_str(), 4);
-                VertexBuffer.Create(context, RT_BUFFER_INPUT, numElements*T::VertexCount);
-                context[VertexBuffer.Name().c_str()]->set(*VertexBuffer);
-                ElVisFloat* vertexData = static_cast<ElVisFloat*>(VertexBuffer->map());
+                OptiXBuffer<ElVisFloat4> VertexBuffer(vertexBufferName);
+                VertexBuffer.SetContext(context);
+                VertexBuffer.SetDimensions(numElements*T::VertexCount);
+                
+                BOOST_AUTO(vertexData, VertexBuffer.Map());
 
                 ElVis::InteropBuffer<int>& CoefficientIndicesBuffer = GetCoefficientIndexBuffer<T>();
                 CoefficientIndicesBuffer.SetContextInfo(context);
@@ -331,12 +333,12 @@ namespace ElVis
 
                         for(int i = 0; i < T::VertexCount; ++i)
                         {
-                            int vertexIdx = curElementId*T::VertexCount*4 + 4*i;
+                            int vertexIdx = curElementId*T::VertexCount + i;
                             const ElVis::WorldPoint& p = element->vertex(i);
-                            vertexData[vertexIdx] = (float)p.x();
-                            vertexData[vertexIdx+1] = static_cast<ElVisFloat>(p.y() + copyId*range);
-                            vertexData[vertexIdx+2] = static_cast<ElVisFloat>(p.z());
-                            vertexData[vertexIdx+3] = 1.0;
+                            vertexData[vertexIdx].x = (float)p.x();
+                            vertexData[vertexIdx].y = static_cast<ElVisFloat>(p.y() + copyId*range);
+                            vertexData[vertexIdx].z = static_cast<ElVisFloat>(p.z());
+                            vertexData[vertexIdx].w = 1.0;
                         }
 
                         // Coefficgeometryients
@@ -382,7 +384,6 @@ namespace ElVis
                 CoefficientBuffer.UnmapOptiXPointer();
                 CoefficientIndicesBuffer.UnmapOptiXPointer();
                 DegreesBuffer->unmap();
-                VertexBuffer->unmap();
 
                 if( numElements == 0 ) return instance;
                 optixu::Geometry geometry = context->createGeometry();
