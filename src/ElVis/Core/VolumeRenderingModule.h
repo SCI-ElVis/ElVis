@@ -34,7 +34,6 @@
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/InteropBuffer.hpp>
 #include <ElVis/Core/Float.h>

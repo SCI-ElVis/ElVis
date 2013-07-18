@@ -35,7 +35,6 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Object.h>
 #include <ElVis/Core/Point.hpp>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 
 #include <iostream>

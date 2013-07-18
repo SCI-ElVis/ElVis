@@ -36,7 +36,6 @@
 #include <ElVis/Core/Color.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
 #include <ElVis/Core/PtxManager.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 
 #include <iostream>

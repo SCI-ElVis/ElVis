@@ -60,7 +60,6 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/Float.cu.in
                ${CMAKE_BINARY_DIR}/ElVis/Core/Float.cu )
 
 SET(ELVIS_HEADERS
-    Buffer.h
     Camera.h
     Color.h
     ColorMap.h
@@ -84,7 +83,6 @@ SET(ELVIS_HEADERS
     HostTransferFunction.h
     InteropBuffer.hpp
     Interval.hpp
-    IsosurfaceObject.h
     Jacobi.hpp
     Light.h
     Model.h
@@ -124,7 +122,6 @@ SET(ELVIS_MATH_HEADERS
 )
 
 SET(ELVIS_SOURCES
-    Buffer.cpp
     Camera.cpp
     Color.cpp
     ColorMap.cpp
@@ -135,7 +132,6 @@ SET(ELVIS_SOURCES
     DynamicLib.cpp
     ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp
     FaceObject.cpp
-    IsosurfaceObject.cpp
     Light.cpp
     Model.cpp
     Plugin.cpp

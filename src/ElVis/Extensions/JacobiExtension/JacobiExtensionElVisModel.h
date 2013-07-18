@@ -34,7 +34,6 @@
 #include <ElVis/Extensions/JacobiExtension/Declspec.h>
 
 #include <ElVis/Core/Model.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
 

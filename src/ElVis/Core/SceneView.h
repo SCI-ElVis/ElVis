@@ -43,7 +43,6 @@
 
 #include <optixu/optixpp.h>
 #include <ElVis/Core/Scene.h>
-#include <ElVis/Core/Buffer.h>
 #include <map>
 
 #include <boost/signals.hpp>
