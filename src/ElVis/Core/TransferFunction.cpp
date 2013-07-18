@@ -158,12 +158,14 @@ namespace ElVis
 //        checkedCudaCall(cuMemAlloc(&m_deviceObject, sizeof(TransferFunction)));
     }
 
-    void HostTransferFunction::CopyToOptix(optixu::Context context, FloatingPointBuffer& breakpoints, FloatingPointBuffer& values, TransferFunctionChannel channel)
+    void HostTransferFunction::CopyToOptix(optixu::Context context, OptiXBuffer<ElVisFloat>& breakpoints, OptiXBuffer<ElVisFloat>& values, TransferFunctionChannel channel)
     {
-        breakpoints.Create(context,RT_BUFFER_INPUT, m_breakpoints.size());
-        values.Create(context, RT_BUFFER_INPUT, m_breakpoints.size());
-        ElVisFloat* breakpointData = static_cast<ElVisFloat*>(breakpoints->map());
-        ElVisFloat* valueData = static_cast<ElVisFloat*>(values->map());
+        breakpoints.SetContext(context);
+        breakpoints.SetDimensions(m_breakpoints.size());
+        values.SetContext(context);
+        values.SetDimensions(m_breakpoints.size());
+        BOOST_AUTO(breakpointData, breakpoints.Map());
+        BOOST_AUTO(valueData,values.Map());
 
         int index = 0;
         for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
@@ -177,11 +179,6 @@ namespace ElVis
 
             ++index;
         }
-
-        breakpoints->unmap();
-        values->unmap();
-        context[breakpoints.Name().c_str()]->set(*breakpoints);
-        context[values.Name().c_str()]->set(*values);
     }
 
 

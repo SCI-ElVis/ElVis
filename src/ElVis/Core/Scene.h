@@ -38,6 +38,7 @@
 #include <ElVis/Core/HostTransferFunction.h>
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <optixu/optixpp.h>
 
@@ -103,8 +104,8 @@ namespace ElVis
 
 //            ELVIS_EXPORT optixu::Program GetNewtonIntersectionProgram() const { return m_newtonIntersectionProgram; }
             ELVIS_EXPORT optixu::Buffer GetFaceIdBuffer() const { return m_faceIdBuffer; }
-            ELVIS_EXPORT FloatingPointBuffer& GetFaceMinExtentBuffer() { return m_faceMinExtentBuffer; }
-            ELVIS_EXPORT FloatingPointBuffer& GetFaceMaxExtentBuffer() { return m_faceMaxExtentBuffer; }
+            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMinExtentBuffer() { return m_faceMinExtentBuffer; }
+            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMaxExtentBuffer() { return m_faceMaxExtentBuffer; }
 
 //            ELVIS_EXPORT optixu::Geometry GetCurvedFaceGeometry() const { return m_curvedFaceGeometry; }
 //            ELVIS_EXPORT optixu::Geometry GetPlanarFaceGeometry() const { return m_planarFaceGeometry; }
@@ -150,8 +151,8 @@ namespace ElVis
             optixu::Program m_faceBoundingBoxProgram;
             optixu::Program m_faceIntersectionProgram;
             optixu::Buffer m_faceIdBuffer;
-            FloatingPointBuffer m_faceMinExtentBuffer;
-            FloatingPointBuffer m_faceMaxExtentBuffer;
+            OptiXBuffer<ElVisFloat3> m_faceMinExtentBuffer;
+            OptiXBuffer<ElVisFloat3> m_faceMaxExtentBuffer;
             optixu::Geometry m_faceGeometry;
             optixu::Acceleration m_faceAcceleration;
             optixu::Buffer m_facesEnabledBuffer;

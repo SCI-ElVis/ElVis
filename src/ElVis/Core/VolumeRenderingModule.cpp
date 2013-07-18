@@ -60,14 +60,14 @@ namespace ElVis
 
     VolumeRenderingModule::VolumeRenderingModule() :
         RenderModule()
-        ,DensityBreakpoints("DensityBreakpoints", 1)
-        ,RedBreakpoints("RedBreakpoints", 1)
-        ,GreenBreakpoints("GreenBreakpoints", 1)
-        ,BlueBreakpoints("BlueBreakpoints", 1)
-        ,DensityValues("DensityValues", 1)
-        ,RedValues("RedValues", 1)
-        ,GreenValues("GreenValues", 1)
-        ,BlueValues("BlueValues", 1),
+        ,DensityBreakpoints("DensityBreakpoints")
+        ,RedBreakpoints("RedBreakpoints")
+        ,GreenBreakpoints("GreenBreakpoints")
+        ,BlueBreakpoints("BlueBreakpoints")
+        ,DensityValues("DensityValues")
+        ,RedValues("RedValues")
+        ,GreenValues("GreenValues")
+        ,BlueValues("BlueValues"),
         m_segmentIntegrationType(eRiemann_SingleThreadPerRay),
         m_enableSampleTracking(false),
         m_transferFunction(new HostTransferFunction()),

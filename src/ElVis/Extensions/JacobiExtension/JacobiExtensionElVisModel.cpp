@@ -187,11 +187,11 @@ namespace ElVis
             PopulateFaces<Hexahedron>(m_volume, faces);
             PopulateFaces<Prism>(m_volume, faces);
 
-            scene->GetFaceMinExtentBuffer()->setSize(faces.size());
-            scene->GetFaceMaxExtentBuffer()->setSize(faces.size());
+            scene->GetFaceMinExtentBuffer().SetDimensions(faces.size());
+            scene->GetFaceMaxExtentBuffer().SetDimensions(faces.size());
 
-            ElVisFloat3* minBuffer = static_cast<ElVisFloat3*>(scene->GetFaceMinExtentBuffer()->map());
-            ElVisFloat3* maxBuffer = static_cast<ElVisFloat3*>(scene->GetFaceMaxExtentBuffer()->map());
+            BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
+            BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
             FaceVertexBuffer.SetContextInfo(context);
             FaceVertexBuffer.SetDimensions(faces.size()*4);
             FaceNormalBuffer.SetContextInfo(context);
@@ -247,8 +247,6 @@ namespace ElVis
                 ++index;
             }
 
-            scene->GetFaceMinExtentBuffer()->unmap();
-            scene->GetFaceMaxExtentBuffer()->unmap();
             scene->GetFaceIdBuffer()->unmap();
             FaceVertexBuffer.UnmapOptiXPointer();
             FaceNormalBuffer.UnmapOptiXPointer();

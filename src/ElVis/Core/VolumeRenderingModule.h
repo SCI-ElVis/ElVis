@@ -40,6 +40,7 @@
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/TransferFunction.h>
 #include <ElVis/Core/HostTransferFunction.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <vector>
 
@@ -123,15 +124,15 @@ namespace ElVis
             ///////////////////////////////////////////////////////////
             void ResetSampleCount();
 
-            FloatingPointBuffer DensityBreakpoints;
-            FloatingPointBuffer RedBreakpoints;
-            FloatingPointBuffer GreenBreakpoints;
-            FloatingPointBuffer BlueBreakpoints;
+            OptiXBuffer<ElVisFloat> DensityBreakpoints;
+            OptiXBuffer<ElVisFloat> RedBreakpoints;
+            OptiXBuffer<ElVisFloat> GreenBreakpoints;
+            OptiXBuffer<ElVisFloat> BlueBreakpoints;
 
-            FloatingPointBuffer DensityValues;
-            FloatingPointBuffer RedValues;
-            FloatingPointBuffer GreenValues;
-            FloatingPointBuffer BlueValues;
+            OptiXBuffer<ElVisFloat> DensityValues;
+            OptiXBuffer<ElVisFloat> RedValues;
+            OptiXBuffer<ElVisFloat> GreenValues;
+            OptiXBuffer<ElVisFloat> BlueValues;
 
             RayGeneratorProgram m_program;
             static RayGeneratorProgram m_PerformVolumeRendering;

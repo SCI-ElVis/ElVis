@@ -69,8 +69,8 @@ namespace ElVis
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
         m_faceIdBuffer(),
-        m_faceMinExtentBuffer("FaceMinExtentBuffer", 3),
-        m_faceMaxExtentBuffer("FaceMaxExtentBuffer", 3),
+        m_faceMinExtentBuffer("FaceMinExtentBuffer"),
+        m_faceMaxExtentBuffer("FaceMaxExtentBuffer"),
         m_faceGeometry(),
 //        m_curvedFaceGeometry(0),
 //        m_planarFaceGeometry(0),
@@ -275,13 +275,13 @@ namespace ElVis
         m_faceIdBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_USER, 1);
         m_faceIdBuffer->setElementSize(sizeof(FaceDef));
 
-        m_faceMinExtentBuffer.Create(m_context, RT_BUFFER_INPUT, 1);
-        m_faceMaxExtentBuffer.Create(m_context, RT_BUFFER_INPUT, 1);
+        m_faceMinExtentBuffer.SetContext(m_context);
+        m_faceMinExtentBuffer.SetDimensions(1);
+
+        m_faceMaxExtentBuffer.SetContext(m_context);
+        m_faceMaxExtentBuffer.SetDimensions(1);
 
         m_context["FaceIdBuffer"]->set(m_faceIdBuffer);
-        m_context[m_faceMinExtentBuffer.Name().c_str()]->set(*m_faceMinExtentBuffer);
-        m_context[m_faceMaxExtentBuffer.Name().c_str()]->set(*m_faceMaxExtentBuffer);
-
 
         m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
