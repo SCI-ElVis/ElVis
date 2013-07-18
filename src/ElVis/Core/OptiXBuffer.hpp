@@ -86,9 +86,9 @@ namespace ElVis
                 m_context = c;
             }
 
-            boost::shared_ptr<T> Map()
+            boost::shared_array<T> Map()
             {
-                return boost::shared_ptr<T>(static_cast<T*>(m_optixBuffer->map()),
+                return boost::shared_array<T>(static_cast<T*>(m_optixBuffer->map()),
                                                             boost::bind(&OptiXBuffer::Unmap, this, _1));
             }
 
