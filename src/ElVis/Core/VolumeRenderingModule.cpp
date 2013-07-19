@@ -644,7 +644,6 @@ namespace ElVis
     void VolumeRenderingModule::DoSetup(SceneView* view)
     {
         optixu::Context context = view->GetContext();
-        m_transferFunction->GetDeviceObject();
 
         if( !m_initializationComplete )
         {

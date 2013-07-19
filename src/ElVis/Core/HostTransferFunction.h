@@ -48,7 +48,6 @@ namespace ElVis
     {
         public:
             ELVIS_EXPORT HostTransferFunction();
-            ELVIS_EXPORT CUdeviceptr GetDeviceObject();
             ELVIS_EXPORT TransferFunction GetOptixObject();
 
             ELVIS_EXPORT void SetBreakpoint(double s, const Color& c);
@@ -77,7 +76,6 @@ namespace ElVis
 
             void UpdateBreakpoints(std::map<double, double>& container);
 
-            void InitializeArrayIfNeeded(CUdeviceptr& devicePtr, ElVisFloat* data, int size);
             void SynchronizeDeviceIfNeeded();
             void SynchronizeOptiXIfNeeded();
             void FreeDeviceMemory();
@@ -86,17 +84,6 @@ namespace ElVis
 
             std::map<double, Breakpoint> m_breakpoints;
 
-            CUdeviceptr m_deviceDensityBreakpoints;
-            CUdeviceptr m_deviceRedBreakpoints;
-            CUdeviceptr m_deviceGreenBreakpoints;
-            CUdeviceptr m_deviceBlueBreakpoints;
-
-            CUdeviceptr m_deviceDensityValues;
-            CUdeviceptr m_deviceRedValues;
-            CUdeviceptr m_deviceGreenValues;
-            CUdeviceptr m_deviceBlueValues;
-
-            CUdeviceptr m_deviceObject;
             TransferFunction m_localDeviceTransferFunction;
             bool m_dirty;
     };
