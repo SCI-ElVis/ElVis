@@ -196,8 +196,7 @@ namespace ElVis
             InteropBuffer<uchar4> m_colorBuffer;
             InteropBuffer<ElVisFloat3> m_rawColorBuffer;
 
-            // DepthBuffer is not a FloatingPointBuffer because it needs to be float
-            // for OpenGL Interop.
+            // Must be float for OpenGL.
             InteropBuffer<float> m_depthBuffer;
             bool m_enableStencilBuffer;
             InteropBuffer<ElVisFloat3> m_normalBuffer;

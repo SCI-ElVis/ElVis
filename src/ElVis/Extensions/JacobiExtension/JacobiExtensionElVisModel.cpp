@@ -351,37 +351,37 @@ namespace ElVis
         }
 
         template<>
-        ElVis::InteropBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Hexahedron>()
+        ElVis::OptiXBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Hexahedron>()
         {
             return HexCoefficientBufferIndices;
         }
 
         template<>
-        ElVis::InteropBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Prism>()
+        ElVis::OptiXBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Prism>()
         {
             return PrismCoefficientBufferIndices;
         }
 
         template<>
-        ElVis::InteropBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Hexahedron>()
+        ElVis::OptiXBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Hexahedron>()
         {
             return HexCoefficientBuffer;
         }
 
         template<>
-        ElVis::InteropBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Prism>()
+        ElVis::OptiXBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Prism>()
         {
             return PrismCoefficientBuffer;
         }
 
         template<>
-        ElVis::InteropBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Hexahedron>()
+        ElVis::OptiXBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Hexahedron>()
         {
             return HexPlaneBuffer;
         }
 
         template<>
-        ElVis::InteropBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Prism>()
+        ElVis::OptiXBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Prism>()
         {
             return PrismPlaneBuffer;
         }
