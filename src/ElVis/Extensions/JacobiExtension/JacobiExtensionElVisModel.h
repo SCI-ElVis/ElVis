@@ -38,7 +38,6 @@
 #include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <optixu/optixpp.h>
-#include <ElVis/Core/InteropBuffer.hpp>
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/FaceDef.h>
 
@@ -467,8 +466,8 @@ namespace ElVis
             ElVis::OptiXBuffer<ElVisFloat4> HexPlaneBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> PrismPlaneBuffer;
 
-            ElVis::InteropBuffer<ElVisFloat4> FaceVertexBuffer;
-            ElVis::InteropBuffer<ElVisFloat4> FaceNormalBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> FaceVertexBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> FaceNormalBuffer;
         };
 
         template<>

@@ -192,15 +192,15 @@ namespace ElVis
 
             BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
             BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
-            FaceVertexBuffer.SetContextInfo(context);
+            FaceVertexBuffer.SetContext(context);
             FaceVertexBuffer.SetDimensions(faces.size()*4);
-            FaceNormalBuffer.SetContextInfo(context);
+            FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(faces.size());
 
             scene->GetFaceIdBuffer()->setSize(faces.size());
             FaceDef* faceDefs = static_cast<FaceDef*>(scene->GetFaceIdBuffer()->map());
-            ElVisFloat4* faceVertexBuffer = static_cast<ElVisFloat4*>(FaceVertexBuffer.MapOptiXPointer());
-            ElVisFloat4* normalBuffer = static_cast<ElVisFloat4*>(FaceNormalBuffer.MapOptiXPointer());
+            BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
+            BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             int index = 0;
             for(std::map<JacobiFace, FaceDef>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
@@ -248,8 +248,7 @@ namespace ElVis
             }
 
             scene->GetFaceIdBuffer()->unmap();
-            FaceVertexBuffer.UnmapOptiXPointer();
-            FaceNormalBuffer.UnmapOptiXPointer();
+
 
             // All Jacobi faces are planar, but can be switched to curved for testing the
             // intersection routines.
