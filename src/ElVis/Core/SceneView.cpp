@@ -157,13 +157,13 @@ namespace ElVis
         {
             m_colorBuffer.SetDimensions(GetWidth(), GetHeight());
 
-            m_depthBuffer.setSize(GetWidth(), GetHeight());
-            m_normalBuffer.setSize(GetWidth(), GetHeight());
+            m_depthBuffer.SetDimensions(GetWidth(), GetHeight());
+            m_normalBuffer.SetDimensions(GetWidth(), GetHeight());
             m_rawColorBuffer.SetDimensions(GetWidth(), GetHeight());
-            m_intersectionBuffer.setSize(GetWidth(), GetHeight());
-            m_sampleBuffer.setSize(GetWidth(), GetHeight());
-            m_elementIdBuffer.setSize(GetWidth(), GetHeight());
-            m_elementTypeBuffer.setSize(GetWidth(), GetHeight());
+            m_intersectionBuffer.SetDimensions(GetWidth(), GetHeight());
+            m_sampleBuffer.SetDimensions(GetWidth(), GetHeight());
+            m_elementIdBuffer.SetDimensions(GetWidth(), GetHeight());
+            m_elementTypeBuffer.SetDimensions(GetWidth(), GetHeight());
             BOOST_FOREACH(boost::shared_ptr<RenderModule> module, m_allRenderModules)
             {
                 module->Resize(GetWidth(), GetHeight());
@@ -225,54 +225,54 @@ namespace ElVis
 
     void SceneView::WriteDepthBuffer(const std::string& filePrefix)
     {
-        unsigned int numEntries = GetWidth()*GetHeight();
-        uchar3* imageData = new uchar3[numEntries];
-        float* data = new float[numEntries];
+//        unsigned int numEntries = GetWidth()*GetHeight();
+//        uchar3* imageData = new uchar3[numEntries];
+//        float* data = new float[numEntries];
 
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        //SetRasterPositionToLowerLeftCorner();
-        glReadPixels(0, 0, GetWidth(), GetHeight(), GL_DEPTH_COMPONENT, GL_FLOAT, data);
+//        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//        //SetRasterPositionToLowerLeftCorner();
+//        glReadPixels(0, 0, GetWidth(), GetHeight(), GL_DEPTH_COMPONENT, GL_FLOAT, data);
 
-        float* max = std::max_element(data, data+numEntries);
-        std::cout << "Max from depth buffer = " << *max << std::endl;
-        for(unsigned int i = 0; i < numEntries; ++i)
-        {
-            imageData[i].x = data[i]*255.0/(*max);
-            imageData[i].y = data[i]*255.0/(*max);
-            imageData[i].z = data[i]*255.0/(*max);
-        }
+//        float* max = std::max_element(data, data+numEntries);
+//        std::cout << "Max from depth buffer = " << *max << std::endl;
+//        for(unsigned int i = 0; i < numEntries; ++i)
+//        {
+//            imageData[i].x = data[i]*255.0/(*max);
+//            imageData[i].y = data[i]*255.0/(*max);
+//            imageData[i].z = data[i]*255.0/(*max);
+//        }
 
-        {
+//        {
 
-            boost::gil::rgb8_image_t forPng(GetWidth(), GetHeight());
-            boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(), (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()), boost::gil::view(forPng));
-            boost::gil::png_write_view(filePrefix + ".png", boost::gil::const_view(forPng));
-        }
+//            boost::gil::rgb8_image_t forPng(GetWidth(), GetHeight());
+//            boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(), (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()), boost::gil::view(forPng));
+//            boost::gil::png_write_view(filePrefix + ".png", boost::gil::const_view(forPng));
+//        }
 
-        delete [] data;
+//        delete [] data;
 
-        if( m_depthBuffer.Initialized() )
-        {
-            data = static_cast<float*>(m_depthBuffer.MapOptiXPointer());
-            max = std::max_element(data, data+numEntries);
-            std::cout << "Max from optix depth buffer = " << *max << std::endl;
-            for(unsigned int i = 0; i < numEntries; ++i)
-            {
-                imageData[i].x = data[i]*255.0/(*max);
-                imageData[i].y = data[i]*255.0/(*max);
-                imageData[i].z = data[i]*255.0/(*max);
-            }
-            m_depthBuffer.UnmapOptiXPointer();
+//        if( m_depthBuffer.Initialized() )
+//        {
+//            data = static_cast<float*>(m_depthBuffer.MapOptiXPointer());
+//            max = std::max_element(data, data+numEntries);
+//            std::cout << "Max from optix depth buffer = " << *max << std::endl;
+//            for(unsigned int i = 0; i < numEntries; ++i)
+//            {
+//                imageData[i].x = data[i]*255.0/(*max);
+//                imageData[i].y = data[i]*255.0/(*max);
+//                imageData[i].z = data[i]*255.0/(*max);
+//            }
+//            m_depthBuffer.UnmapOptiXPointer();
 
-            {
+//            {
 
-                boost::gil::rgb8_image_t forPng(GetWidth(), GetHeight());
-                boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(), (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()), boost::gil::view(forPng));
-                boost::gil::png_write_view(filePrefix + "_optix.png", boost::gil::const_view(forPng));
-            }
-        }
+//                boost::gil::rgb8_image_t forPng(GetWidth(), GetHeight());
+//                boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(), (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()), boost::gil::view(forPng));
+//                boost::gil::png_write_view(filePrefix + "_optix.png", boost::gil::const_view(forPng));
+//            }
+//        }
 
-        delete [] imageData;
+//        delete [] imageData;
 
     }
 
@@ -281,14 +281,13 @@ namespace ElVis
 
         if( !m_colorBuffer.Initialized() ) return;
 
-        uchar4* colorBuffer = m_colorBuffer.MapOptiXPointer();
+        BOOST_AUTO(colorBuffer, m_colorBuffer.Map());
 
         if( !colorBuffer ) return;
 
         boost::gil::rgba8_image_t forPng(GetWidth(), GetHeight());
-        boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(), (boost::gil::rgba8_pixel_t*)colorBuffer, 4*GetWidth()), boost::gil::view(forPng));
+        boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(), (boost::gil::rgba8_pixel_t*)colorBuffer.get(), 4*GetWidth()), boost::gil::view(forPng));
         boost::gil::png_write_view(fileName + ".png", boost::gil::const_view(forPng));
-        m_colorBuffer.UnmapOptiXPointer();
 
         std::cout << "Done writing images." << std::endl;
     }
@@ -385,12 +384,11 @@ namespace ElVis
     {
         if( m_depthBuffer.Initialized() )
         {
-            float* data = static_cast<float*>(m_depthBuffer.MapOptiXPointer());
+            BOOST_AUTO(data, m_depthBuffer.Map());
             for(int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i] = 1.0f;
             }
-            m_depthBuffer.UnmapOptiXPointer();
         }
     }
 
@@ -398,17 +396,14 @@ namespace ElVis
     {
         if( m_colorBuffer.Initialized() )
         {
-            unsigned char* data = (unsigned char*)(m_colorBuffer.MapOptiXPointer());
-            unsigned char fillValue = 255u;
+            BOOST_AUTO(data, m_colorBuffer.Map());
             for(int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
-                data[i] = 255;
-                data[i+1] = 0.0;
-                data[i+2] = 0.0;
-                data[i+3] = 0.0;
+                data[i].x = 255;
+                data[i].y = 255;
+                data[i].z = 255;
+                data[i].w = 0;
             }
-            //std::fill(data, data+4*GetWidth()*GetHeight(), fillValue);
-            m_colorBuffer.UnmapOptiXPointer();
         }
     }    
 
@@ -476,9 +471,8 @@ namespace ElVis
             SetRasterPositionToLowerLeftCorner();
     
             glDrawBuffer(GL_BACK);
-            void* colorData = m_colorBuffer.MapOptiXPointer();
-            glDrawPixels(GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, colorData);
-            m_colorBuffer.UnmapOptiXPointer();
+            BOOST_AUTO(colorData, m_colorBuffer.Map());
+            glDrawPixels(GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, (void*)colorData.get());
 
             //GLenum error = glGetError();
 
@@ -579,33 +573,33 @@ namespace ElVis
             // TODO - making the color and depth buffers INPUT/OUTPUT slows thing down
             // according to the documentation (the buffers are stored in main memory).
             // How does the SDK display to OpenGL without doing this?
-            m_colorBuffer.SetContextInfo(m_context);
+            m_colorBuffer.SetContext(m_context);
             m_colorBuffer.SetDimensions(GetWidth(), GetHeight());
-            m_rawColorBuffer.SetContextInfo(m_context);
+            m_rawColorBuffer.SetContext(m_context);
             m_rawColorBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int colorBuf = GetWidth() * GetHeight() * 4;
             
-            m_depthBuffer.SetContextInfo(m_context);
+            m_depthBuffer.SetContext(m_context);
             m_depthBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int depthBuffSize = GetWidth() * GetHeight() * sizeof(float);
             
-            m_sampleBuffer.SetContextInfo(m_context);
+            m_sampleBuffer.SetContext(m_context);
             m_sampleBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int sampleBufferSize = GetWidth() * GetHeight() * sizeof(float);
             
-            m_normalBuffer.SetContextInfo(m_context);
+            m_normalBuffer.SetContext(m_context);
             m_normalBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int normalBufferSize = GetWidth() * GetHeight() * sizeof(float)*3;
             
             
-            m_intersectionBuffer.SetContextInfo(m_context);
+            m_intersectionBuffer.SetContext(m_context);
             m_intersectionBuffer.SetDimensions(GetWidth(), GetHeight());
             unsigned int intersectionSize = GetWidth() * GetHeight() * sizeof(float)*3;
 
-            m_elementIdBuffer.SetContextInfo(m_context);
+            m_elementIdBuffer.SetContext(m_context);
             m_elementIdBuffer.SetDimensions(GetWidth(), GetHeight());
 
-            m_elementTypeBuffer.SetContextInfo(m_context);
+            m_elementTypeBuffer.SetContext(m_context);
             m_elementTypeBuffer.SetDimensions(GetWidth(), GetHeight());
 
             m_exceptionProgram = PtxManager::LoadProgram(m_context, GetPTXPrefix(), "ExceptionProgram");
@@ -791,13 +785,14 @@ namespace ElVis
 
     Stat SceneView::CalculateScalarSampleStats()
     {
-        if( !m_sampleBuffer.Initialized() ) return Stat();
+        return Stat();
+//        if( !m_sampleBuffer.Initialized() ) return Stat();
 
-        ElVisFloat* samples = static_cast<ElVisFloat*>(m_sampleBuffer.MapOptiXPointer());
-        int size = GetWidth()*GetHeight();
-        Stat result(samples, ELVIS_FLOAT_MAX, size);
-        m_sampleBuffer.UnmapOptiXPointer();
-        return result;
+//        ElVisFloat* samples = static_cast<ElVisFloat*>(m_sampleBuffer.MapOptiXPointer());
+//        int size = GetWidth()*GetHeight();
+//        Stat result(samples, ELVIS_FLOAT_MAX, size);
+//        m_sampleBuffer.UnmapOptiXPointer();
+//        return result;
     }
 
 

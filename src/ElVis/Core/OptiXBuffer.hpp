@@ -105,7 +105,7 @@ namespace ElVis
 
                 if( x < m_width && y < m_height )
                 {
-                    boost::shared_ptr<T> buf = Map();
+                    boost::shared_array<T> buf = Map();
                     result = buf[y*m_width + x];
                 }
 
