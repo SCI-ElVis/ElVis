@@ -35,7 +35,6 @@
 #include <MultiRegions/ExpList2D.h>
 #include <ElVis/Core/Util.hpp>
 #include <ElVis/Core/PtxManager.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/Scene.h>
@@ -290,7 +289,7 @@ namespace ElVis
             LoadFields(fieldFile);
         }
 
-        std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
         {
            
             try
@@ -298,13 +297,13 @@ namespace ElVis
                 std::vector<optixu::GeometryGroup> result;
                 if( !m_graph ) return result;
 
-                SetupOptixCoefficientBuffers(context, module);
-                SetupOptixVertexBuffers(context, module);
+                SetupOptixCoefficientBuffers(context);
+                SetupOptixVertexBuffers(context);
 
                 optixu::Material m_hexCutSurfaceMaterial = context->createMaterial();
                 optixu::Program hexBoundingProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), "NektarHexahedronBounding");
                 optixu::Program hexIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), HexahedronIntersectionProgramName);
-                optixu::GeometryInstance hexInstance = CreateGeometryForElementType<Nektar::SpatialDomains::HexGeom>(context, module, "Hex");
+                optixu::GeometryInstance hexInstance = CreateGeometryForElementType<Nektar::SpatialDomains::HexGeom>(context, "Hex");
                 hexInstance->setMaterialCount(1);
                 hexInstance->setMaterial(0, m_hexCutSurfaceMaterial);
 
@@ -333,9 +332,9 @@ namespace ElVis
             }
         }
 
-        void NektarModel::SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context, CUmodule module)
+        void NektarModel::SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context)
         {
-            m_SumPrefixNumberOfFieldCoefficients.SetContextInfo(context, module);
+            m_SumPrefixNumberOfFieldCoefficients.SetContextInfo(context);
             m_SumPrefixNumberOfFieldCoefficients.SetDimensions(m_globalExpansions.size());
             uint* data = m_SumPrefixNumberOfFieldCoefficients.MapOptiXPointer();
 
@@ -349,9 +348,9 @@ namespace ElVis
             m_SumPrefixNumberOfFieldCoefficients.UnmapOptiXPointer();
         }
 
-        void NektarModel::SetupCoefficientOffsetBuffer(optixu::Context context, CUmodule module)
+        void NektarModel::SetupCoefficientOffsetBuffer(optixu::Context context)
         {
-            m_deviceCoefficientOffsetBuffer.SetContextInfo(context, module);
+            m_deviceCoefficientOffsetBuffer.SetContextInfo(context);
             int numElements = m_globalExpansions[0]->GetNumElmts();
             m_deviceCoefficientOffsetBuffer.SetDimensions(m_globalExpansions.size()*numElements);
             
@@ -366,7 +365,7 @@ namespace ElVis
 
             // The offset is at elementId*numField + fieldId
 
-            uint* coefficientIndicesData = static_cast<uint*>(m_deviceCoefficientOffsetBuffer.map());
+            uint* coefficientIndicesData = static_cast<uint*>(m_deviceCoefficientOffsetBuffer.MapOptiXPointer());
 
             for(unsigned int expansionIndex = 0; expansionIndex < m_globalExpansions.size(); ++ expansionIndex)
             {
@@ -381,14 +380,14 @@ namespace ElVis
                 }
             }
             
-            m_deviceCoefficientOffsetBuffer.unmap();
+            m_deviceCoefficientOffsetBuffer.UnmapOptiXPointer();
         }
 
-        void NektarModel::SetupFieldModes(optixu::Context context, CUmodule module)
+        void NektarModel::SetupFieldModes(optixu::Context context)
         {
             int numElements = m_globalExpansions[0]->GetNumElmts();
             int numFields = m_globalExpansions.size();
-            m_FieldModes.SetContextInfo(context, module);
+            m_FieldModes.SetContextInfo(context);
             m_FieldModes.SetDimensions(numElements*numFields);
 
             uint3* data = m_FieldModes.MapOptiXPointer();
@@ -418,11 +417,11 @@ namespace ElVis
             m_FieldModes.UnmapOptiXPointer();
         }
 
-        void NektarModel::SetupFieldBases(optixu::Context context, CUmodule module)
+        void NektarModel::SetupFieldBases(optixu::Context context)
         {
             int numElements = m_globalExpansions[0]->GetNumElmts();
             int numFields = m_globalExpansions.size();
-            m_FieldBases.SetContextInfo(context, module);
+            m_FieldBases.SetContextInfo(context);
             m_FieldBases.SetDimensions(numElements*numFields*3);
 
             Nektar::LibUtilities::BasisType* data = m_FieldBases.MapOptiXPointer();
@@ -455,25 +454,27 @@ namespace ElVis
 
         }
 
-        void NektarModel::SetupOptixCoefficientBuffers(optixu::Context context, CUmodule module)
+        int calculateNumCoeffs(int oldValue, Nektar::MultiRegions::ExpListSharedPtr exp)
+        {
+            return oldValue + exp->GetNcoeffs();
+        };
+
+        void NektarModel::SetupOptixCoefficientBuffers(optixu::Context context)
         {
             context["NumElements"]->setUint(m_globalExpansions[0]->GetNumElmts());
-            SetupSumPrefixNumberOfFieldCoefficients(context, module);
-            SetupCoefficientOffsetBuffer(context, module);
-            SetupFieldBases(context, module);
-            SetupFieldModes(context, module);
+            SetupSumPrefixNumberOfFieldCoefficients(context);
+            SetupCoefficientOffsetBuffer(context);
+            SetupFieldBases(context);
+            SetupFieldModes(context);
 
             int numCoeffs = std::accumulate(m_globalExpansions.begin(),
                 m_globalExpansions.end(), 0,
-                [](int oldValue, Nektar::MultiRegions::ExpListSharedPtr exp)
-            {
-                return oldValue + exp->GetNcoeffs();
-            });
+                calculateNumCoeffs);
 
-            m_deviceCoefficientBuffer.SetContextInfo(context, module);
+            m_deviceCoefficientBuffer.SetContextInfo(context);
             m_deviceCoefficientBuffer.SetDimensions(numCoeffs);
             
-            ElVisFloat* coeffData = static_cast<ElVisFloat*>(m_deviceCoefficientBuffer.map());
+            ElVisFloat* coeffData = static_cast<ElVisFloat*>(m_deviceCoefficientBuffer.MapOptiXPointer());
             int coeffIndex = 0;
 
             for(unsigned int i = 0; i < m_globalExpansions.size(); ++i)
@@ -489,12 +490,12 @@ namespace ElVis
                 }    
             }
             
-            m_deviceCoefficientBuffer.unmap();
+            m_deviceCoefficientBuffer.UnmapOptiXPointer();
         }
 
-        void NektarModel::SetupOptixVertexBuffers(optixu::Context context, CUmodule module)
+        void NektarModel::SetupOptixVertexBuffers(optixu::Context context)
         {
-            m_deviceVertexBuffer.SetContextInfo(context, module);
+            m_deviceVertexBuffer.SetContextInfo(context);
             m_deviceVertexBuffer.SetDimensions(m_graph->GetNvertices());
 
             ElVisFloat4* vertexData = m_deviceVertexBuffer.MapOptiXPointer();
@@ -513,12 +514,6 @@ namespace ElVis
         {
             return m_session;
         }
-
-
-        void NektarModel::DoSetupCudaContext(CUmodule module) const
-        {
-        }
-
         
 
         int NektarModel::GetNumberOfFaces() const 
@@ -532,39 +527,35 @@ namespace ElVis
             return numFaces;
         }
 
-        void NektarModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faceGeometry)
+        void NektarModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)
         {
             int numFaces = 0;
             numFaces += m_graph->GetAllTriGeoms().size();
             numFaces += m_graph->GetAllQuadGeoms().size();
 
 
-            scene->GetFaceMinExtentBuffer()->setSize(numFaces);
-            scene->GetFaceMaxExtentBuffer()->setSize(numFaces);
+            scene->GetFaceMinExtentBuffer().SetDimensions(numFaces);
+            scene->GetFaceMaxExtentBuffer().SetDimensions(numFaces);
 
-            ElVisFloat3* minBuffer = static_cast<ElVisFloat3*>(scene->GetFaceMinExtentBuffer()->map());
-            ElVisFloat3* maxBuffer = static_cast<ElVisFloat3*>(scene->GetFaceMaxExtentBuffer()->map());
-            FaceVertexBuffer.SetContextInfo(context, module);
+            BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
+            BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
+            FaceVertexBuffer.SetContextInfo(context);
             FaceVertexBuffer.SetDimensions(numFaces*4);
-            FaceNormalBuffer.SetContextInfo(context, module);
+            FaceNormalBuffer.SetContextInfo(context);
             FaceNormalBuffer.SetDimensions(numFaces);
 
             scene->GetFaceIdBuffer()->setSize(numFaces);
             FaceDef* faceDefs = static_cast<FaceDef*>(scene->GetFaceIdBuffer()->map());
-            ElVisFloat4* faceVertexBuffer = static_cast<ElVisFloat4*>(FaceVertexBuffer.map());
-            ElVisFloat4* normalBuffer = static_cast<ElVisFloat4*>(FaceNormalBuffer.map());
+            ElVisFloat4* faceVertexBuffer = static_cast<ElVisFloat4*>(FaceVertexBuffer.MapOptiXPointer());
+            ElVisFloat4* normalBuffer = static_cast<ElVisFloat4*>(FaceNormalBuffer.MapOptiXPointer());
 
-            AddFaces(m_graph->GetAllTriGeoms(), minBuffer, maxBuffer, faceVertexBuffer, faceDefs, normalBuffer);
+            AddFaces(m_graph->GetAllTriGeoms(), minBuffer.get(), maxBuffer.get(), faceVertexBuffer, faceDefs, normalBuffer);
 
             int offset = m_graph->GetAllTriGeoms().size();
-            AddFaces(m_graph->GetAllQuadGeoms(), minBuffer+offset, maxBuffer+offset, faceVertexBuffer+offset, faceDefs+offset, normalBuffer+offset);
+            AddFaces(m_graph->GetAllQuadGeoms(), minBuffer.get()+offset, maxBuffer.get()+offset, faceVertexBuffer+offset, faceDefs+offset, normalBuffer+offset);
 
-
-            scene->GetFaceMinExtentBuffer()->unmap();
-            scene->GetFaceMaxExtentBuffer()->unmap();
-            scene->GetFaceIdBuffer()->unmap();
-            FaceVertexBuffer.unmap();
-            FaceNormalBuffer.unmap();
+            FaceVertexBuffer.UnmapOptiXPointer();
+            FaceNormalBuffer.UnmapOptiXPointer();
 
             faceGeometry->setPrimitiveCount(numFaces);
             //curvedFaces->setPrimitiveCount(faces.size());
@@ -626,7 +617,7 @@ namespace ElVis
 
         }
 
-        std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module)
+        std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
         {
             std::vector<optixu::GeometryInstance> result;
             if( m_graph->GetMeshDimension() != 2 )
@@ -668,13 +659,13 @@ namespace ElVis
                 result.push_back(instance);
 
                 // Setup the vertex map.
-                m_deviceTriangleVertexIndexMap.SetContextInfo(context, module);
-                m_TriangleModes.SetContextInfo(context, module);
-                m_TriangleMappingCoeffsDir0.SetContextInfo(context, module);
-                m_TriangleMappingCoeffsDir1.SetContextInfo(context, module);
-                m_TriangleCoeffMappingDir0.SetContextInfo(context, module);
-                m_TriangleCoeffMappingDir1.SetContextInfo(context, module);
-                m_TriangleGlobalIdMap.SetContextInfo(context, module);
+                m_deviceTriangleVertexIndexMap.SetContextInfo(context);
+                m_TriangleModes.SetContextInfo(context);
+                m_TriangleMappingCoeffsDir0.SetContextInfo(context);
+                m_TriangleMappingCoeffsDir1.SetContextInfo(context);
+                m_TriangleCoeffMappingDir0.SetContextInfo(context);
+                m_TriangleCoeffMappingDir1.SetContextInfo(context);
+                m_TriangleGlobalIdMap.SetContextInfo(context);
 
                 m_deviceTriangleVertexIndexMap.SetDimensions(3*numTriangles);
                 m_TriangleGlobalIdMap.SetDimensions(numTriangles);
@@ -948,32 +939,12 @@ namespace ElVis
 
         void NektarModel::DoMapInteropBufferForCuda()
         {
-            m_deviceVertexBuffer.GetMappedCudaPtr();
-            m_deviceCoefficientBuffer.GetMappedCudaPtr();
-            m_deviceCoefficientOffsetBuffer.GetMappedCudaPtr();
 
-            m_deviceHexVertexIndices.GetMappedCudaPtr();
-            m_deviceHexPlaneBuffer.GetMappedCudaPtr();
-            m_deviceHexVertexFaceIndex.GetMappedCudaPtr();
-            m_deviceNumberOfModes.GetMappedCudaPtr();
-
-            FaceVertexBuffer.GetMappedCudaPtr();
-            FaceNormalBuffer.GetMappedCudaPtr();
         }
 
         void NektarModel::DoUnMapInteropBufferForCuda()
         {
-            m_deviceVertexBuffer.UnmapCudaPtr();
-            m_deviceCoefficientBuffer.UnmapCudaPtr();
-            m_deviceCoefficientOffsetBuffer.UnmapCudaPtr();
 
-            m_deviceHexVertexIndices.UnmapCudaPtr();
-            m_deviceHexPlaneBuffer.UnmapCudaPtr();
-            m_deviceHexVertexFaceIndex.UnmapCudaPtr();
-            m_deviceNumberOfModes.UnmapCudaPtr();
-
-            FaceVertexBuffer.UnmapCudaPtr();
-            FaceNormalBuffer.UnmapCudaPtr();
         }
 
         int NektarModel::DoGetModelDimension() const

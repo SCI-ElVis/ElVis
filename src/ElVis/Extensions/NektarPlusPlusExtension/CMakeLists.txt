@@ -43,22 +43,6 @@ SET(NEKTAR_PLUS_PLUS_EXTENSION_OPTIX
 
 
 #################################3
-# Nektar++ Cuda Source
-#################################3
-SET(NEKTAR_PLUS_PLUS_EXTENSION_CUDA_HEADER_ONLY
-    CudaHexahedron.cu
-    CudaQuad.cu
-    CudaTriangle.cu
-    ExtensionCudaInterface.cu
-    Expansions.cu
-)
-SET_SOURCE_FILES_PROPERTIES(${NEKTAR_PLUS_PLUS_EXTENSION_CUDA_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
-SET(NEKTAR_PLUS_PLUS_EXTENSION_CUDA
-    ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu
-)
-
-
-#################################3
 # Nektar++ Extension
 #################################3
 SET(NEKTAR_PLUS_PLUS_EXTENSION_HEADERS
@@ -86,20 +70,16 @@ ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR}
     ${NEKTAR_PLUS_PLUS_EXTENSION_OPTIX}
 )
 
+message(${NEKTAR++_LIBRARIES})
 TARGET_LINK_LIBRARIES(${ProjectName} 
+    #tinyxml
+    #${Boost_LIBRARIES}
     ${NEKTAR++_LIBRARIES}
-    tinyxml
-    ${Boost_LIBRARIES}
     ElVisCore
 )
 
-ADD_ELVIS_CUDA_LIBRARY(${ProjectName}Cuda 
-    ${NEKTAR_PLUS_PLUS_EXTENSION_CUDA_HEADER_ONLY}
-    ${NEKTAR_PLUS_PLUS_EXTENSION_CUDA}
-)
 
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Extensions/NektarPlusPLusExtension")
-SET_PROPERTY(TARGET ${ProjectName}Cuda PROPERTY FOLDER "Extensions/NektarPlusPLusExtension")
 
 SET_TARGET_PROPERTIES(${ProjectName} PROPERTIES VERSION ${ELVIS_VERSION})
 

@@ -115,10 +115,10 @@ namespace ElVis
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT LibUtilities::SessionReaderSharedPtr GetSession() const;
 
             protected:
-                virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module);
+                virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context);
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces);
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context, CUmodule module);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context);
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const;
@@ -126,8 +126,6 @@ namespace ElVis
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT void DoCalculateExtents(ElVis::WorldPoint &,ElVis::WorldPoint &);
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual const std::string& DoGetPTXPrefix() const;
-
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoSetupCudaContext(CUmodule module) const;
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual unsigned int DoGetNumberOfElements() const;
 
@@ -149,8 +147,8 @@ namespace ElVis
                 virtual void DoMapInteropBufferForCuda();
                 virtual void DoUnMapInteropBufferForCuda();
 
-                void SetupOptixCoefficientBuffers(optixu::Context context, CUmodule module);
-                void SetupOptixVertexBuffers(optixu::Context context, CUmodule module);
+                void SetupOptixCoefficientBuffers(optixu::Context context);
+                void SetupOptixVertexBuffers(optixu::Context context);
 
                 template<typename FaceContainer>
                 void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceDef* faceDefs, ElVisFloat4* normalBuffer)
@@ -241,7 +239,7 @@ namespace ElVis
                 }
                 
                 template<typename T>
-                optixu::GeometryInstance CreateGeometryForElementType(optixu::Context context, CUmodule module, const std::string& variablePrefix)
+                optixu::GeometryInstance CreateGeometryForElementType(optixu::Context context, const std::string& variablePrefix)
                 {
                     unsigned int numElements = m_graph->GetAllElementsOfType<T>().size();
 
@@ -251,18 +249,18 @@ namespace ElVis
                     optixu::GeometryInstance instance = context->createGeometryInstance();
                     instance->setGeometry(geometry);
 
-                    m_deviceHexPlaneBuffer.SetContextInfo(context, module);
+                    m_deviceHexPlaneBuffer.SetContextInfo(context);
                     m_deviceHexPlaneBuffer.SetDimensions(numElements*8);
                     //FloatingPointBuffer hexPlaneBuffer("HexPlaneBuffer", 4);
                     //hexPlaneBuffer.Create(context, RT_BUFFER_INPUT, numElements*8);
                     //context[hexPlaneBuffer.Name().c_str()]->set(*hexPlaneBuffer);
-                    ElVisFloat* hexPlaneData = static_cast<ElVisFloat*>(m_deviceHexPlaneBuffer.map());
+                    ElVisFloat4* hexPlaneData = static_cast<ElVisFloat4*>(m_deviceHexPlaneBuffer.MapOptiXPointer());
                     
-                    m_deviceHexVertexIndices.SetContextInfo(context, module);
+                    m_deviceHexVertexIndices.SetContextInfo(context);
                     m_deviceHexVertexIndices.SetDimensions(numElements*8);
                     //optixu::Buffer vertexIndexBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, numElements*8);
                     //context["HexVertexIndices"]->set(vertexIndexBuffer);
-                    unsigned int* coefficientIndicesData = static_cast<unsigned int*>(m_deviceHexVertexIndices.map());
+                    unsigned int* coefficientIndicesData = static_cast<unsigned int*>(m_deviceHexVertexIndices.MapOptiXPointer());
 
                     typedef typename std::map<int, boost::shared_ptr<T> >::const_iterator IterType;
                     unsigned int i = 0;
@@ -338,23 +336,23 @@ namespace ElVis
 
                         for(unsigned int c = 0; c < 6; ++c)
                         {
-                            int indexBase = i*8*4 + 4*c;
-                            hexPlaneData[indexBase] = faceNormals[c].x();
-                            hexPlaneData[indexBase + 1] = faceNormals[c].y();
-                            hexPlaneData[indexBase + 2] = faceNormals[c].z();
-                            hexPlaneData[indexBase + 3] = D[c];
+                            int indexBase = i*8 + c;
+                            hexPlaneData[indexBase].x = faceNormals[c].x();
+                            hexPlaneData[indexBase].y = faceNormals[c].y();
+                            hexPlaneData[indexBase].z = faceNormals[c].z();
+                            hexPlaneData[indexBase].x = D[c];
                             //std::cout << "(" << hexPlaneData[indexBase] << ", " << hexPlaneData[indexBase+1] << ", " << hexPlaneData[indexBase+2] << ", " << hexPlaneData[indexBase+3] << ")" << std::endl;
                         }
                         ++i;
                     }
-                    m_deviceHexVertexIndices.unmap();
-                    m_deviceHexPlaneBuffer.unmap();
+                    m_deviceHexVertexIndices.UnmapOptiXPointer();
+                    m_deviceHexPlaneBuffer.UnmapOptiXPointer();
 
-                    m_deviceNumberOfModes.SetContextInfo(context, module);
+                    m_deviceNumberOfModes.SetContextInfo(context);
                     m_deviceNumberOfModes.SetDimensions(numElements*3);
                     //optixu::Buffer numberOfModesBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT3, numElements*3);
                     //context["NumberOfModes"]->set(numberOfModesBuffer);
-                    unsigned int* modesData = static_cast<unsigned int*>(m_deviceNumberOfModes.map());
+                    uint3* modesData = static_cast<uint3*>(m_deviceNumberOfModes.MapOptiXPointer());
 
                     i = 0;
                     for(IterType iter = m_graph->GetAllElementsOfType<T>().begin(); iter != m_graph->GetAllElementsOfType<T>().end(); ++iter)
@@ -363,13 +361,13 @@ namespace ElVis
                         boost::shared_ptr<T> hex = (*iter).second; 
                         BOOST_AUTO(localExpansion, m_globalExpansions[0]->GetExp(hex->GetGlobalID()));
 
-                        modesData[i*3] = localExpansion->GetBasis(0)->GetNumModes();
-                        modesData[i*3+1] = localExpansion->GetBasis(1)->GetNumModes();
-                        modesData[i*3+2] = localExpansion->GetBasis(2)->GetNumModes();
+                        modesData[i].x = localExpansion->GetBasis(0)->GetNumModes();
+                        modesData[i].y = localExpansion->GetBasis(1)->GetNumModes();
+                        modesData[i].z = localExpansion->GetBasis(2)->GetNumModes();
                         ++i;
                     }
 
-                    m_deviceNumberOfModes.unmap();
+                    m_deviceNumberOfModes.UnmapOptiXPointer();
 
                     const unsigned int VerticesForEachFace[] = 
                     {0, 1, 2, 3, 
@@ -379,15 +377,15 @@ namespace ElVis
                     0, 1, 5, 4, 
                     1, 5, 6, 2 };
 
-                    m_deviceHexVertexFaceIndex.SetContextInfo(context, module);
+                    m_deviceHexVertexFaceIndex.SetContextInfo(context);
                     m_deviceHexVertexFaceIndex.SetDimensions(6);
 
                     //std::string vertex_face_indexName = variablePrefix + "vertex_face_index";
                     //optixu::Buffer vertexFaceBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT4, 6);
                     //instance[vertex_face_indexName.c_str()]->set(vertexFaceBuffer);
-                    unsigned int* vertexFaceBufferData = static_cast<unsigned int*>(m_deviceHexVertexFaceIndex.map()); 
-                    std::copy(VerticesForEachFace, VerticesForEachFace + 4*6, vertexFaceBufferData);
-                    m_deviceHexVertexFaceIndex.unmap();
+                    uint4* vertexFaceBufferData = static_cast<uint4*>(m_deviceHexVertexFaceIndex.MapOptiXPointer());
+                    std::copy(VerticesForEachFace, VerticesForEachFace + 4*6, (uint*)vertexFaceBufferData);
+                    m_deviceHexVertexFaceIndex.UnmapOptiXPointer();
 
                     return instance;
 
@@ -396,10 +394,10 @@ namespace ElVis
                 // Initialization methods.
                 void LoadFields(const boost::filesystem::path& fieldFile);
 
-                void SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context, CUmodule module);
-                void SetupCoefficientOffsetBuffer(optixu::Context context, CUmodule module);
-                void SetupFieldModes(optixu::Context context, CUmodule module);
-                void SetupFieldBases(optixu::Context context, CUmodule module);
+                void SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context);
+                void SetupCoefficientOffsetBuffer(optixu::Context context);
+                void SetupFieldModes(optixu::Context context);
+                void SetupFieldBases(optixu::Context context);
 
                 // Data Members
                 boost::shared_ptr<NektarModelImpl> m_impl;
