@@ -554,6 +554,7 @@ namespace ElVis
             int offset = m_graph->GetAllTriGeoms().size();
             AddFaces(m_graph->GetAllQuadGeoms(), minBuffer.get()+offset, maxBuffer.get()+offset, faceVertexBuffer+offset, faceDefs+offset, normalBuffer+offset);
 
+            scene->GetFaceIdBuffer()->unmap();
             FaceVertexBuffer.UnmapOptiXPointer();
             FaceNormalBuffer.UnmapOptiXPointer();
 
