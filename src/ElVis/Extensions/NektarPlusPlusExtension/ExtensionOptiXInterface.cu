@@ -91,6 +91,37 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
     return returnVal;
 }
 
+ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
+{
+    ElVisError returnVal = eNoError;
+    if( elementType == 0 )
+    {
+        gradient.x = EvaluateHexGradientDir1AtTensorPoint(elementId, refPoint.x, refPoint.y, refPoint.z);
+        gradient.y = EvaluateHexGradientDir2AtTensorPoint(elementId, refPoint.x, refPoint.y, refPoint.z);
+        gradient.z = EvaluateHexGradientDir3AtTensorPoint(elementId, refPoint.x, refPoint.y, refPoint.z);
+    }
+    else
+    {
+        returnVal = eInvalidElementType;
+    }
+    return returnVal;
+}
+
+ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
+{
+    ElVisError returnVal = eNoError;
+    if( elementType == 0 )
+    {
+        calculateTensorToWorldSpaceMappingJacobian(elementId, refPoint, J);
+    }
+    else
+    {
+        returnVal = eInvalidElementType;
+    }
+    return returnVal;
+}
+
+
 template<typename PointType, typename ResultType>
 ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, int elementType, int fieldId,
                                                                const PointType& worldPoint,
