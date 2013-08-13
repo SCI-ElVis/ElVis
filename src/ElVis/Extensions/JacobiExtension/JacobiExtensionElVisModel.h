@@ -38,7 +38,6 @@
 #include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <optixu/optixpp.h>
-#include <ElVis/Core/InteropBuffer.hpp>
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/FaceDef.h>
 
@@ -240,21 +239,14 @@ namespace ElVis
                 return result;
             }
 
-
-            
             template<typename T> 
-            ElVis::InteropBuffer<int>& GetCoefficientIndexBuffer() ;
-
-
+            ElVis::OptiXBuffer<int>& GetCoefficientIndexBuffer() ;
 
             template<typename T> 
-            ElVis::InteropBuffer<ElVisFloat>& GetCoefficientBuffer() ;
+            ElVis::OptiXBuffer<ElVisFloat>& GetCoefficientBuffer() ;
 
             template<typename T>
-            ElVis::InteropBuffer<ElVisFloat4>& GetPlaneBuffer() ;
-
-
-
+            ElVis::OptiXBuffer<ElVisFloat4>& GetPlaneBuffer() ;
 
             template<typename T>
             optixu::GeometryInstance CreateGeometryForElementType(boost::shared_ptr<FiniteElementVolume> volume, optixu::Context context, const std::string& variablePrefix)
@@ -278,15 +270,15 @@ namespace ElVis
                 
                 BOOST_AUTO(vertexData, VertexBuffer.Map());
 
-                ElVis::InteropBuffer<int>& CoefficientIndicesBuffer = GetCoefficientIndexBuffer<T>();
-                CoefficientIndicesBuffer.SetContextInfo(context);
+                ElVis::OptiXBuffer<int>& CoefficientIndicesBuffer = GetCoefficientIndexBuffer<T>();
+                CoefficientIndicesBuffer.SetContext(context);
                 CoefficientIndicesBuffer.SetDimensions(numElements);
-                int* coefficientIndicesData = static_cast<int*>(CoefficientIndicesBuffer.MapOptiXPointer());
+                BOOST_AUTO(coefficientIndicesData, CoefficientIndicesBuffer.Map());
 
-                ElVis::InteropBuffer<ElVisFloat>& CoefficientBuffer = GetCoefficientBuffer<T>();
-                CoefficientBuffer.SetContextInfo(context);
+                ElVis::OptiXBuffer<ElVisFloat>& CoefficientBuffer = GetCoefficientBuffer<T>();
+                CoefficientBuffer.SetContext(context);
                 CoefficientBuffer.SetDimensions(numCoefficients);
-                ElVisFloat* coefficientData = static_cast<ElVisFloat*>(CoefficientBuffer.MapOptiXPointer());
+                BOOST_AUTO(coefficientData, CoefficientBuffer.Map());
 
                 std::string degreesName = variablePrefix + "Degrees";
                 optixu::Buffer DegreesBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT3, numElements);
@@ -295,10 +287,10 @@ namespace ElVis
 
 
                 std::string planeBufferName = variablePrefix + "PlaneBuffer";
-                ElVis::InteropBuffer<ElVisFloat4>& PlaneBuffer = GetPlaneBuffer<T>();
-                PlaneBuffer.SetContextInfo(context);
+                ElVis::OptiXBuffer<ElVisFloat4>& PlaneBuffer = GetPlaneBuffer<T>();
+                PlaneBuffer.SetContext(context);
                 PlaneBuffer.SetDimensions(8*numElements);
-                ElVisFloat4* planeData = static_cast<ElVisFloat4*>(PlaneBuffer.MapOptiXPointer());
+                BOOST_AUTO(planeData, PlaneBuffer.Map());
 
                 const ElVis::WorldPoint& min = this->MinExtent();
                 const ElVis::WorldPoint& max = this->MaxExtent();
@@ -368,7 +360,7 @@ namespace ElVis
                         int planeIdx = 8*curElementId;
                         for(int i = 0; i < T::NumFaces; ++i)
                         {
-                            ElVisFloat4* base = planeData + planeIdx + i;
+                            ElVisFloat4* base = planeData.get() + planeIdx + i;
                             castElement->GetFace(i, base[0].x, base[0].y, base[0].z, base[0].w);
 
                             // Adjust as needed for copies.
@@ -379,9 +371,6 @@ namespace ElVis
                     }
                 }
 
-                PlaneBuffer.UnmapOptiXPointer();
-                CoefficientBuffer.UnmapOptiXPointer();
-                CoefficientIndicesBuffer.UnmapOptiXPointer();
                 DegreesBuffer->unmap();
 
                 if( numElements == 0 ) return instance;
@@ -468,34 +457,34 @@ namespace ElVis
             std::set<WorldPoint> m_verticesLookupMap;
             std::vector<WorldPoint> m_vertices;
 
-            ElVis::InteropBuffer<int> HexCoefficientBufferIndices;
-            ElVis::InteropBuffer<int> PrismCoefficientBufferIndices;
+            ElVis::OptiXBuffer<int> HexCoefficientBufferIndices;
+            ElVis::OptiXBuffer<int> PrismCoefficientBufferIndices;
 
-            ElVis::InteropBuffer<ElVisFloat> HexCoefficientBuffer;
-            ElVis::InteropBuffer<ElVisFloat> PrismCoefficientBuffer;
+            ElVis::OptiXBuffer<ElVisFloat> HexCoefficientBuffer;
+            ElVis::OptiXBuffer<ElVisFloat> PrismCoefficientBuffer;
 
-            ElVis::InteropBuffer<ElVisFloat4> HexPlaneBuffer;
-            ElVis::InteropBuffer<ElVisFloat4> PrismPlaneBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> HexPlaneBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> PrismPlaneBuffer;
 
-            ElVis::InteropBuffer<ElVisFloat4> FaceVertexBuffer;
-            ElVis::InteropBuffer<ElVisFloat4> FaceNormalBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> FaceVertexBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> FaceNormalBuffer;
         };
 
         template<>
-        ElVis::InteropBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Hexahedron>();
+        ElVis::OptiXBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Hexahedron>();
         template<>
-        ElVis::InteropBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Prism>();
+        ElVis::OptiXBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Prism>();
 
         template<>
-        ElVis::InteropBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Hexahedron>();
+        ElVis::OptiXBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Hexahedron>();
 
         template<>
-        ElVis::InteropBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Prism>();
+        ElVis::OptiXBuffer<ElVisFloat>& JacobiExtensionModel::GetCoefficientBuffer<Prism>();
 
         template<>
-        ElVis::InteropBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Hexahedron>();
+        ElVis::OptiXBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Hexahedron>();
         template<>
-        ElVis::InteropBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Prism>();
+        ElVis::OptiXBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Prism>();
     }
 }
 

@@ -104,7 +104,7 @@ __device__ __forceinline__ WorldPoint TransformReferenceToWorld(int hexId, const
 
 
 
-__device__ __forceinline__ void calculateTensorToWorldSpaceMappingJacobian(int hexId, const TensorPoint& p, ElVis::Matrix<3, 3>& J)
+__device__ __forceinline__ void calculateTensorToWorldSpaceMappingJacobian(int hexId, const TensorPoint& p, ElVisFloat* J)
 {
     ElVisFloat r = p.x;
     ElVisFloat s = p.y;
@@ -178,8 +178,8 @@ __device__ __forceinline__ void calculateTensorToWorldSpaceMappingJacobian(int h
 
 __device__ __forceinline__ void calculateInverseJacobian(int hexId, const ReferencePoint& p, ElVis::Matrix<3, 3>& inverse)
 {
-    ElVis::Matrix<3, 3> J;
-    calculateTensorToWorldSpaceMappingJacobian(hexId, p, J);
+    ElVisFloat J[9];
+    calculateTensorToWorldSpaceMappingJacobian(hexId, p, &J[0]);
 
     // Now take the inverse.
     ElVisFloat determinant = (-J[0]*J[4]*J[8]+J[0]*J[5]*J[7]+J[3]*J[1]*J[8]-J[3]*J[2]*J[7]-J[6]*J[1]*J[5]+J[6]*J[2]*J[4]);
@@ -465,6 +465,91 @@ __device__ __forceinline__ ElVisFloat EvaluateNektarPlusPlusHexAtTensorPoint(uns
 
     return result;
 }
+
+template<typename T>
+__device__ __forceinline__ T EvaluateHexGradientDir1AtTensorPoint(uint elementId, const T& x, const T& y, const T& z)
+{
+    T result(MAKE_FLOAT(0.0));
+
+    uint3 modes = NumberOfModes[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
+
+    for(unsigned int k = 0; k < modes.z; ++k)
+    {
+        ElVisFloat value_k = ModifiedAPrime(k, z);
+        for(unsigned int j = 0; j < modes.y; ++j)
+        {
+            ElVisFloat value_j = ModifiedA(j, y);
+            for(unsigned int i = 0; i < modes.x; ++i)
+            {
+                result += Coefficients[coefficientIndex] * 
+                    ModifiedA(i, x) *
+                    value_j * 
+                    value_k;
+                ++coefficientIndex;
+            }
+        }
+    }
+
+    return result;
+}
+
+template<typename T>
+__device__ __forceinline__ T EvaluateHexGradientDir2AtTensorPoint(uint elementId, const T& x, const T& y, const T& z)
+{
+    T result(MAKE_FLOAT(0.0));
+
+    uint3 modes = NumberOfModes[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
+
+    for(unsigned int k = 0; k < modes.z; ++k)
+    {
+        ElVisFloat value_k = ModifiedA(k, z);
+        for(unsigned int j = 0; j < modes.y; ++j)
+        {
+            ElVisFloat value_j = ModifiedAPrime(j, y);
+            for(unsigned int i = 0; i < modes.x; ++i)
+            {
+                result += Coefficients[coefficientIndex] * 
+                    ModifiedA(i, x) *
+                    value_j * 
+                    value_k;
+                ++coefficientIndex;
+            }
+        }
+    }
+
+    return result;
+}
+
+template<typename T>
+__device__ __forceinline__ T EvaluateHexGradientDir3AtTensorPoint(uint elementId, const T& x, const T& y, const T& z)
+{
+    T result(MAKE_FLOAT(0.0));
+
+    uint3 modes = NumberOfModes[elementId];
+    uint coefficientIndex = CoefficientOffsets[elementId];
+
+    for(unsigned int k = 0; k < modes.z; ++k)
+    {
+        ElVisFloat value_k = ModifiedA(k, z);
+        for(unsigned int j = 0; j < modes.y; ++j)
+        {
+            ElVisFloat value_j = ModifiedA(j, y);
+            for(unsigned int i = 0; i < modes.x; ++i)
+            {
+                result += Coefficients[coefficientIndex] * 
+                    ModifiedAPrime(i, x) *
+                    value_j * 
+                    value_k;
+                ++coefficientIndex;
+            }
+        }
+    }
+
+    return result;
+}
+
 
 //// The closest hit program.  Assumes intersectedHexId has been populated
 //// in an intersection program.
