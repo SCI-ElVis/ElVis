@@ -334,9 +334,9 @@ namespace ElVis
 
         void NektarModel::SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context)
         {
-            m_SumPrefixNumberOfFieldCoefficients.SetContextInfo(context);
+            m_SumPrefixNumberOfFieldCoefficients.SetContext(context);
             m_SumPrefixNumberOfFieldCoefficients.SetDimensions(m_globalExpansions.size());
-            uint* data = m_SumPrefixNumberOfFieldCoefficients.MapOptiXPointer();
+            BOOST_AUTO(data, m_SumPrefixNumberOfFieldCoefficients.Map());
 
             data[0] = 0;
 
@@ -344,13 +344,11 @@ namespace ElVis
             {
                 data[i+1] = data[i] + m_globalExpansions[i]->GetNcoeffs();
             }
-
-            m_SumPrefixNumberOfFieldCoefficients.UnmapOptiXPointer();
         }
 
         void NektarModel::SetupCoefficientOffsetBuffer(optixu::Context context)
         {
-            m_deviceCoefficientOffsetBuffer.SetContextInfo(context);
+            m_deviceCoefficientOffsetBuffer.SetContext(context);
             int numElements = m_globalExpansions[0]->GetNumElmts();
             m_deviceCoefficientOffsetBuffer.SetDimensions(m_globalExpansions.size()*numElements);
             
@@ -365,7 +363,7 @@ namespace ElVis
 
             // The offset is at elementId*numField + fieldId
 
-            uint* coefficientIndicesData = static_cast<uint*>(m_deviceCoefficientOffsetBuffer.MapOptiXPointer());
+            BOOST_AUTO(coefficientIndicesData, m_deviceCoefficientOffsetBuffer.Map());
 
             for(unsigned int expansionIndex = 0; expansionIndex < m_globalExpansions.size(); ++ expansionIndex)
             {
@@ -379,18 +377,16 @@ namespace ElVis
                     coefficientIndicesData[expansionIndex*numElements + id] = offset;
                 }
             }
-            
-            m_deviceCoefficientOffsetBuffer.UnmapOptiXPointer();
         }
 
         void NektarModel::SetupFieldModes(optixu::Context context)
         {
             int numElements = m_globalExpansions[0]->GetNumElmts();
             int numFields = m_globalExpansions.size();
-            m_FieldModes.SetContextInfo(context);
+            m_FieldModes.SetContext(context);
             m_FieldModes.SetDimensions(numElements*numFields);
 
-            uint3* data = m_FieldModes.MapOptiXPointer();
+            BOOST_AUTO(data, m_FieldModes.Map());
 
             for(int fieldId = 0; fieldId < m_globalExpansions.size(); ++fieldId)
             {
@@ -413,18 +409,16 @@ namespace ElVis
                     data[fieldId*numElements + id] = value;
                 }
             }
-
-            m_FieldModes.UnmapOptiXPointer();
         }
 
         void NektarModel::SetupFieldBases(optixu::Context context)
         {
             int numElements = m_globalExpansions[0]->GetNumElmts();
             int numFields = m_globalExpansions.size();
-            m_FieldBases.SetContextInfo(context);
+            m_FieldBases.SetContext(context);
             m_FieldBases.SetDimensions(numElements*numFields*3);
 
-            Nektar::LibUtilities::BasisType* data = m_FieldBases.MapOptiXPointer();
+            BOOST_AUTO(data, m_FieldBases.Map());
 
             for(int fieldId = 0; fieldId < m_globalExpansions.size(); ++fieldId)
             {
@@ -449,9 +443,6 @@ namespace ElVis
                     }
                 }
             }
-
-            m_FieldBases.UnmapOptiXPointer();
-
         }
 
         int calculateNumCoeffs(int oldValue, Nektar::MultiRegions::ExpListSharedPtr exp)
@@ -471,10 +462,10 @@ namespace ElVis
                 m_globalExpansions.end(), 0,
                 calculateNumCoeffs);
 
-            m_deviceCoefficientBuffer.SetContextInfo(context);
+            m_deviceCoefficientBuffer.SetContext(context);
             m_deviceCoefficientBuffer.SetDimensions(numCoeffs);
             
-            ElVisFloat* coeffData = static_cast<ElVisFloat*>(m_deviceCoefficientBuffer.MapOptiXPointer());
+            BOOST_AUTO(coeffData, m_deviceCoefficientBuffer.Map());
             int coeffIndex = 0;
 
             for(unsigned int i = 0; i < m_globalExpansions.size(); ++i)
@@ -489,22 +480,19 @@ namespace ElVis
                     ++coeffIndex;
                 }    
             }
-            
-            m_deviceCoefficientBuffer.UnmapOptiXPointer();
         }
 
         void NektarModel::SetupOptixVertexBuffers(optixu::Context context)
         {
-            m_deviceVertexBuffer.SetContextInfo(context);
+            m_deviceVertexBuffer.SetContext(context);
             m_deviceVertexBuffer.SetDimensions(m_graph->GetNvertices());
 
-            ElVisFloat4* vertexData = m_deviceVertexBuffer.MapOptiXPointer();
+            BOOST_AUTO(vertexData, m_deviceVertexBuffer.Map());
             for(unsigned int i = 0; i < m_graph->GetNvertices(); ++i)
             {
                 BOOST_AUTO( vertex, m_graph->GetVertex(i));
                 vertexData[i] = ::MakeFloat4(vertex->x(), vertex->y(), vertex->z(), 1.0);
             }
-            m_deviceVertexBuffer.UnmapOptiXPointer();
         }
 
         
@@ -539,25 +527,22 @@ namespace ElVis
 
             BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
             BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
-            FaceVertexBuffer.SetContextInfo(context);
+            FaceVertexBuffer.SetContext(context);
             FaceVertexBuffer.SetDimensions(numFaces*4);
-            FaceNormalBuffer.SetContextInfo(context);
+            FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(numFaces);
 
             scene->GetFaceIdBuffer()->setSize(numFaces);
             FaceDef* faceDefs = static_cast<FaceDef*>(scene->GetFaceIdBuffer()->map());
-            ElVisFloat4* faceVertexBuffer = static_cast<ElVisFloat4*>(FaceVertexBuffer.MapOptiXPointer());
-            ElVisFloat4* normalBuffer = static_cast<ElVisFloat4*>(FaceNormalBuffer.MapOptiXPointer());
+            BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
+            BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
-            AddFaces(m_graph->GetAllTriGeoms(), minBuffer.get(), maxBuffer.get(), faceVertexBuffer, faceDefs, normalBuffer);
+            AddFaces(m_graph->GetAllTriGeoms(), minBuffer.get(), maxBuffer.get(), faceVertexBuffer.get(), faceDefs, normalBuffer.get());
 
             int offset = m_graph->GetAllTriGeoms().size();
-            AddFaces(m_graph->GetAllQuadGeoms(), minBuffer.get()+offset, maxBuffer.get()+offset, faceVertexBuffer+offset, faceDefs+offset, normalBuffer+offset);
+            AddFaces(m_graph->GetAllQuadGeoms(), minBuffer.get()+offset, maxBuffer.get()+offset, faceVertexBuffer.get()+offset, faceDefs+offset, normalBuffer.get()+offset);
 
             scene->GetFaceIdBuffer()->unmap();
-            FaceVertexBuffer.UnmapOptiXPointer();
-            FaceNormalBuffer.UnmapOptiXPointer();
-
             faceGeometry->setPrimitiveCount(numFaces);
             //curvedFaces->setPrimitiveCount(faces.size());
         }
@@ -660,18 +645,18 @@ namespace ElVis
                 result.push_back(instance);
 
                 // Setup the vertex map.
-                m_deviceTriangleVertexIndexMap.SetContextInfo(context);
-                m_TriangleModes.SetContextInfo(context);
-                m_TriangleMappingCoeffsDir0.SetContextInfo(context);
-                m_TriangleMappingCoeffsDir1.SetContextInfo(context);
-                m_TriangleCoeffMappingDir0.SetContextInfo(context);
-                m_TriangleCoeffMappingDir1.SetContextInfo(context);
-                m_TriangleGlobalIdMap.SetContextInfo(context);
+                m_deviceTriangleVertexIndexMap.SetContext(context);
+                m_TriangleModes.SetContext(context);
+                m_TriangleMappingCoeffsDir0.SetContext(context);
+                m_TriangleMappingCoeffsDir1.SetContext(context);
+                m_TriangleCoeffMappingDir0.SetContext(context);
+                m_TriangleCoeffMappingDir1.SetContext(context);
+                m_TriangleGlobalIdMap.SetContext(context);
 
                 m_deviceTriangleVertexIndexMap.SetDimensions(3*numTriangles);
                 m_TriangleGlobalIdMap.SetDimensions(numTriangles);
-                uint* globalElementIdMap = m_TriangleGlobalIdMap.MapOptiXPointer();
-                uint* data = m_deviceTriangleVertexIndexMap.MapOptiXPointer();
+                BOOST_AUTO(globalElementIdMap, m_TriangleGlobalIdMap.Map());
+                BOOST_AUTO(data, m_deviceTriangleVertexIndexMap.Map());
                 int i = 0;
                 for( Nektar::SpatialDomains::TriGeomMap::const_iterator iter = m_graph->GetAllTriGeoms().begin();
                     iter != m_graph->GetAllTriGeoms().end(); ++iter)
@@ -687,16 +672,14 @@ namespace ElVis
                     globalElementIdMap[i] = tri->GetGlobalID();
                     ++i;
                 }
-                m_deviceTriangleVertexIndexMap.UnmapOptiXPointer();
-                m_TriangleGlobalIdMap.UnmapOptiXPointer();
 
                 // Setup the geometric expansion information.
                 m_TriangleModes.SetDimensions(numTriangles);
                 m_TriangleCoeffMappingDir0.SetDimensions(numTriangles);
                 m_TriangleCoeffMappingDir1.SetDimensions(numTriangles);
-                uint2* modeArray = m_TriangleModes.MapOptiXPointer();
-                uint* coeffMapping0Array = m_TriangleCoeffMappingDir0.MapOptiXPointer();
-                uint* coeffMapping1Array = m_TriangleCoeffMappingDir1.MapOptiXPointer();
+                BOOST_AUTO(modeArray, m_TriangleModes.Map());
+                BOOST_AUTO(coeffMapping0Array, m_TriangleCoeffMappingDir0.Map());
+                BOOST_AUTO(coeffMapping1Array, m_TriangleCoeffMappingDir1.Map());
 
                 int expansionSize[] = {0, 0};
 
@@ -706,7 +689,7 @@ namespace ElVis
 
                 boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
                     boost::bind(&detail::SetupTriangleModes, _1,
-                    modeArray, expansion0Sizes, expansion1Sizes, expansionSize, boost::ref(idx)));
+                    modeArray.get(), expansion0Sizes, expansion1Sizes, expansionSize, boost::ref(idx)));
 
                 //    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
                 //{
@@ -742,8 +725,11 @@ namespace ElVis
 
                 m_TriangleMappingCoeffsDir0.SetDimensions(expansionSize[0]);
                 m_TriangleMappingCoeffsDir1.SetDimensions(expansionSize[1]);
-                ElVisFloat* coeffs0 = m_TriangleMappingCoeffsDir0.MapOptiXPointer();
-                ElVisFloat* coeffs1 = m_TriangleMappingCoeffsDir1.MapOptiXPointer();
+                BOOST_AUTO(coeffs0Array,  m_TriangleMappingCoeffsDir0.Map());
+                BOOST_AUTO(coeffs1Array, m_TriangleMappingCoeffsDir1.Map());
+
+                BOOST_AUTO(coeffs0, coeffs0Array.get());
+                BOOST_AUTO(coeffs1, coeffs1Array.get());
 
                 ElVisFloat* base0 = coeffs0;
                 ElVisFloat* base1 = coeffs1;
@@ -765,11 +751,6 @@ namespace ElVis
                 //    coeffs1 += u1.num_elements();
                 //});
 
-                m_TriangleModes.UnmapOptiXPointer();
-                m_TriangleCoeffMappingDir0.UnmapOptiXPointer();
-                m_TriangleCoeffMappingDir1.UnmapOptiXPointer();
-                m_TriangleMappingCoeffsDir0.UnmapOptiXPointer();
-                m_TriangleMappingCoeffsDir1.UnmapOptiXPointer();
 
                 //boost::for_each(m_graph->GetAllTriGeoms() | boost::adaptors::map_values, 
                 //    [&](Nektar::SpatialDomains::TriGeomSharedPtr tri)
@@ -806,15 +787,15 @@ namespace ElVis
             //    result.push_back(instance);
 
             //    // Setup the vertex map.
-            //    m_deviceQuadVertexIndexMap.SetContextInfo(context, module);
-            //    m_QuadModes.SetContextInfo(context, module);
-            //    m_QuadMappingCoeffsDir0.SetContextInfo(context, module);
-            //    m_QuadMappingCoeffsDir1.SetContextInfo(context, module);
-            //    m_QuadCoeffMappingDir0.SetContextInfo(context, module);
-            //    m_QuadCoeffMappingDir1.SetContextInfo(context, module);
+            //    m_deviceQuadVertexIndexMap.SetContext(context, module);
+            //    m_QuadModes.SetContext(context, module);
+            //    m_QuadMappingCoeffsDir0.SetContext(context, module);
+            //    m_QuadMappingCoeffsDir1.SetContext(context, module);
+            //    m_QuadCoeffMappingDir0.SetContext(context, module);
+            //    m_QuadCoeffMappingDir1.SetContext(context, module);
 
             //    m_deviceQuadVertexIndexMap.SetDimensions(4*numQuads);
-            //    uint* data = m_deviceQuadVertexIndexMap.MapOptiXPointer();
+            //    uint* data = m_deviceQuadVertexIndexMap.Map();
             //    int i = 0;
             //    for( Nektar::SpatialDomains::QuadGeomMap::const_iterator iter = m_graph->GetAllQuadGeoms().begin();
             //        iter != m_graph->GetAllQuadGeoms().end(); ++iter)
@@ -829,15 +810,14 @@ namespace ElVis
             //        data[4*i+3] = tri->GetVid(3);
             //        ++i;
             //    }
-            //    m_deviceQuadVertexIndexMap.UnmapOptiXPointer();
 
             //    // Setup the geometric expansion information.
             //    m_QuadModes.SetDimensions(numQuads);
             //    m_QuadCoeffMappingDir0.SetDimensions(numQuads);
             //    m_QuadCoeffMappingDir1.SetDimensions(numQuads);
-            //    uint2* modeArray = m_QuadModes.MapOptiXPointer();
-            //    uint* coeffMapping0Array = m_QuadCoeffMappingDir0.MapOptiXPointer();
-            //    uint* coeffMapping1Array = m_QuadCoeffMappingDir1.MapOptiXPointer();
+            //    uint2* modeArray = m_QuadModes.Map();
+            //    uint* coeffMapping0Array = m_QuadCoeffMappingDir0.Map();
+            //    uint* coeffMapping1Array = m_QuadCoeffMappingDir1.Map();
 
             //    int expansionSize[] = {0, 0};
 
@@ -879,8 +859,8 @@ namespace ElVis
 
             //    m_QuadMappingCoeffsDir0.SetDimensions(expansionSize[0]);
             //    m_QuadMappingCoeffsDir1.SetDimensions(expansionSize[1]);
-            //    ElVisFloat* coeffs0 = m_QuadMappingCoeffsDir0.MapOptiXPointer();
-            //    ElVisFloat* coeffs1 = m_QuadMappingCoeffsDir1.MapOptiXPointer();
+            //    ElVisFloat* coeffs0 = m_QuadMappingCoeffsDir0.Map();
+            //    ElVisFloat* coeffs1 = m_QuadMappingCoeffsDir1.Map();
 
             //    ElVisFloat* base0 = coeffs0;
             //    ElVisFloat* base1 = coeffs1;
@@ -898,11 +878,6 @@ namespace ElVis
             //        coeffs1 += u1.num_elements();
             //    });
 
-            //    m_QuadModes.UnmapOptiXPointer();
-            //    m_QuadCoeffMappingDir0.UnmapOptiXPointer();
-            //    m_QuadCoeffMappingDir1.UnmapOptiXPointer();
-            //    m_QuadMappingCoeffsDir0.UnmapOptiXPointer();
-            //    m_QuadMappingCoeffsDir1.UnmapOptiXPointer();
             //}
             return result;
         }

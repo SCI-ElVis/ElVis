@@ -81,7 +81,6 @@ SET(ELVIS_HEADERS
     ExtensionPTXConfig.cpp.in
     ExtensionPTXConfig.h.in
     HostTransferFunction.h
-    InteropBuffer.hpp
     Interval.hpp
     Jacobi.hpp
     Light.h

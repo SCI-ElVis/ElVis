@@ -40,7 +40,8 @@
 
 #include <ElVis/Core/Model.h>
 #include <ElVis/Core/Float.h>
-#include <ElVis/Core/InteropBuffer.hpp>
+#include <ElVis/Core/OptiXBuffer.hpp>
+#include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/FaceDef.h>
 #include <ElVis/Core/Util.hpp>
 
@@ -249,18 +250,18 @@ namespace ElVis
                     optixu::GeometryInstance instance = context->createGeometryInstance();
                     instance->setGeometry(geometry);
 
-                    m_deviceHexPlaneBuffer.SetContextInfo(context);
+                    m_deviceHexPlaneBuffer.SetContext(context);
                     m_deviceHexPlaneBuffer.SetDimensions(numElements*8);
                     //FloatingPointBuffer hexPlaneBuffer("HexPlaneBuffer", 4);
                     //hexPlaneBuffer.Create(context, RT_BUFFER_INPUT, numElements*8);
                     //context[hexPlaneBuffer.Name().c_str()]->set(*hexPlaneBuffer);
-                    ElVisFloat4* hexPlaneData = static_cast<ElVisFloat4*>(m_deviceHexPlaneBuffer.MapOptiXPointer());
+                    BOOST_AUTO(hexPlaneData, m_deviceHexPlaneBuffer.Map());
                     
-                    m_deviceHexVertexIndices.SetContextInfo(context);
+                    m_deviceHexVertexIndices.SetContext(context);
                     m_deviceHexVertexIndices.SetDimensions(numElements*8);
                     //optixu::Buffer vertexIndexBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, numElements*8);
                     //context["HexVertexIndices"]->set(vertexIndexBuffer);
-                    unsigned int* coefficientIndicesData = static_cast<unsigned int*>(m_deviceHexVertexIndices.MapOptiXPointer());
+                    BOOST_AUTO(coefficientIndicesData, m_deviceHexVertexIndices.Map());
 
                     typedef typename std::map<int, boost::shared_ptr<T> >::const_iterator IterType;
                     unsigned int i = 0;
@@ -345,14 +346,12 @@ namespace ElVis
                         }
                         ++i;
                     }
-                    m_deviceHexVertexIndices.UnmapOptiXPointer();
-                    m_deviceHexPlaneBuffer.UnmapOptiXPointer();
 
-                    m_deviceNumberOfModes.SetContextInfo(context);
+                    m_deviceNumberOfModes.SetContext(context);
                     m_deviceNumberOfModes.SetDimensions(numElements*3);
                     //optixu::Buffer numberOfModesBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT3, numElements*3);
                     //context["NumberOfModes"]->set(numberOfModesBuffer);
-                    uint3* modesData = static_cast<uint3*>(m_deviceNumberOfModes.MapOptiXPointer());
+                    BOOST_AUTO(modesData, m_deviceNumberOfModes.Map());
 
                     i = 0;
                     for(IterType iter = m_graph->GetAllElementsOfType<T>().begin(); iter != m_graph->GetAllElementsOfType<T>().end(); ++iter)
@@ -367,8 +366,6 @@ namespace ElVis
                         ++i;
                     }
 
-                    m_deviceNumberOfModes.UnmapOptiXPointer();
-
                     const unsigned int VerticesForEachFace[] = 
                     {0, 1, 2, 3, 
                     4, 5, 6, 7,
@@ -377,18 +374,16 @@ namespace ElVis
                     0, 1, 5, 4, 
                     1, 5, 6, 2 };
 
-                    m_deviceHexVertexFaceIndex.SetContextInfo(context);
+                    m_deviceHexVertexFaceIndex.SetContext(context);
                     m_deviceHexVertexFaceIndex.SetDimensions(6);
 
                     //std::string vertex_face_indexName = variablePrefix + "vertex_face_index";
                     //optixu::Buffer vertexFaceBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT4, 6);
                     //instance[vertex_face_indexName.c_str()]->set(vertexFaceBuffer);
-                    uint4* vertexFaceBufferData = static_cast<uint4*>(m_deviceHexVertexFaceIndex.MapOptiXPointer());
-                    std::copy(VerticesForEachFace, VerticesForEachFace + 4*6, (uint*)vertexFaceBufferData);
-                    m_deviceHexVertexFaceIndex.UnmapOptiXPointer();
+                    BOOST_AUTO(vertexFaceBufferData, m_deviceHexVertexFaceIndex.Map());
+                    std::copy(VerticesForEachFace, VerticesForEachFace + 4*6, (uint*)vertexFaceBufferData.get());
 
                     return instance;
-
                 }
 
                 // Initialization methods.
@@ -416,35 +411,35 @@ namespace ElVis
                 optixu::Program m_2DElementClosestHitProgram;
                 optixu::Program m_TwoDClosestHitProgram;
 
-                ElVis::InteropBuffer<Nektar::LibUtilities::BasisType> m_FieldBases;
-                ElVis::InteropBuffer<uint3> m_FieldModes;
-                ElVis::InteropBuffer<uint> m_SumPrefixNumberOfFieldCoefficients;
-                ElVis::InteropBuffer<ElVisFloat4> m_deviceVertexBuffer;
-                ElVis::InteropBuffer<ElVisFloat> m_deviceCoefficientBuffer;
-                ElVis::InteropBuffer<uint> m_deviceCoefficientOffsetBuffer;
+                ElVis::OptiXBuffer<Nektar::LibUtilities::BasisType> m_FieldBases;
+                ElVis::OptiXBuffer<uint3> m_FieldModes;
+                ElVis::OptiXBuffer<uint> m_SumPrefixNumberOfFieldCoefficients;
+                ElVis::OptiXBuffer<ElVisFloat4> m_deviceVertexBuffer;
+                ElVis::OptiXBuffer<ElVisFloat> m_deviceCoefficientBuffer;
+                ElVis::OptiXBuffer<uint> m_deviceCoefficientOffsetBuffer;
                 
-                ElVis::InteropBuffer<uint> m_deviceHexVertexIndices;
-                ElVis::InteropBuffer<ElVisFloat4> m_deviceHexPlaneBuffer;
-                ElVis::InteropBuffer<uint4> m_deviceHexVertexFaceIndex;
-                ElVis::InteropBuffer<uint3> m_deviceNumberOfModes;
+                ElVis::OptiXBuffer<uint> m_deviceHexVertexIndices;
+                ElVis::OptiXBuffer<ElVisFloat4> m_deviceHexPlaneBuffer;
+                ElVis::OptiXBuffer<uint4> m_deviceHexVertexFaceIndex;
+                ElVis::OptiXBuffer<uint3> m_deviceNumberOfModes;
 
-                ElVis::InteropBuffer<ElVisFloat4> FaceVertexBuffer;
-                ElVis::InteropBuffer<ElVisFloat4> FaceNormalBuffer;
+                ElVis::OptiXBuffer<ElVisFloat4> FaceVertexBuffer;
+                ElVis::OptiXBuffer<ElVisFloat4> FaceNormalBuffer;
 
-                ElVis::InteropBuffer<uint> m_deviceTriangleVertexIndexMap;
-                ElVis::InteropBuffer<uint2> m_TriangleModes;
-                ElVis::InteropBuffer<ElVisFloat> m_TriangleMappingCoeffsDir0;
-                ElVis::InteropBuffer<ElVisFloat> m_TriangleMappingCoeffsDir1;
-                ElVis::InteropBuffer<uint> m_TriangleCoeffMappingDir0;
-                ElVis::InteropBuffer<uint> m_TriangleCoeffMappingDir1;
-                ElVis::InteropBuffer<uint> m_TriangleGlobalIdMap;
+                ElVis::OptiXBuffer<uint> m_deviceTriangleVertexIndexMap;
+                ElVis::OptiXBuffer<uint2> m_TriangleModes;
+                ElVis::OptiXBuffer<ElVisFloat> m_TriangleMappingCoeffsDir0;
+                ElVis::OptiXBuffer<ElVisFloat> m_TriangleMappingCoeffsDir1;
+                ElVis::OptiXBuffer<uint> m_TriangleCoeffMappingDir0;
+                ElVis::OptiXBuffer<uint> m_TriangleCoeffMappingDir1;
+                ElVis::OptiXBuffer<uint> m_TriangleGlobalIdMap;
 
-                ElVis::InteropBuffer<uint> m_deviceQuadVertexIndexMap;
-                ElVis::InteropBuffer<uint2> m_QuadModes;
-                ElVis::InteropBuffer<ElVisFloat> m_QuadMappingCoeffsDir0;
-                ElVis::InteropBuffer<ElVisFloat> m_QuadMappingCoeffsDir1;
-                ElVis::InteropBuffer<uint> m_QuadCoeffMappingDir0;
-                ElVis::InteropBuffer<uint> m_QuadCoeffMappingDir1;
+                ElVis::OptiXBuffer<uint> m_deviceQuadVertexIndexMap;
+                ElVis::OptiXBuffer<uint2> m_QuadModes;
+                ElVis::OptiXBuffer<ElVisFloat> m_QuadMappingCoeffsDir0;
+                ElVis::OptiXBuffer<ElVisFloat> m_QuadMappingCoeffsDir1;
+                ElVis::OptiXBuffer<uint> m_QuadCoeffMappingDir0;
+                ElVis::OptiXBuffer<uint> m_QuadCoeffMappingDir1;
 
         };
     }
