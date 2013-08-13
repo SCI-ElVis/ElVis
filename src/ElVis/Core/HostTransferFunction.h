@@ -44,8 +44,6 @@ namespace ElVis
         ElVisFloat Scalar;
     };
     
-    typedef unsigned int CUdeviceptr;
-
     class HostTransferFunction
     {
         public:
