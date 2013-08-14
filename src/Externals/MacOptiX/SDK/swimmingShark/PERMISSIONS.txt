@@ -1,0 +1,70 @@
+From: Toco Toucan [mailto:toco04@toucan.co.jp] 
+Sent: Saturday, February 27, 2010 12:27 AM
+To: David McAllister
+Subject: Re: Your fish/shark models
+
+Hello Dave.
+Ok.
+I give you permission to use all 65.
+ 
+The added screen shot is wonderful. 
+I am looking forward to the demo.
+ 
+Toru Miyazawa
+Toucan Corporation.
+
+From: David McAllister 
+Sent: Saturday, February 27, 2010 9:41 AM
+To: 'Toco Toucan' 
+Subject: RE: Your fish/shark models
+
+Hello,
+
+Thank you for being willing to let us distribute your models unencrypted with our demo. We are getting ready to ship the demo now. See the attached screen shot.
+
+You have 65 fish available for download on your web page and we are interested in letting our demo randomly choose from among them, so there are different fish each time the program runs. However, buying all 65 fish on Turbosquid is beyond our budget. Would you be willing to give us a bulk discount, where we buy $500 worth of fish from Turbosquid but you give us permission to use all 65?
+
+If this is ok, we would appreciate it. If not, we understand. We would then choose just our favorite $500 worth of fish and use only those.
+
+Thanks again, and I will let you know when the demo ships.
+
+Dave
+
+
+
+From: Toco Toucan [mailto:toco04@toucan.co.jp] 
+Sent: Tuesday, January 26, 2010 5:12 PM
+To: David McAllister
+Subject: Re: Your fish/shark models
+
+Hello, David.
+My name is Toru Miyazawa. 
+I wrote this letter using Translation software.
+I hope you will excuse any inaccuracies or improper language in the following letter.
+ 
+It is OK.
+I give you permission, in order to distribute the model file in a non-encrypted form.
+ 
+Toru Miyazawa
+Toucan Corporation.
+
+From: David McAllister 
+Sent: Wednesday, January 27, 2010 7:56 AM
+To: 'toco04@toucan.co.jp' 
+Subject: Your fish/shark models
+
+Hi,
+ 
+My name is David McAllister, with Nvidia Corp. I found your page http://toucan.web.infoseek.co.jp/3DCG/3ds/FishModelsE.html. I am interested in these models. Your web site includes some permissions information, but I wanted to ask specifically regarding the use I have in mind.
+ 
+We have a ray tracing SDK called OptiX. It's sort of like OpenGL for ray tracing. This is an official Nvidia product, but we license it for free and it is downloadable on developer.nvidia.com. See http://www.nvidia.com/object/optix.html. We ship a few sample programs with OptiX. We include the source code of the samples, as well as a few images and models. The models are not encrypted. They are in the common Wavefront OBJ format. Encrypting the models wouldn't work in this case because we give away the source code of the demos that read the models.
+ 
+We are looking for a few models of sharks and possibly other marine life that we could ship with our demo that shows how we are able to deform models for animation. Your models look suitable for our needs. Would you be willing to allow us to redistribute your 3D models? We would put a credit to your company and a citation of your web address in our source code, this demo's splash screen, and in the model files. I noticed that in addition to having your models freely downloadable at your Toucan web site, you also have the models for sale on TurboSquid. We could pay you by buying your models through TurboSquid. The one catch is that, unlike the TurboSquid license agreement, we need permission to distribute the model files in a non-encrypted form.
+ 
+Please let us know if this sounds suitable to you. Your models look great, and we would enjoy using them.
+ 
+Thanks much,
+David McAllister
+ 
+________________________________________
+This email message is for the sole use of the intended recipient(s) and may contain confidential information.  Any unauthorized review, use, disclosure or distribution is prohibited.  If you are not the intended recipient, please contact the sender by reply email and destroy all copies of the original message. 
