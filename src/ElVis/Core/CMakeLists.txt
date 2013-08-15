@@ -9,10 +9,11 @@ IF( MSVC )
     SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut32.lib)
 ENDIF()
 
-set(ENV_CPY ${ENV})
-IF (APPLE)
-   set(ENV{PATH} /usr/local/cuda/bin)
-   set(ENV{DYLD_LIBRARY_PATH} /usr/local/cuda/lib)
+IF (APPLE) #set the env vars to use the cuda path
+    SET(ENV_PATH $ENV{PATH})
+    SET(ENV_DYLD $ENV{DYLD_LIBRARY_PATH})
+    SET(ENV{PATH} ${CUDA_TOOLKIT_ROOT_DIR}/bin)
+    SET(ENV{DYLD_LIBRARY_PATH} ${CUDA_TOOLKIT_ROOT_DIR}/lib)
 ENDIF()
 
 #############################
@@ -51,8 +52,10 @@ if(CUDA_FOUND)
     endif()
 endif()
 
+#set the env vars back
 IF (APPLE)
-   SET(ENV ${ENV_CPY})
+    SET(ENV{PATH} ${ENV_PATH})
+    SET(ENV{DYLD_LIBRARY_PATH} ${ENV_DYLD})
 ENDIF ()
 
 INCLUDE_DIRECTORIES(
