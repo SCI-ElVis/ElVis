@@ -21,6 +21,8 @@ ENDIF()
 # based on http://stackoverflow.com/questions/2285185/easiest-way-to-test-for-existence-of-cuda-capable-gpu-from-cmake/2297877#2297877 (Christopher Bruns)
 if(CUDA_FOUND)
     message(STATUS "${CMAKE_SOURCE_DIR}/cuda_compute_capability.c")
+    message(STATUS "CUDA_TOOLKIT_INCLUDE: ${CUDA_TOOLKIT_INCLUDE}")
+    message(STATUS "CUDA_CUDART_LIBRARY: ${CUDA_CUDART_LIBRARY}")
     try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
         ${CMAKE_BINARY_DIR} 
         ${CMAKE_SOURCE_DIR}/cuda_compute_capability.c
@@ -51,8 +53,6 @@ if(CUDA_FOUND)
         set(CUDA_HAVE_GPU FALSE CACHE BOOL "Whether CUDA-capable GPU is present")
     endif()
 endif()
-
-MESSAGE("COMPUTE: ${CUDA_COMPUTE_CAPABILITY_SUCCESS}")
 
 IF (NOT CUDA_COMPUTE_CAPABILITY_SUCCESS)
     SET(CUDA_USE_COMPUTE_CAPABILITY_10 false CACHE BOOL "Use Compute Capability 1.0")
