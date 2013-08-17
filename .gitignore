@@ -2,4 +2,6 @@
 bin/
 build_make/
 build_xcode/
+build_unix/
+build/
 makebin/
