@@ -34,8 +34,6 @@
 #include <ElVis/Core/Interval.hpp>
 #include <ElVis/Core/ElVisDeclspec.h>
 
-#include <cuda.h>
-
 namespace ElVis
 {
     enum TransferFunctionChannel

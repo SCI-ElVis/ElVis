@@ -31,7 +31,9 @@
 
 #include <ElVis/Core/TransferFunction.h>
 #include <ElVis/Core/ColorMap.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 #include <boost/signals.hpp>
+#include <optixu/optixpp.h>
 
 namespace ElVis
 {
@@ -41,12 +43,12 @@ namespace ElVis
         ElVisFloat Density;
         ElVisFloat Scalar;
     };
-
+    
     class HostTransferFunction
     {
         public:
             ELVIS_EXPORT HostTransferFunction();
-            ELVIS_EXPORT CUdeviceptr GetDeviceObject();
+            ELVIS_EXPORT TransferFunction GetOptixObject();
 
             ELVIS_EXPORT void SetBreakpoint(double s, const Color& c);
             ELVIS_EXPORT void SetBreakpoint(double s, const Color& c, const ElVisFloat& density);
@@ -60,7 +62,11 @@ namespace ElVis
 
             ELVIS_EXPORT void Clear();
 
+            ELVIS_EXPORT void CopyToOptix(optixu::Context context, OptiXBuffer<ElVisFloat>& buffer, OptiXBuffer<ElVisFloat>& values, TransferFunctionChannel channel);
+
             boost::signal<void (void)> OnTransferFunctionChanged;
+
+            bool& Dirty() { return m_dirty; }
 
         protected:
 
@@ -70,25 +76,14 @@ namespace ElVis
 
             void UpdateBreakpoints(std::map<double, double>& container);
 
-            void InitializeArrayIfNeeded(CUdeviceptr& devicePtr, ElVisFloat* data, int size);
             void SynchronizeDeviceIfNeeded();
+            void SynchronizeOptiXIfNeeded();
             void FreeDeviceMemory();
             void AllocateDeviceMemory();
             void CopyToDeviceMemory();
 
             std::map<double, Breakpoint> m_breakpoints;
 
-            CUdeviceptr m_deviceDensityBreakpoints;
-            CUdeviceptr m_deviceRedBreakpoints;
-            CUdeviceptr m_deviceGreenBreakpoints;
-            CUdeviceptr m_deviceBlueBreakpoints;
-
-            CUdeviceptr m_deviceDensityValues;
-            CUdeviceptr m_deviceRedValues;
-            CUdeviceptr m_deviceGreenValues;
-            CUdeviceptr m_deviceBlueValues;
-
-            CUdeviceptr m_deviceObject;
             TransferFunction m_localDeviceTransferFunction;
             bool m_dirty;
     };

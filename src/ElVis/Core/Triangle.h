@@ -34,7 +34,6 @@
 #include <ElVis/Core/Object.h>
 #include <optixu/optixu_matrix.h>
 #include <ElVis/Core/Point.hpp>
-#include <ElVis/Core/Buffer.h>
 
 #include <iostream>
 

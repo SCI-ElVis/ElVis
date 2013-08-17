@@ -116,6 +116,10 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result);
 
+ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient);
+
+ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J);
+
 #include <@ExtensionPath@/ExtensionOptiXInterface.cu>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,6 +132,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPo
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& referencePoint)
 {
+    ELVIS_PRINTF("EvaluateFieldOptiX 1\n");
     if( referenceType != ElVis::eReferencePointIsValid )
     {
         ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, referenceType, referencePoint);
@@ -139,8 +144,56 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint)
 {
+    ELVIS_PRINTF("EvaluateFieldOptiX 2\n");
     ElVisFloat3 dummy;
     return EvaluateFieldOptiX(elementId, elementType, fieldId, worldPoint, ElVis::eReferencePointIsInvalid, dummy);
+}
+
+ELVIS_DEVICE ElVisError EvaluateNormalOptiX(unsigned int elementId, unsigned int elementType, int fieldId,
+                                            const ElVisFloat3& worldPoint, ElVisFloat3& normal)
+{
+    ELVIS_PRINTF("EvaluateNormalOptiX\n");
+    ReferencePoint refPoint;
+    ElVisError e0 = ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, ElVis::eReferencePointIsInvalid, refPoint);
+
+    ElVisFloat3 gradient;
+    ElVisError e1 = SampleReferenceGradientOptiX(elementId, elementType, fieldId, refPoint, gradient);
+
+    ElVisFloat J[9], JInv[9];
+
+    ElVisError e2 = SampleGeometryMappingJacobianOptiX(elementId, elementType, refPoint, &J[0]);
+
+    // Invert
+    ElVisFloat determinant = (-J[0]*J[4]*J[8]+J[0]*J[5]*J[7]+J[3]*J[1]*J[8]-J[3]*J[2]*J[7]-J[6]*J[1]*J[5]+J[6]*J[2]*J[4]);
+    ElVisFloat i = MAKE_FLOAT(1.0)/determinant;
+    JInv[0] = (-J[4]*J[8]+J[5]*J[7])*i;
+    JInv[1] = -(-J[1]*J[8]+J[2]*J[7])*i;
+    JInv[2] = -(J[1]*J[5]-J[2]*J[4])*i;
+    JInv[3] = -(-J[3]*J[8]+J[5]*J[6])*i;
+    JInv[4] = (-J[0]*J[8]+J[2]*J[6])*i;
+    JInv[5] = (J[0]*J[5]-J[2]*J[3])*i;
+    JInv[6] = (-J[3]*J[7]+J[4]*J[6])*i;
+    JInv[7] = (J[0]*J[7]-J[1]*J[6])*i;
+    JInv[8] = -(J[0]*J[4]-J[1]*J[3])*i;
+
+    // Transpose
+    J[0] = JInv[0];
+    J[1] = JInv[3];
+    J[2] = JInv[6];
+
+    J[3] = JInv[1];
+    J[4] = JInv[4];
+    J[5] = JInv[7];
+
+    J[6] = JInv[2];
+    J[7] = JInv[5];
+    J[8] = JInv[8];
+
+    normal.x = gradient.x*J[0] + gradient.y*J[1] + gradient.z*J[2];
+    normal.y = gradient.x*J[3] + gradient.y*J[4] + gradient.z*J[5];
+    normal.z = gradient.x*J[6] + gradient.y*J[7] + gradient.z*J[8];
+
+    return eNoError;
 }
 
 // Many algorithms work via customization of the objects in the scene
@@ -158,4 +211,5 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 
 #include <ElVis/Core/CutSurfaceContourModule.cu>
 #include <ElVis/Core/VolumeRenderingOptiXModule.cu>
+#include <ElVis/Core/IsosurfaceOptiXModule.cu>
 

@@ -40,268 +40,175 @@
 
 namespace ElVis
 {
-    IsosurfaceModule::IsosurfaceModule() :
-        ElementTraversalModule(),
-        OnIsovalueAdded(),
-        OnIsovalueChanged(),
-        m_isovalues(),
-        m_isovalueBufferSize(0),
-        m_gaussLegendreNodesBuffer(0),
-        m_gaussLegendreWeightsBuffer(0),
-        m_monomialConversionTableBuffer(0),
-        m_isovalueBuffer(0),
-        m_findIsosurfaceFunction(0)
+  RayGeneratorProgram IsosurfaceModule::m_FindIsosurface;
+
+  IsosurfaceModule::IsosurfaceModule() :
+  RenderModule(),
+    OnIsovalueAdded(),
+    OnIsovalueChanged(),
+    m_isovalues(),
+    m_isovalueBufferSize(),
+    m_gaussLegendreNodesBuffer("Nodes"),
+    m_gaussLegendreWeightsBuffer("Weights"),
+    m_monomialConversionTableBuffer("MonomialConversionTable"),
+    m_isovalueBuffer("SurfaceIsovalues")
+  {
+  }
+
+  void IsosurfaceModule::AddIsovalue(const ElVisFloat& value)
+  {
+    if( m_isovalues.find(value) == m_isovalues.end() )
     {
+      m_isovalues.insert(value);
+      SetSyncAndRenderRequired();
+      OnIsovalueAdded(value);
+      OnModuleChanged(*this);
     }
+  }
 
-    void IsosurfaceModule::AddIsovalue(const ElVisFloat& value)
+  void IsosurfaceModule::RemoveIsovalue(const ElVisFloat& value)
+  {
+    std::set<ElVisFloat>::iterator found = m_isovalues.find(value);
+    if( found != m_isovalues.end() )
     {
-        if( m_isovalues.find(value) == m_isovalues.end() )
-        {
-            m_isovalues.insert(value);
-            SetSyncAndRenderRequired();
-            OnIsovalueAdded(value);
-            OnModuleChanged(*this);
-        }
+      m_isovalues.erase(found);
+      SetSyncAndRenderRequired();
+      OnIsovalueRemoved(value);
+      OnModuleChanged(*this);
     }
+  }
 
-    void IsosurfaceModule::RemoveIsovalue(const ElVisFloat& value)
+  void IsosurfaceModule::DoRender(SceneView* view)
+  {
+    if( m_isovalues.empty() ) return;
+
+    try
     {
-        std::set<ElVisFloat>::iterator found = m_isovalues.find(value);
-        if( found != m_isovalues.end() )
-        {
-            m_isovalues.erase(found);
-            SetSyncAndRenderRequired();
-            OnIsovalueRemoved(value);
-            OnModuleChanged(*this);
-        }
-    }
+      optixu::Context context = view->GetContext();
 
-    void IsosurfaceModule::DoEvaluateSegment(SceneView* view)
+      context->launch(m_FindIsosurface.Index, view->GetWidth(), view->GetHeight());
+    }
+    catch(optixu::Exception& e)
     {
-        try
-        {
-
-
-//            // Sort data first.
-//            {
-//                RunCopyElementIdKeyData(view);
-//                CUdeviceptr keyBuffer = GetElementSortBuffer().GetMappedCudaPtr();
-//                CUdeviceptr idBuffer = GetSegmentIdBuffer().GetMappedCudaPtr();
-
-//                thrust::device_ptr<ElementId> keyPtr = thrust::device_ptr<ElementId>(reinterpret_cast<ElementId*>(keyBuffer));
-//                thrust::device_ptr<int> valuePtr = thrust::device_ptr<int>(reinterpret_cast<int*>(idBuffer));
-//                int n = view->GetWidth() * view->GetHeight();
-//                SortByElementIdAndType(keyPtr, valuePtr, n);
-//                GetElementSortBuffer().UnmapCudaPtr();
-//                GetSegmentIdBuffer().UnmapCudaPtr();
-//            }
-
-
-            if( m_isovalues.size() == 0 )
-            {
-                return;
-            }
-
-            ElVisFloat3 eye = MakeFloat3(view->GetEye());
-            dim3 gridDim;
-            gridDim.x = view->GetWidth()/8+1;
-            gridDim.y = view->GetHeight()/4+1;
-            gridDim.z = 1;
-
-            dim3 blockDim;
-            blockDim.x = 8;
-            blockDim.y = 4;
-            blockDim.z = 1;
-
-
-            view->GetScene()->GetModel()->MapInteropBuffersForCuda();
-            CUdeviceptr idBuffer = GetSegmentElementIdBuffer().GetMappedCudaPtr();
-            CUdeviceptr typeBuffer = GetSegmentElementTypeBuffer().GetMappedCudaPtr();
-            CUdeviceptr directionBuffer = GetSegmentRayDirectionBuffer().GetMappedCudaPtr();
-            CUdeviceptr segmentStartBuffer = GetSegmentStartBuffer().GetMappedCudaPtr();
-            CUdeviceptr segmentEndBuffer = GetSegmentEndBuffer().GetMappedCudaPtr();
-            CUdeviceptr sampleBuffer = view->GetSampleBuffer().GetMappedCudaPtr();
-            CUdeviceptr intersectionBuffer = view->GetIntersectionPointBuffer().GetMappedCudaPtr();
-            CUdeviceptr segmentIdBuffer = GetSegmentIdBuffer().GetMappedCudaPtr();
-
-
-            bool enableTrace = view->GetScene()->GetEnableOptixTrace();
-            int tracex = view->GetScene()->GetOptixTracePixelIndex().x();
-            int tracey = view->GetHeight() - view->GetScene()->GetOptixTracePixelIndex().y() - 1;
-            int fieldId = view->GetScalarFieldIndex();
-            int numIsosurfaces = m_isovalues.size();
-            int screen_x = view->GetWidth();
-            int screen_y = view->GetHeight();
-
-            void* args[] = {&eye, &idBuffer, &typeBuffer, &segmentIdBuffer,
-                            &directionBuffer, &segmentStartBuffer, &segmentEndBuffer, &fieldId,
-                            &numIsosurfaces, &m_isovalueBuffer,
-                            &enableTrace, &tracex, &tracey,
-                            &screen_x, &screen_y,
-                            &m_gaussLegendreNodesBuffer, &m_gaussLegendreWeightsBuffer, &m_monomialConversionTableBuffer, &sampleBuffer, &intersectionBuffer};
-            checkedCudaCall(cuLaunchKernel(m_findIsosurfaceFunction, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, 0, 0, args, 0));
-            checkedCudaCall(cuCtxSynchronize());
-            GetSegmentElementIdBuffer().UnmapCudaPtr();
-            GetSegmentElementTypeBuffer().UnmapCudaPtr();
-            GetSegmentRayDirectionBuffer().UnmapCudaPtr();
-            GetSegmentStartBuffer().UnmapCudaPtr();
-            GetSegmentEndBuffer().UnmapCudaPtr();
-            view->GetSampleBuffer().UnmapCudaPtr();
-            view->GetIntersectionPointBuffer().UnmapCudaPtr();
-            GetSegmentIdBuffer().UnmapCudaPtr();
-            view->GetScene()->GetModel()->UnMapInteropBuffersForCuda();
-        }
-        catch(std::exception& e)
-        {
-            std::cerr << e.what() << std::endl;
-        }
-
+      std::cout << "Exception encountered rendering isosurface." << std::endl;
+      std::cerr << e.getErrorString() << std::endl;
+      std::cout << e.getErrorString().c_str() << std::endl;
     }
-
-
-    void IsosurfaceModule::DoResize(unsigned int newWidth, unsigned int newHeight)
+    catch(std::exception& e)
     {
+      std::cout << "Exception encountered rendering isosurface." << std::endl;
+      std::cout << e.what() << std::endl;
     }
-
-    void IsosurfaceModule::DoSetupAfterInteropModule(SceneView* view)
+    catch(...)
     {
-        try
-        {
-            std::cout << "Isourface setup." << std::endl;
-            optixu::Context context = view->GetContext();
-            CUmodule module = view->GetScene()->GetCudaModule();
-
-            if( !m_findIsosurfaceFunction )
-            {
-                checkedCudaCall(cuModuleGetFunction(&m_findIsosurfaceFunction, module, "FindIsosurfaceInSegment"));
-            }
-
-
-
-            if( !m_gaussLegendreNodesBuffer )
-            {
-                std::vector<ElVisFloat> nodes;
-                ReadFloatVector("Nodes.txt", nodes);
-                checkedCudaCall(cuMemAlloc(&m_gaussLegendreNodesBuffer, sizeof(ElVisFloat)*nodes.size()));
-                ElVisFloat* nodeData = new ElVisFloat[nodes.size()];
-                std::copy(nodes.begin(), nodes.end(), nodeData);
-                checkedCudaCall(cuMemcpyHtoD(m_gaussLegendreNodesBuffer, nodeData, sizeof(ElVisFloat)*nodes.size()));
-                delete [] nodeData;
-            }
-
-            if( !m_gaussLegendreWeightsBuffer )
-            {
-                std::vector<ElVisFloat> weights;
-                ReadFloatVector("Weights.txt", weights);
-                checkedCudaCall(cuMemAlloc(&m_gaussLegendreWeightsBuffer, sizeof(ElVisFloat)*weights.size()));
-                ElVisFloat* data = new ElVisFloat[weights.size()];
-                std::copy(weights.begin(), weights.end(), data);
-                checkedCudaCall(cuMemcpyHtoD(m_gaussLegendreWeightsBuffer, data, sizeof(ElVisFloat)*weights.size()));
-                delete [] data;
-            }
-
-            if( !m_monomialConversionTableBuffer )
-            {
-                std::vector<ElVisFloat> monomialCoversionData;
-                ReadFloatVector("MonomialConversionTables.txt", monomialCoversionData);
-                checkedCudaCall(cuMemAlloc(&m_monomialConversionTableBuffer, sizeof(ElVisFloat)*monomialCoversionData.size()));
-                ElVisFloat* data = new ElVisFloat[monomialCoversionData.size()];
-                std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data);
-                checkedCudaCall(cuMemcpyHtoD(m_monomialConversionTableBuffer, data, sizeof(ElVisFloat)*monomialCoversionData.size()));
-                delete [] data;
-            }
-
-
-            SynchronizeWithOptix();
-        }
-        catch(optixu::Exception& e)
-        {
-            std::cout << "Exception encountered setting up isosurface." << std::endl;
-            std::cerr << e.getErrorString() << std::endl;
-            std::cout << e.getErrorString().c_str() << std::endl;
-        }
-        catch(std::exception& e)
-        {
-            std::cout << "Exception encountered setting up isosurface." << std::endl;
-            std::cout << e.what() << std::endl;
-        }
-        catch(...)
-        {
-            std::cout << "Exception encountered setting up isosurface." << std::endl;
-        }
+      std::cout << "Exception encountered rendering isosurface." << std::endl;
     }
+  }
 
-    void IsosurfaceModule::DoSynchronize(SceneView* view)
+
+  void IsosurfaceModule::DoSetup(SceneView* view)
+  {
+    try
     {
-        std::cout << "Isosurface Module Sync." << std::endl;
-        if( m_isovalues.size() > 0 )
-        {
-            if( !m_isovalueBuffer )
-            {
-                checkedCudaCall(cuMemAlloc(&m_isovalueBuffer, sizeof(ElVisFloat)*m_isovalues.size()));
-                m_isovalueBufferSize = m_isovalues.size();
-            }
+      std::cout << "Isourface setup." << std::endl;
+      optixu::Context context = view->GetContext();
 
-            if( m_isovalueBufferSize != m_isovalues.size())
-            {
-                checkedCudaCall(cuMemFree(m_isovalueBuffer));
-                checkedCudaCall(cuMemAlloc(&m_isovalueBuffer, sizeof(ElVisFloat)*m_isovalues.size()));
-                m_isovalueBufferSize = m_isovalues.size();
-            }
+      if( m_FindIsosurface.Index == -1 )
+      {
+        m_FindIsosurface = view->AddRayGenerationProgram("FindIsosurface");
+      }
 
-            ElVisFloat* isovalueData = new ElVisFloat[m_isovalues.size()];
-            std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData);
-            checkedCudaCall(cuMemcpyHtoD(m_isovalueBuffer, isovalueData, sizeof(ElVisFloat)*m_isovalues.size()));
-            delete [] isovalueData;
-        }
+      if( !m_gaussLegendreNodesBuffer.Initialized() )
+      {
+        std::vector<ElVisFloat> nodes;
+        ReadFloatVector("Nodes.txt", nodes);
+        m_gaussLegendreNodesBuffer.SetContext(context);
+        m_gaussLegendreNodesBuffer.SetDimensions(nodes.size());
+        BOOST_AUTO(nodeData, m_gaussLegendreNodesBuffer.Map());
+        std::copy(nodes.begin(), nodes.end(), nodeData.get());
+      }
+
+      if( !m_gaussLegendreWeightsBuffer.Initialized() )
+      {
+        std::vector<ElVisFloat> weights;
+        ReadFloatVector("Weights.txt", weights);
+        m_gaussLegendreWeightsBuffer.SetContext(context);
+        m_gaussLegendreWeightsBuffer.SetDimensions(weights.size());
+        BOOST_AUTO(data, m_gaussLegendreWeightsBuffer.Map());
+        std::copy(weights.begin(), weights.end(), data.get());
+      }
+
+      if( !m_monomialConversionTableBuffer.Initialized() )
+      {
+        std::vector<ElVisFloat> monomialCoversionData;
+        ReadFloatVector("MonomialConversionTables.txt", monomialCoversionData);
+        m_monomialConversionTableBuffer.SetContext(context);
+        m_monomialConversionTableBuffer.SetDimensions(monomialCoversionData.size());
+        BOOST_AUTO(data, m_monomialConversionTableBuffer.Map());
+        std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data.get());
+      }
+      m_isovalueBuffer.SetContext(context);
+      m_isovalueBuffer.SetDimensions(0);
     }
-
-    void IsosurfaceModule::SynchronizeWithOptix()
+    catch(optixu::Exception& e)
     {
-
-//        RTsize curSize = 0;
-//        m_isovalueBuffer->getSize(curSize);
-//        if( curSize >= m_isovalues.size() )
-//        {
-//            m_isovalueBuffer->setSize(m_isovalues.size());
-//        }
-
-//        ElVisFloat* data = static_cast<ElVisFloat*>(m_isovalueBuffer->map());
-//        BOOST_FOREACH(ElVisFloat isovalue, m_isovalues)
-//        {
-//            *data = isovalue;
-//            data += 1;
-//        }
-//        m_isovalueBuffer->unmap();
+      std::cout << "Exception encountered setting up isosurface." << std::endl;
+      std::cerr << e.getErrorString() << std::endl;
+      std::cout << e.getErrorString().c_str() << std::endl;
     }
-
-    void IsosurfaceModule::ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values)
+    catch(std::exception& e)
     {
-        std::ifstream inFile(fileName.c_str());
-
-        while(!inFile.eof())
-        {
-            std::string line;
-            std::getline(inFile, line);
-            if( line.empty() )
-            {
-                continue;
-            }
-
-            try
-            {
-                ElVisFloat value = boost::lexical_cast<ElVisFloat>(line);
-                values.push_back(value);
-            }
-            catch(boost::bad_lexical_cast&)
-            {
-                std::cout << "Unable to parse " << line << std::endl;
-            }
-
-        }
-        inFile.close();
+      std::cout << "Exception encountered setting up isosurface." << std::endl;
+      std::cout << e.what() << std::endl;
     }
+    catch(...)
+    {
+      std::cout << "Exception encountered setting up isosurface." << std::endl;
+    }
+  }
+
+  void IsosurfaceModule::DoSynchronize(SceneView* view)
+  {
+      if( m_isovalueBufferSize != m_isovalues.size()   )
+      {
+        m_isovalueBuffer.SetDimensions(m_isovalues.size());
+        m_isovalueBufferSize = m_isovalues.size();
+      }
+
+      if( !m_isovalues.empty() )
+      {
+          BOOST_AUTO(isovalueData, m_isovalueBuffer.Map());
+          std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
+      }
+  }
+
+
+  void IsosurfaceModule::ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values)
+  {
+    std::ifstream inFile(fileName.c_str());
+
+    while(!inFile.eof())
+    {
+      std::string line;
+      std::getline(inFile, line);
+      if( line.empty() )
+      {
+        continue;
+      }
+
+      try
+      {
+        ElVisFloat value = boost::lexical_cast<ElVisFloat>(line);
+        values.push_back(value);
+      }
+      catch(boost::bad_lexical_cast&)
+      {
+        std::cout << "Unable to parse " << line << std::endl;
+      }
+
+    }
+    inFile.close();
+  }
 
 
 

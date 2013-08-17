@@ -31,11 +31,11 @@
 
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/RenderModule.h>
-#include <ElVis/Core/ElementTraversalModule.h>
+#include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/ElementId.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <set>
 
@@ -43,11 +43,13 @@
 
 namespace ElVis
 {
-    class IsosurfaceModule : public ElementTraversalModule
+    class IsosurfaceModule : public RenderModule
     {
         public:
             ELVIS_EXPORT IsosurfaceModule();
             ELVIS_EXPORT virtual ~IsosurfaceModule() {}
+
+            ELVIS_EXPORT virtual void DoRender(SceneView* view);
 
             ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
             ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
@@ -61,29 +63,26 @@ namespace ElVis
         protected:
 
             ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
-            ELVIS_EXPORT virtual void DoSetupAfterInteropModule(SceneView* view);
-            ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
-            ELVIS_EXPORT virtual bool HasWork() const { return m_isovalues.size() > 0; }
+            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
-            virtual void DoResize(unsigned int newWidth, unsigned int newHeight);
+            virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
             virtual std::string DoGetName() const { return "Isosurface Rendering"; }
 
         private:
             IsosurfaceModule& operator=(const IsosurfaceModule& rhs);
             IsosurfaceModule(const IsosurfaceModule& rhs);
 
-            void SynchronizeWithOptix();
             static void ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values);
 
             std::set<ElVisFloat> m_isovalues;
             unsigned int m_isovalueBufferSize;
-            CUdeviceptr m_isovalueBuffer;
-            CUdeviceptr m_gaussLegendreNodesBuffer;
-            CUdeviceptr m_gaussLegendreWeightsBuffer;
-            CUdeviceptr m_monomialConversionTableBuffer;
 
-            CUfunction m_findIsosurfaceFunction;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreWeightsBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_monomialConversionTableBuffer;
+
+            static RayGeneratorProgram m_FindIsosurface;
 
     };
 }

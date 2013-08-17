@@ -36,11 +36,6 @@
 #include <ElVis/Core/Interval.hpp>
 #include <ElVis/Core/IntervalPoint.cu>
 
-__device__ int* SegmentElementIdBuffer;
-__device__ int* SegmentElementTypeBuffer;
-__device__ ElVisFloat* SegmentStart;
-__device__ ElVisFloat* SegmentEnd;
-__device__ ElVisFloat3* SegmentRayDirection;
 __device__ uchar4* color_buffer;
 __device__ ElVisFloat3* raw_color_buffer;
 __device__ float* depth_buffer;
@@ -49,8 +44,6 @@ __device__ ElVisFloat3* intersection_buffer;
 __device__ ElVisFloat* SampleBuffer;
 __device__ int* ElementIdBuffer;
 __device__ int* ElementTypeBuffer;
-__device__ int* SegmentIdBuffer;
-__device__ ElVis::ElementId* IdSortBuffer;
 
 #include <ElVis/Core/Printf.cu>
 

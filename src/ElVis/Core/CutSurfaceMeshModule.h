@@ -33,7 +33,6 @@
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 
 #include <boost/signals.hpp>

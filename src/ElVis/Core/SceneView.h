@@ -33,7 +33,6 @@
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/Camera.h>
 #include <ElVis/Core/ElVisDeclspec.h>
-#include <ElVis/Core/InteropBuffer.hpp>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/SampleFaceObject.h>
 #include <ElVis/Core/Stat.h>
@@ -43,7 +42,6 @@
 
 #include <optixu/optixpp.h>
 #include <ElVis/Core/Scene.h>
-#include <ElVis/Core/Buffer.h>
 #include <map>
 
 #include <boost/signals.hpp>
@@ -89,12 +87,12 @@ namespace ElVis
             ELVIS_EXPORT void EnableStencilBuffer() { m_enableStencilBuffer = true; }
             ELVIS_EXPORT void DisableStencilBuffer() { m_enableStencilBuffer = false; }
 
-            ELVIS_EXPORT InteropBuffer<uchar4>& GetColorBuffer() { return m_colorBuffer; }
-            ELVIS_EXPORT InteropBuffer<ElVisFloat3>& GetRawColorBuffer() { return m_rawColorBuffer; }
+            ELVIS_EXPORT OptiXBuffer<uchar4>& GetColorBuffer() { return m_colorBuffer; }
+            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetRawColorBuffer() { return m_rawColorBuffer; }
 
-            ELVIS_EXPORT InteropBuffer<ElVisFloat3>& GetIntersectionPointBuffer() { return m_intersectionBuffer; }
-            ELVIS_EXPORT InteropBuffer<ElVisFloat3>& GetNormalBuffer() { return m_normalBuffer; }
-            ELVIS_EXPORT InteropBuffer<ElVisFloat>& GetSampleBuffer() { return m_sampleBuffer; }
+            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetIntersectionPointBuffer() { return m_intersectionBuffer; }
+            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetNormalBuffer() { return m_normalBuffer; }
+            ELVIS_EXPORT OptiXBuffer<ElVisFloat>& GetSampleBuffer() { return m_sampleBuffer; }
             ELVIS_EXPORT double GetTimings(boost::shared_ptr<RenderModule>  m) const
             {
                 std::map<boost::shared_ptr<RenderModule> , double>::const_iterator found = m_timings.find(m);
@@ -194,18 +192,17 @@ namespace ElVis
             int m_height;
             boost::shared_ptr<Camera> m_viewSettings;
 
-            InteropBuffer<uchar4> m_colorBuffer;
-            InteropBuffer<ElVisFloat3> m_rawColorBuffer;
+            OptiXBuffer<uchar4> m_colorBuffer;
+            OptiXBuffer<ElVisFloat3> m_rawColorBuffer;
 
-            // DepthBuffer is not a FloatingPointBuffer because it needs to be float
-            // for OpenGL Interop.
-            InteropBuffer<float> m_depthBuffer;
+            // Must be float for OpenGL.
+            OptiXBuffer<float> m_depthBuffer;
             bool m_enableStencilBuffer;
-            InteropBuffer<ElVisFloat3> m_normalBuffer;
-            InteropBuffer<ElVisFloat3> m_intersectionBuffer;
-            InteropBuffer<ElVisFloat> m_sampleBuffer;
-            InteropBuffer<int> m_elementIdBuffer;
-            InteropBuffer<int> m_elementTypeBuffer;
+            OptiXBuffer<ElVisFloat3> m_normalBuffer;
+            OptiXBuffer<ElVisFloat3> m_intersectionBuffer;
+            OptiXBuffer<ElVisFloat> m_sampleBuffer;
+            OptiXBuffer<int> m_elementIdBuffer;
+            OptiXBuffer<int> m_elementTypeBuffer;
             int m_depthBits;
 
             std::map<std::string, RayGeneratorProgram> m_rayGenerationPrograms;

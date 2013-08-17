@@ -33,8 +33,8 @@
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <boost/signals.hpp>
 
@@ -78,9 +78,9 @@ namespace ElVis
 
             static const std::string ReferencePointAtIntersectionBufferName;
 
-            FloatingPointBuffer m_contourSampleBuffer;
-            FloatingPointBuffer m_isovalueBuffer;
-            FloatingPointBuffer m_referencePointAtIntersectionBuffer;
+            OptiXBuffer<ElVisFloat> m_contourSampleBuffer;
+            OptiXBuffer<ElVisFloat> m_isovalueBuffer;
+            OptiXBuffer<ElVisFloat3> m_referencePointAtIntersectionBuffer;
             optixu::Buffer m_elementIdAtIntersectionBuffer;
             optixu::Buffer m_elementTypeAtIntersectionBuffer;
             std::vector<boost::shared_ptr<PrimaryRayObject> > m_objects;
