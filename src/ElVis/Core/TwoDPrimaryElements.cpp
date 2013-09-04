@@ -28,7 +28,6 @@
 
 #include <ElVis/Core/TwoDPrimaryElements.h>
 #include <ElVis/Core/PtxManager.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/OptiXExtensions.hpp>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/SceneView.h>
@@ -128,7 +127,7 @@ namespace ElVis
         }
 
 
-        std::vector<optixu::GeometryInstance> twoDGroups = model->Get2DPrimaryGeometry(m_scene.get(), context, m_scene->GetCudaModule());
+        std::vector<optixu::GeometryInstance> twoDGroups = model->Get2DPrimaryGeometry(m_scene.get(), context);
         if( twoDGroups.empty() )
         {
             return;

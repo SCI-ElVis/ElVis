@@ -32,8 +32,6 @@
 
 #include <ElVis/Extensions/ProjectXExtension/PXModel.h>
 #include <ElVis/Core/PtxManager.h>
-#include <cuda.h>
-//#include <cutil.h>
 #include <ElVis/Core/Util.hpp>
 #include <ElVis/Core/Scene.h>
 #include <list>

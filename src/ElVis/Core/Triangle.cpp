@@ -28,7 +28,6 @@
 
 #include <ElVis/Core/Triangle.h>
 #include <ElVis/Core/PtxManager.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/OptiXExtensions.hpp>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/SceneView.h>

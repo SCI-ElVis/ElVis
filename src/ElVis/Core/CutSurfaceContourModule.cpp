@@ -39,9 +39,9 @@ namespace ElVis
     const std::string CutSurfaceContourModule::ReferencePointAtIntersectionBufferName("ReferencePointAtIntersectionBuffer");
 
     CutSurfaceContourModule::CutSurfaceContourModule() :
-        m_contourSampleBuffer("ContourSampleBuffer", 1),
-        m_isovalueBuffer("Isovalues", 1),
-        m_referencePointAtIntersectionBuffer(ReferencePointAtIntersectionBufferName, 3),
+        m_contourSampleBuffer("ContourSampleBuffer"),
+        m_isovalueBuffer("Isovalues"),
+        m_referencePointAtIntersectionBuffer(ReferencePointAtIntersectionBufferName),
         m_dirty(true),
         m_treatElementBoundariesAsDiscontinuous(0),
         m_matchVisual3Contours(0)
@@ -52,12 +52,11 @@ namespace ElVis
         optixu::Context context = view->GetContext();
         assert(context);
 
-
-        m_contourSampleBuffer.Create(context, RT_BUFFER_INPUT, view->GetWidth()+1, view->GetHeight()+1);
-        context[m_contourSampleBuffer.Name().c_str()]->set(*m_contourSampleBuffer);
-
-        m_isovalueBuffer.Create(context, RT_BUFFER_INPUT, m_isovalues.size());
-        context[m_isovalueBuffer.Name().c_str()]->set(*m_isovalueBuffer);
+        m_contourSampleBuffer.SetContext(context);
+        m_contourSampleBuffer.SetDimensions(view->GetWidth()+1, view->GetHeight()+1);
+        
+        m_isovalueBuffer.SetContext(context);
+        m_isovalueBuffer.SetDimensions(m_isovalues.size());
 
         m_elementIdAtIntersectionBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, view->GetWidth()+1, view->GetHeight()+1);
         context["ElementIdAtIntersectionBuffer"]->set(m_elementIdAtIntersectionBuffer);
@@ -65,8 +64,8 @@ namespace ElVis
         m_elementTypeAtIntersectionBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, view->GetWidth()+1, view->GetHeight()+1);
         context["ElementTypeAtIntersectionBuffer"]->set(m_elementTypeAtIntersectionBuffer);
 
-        m_referencePointAtIntersectionBuffer.Create(context, RT_BUFFER_INPUT, view->GetWidth()+1, view->GetHeight()+1);
-        context[ReferencePointAtIntersectionBufferName.c_str()]->set(*m_referencePointAtIntersectionBuffer);
+        m_referencePointAtIntersectionBuffer.SetContext(context);
+        m_referencePointAtIntersectionBuffer.SetDimensions(view->GetWidth()+1, view->GetHeight()+1);
 
         m_sampleRayProgram = view->AddRayGenerationProgram("SamplePixelCornersRayGeneratorForCategorization");
         m_markPixelProgram = view->AddRayGenerationProgram("CategorizeContourPixels");
@@ -78,15 +77,14 @@ namespace ElVis
     {
         if( m_dirty )
         {
-            m_isovalueBuffer->setSize(m_isovalues.size());
-            ElVisFloat* isovalueData = static_cast<ElVisFloat*>(m_isovalueBuffer->map());
+            m_isovalueBuffer.SetDimensions(m_isovalues.size());
+            BOOST_AUTO(isovalueData, m_isovalueBuffer.Map());
             int index = 0;
             for(std::set<ElVisFloat>::iterator iter = m_isovalues.begin(); iter != m_isovalues.end(); ++iter)
             {
                 isovalueData[index] = *iter;
                 ++index;
             }
-            m_isovalueBuffer->unmap();
 
             optixu::Context context = view->GetContext();
             context["TreatElementBoundariesAsDiscontinuous"]->setInt(m_treatElementBoundariesAsDiscontinuous);
@@ -108,12 +106,12 @@ namespace ElVis
         
     void CutSurfaceContourModule::DoResize(unsigned int newWidth, unsigned int newHeight)
     {
-        if( *m_contourSampleBuffer )
+        if( m_contourSampleBuffer.Initialized() )
         {
-            m_contourSampleBuffer->setSize(newWidth+1, newHeight+1);
+            m_contourSampleBuffer.SetDimensions(newWidth+1, newHeight+1);
             m_elementIdAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
             m_elementTypeAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
-            (*m_referencePointAtIntersectionBuffer)->setSize(newWidth+1, newHeight+1);
+            m_referencePointAtIntersectionBuffer.SetDimensions(newWidth+1, newHeight+1);
         }
     }
 

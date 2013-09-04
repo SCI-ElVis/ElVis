@@ -46,8 +46,6 @@ namespace ElVis
     ELVIS_EXPORT ElVisFloat3 MakeFloat3(const WorldVector& v);
     ELVIS_EXPORT ElVisFloat4 MakeFloat4(const WorldPoint& p);
     ELVIS_EXPORT ElVisFloat4 MakeFloat4(const WorldVector& v);
-    ELVIS_EXPORT unsigned int GetFreeCudaMemory();
-    ELVIS_EXPORT void DeviceProperties();
 }
 
 

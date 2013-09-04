@@ -238,4 +238,51 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, c
     return eNoError;
 }
 
+ELVIS_DEVICE ElVisFloat3 CalculateTensorGradient(unsigned int elementId, unsigned int elementType, int fieldId, const TensorPoint& p)
+{
+    ElVisFloat3 result = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+    if( elementType == 0 )
+    {
+        uint3 degree = HexDegrees[elementId];
+
+        uint coefficientIndex = HexCoefficientIndices[elementId];
+        ElVisFloat* coeffs = &(HexCoefficients[coefficientIndex]);
+
+        result.x = EvaluateHexGradientDir1AtTensorPoint(degree, p.x, p.y, p.z, coeffs);
+        result.y = EvaluateHexGradientDir2AtTensorPoint(degree, p.x, p.y, p.z, coeffs);
+        result.z = EvaluateHexGradientDir3AtTensorPoint(degree, p.x, p.y, p.z, coeffs);
+    }
+    else if( elementType == 1 )
+    {
+        uint3 degree = PrismDegrees[elementId];
+
+        uint coefficientIndex = PrismCoefficientIndices[elementId];
+        ElVisFloat* coeffs = &(PrismCoefficients[coefficientIndex]);
+
+        result.x = EvaluatePrismGradientDir1AtTensorPoint<ElVisFloat>(degree, p.x, p.y, p.z, coeffs);
+        result.y = EvaluatePrismGradientDir2AtTensorPoint<ElVisFloat>(degree, p.x, p.y, p.z, coeffs);
+        result.z = EvaluatePrismGradientDir3AtTensorPoint<ElVisFloat>(degree, p.x, p.y, p.z, coeffs);
+    }
+    return result;
+}
+
+ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
+{
+    gradient = CalculateTensorGradient(elementId, elementType, fieldId, refPoint);
+    return eNoError;
+}
+
+ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
+{
+    if( elementType == 0 )
+    {
+        calculateTensorToWorldSpaceMappingJacobian(&HexVertexBuffer[0], elementId, refPoint, J);
+    }
+    else
+    {
+        GetPrismWorldToReferenceJacobian(&PrismVertexBuffer[0], elementId, refPoint, J);
+    }
+    return eNoError;
+}
+
 #endif

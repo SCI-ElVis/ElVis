@@ -56,7 +56,6 @@
 #include <ElVis/Core/LightingModule.h>
 #include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/CutSurfaceContourModule.h>
-#include <ElVis/Core/IsosurfaceObject.h>
 #include <ElVis/Core/SurfaceObject.h>
 
 #include <string>
