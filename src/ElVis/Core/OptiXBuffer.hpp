@@ -92,6 +92,10 @@ namespace ElVis
                                                             boost::bind(&OptiXBuffer::Unmap, this, _1));
             }
 
+            boost::shared_array<T> map()
+            {
+                return Map();
+            }
 
 
             bool Initialized() const

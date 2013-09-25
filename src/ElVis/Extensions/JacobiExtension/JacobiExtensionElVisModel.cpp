@@ -197,8 +197,8 @@ namespace ElVis
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(faces.size());
 
-            scene->GetFaceIdBuffer()->setSize(faces.size());
-            FaceDef* faceDefs = static_cast<FaceDef*>(scene->GetFaceIdBuffer()->map());
+            scene->GetFaceIdBuffer().SetDimensions(faces.size());
+            BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
@@ -246,9 +246,6 @@ namespace ElVis
                 faceDefs[index] = faceDef;
                 ++index;
             }
-
-            scene->GetFaceIdBuffer()->unmap();
-
 
             // All Jacobi faces are planar, but can be switched to curved for testing the
             // intersection routines.

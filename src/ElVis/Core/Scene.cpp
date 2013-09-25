@@ -68,7 +68,7 @@ namespace ElVis
 //        m_newtonIntersectionProgram(),
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
-        m_faceIdBuffer(),
+        m_faceIdBuffer("FaceIdBuffer"),
         m_faceMinExtentBuffer("FaceMinExtentBuffer"),
         m_faceMaxExtentBuffer("FaceMaxExtentBuffer"),
         m_faceGeometry(),
@@ -272,16 +272,15 @@ namespace ElVis
     void Scene::InitializeFaces()
     {
         optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
-        m_faceIdBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_USER, 1);
-        m_faceIdBuffer->setElementSize(sizeof(FaceDef));
+
+        m_faceIdBuffer.SetContext(m_context);
+        m_faceIdBuffer.SetDimensions(1);
 
         m_faceMinExtentBuffer.SetContext(m_context);
         m_faceMinExtentBuffer.SetDimensions(1);
 
         m_faceMaxExtentBuffer.SetContext(m_context);
         m_faceMaxExtentBuffer.SetDimensions(1);
-
-        m_context["FaceIdBuffer"]->set(m_faceIdBuffer);
 
         m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");

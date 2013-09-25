@@ -55,13 +55,9 @@ extern "C"{
 #include <ElVis/Core/Model.h>
 #include <optixu/optixpp.h>
 #include <boost/foreach.hpp>
-#include <ElVis/Core/Buffer.h>
+#include <boost/utility.hpp>
+#include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/Float.h>
-
-#include <ElVis/Core/CudaGlobalBuffer.hpp>
-#include <ElVis/Core/CudaGlobalVariable.hpp>
-#include <ElVis/Core/InteropBuffer.hpp>
-
 
 namespace ElVis
 {
@@ -77,17 +73,15 @@ namespace ElVis
     void LoadVolume(const std::string& filePath);
 
   protected:
-    virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module);
-    virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces);
+    virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context);
+    virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
     virtual unsigned int DoGetNumberOfPoints() const;
     virtual WorldPoint DoGetPoint(unsigned int id) const;
-
-    virtual void DoSetupCudaContext(CUmodule module) const;
-    virtual const std::string& DoGetCUBinPrefix() const;
+    virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context);
+    virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
+    virtual int DoGetModelDimension() const { return 3; }
     virtual const std::string& DoGetPTXPrefix() const;	    
 
-    virtual void DoUnMapInteropBufferForCuda();
-    virtual void DoMapInteropBufferForCuda();
     virtual unsigned int DoGetNumberOfElements() const;
 
     virtual void DoCalculateExtents(WorldPoint& min, WorldPoint& max);
@@ -108,30 +102,30 @@ namespace ElVis
 
 
 
-    ElVis::InteropBuffer<ElVisFloat> m_solutionBuffer; //for State_0 GRE values (solution)
-    ElVis::InteropBuffer<ElVisFloat> m_coordinateBuffer; //for coordinates of elements of computational mesh
-    ElVis::InteropBuffer<ElVisFloat> m_boundingBoxBuffer; //for coordinates of bounding boxes of the elements in computational mesh
-    ElVis::InteropBuffer<PX_EgrpData> m_egrpDataBuffer; //data about each element group
-    ElVis::InteropBuffer<unsigned int> m_globalElemToEgrpElemBuffer; //mapping from global element number to (egrp,elem)
+    ElVis::OptiXBuffer<ElVisFloat> m_solutionBuffer; //for State_0 GRE values (solution)
+    ElVis::OptiXBuffer<ElVisFloat> m_coordinateBuffer; //for coordinates of elements of computational mesh
+    ElVis::OptiXBuffer<ElVisFloat> m_boundingBoxBuffer; //for coordinates of bounding boxes of the elements in computational mesh
+    ElVis::OptiXBuffer<PX_EgrpData> m_egrpDataBuffer; //data about each element group
+    ElVis::OptiXBuffer<unsigned int> m_globalElemToEgrpElemBuffer; //mapping from global element number to (egrp,elem)
 
-    ElVis::InteropBuffer<PX_SolutionOrderData> m_attachDataBuffer; //solutionorder info about a single attachment (for now, distance function)
-    ElVis::InteropBuffer<ElVisFloat> m_attachmentBuffer; //values from a single attachment (for now, distance function)
+    ElVis::OptiXBuffer<PX_SolutionOrderData> m_attachDataBuffer; //solutionorder info about a single attachment (for now, distance function)
+    ElVis::OptiXBuffer<ElVisFloat> m_attachmentBuffer; //values from a single attachment (for now, distance function)
 
-    ElVis::InteropBuffer<ElVisFloat> m_shadowCoordinateBuffer; //coordinates of shadow elements for cut cells; NOTHING stored for non-cut elem!
-    ElVis::InteropBuffer<unsigned int> m_egrpToShadowIndexBuffer; //maps from egrp to appropriate position in m_shadowCoordinateBuffer
+    ElVis::OptiXBuffer<ElVisFloat> m_shadowCoordinateBuffer; //coordinates of shadow elements for cut cells; NOTHING stored for non-cut elem!
+    ElVis::OptiXBuffer<unsigned int> m_egrpToShadowIndexBuffer; //maps from egrp to appropriate position in m_shadowCoordinateBuffer
     //DO NOT access if this egrp has no cut elements!
     //for some egrp w/cut elements, ShadowCoordinateBuffer[egrpToShadowIndex[egrp]] will be the first coord of the first element in egrp
 
-    ElVis::InteropBuffer<ElVisFloat> m_patchCoordinateBuffer; //must index using the patch indexes from PX_PatchGroup
+    ElVis::OptiXBuffer<ElVisFloat> m_patchCoordinateBuffer; //must index using the patch indexes from PX_PatchGroup
 
-    ElVis::InteropBuffer<PX_REAL> m_knownPointBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
-    ElVis::InteropBuffer<PX_REAL> m_backgroundCoordinateBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
+    ElVis::OptiXBuffer<PX_REAL> m_knownPointBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
+    ElVis::OptiXBuffer<PX_REAL> m_backgroundCoordinateBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
 
-    ElVis::InteropBuffer<char> m_cutCellBuffer; //data about cut cells, indexed by a global cut cell number
-    ElVis::InteropBuffer<unsigned int> m_globalElemToCutCellBuffer; //mapping from global element number to  global cut cell number
+    ElVis::OptiXBuffer<char> m_cutCellBuffer; //data about cut cells, indexed by a global cut cell number
+    ElVis::OptiXBuffer<unsigned int> m_globalElemToCutCellBuffer; //mapping from global element number to  global cut cell number
 
-    ElVis::InteropBuffer<ElVisFloat> m_faceCoordinateBuffer; //for coordinates of element faces of computational mesh
-    ElVis::InteropBuffer<PX_FaceData> m_faceDataBuffer; //for coordinates of element faces of computational mesh
+    ElVis::OptiXBuffer<ElVisFloat> m_faceCoordinateBuffer; //for coordinates of element faces of computational mesh
+    ElVis::OptiXBuffer<PX_FaceData> m_faceDataBuffer; //for coordinates of element faces of computational mesh
 
     PX_All *m_pxa;
     unsigned int m_numFieldsToPlot;

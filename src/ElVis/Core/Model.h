@@ -69,8 +69,6 @@ namespace ElVis
             // created customized SceneViews.
             ELVIS_EXPORT const std::string& GetPTXPrefix() const { return DoGetPTXPrefix(); }
 
-            ELVIS_EXPORT void MapInteropBuffersForCuda() { return DoMapInteropBufferForCuda(); }
-            ELVIS_EXPORT void UnMapInteropBuffersForCuda() { return DoUnMapInteropBufferForCuda(); }
             ELVIS_EXPORT void CalculateExtents();
             ELVIS_EXPORT const WorldPoint& GetMidpoint();
 
@@ -125,21 +123,6 @@ namespace ElVis
             /// \param name Output parameter that will return the surface's name.
             /// \param faceIds Output parameter that returns the ids of each face that belongs to this surface.
             ELVIS_EXPORT virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds) = 0;
-
-
-            /// \brief Maps Opix/Cuda interop buffers to be used by Cuda.
-            ///
-            /// If the model has created any OptiX/Cuda interop buffers, they must be mapped here.
-            /// This method is called immediately before starting a cuda kernel.  This method
-            /// will be called before ElVis runs any code in the cuda module.
-            ELVIS_EXPORT virtual void DoMapInteropBufferForCuda() = 0;
-
-            /// \brief Unmaps Opix/Cuda interop buffers to be used by OptiX.
-            ///
-            /// If the model has created any OptiX/Cuda interop buffers, they must be unmapped here.
-            /// This method is called immediately after a cuda kernel completes.  This method
-            /// is called immediately after ElVis finishes running code in the cuda module.
-            ELVIS_EXPORT virtual void DoUnMapInteropBufferForCuda() = 0;
 
             /// \brief Calculates the axis-aligned bounding box of the model.
             /// \param min Output parameter storing the smallest point of the model's axis-aligned bounding box.
