@@ -79,6 +79,9 @@ distribution.
 	#endif
 #endif	
 
+namespace tinyxml
+{
+
 class TiXmlDocument;
 class TiXmlElement;
 class TiXmlComment;
@@ -1511,6 +1514,8 @@ public:
 private:
 	TiXmlNode* node;
 };
+
+}
 
 #ifdef _MSC_VER
 #pragma warning( pop )
