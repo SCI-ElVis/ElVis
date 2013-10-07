@@ -57,7 +57,7 @@ namespace ElVis
         m_allPrimaryObjects(),
         m_optixStackSize(8000),
         m_colorMaps(),
-        m_enableOptiXTrace(false),
+        m_enableOptiXTrace(true),
         m_optiXTraceBufferSize(100000),
         m_optixTraceIndex(),
         m_enableOptiXExceptions(false),
@@ -84,6 +84,7 @@ namespace ElVis
         // For some reason in gcc, setting this in the constructor initialization list
         // doesn't work.
         m_enableOptiXExceptions = false;
+        m_optixDataDirty = true;
         if( m_enableOptiXExceptions )
         {
             std::cout << "Enabling optix exceptions in scene constructor." << std::endl;
