@@ -92,14 +92,10 @@ namespace ElVis
                                                             boost::bind(&OptiXBuffer::Unmap, this, _1));
             }
 
-<<<<<<< HEAD
             boost::shared_array<T> map()
             {
                 return Map();
             }
-=======
->>>>>>> dillonl/master
-
 
             bool Initialized() const
             {
