@@ -5,6 +5,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
 # that all policies will use version 2.6 semantics.
 cmake_policy(VERSION 2.6)
 
+#Set the apple compiler so it doesn't default to clang
+IF ( APPLE )
+	SET(CMAKE_CXX_COMPILER "/usr/bin/g++")
+	SET(CMAKE_C_COMPILER "/usr/bin/gcc")
+ENDIF ()
+
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
 PROJECT(ElVis)
@@ -29,10 +35,6 @@ FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/include ELVIS_INCLUDE_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/ColorMaps ELVIS_COLOR_MAP_DIR)
 
 INCLUDE(SetupOptiX.cmake)
-IF ( APPLE )
-	SET(CMAKE_CXX_FLAGS "")
-	SET(CMAKE_C_FLAGS "")
-ENDIF ()
 ADD_SUBDIRECTORY(Externals)
 
 IF( NOT ELVIS_PASSED_FIRST_CONFIGURE )

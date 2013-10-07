@@ -405,7 +405,7 @@ namespace ElVis
             return result;
         }
 
-        TiXmlDocument doc(p.string().c_str());
+        tinyxml::TiXmlDocument doc(p.string().c_str());
         bool loadOkay = doc.LoadFile();
 
         if( !loadOkay )
@@ -414,9 +414,9 @@ namespace ElVis
             return result;
         }
 
-        TiXmlHandle docHandle(&doc);
-        TiXmlNode* node = 0;
-        TiXmlElement* rootElement = doc.FirstChildElement("ColorMap");
+        tinyxml::TiXmlHandle docHandle(&doc);
+        tinyxml::TiXmlNode* node = 0;
+        tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ColorMap");
 
         if( !rootElement )
         {
@@ -447,7 +447,7 @@ namespace ElVis
         info.Path = p;
         info.Name = colorMapName;
 
-        TiXmlElement* pointElement = rootElement->FirstChildElement("Point");
+        tinyxml::TiXmlElement* pointElement = rootElement->FirstChildElement("Point");
 
         while( pointElement )
         {
@@ -458,11 +458,11 @@ namespace ElVis
             int bResult = pointElement->QueryFloatAttribute("b", &b);
             int oResult = pointElement->QueryFloatAttribute("o", &o);
 
-            if( rResult == TIXML_SUCCESS &&
-                gResult == TIXML_SUCCESS &&
-                bResult == TIXML_SUCCESS &&
-                oResult == TIXML_SUCCESS &&
-                scalarResult == TIXML_SUCCESS)
+            if( rResult == tinyxml::TIXML_SUCCESS &&
+                gResult == tinyxml::TIXML_SUCCESS &&
+                bResult == tinyxml::TIXML_SUCCESS &&
+                oResult == tinyxml::TIXML_SUCCESS &&
+                scalarResult == tinyxml::TIXML_SUCCESS)
             {
                 Color c(r, g, b, o);
                 info.Map->SetBreakpoint(scalar, c);

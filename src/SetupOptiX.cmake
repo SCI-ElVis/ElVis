@@ -29,7 +29,7 @@ IF( OptiX_FOUND )
           common/inc/helper_cuda.h
           PATHS
           "C:/ProgramData/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}"
-          /usr/local/cuda-${CUDA_VERSION}/samples
+          /Developer/NVIDIA/CUDA-${CUDA_VERSION}/samples
           )
 
       IF( NOT CUDA_SAMPLE_DIR )

@@ -36,6 +36,9 @@ distribution.
 #	endif
 #endif
 
+namespace tinyxml
+{
+
 // Note tha "PutString" hardcodes the same list. This
 // is less flexible than it appears. Changing the entries
 // or order will break putstring.	
@@ -1578,3 +1581,4 @@ bool TiXmlText::Blank() const
 	return true;
 }
 
+}

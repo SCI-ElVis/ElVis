@@ -30,6 +30,8 @@ distribution.
 #include <iostream>
 #endif
 
+namespace tinyxml
+{
 
 bool TiXmlBase::condenseWhiteSpace = true;
 
@@ -1796,4 +1798,6 @@ TiXmlHandle TiXmlHandle::ChildElement( const char* value, int count ) const
 			return TiXmlHandle( child );
 	}
 	return TiXmlHandle( 0 );
+}
+
 }

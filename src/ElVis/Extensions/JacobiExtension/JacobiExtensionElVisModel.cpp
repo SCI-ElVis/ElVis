@@ -247,6 +247,7 @@ namespace ElVis
                 ++index;
             }
 
+
             // All Jacobi faces are planar, but can be switched to curved for testing the
             // intersection routines.
 
