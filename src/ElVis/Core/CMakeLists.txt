@@ -19,8 +19,8 @@ ENDIF()
 #############################
 # Check for GPUs present and their compute capability
 # based on http://stackoverflow.com/questions/2285185/easiest-way-to-test-for-existence-of-cuda-capable-gpu-from-cmake/2297877#2297877 (Christopher Bruns)
-if(CUDA_FOUND)
-    message(STATUS "${CMAKE_SOURCE_DIR}/cuda_compute_capability.c")
+if(CUDA_FOUND AND NOT CUDA_HAVE_GPU)
+    message(STATUS "Checking CUDA compute capability.")
     try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
         ${CMAKE_BINARY_DIR} 
         ${CMAKE_SOURCE_DIR}/cuda_compute_capability.c
@@ -29,25 +29,26 @@ if(CUDA_FOUND)
         -DLINK_LIBRARIES:STRING=${CUDA_CUDART_LIBRARY}
         COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT_VAR
         RUN_OUTPUT_VARIABLE RUN_OUTPUT_VAR)
-    message(STATUS "Compile: ${RUN_OUTPUT_VAR}")
-    if (COMPILE_RESULT_VAR)
-        message(STATUS "compiled -> " ${RUN_RESULT_VAR})
-    else()
-        message(STATUS "didn't compile")
-    endif()
+    #message(STATUS "Compile: ${RUN_OUTPUT_VAR}")
+    #if (COMPILE_RESULT_VAR)
+    #    message(STATUS "compiled -> " ${RUN_RESULT_VAR})
+    #else()
+    #    message(STATUS "didn't compile")
+    #endif()
     # COMPILE_RESULT_VAR is TRUE when compile succeeds
     # RUN_RESULT_VAR is zero when a GPU is found
     if(COMPILE_RESULT_VAR AND NOT RUN_RESULT_VAR)
-        message(STATUS "worked")
+        #message(STATUS "worked")
         set(CUDA_HAVE_GPU TRUE CACHE BOOL "Whether CUDA-capable GPU is present")
         set(CUDA_COMPUTE_CAPABILITY ${RUN_OUTPUT_VAR} CACHE STRING "Compute capability of CUDA-capable GPU present")
         set(CUDA_GENERATE_CODE "arch=compute_${CUDA_COMPUTE_CAPABILITY},code=sm_${CUDA_COMPUTE_CAPABILITY}" CACHE STRING "Which GPU architectures to generate code for (each arch/code pair will be passed as --generate-code option to nvcc, separate multiple pairs by ;)")
         mark_as_advanced(CUDA_COMPUTE_CAPABILITY CUDA_GENERATE_CODE)
         LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21" "-arch=sm_30" "-arch=sm_31")
         set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-arch=sm_${CUDA_COMPUTE_CAPABILITY}"  CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-        SET(CUDA_COMPUTE_CAPABILITY_SUCCESS TRUE)
+        SET(CUDA_COMPUTE_CAPABILITY_SUCCESS TRUE CACHE BOOL "")
     else()
-        message(STATUS "didn't work")
+        #message(STATUS "didn't work")
+        SET(CUDA_COMPUTE_CAPABILITY_SUCCESS FALSE CACHE BOOL "")
         set(CUDA_HAVE_GPU FALSE CACHE BOOL "Whether CUDA-capable GPU is present")
     endif()
 endif()
@@ -290,6 +291,7 @@ SET_SOURCE_FILES_PROPERTIES(${ELVIS_CUDA_HEADERS} PROPERTIES HEADER_FILE_ONLY ON
 SOURCE_GROUP("Modules" FILES ${ModuleFiles})
 SOURCE_GROUP("Primary Ray Objects" FILES ${PrimaryRayObjectFiles})
 SOURCE_GROUP("Objects" FILES ${ObjectFiles})
+SOURCE_GROUP("Core" FILES ${ELVIS_SOURCES} ${ELVIS_HEADERS})
 ADD_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${PrimaryRayObjectFiles} ${ObjectFiles} ${ELVIS_MATH_HEADERS} ${ELVIS_SOURCES} ${ModuleFiles} ${ELVIS_CUDA_HEADERS})
 
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
