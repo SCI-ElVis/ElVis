@@ -46,6 +46,8 @@ namespace ElVis
     ELVIS_EXPORT ElVisFloat3 MakeFloat3(const WorldVector& v);
     ELVIS_EXPORT ElVisFloat4 MakeFloat4(const WorldPoint& p);
     ELVIS_EXPORT ElVisFloat4 MakeFloat4(const WorldVector& v);
+
+    inline void noDelete(void* ptr) {}
 }
 
 

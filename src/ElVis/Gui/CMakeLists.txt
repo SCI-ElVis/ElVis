@@ -83,6 +83,10 @@ ADD_ELVIS_EXECUTABLE(${Project}
 
 SET_PROPERTY(TARGET ${Project} PROPERTY FOLDER "Core")
 
+INCLUDE_DIRECTORIES(
+    ${CMAKE_SOURCE_DIR}/Externals/tinyxml
+)
+
 TARGET_LINK_LIBRARIES(${Project}
     ${QT_LIBRARIES}
     ${QT_QTOPENGL_LIBRARY}
@@ -92,7 +96,7 @@ TARGET_LINK_LIBRARIES(${Project}
     glew
     ${PNG_LIBRARY}
     ${ZLIB_LIBRARY}
-    TinyXML
+    ${TinyXML_Library}
 )
 
 INSTALL(FILES ElVis.qss
@@ -100,11 +104,11 @@ INSTALL(FILES ElVis.qss
 )
 
 if(WIN32)
-	add_custom_command(
-		TARGET ${Project}
-		COMMAND ${CMAKE_COMMAND} -E copy ${CORE_BUILD_PATH}/Debug/ElVisCore.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
-		COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_BUILD_PATH}/Debug/glew.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
-		COMMAND ${CMAKE_COMMAND} -E copy ${optix_DLL} ${CMAKE_CURRENT_BINARY_DIR}/Debug
-		COMMAND ${CMAKE_COMMAND} -E copy ${OptiX_INSTALL_DIR}/bin${bit_dest}/cudart64_42_9.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
-	)
+    add_custom_command(
+        TARGET ${Project}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CORE_BUILD_PATH}/Debug/ElVisCore.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
+        COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_BUILD_PATH}/Debug/glew.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
+        COMMAND ${CMAKE_COMMAND} -E copy ${optix_DLL} ${CMAKE_CURRENT_BINARY_DIR}/Debug
+        COMMAND ${CMAKE_COMMAND} -E copy ${OptiX_INSTALL_DIR}/bin${bit_dest}/cudart64_42_9.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
+    )
 endif()

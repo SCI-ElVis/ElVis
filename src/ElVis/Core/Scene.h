@@ -102,7 +102,6 @@ namespace ElVis
 
             ELVIS_EXPORT void SynchronizeWithOptiXIfNeeded();
 
-//            ELVIS_EXPORT optixu::Program GetNewtonIntersectionProgram() const { return m_newtonIntersectionProgram; }
             ELVIS_EXPORT OptiXBuffer<FaceDef>& GetFaceIdBuffer() { return m_faceIdBuffer; }
             ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMinExtentBuffer() { return m_faceMinExtentBuffer; }
             ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMaxExtentBuffer() { return m_faceMaxExtentBuffer; }

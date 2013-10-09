@@ -148,7 +148,7 @@ namespace ElVis
         class JacobiExtensionModel : public ElVis::Model
         {
         public:
-            JACOBI_EXTENSION_EXPORT JacobiExtensionModel();
+            JACOBI_EXTENSION_EXPORT JacobiExtensionModel(const std::string& modelPath);
             JACOBI_EXTENSION_EXPORT virtual ~JacobiExtensionModel();
 
             JACOBI_EXTENSION_EXPORT void LoadVolume(const std::string& filePath);

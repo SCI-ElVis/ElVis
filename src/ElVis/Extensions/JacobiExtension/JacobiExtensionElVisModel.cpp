@@ -93,8 +93,9 @@ namespace ElVis
 
         }
 
-        JacobiExtensionModel::JacobiExtensionModel() :
-        m_volume(),
+        JacobiExtensionModel::JacobiExtensionModel(const std::string& modelPath) :
+            Model(modelPath),
+            m_volume(),
             m_numberOfCopies(1),
             m_numberOfModes(-1),
             HexCoefficientBufferIndices("HexCoefficientIndices"),

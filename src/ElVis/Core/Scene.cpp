@@ -65,7 +65,6 @@ namespace ElVis
         m_tracePixelDirty(true),
         m_enableTraceDirty(true),
         m_faceIntersectionProgram(),
-//        m_newtonIntersectionProgram(),
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
         m_faceIdBuffer("FaceIdBuffer"),
@@ -85,14 +84,6 @@ namespace ElVis
         // doesn't work.
         m_enableOptiXExceptions = false;
         m_optixDataDirty = true;
-        if( m_enableOptiXExceptions )
-        {
-            std::cout << "Enabling optix exceptions in scene constructor." << std::endl;
-        }
-        else
-        {
-            std::cout << "Disabling optix exceptions in scene constructor.." << std::endl;
-        }
     }
 
     Scene::~Scene()
