@@ -95,12 +95,12 @@ INSTALL(FILES ElVis.qss
     DESTINATION ${ELVIS_BIN_DIR}
 )
 
-if(WIN32)
-    add_custom_command(
-        TARGET ${Project}
-        COMMAND ${CMAKE_COMMAND} -E copy ${CORE_BUILD_PATH}/Debug/ElVisCore.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
-        COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_BUILD_PATH}/Debug/glew.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
-        COMMAND ${CMAKE_COMMAND} -E copy ${optix_DLL} ${CMAKE_CURRENT_BINARY_DIR}/Debug
-        COMMAND ${CMAKE_COMMAND} -E copy ${OptiX_INSTALL_DIR}/bin${bit_dest}/cudart64_42_9.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
-    )
-endif()
+#if(WIN32)
+#    add_custom_command(
+#        TARGET ${Project}
+#        COMMAND ${CMAKE_COMMAND} -E copy ${CORE_BUILD_PATH}/Debug/ElVisCore.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
+#        COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_BUILD_PATH}/Debug/glew.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
+#        COMMAND ${CMAKE_COMMAND} -E copy ${optix_DLL} ${CMAKE_CURRENT_BINARY_DIR}/Debug
+#        COMMAND ${CMAKE_COMMAND} -E copy ${OptiX_INSTALL_DIR}/bin${bit_dest}/cudart64_42_9.dll ${CMAKE_CURRENT_BINARY_DIR}/Debug
+#    )
+#endif()
