@@ -35,11 +35,15 @@
 #include <optixu/optixu_matrix.h>
 #include <ElVis/Core/Float.h>
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 namespace ElVis
 {
     class Cylinder : public Object
     {
         public:
+            friend class boost::serialization::access;
             ELVIS_EXPORT Cylinder();
             ELVIS_EXPORT virtual ~Cylinder() {}
 
@@ -69,6 +73,12 @@ namespace ElVis
         private:
             ELVIS_EXPORT Cylinder(const Cylinder& rhs);
             Cylinder& operator=(const Cylinder& rhs);
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Object);
+            }
 
             optixu::GeometryGroup m_group;
             optixu::GeometryInstance m_instance;

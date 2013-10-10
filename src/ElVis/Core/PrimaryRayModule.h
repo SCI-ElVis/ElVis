@@ -48,7 +48,7 @@ namespace ElVis
 
             ELVIS_EXPORT void AddObject(boost::shared_ptr<PrimaryRayObject> obj);
             ELVIS_EXPORT boost::shared_ptr<PrimaryRayObject> GetObject(int i) { return m_objects[i]; }
-            ELVIS_EXPORT unsigned int NumberOfObjects() { return m_objects.size(); }
+            ELVIS_EXPORT size_t NumberOfObjects() { return m_objects.size(); }
 
             boost::signal< void (boost::shared_ptr<PrimaryRayObject>) > OnObjectAdded;
             boost::signal< void (const PrimaryRayObject&)> OnObjectChanged;

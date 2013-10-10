@@ -50,7 +50,7 @@ namespace ElVis
         }
 
         ElVisFloat3 h = MakeFloat3(targeth, targeth, targeth);
-        int3 n;
+        uint3 n;
 
         view->GetScene()->GetModel()->CalculateExtents();
         WorldPoint minExtent = view->GetScene()->GetModel()->MinExtent();
@@ -109,7 +109,7 @@ namespace ElVis
         try
         {
 
-            for(int i = 0; i < n.z; ++i)
+            for(unsigned int i = 0; i < n.z; ++i)
             {
                 context["SampleOntoNrrdPlane"]->setInt(i);
                 std::cout << "Sampling " << i << " of " << n.z-1 << std::endl;

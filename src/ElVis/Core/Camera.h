@@ -38,6 +38,9 @@
 
 #include <iostream>
 
+#include <boost/serialization/split_member.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 namespace ElVis
 {
@@ -120,6 +123,37 @@ namespace ElVis
             ELVIS_EXPORT WorldVector GetNormalizedW() const;
 
             ELVIS_EXPORT void SetupOpenGLPerspective();
+
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
+            {
+            }
+
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
+            {
+                UpdateBasisVectors();
+                OnCameraChanged();
+            }
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_fieldOfView);    
+                ar & BOOST_SERIALIZATION_NVP(m_aspectRatio);
+                ar & BOOST_SERIALIZATION_NVP(m_near);
+                ar & BOOST_SERIALIZATION_NVP(m_far);
+
+                ar & BOOST_SERIALIZATION_NVP(m_eye);
+                ar & BOOST_SERIALIZATION_NVP(m_lookAt);
+                ar & BOOST_SERIALIZATION_NVP(m_up);
+
+                ar & BOOST_SERIALIZATION_NVP(m_u);
+                ar & BOOST_SERIALIZATION_NVP(m_v);
+                ar & BOOST_SERIALIZATION_NVP(m_w);
+            }
 
         private:
             static ElVisFloat3 ProjectToSphere( ElVisFloat x, ElVisFloat y, ElVisFloat radius );

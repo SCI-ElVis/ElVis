@@ -63,7 +63,7 @@ namespace ElVis
             {
             }
 
-            void SetDimensions(unsigned int w)
+            void SetDimensions(size_t w)
             {
                 if( w == 0 )
                 {
@@ -73,7 +73,7 @@ namespace ElVis
                 SetDimensions(w, 1);
             }
 
-            void SetDimensions(unsigned int w, unsigned int h)
+            void SetDimensions(size_t w, size_t h)
             {
                 ReleaseResourcesIfNecessary();
                 m_width = w;
@@ -92,14 +92,17 @@ namespace ElVis
                                                             boost::bind(&OptiXBuffer::Unmap, this, _1));
             }
 
-
+            boost::shared_array<T> map()
+            {
+                return Map();
+            }
 
             bool Initialized() const
             {
                 return m_optixBuffer;
             }
 
-            T operator()(unsigned int x, unsigned int y)
+            T operator()(size_t x, size_t y)
             {
                 T result;
 
@@ -153,8 +156,8 @@ namespace ElVis
             optixu::Buffer m_optixBuffer;
 
             std::string m_name;
-            unsigned int m_width;
-            unsigned int m_height;
+            size_t m_width;
+            size_t m_height;
             optixu::Context m_context;
     };
 }

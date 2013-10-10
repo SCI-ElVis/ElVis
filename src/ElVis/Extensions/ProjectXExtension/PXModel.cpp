@@ -35,7 +35,7 @@
 #include <ElVis/Core/Util.hpp>
 #include <ElVis/Core/Scene.h>
 #include <list>
-
+#include <boost/typeof/typeof.hpp>
 
 
 #include <ElVis/Extensions/ProjectXExtension/PXStructDefinitions.h>
@@ -118,7 +118,7 @@ extern "C"{
     return fileExtension;
   }
 
-  
+
 }
 
 
@@ -170,13 +170,6 @@ namespace ElVis
     return WorldPoint();
   }
 
-  void PXModel::DoSetupCudaContext(CUmodule module) const{
-  }
-
-  const std::string& PXModel::DoGetCUBinPrefix() const {
-    static std::string extensionName("ProjectXExtension");;
-    return extensionName;
-  }
   const std::string& PXModel::DoGetPTXPrefix() const{
     static std::string extensionName("ProjectXExtension");
     return extensionName;
@@ -260,52 +253,6 @@ namespace ElVis
     m_numFieldsToPlot = StateRank + 7;
 
     printf("00000000000\n");
-  }
-
-  void PXModel::DoMapInteropBufferForCuda()
-  {
-    m_solutionBuffer.GetMappedCudaPtr();
-    m_coordinateBuffer.GetMappedCudaPtr();
-    m_boundingBoxBuffer.GetMappedCudaPtr();
-    m_egrpDataBuffer.GetMappedCudaPtr();
-    m_globalElemToEgrpElemBuffer.GetMappedCudaPtr();
-
-    m_attachDataBuffer.GetMappedCudaPtr();
-    m_attachmentBuffer.GetMappedCudaPtr();
-
-    m_shadowCoordinateBuffer.GetMappedCudaPtr();
-    m_egrpToShadowIndexBuffer.GetMappedCudaPtr();
-    m_patchCoordinateBuffer.GetMappedCudaPtr();
-    m_knownPointBuffer.GetMappedCudaPtr();
-    m_backgroundCoordinateBuffer.GetMappedCudaPtr();
-    m_cutCellBuffer.GetMappedCudaPtr();
-    m_globalElemToCutCellBuffer.GetMappedCudaPtr();
-
-    m_faceCoordinateBuffer.GetMappedCudaPtr();
-    m_faceDataBuffer.GetMappedCudaPtr();
-  }
-
-  void PXModel::DoUnMapInteropBufferForCuda()
-  {
-    m_solutionBuffer.UnmapCudaPtr();
-    m_coordinateBuffer.UnmapCudaPtr();
-    m_boundingBoxBuffer.UnmapCudaPtr();
-    m_egrpDataBuffer.UnmapCudaPtr();
-    m_globalElemToEgrpElemBuffer.UnmapCudaPtr();
-
-    m_attachDataBuffer.UnmapCudaPtr();
-    m_attachmentBuffer.UnmapCudaPtr();
-
-    m_shadowCoordinateBuffer.UnmapCudaPtr();
-    m_egrpToShadowIndexBuffer.UnmapCudaPtr();
-    m_patchCoordinateBuffer.UnmapCudaPtr();
-    m_knownPointBuffer.UnmapCudaPtr();
-    m_backgroundCoordinateBuffer.UnmapCudaPtr();
-    m_cutCellBuffer.UnmapCudaPtr();
-    m_globalElemToCutCellBuffer.UnmapCudaPtr();
-
-    m_faceCoordinateBuffer.UnmapCudaPtr();
-    m_faceDataBuffer.UnmapCudaPtr();
   }
 
   int PXModel::DoGetNumFields() const
@@ -420,7 +367,7 @@ namespace ElVis
   }
 
 
-  std::vector<optixu::GeometryGroup> PXModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context, CUmodule module)
+  std::vector<optixu::GeometryGroup> PXModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
   {
       try
       {        
@@ -494,21 +441,21 @@ namespace ElVis
 
 
           /* declare global constants for device (CUDA) */
-          std::string stateRankName = "StateRank";
-          CudaGlobalVariable<int> stateRankVariable((stateRankName), (module));
-          stateRankVariable.WriteToDevice(StateRank);
+//          std::string stateRankName = "StateRank";
+//          CudaGlobalVariable<int> stateRankVariable((stateRankName), (module));
+//          stateRankVariable.WriteToDevice(StateRank);
 
-          std::string DimName = "Dim";
-          CudaGlobalVariable<int> DimVariable((DimName), (module));
-          DimVariable.WriteToDevice(Dim);
+//          std::string DimName = "Dim";
+//          CudaGlobalVariable<int> DimVariable((DimName), (module));
+//          DimVariable.WriteToDevice(Dim);
 
-          std::string SpecificHeatRatioName = "SpecificHeatRatio";
-          CudaGlobalVariable<PX_REAL> SpecificHeatRatioVariable((SpecificHeatRatioName), (module));
-          SpecificHeatRatioVariable.WriteToDevice(SpecificHeatRatio);
+//          std::string SpecificHeatRatioName = "SpecificHeatRatio";
+//          CudaGlobalVariable<PX_REAL> SpecificHeatRatioVariable((SpecificHeatRatioName), (module));
+//          SpecificHeatRatioVariable.WriteToDevice(SpecificHeatRatio);
 
-          std::string GasConstantName = "GasConstant";
-          CudaGlobalVariable<PX_REAL> GasConstantVariable((GasConstantName), (module));
-          GasConstantVariable.WriteToDevice(GasConstant);
+//          std::string GasConstantName = "GasConstant";
+//          CudaGlobalVariable<PX_REAL> GasConstantVariable((GasConstantName), (module));
+//          GasConstantVariable.WriteToDevice(GasConstant);
 
           /* set up attachment visualization */
           char distanceName[] = "QnDistanceFunction";
@@ -607,47 +554,35 @@ namespace ElVis
 
 
           /* convert to buffers... */
-          ElVis::InteropBuffer<ElVisFloat>& solutionBuffer = m_solutionBuffer;
-          solutionBuffer.SetContextInfo(context, module);
-          solutionBuffer.SetDimensions(nSolnCoeffTotal*StateRank);
-          ElVisFloat* const solution = static_cast<ElVisFloat*>(solutionBuffer.map());
+          m_solutionBuffer.SetContext(context);
+          m_solutionBuffer.SetDimensions(nSolnCoeffTotal*StateRank);
+          BOOST_AUTO(solution, m_solutionBuffer.map());
 
-
-          ElVis::InteropBuffer<ElVisFloat>& coordinateBuffer = m_coordinateBuffer;
-          coordinateBuffer.SetContextInfo(context, module);
-          coordinateBuffer.SetDimensions(nGeomCoeffTotal*Dim);
-          ElVisFloat* const coordinate = static_cast<ElVisFloat*>(coordinateBuffer.map());
+          m_coordinateBuffer.SetContext(context);
+          m_coordinateBuffer.SetDimensions(nGeomCoeffTotal*Dim);
+          BOOST_AUTO(coordinate, m_coordinateBuffer.map());
 
           // could fill this with boundingbox program once optix starts
           // BUT currently filling it on the CPU for convenience
-          ElVis::InteropBuffer<ElVisFloat>& boundingBoxBuffer = m_boundingBoxBuffer;
-          boundingBoxBuffer.SetContextInfo(context, module);
-          boundingBoxBuffer.SetDimensions(nElemTotal*BBOX_SIZE);
-          ElVisFloat* const boundingBox = static_cast<ElVisFloat*>(boundingBoxBuffer.map());
+          m_boundingBoxBuffer.SetContext(context);
+          m_boundingBoxBuffer.SetDimensions(nElemTotal*BBOX_SIZE);
+          BOOST_AUTO(boundingBox, m_boundingBoxBuffer.map());
 
-          ElVis::InteropBuffer<PX_EgrpData>& egrpDataBuffer = m_egrpDataBuffer;
-          egrpDataBuffer.SetContextInfo(context, module);
-          egrpDataBuffer.SetDimensions(pg->nElementGroup);
-          PX_EgrpData* const egrpData = static_cast<PX_EgrpData*>(egrpDataBuffer.map());
+          m_egrpDataBuffer.SetContext(context);
+          m_egrpDataBuffer.SetDimensions(pg->nElementGroup);
+          BOOST_AUTO(egrpData, m_egrpDataBuffer.map());
 
+          m_attachDataBuffer.SetContext(context);
+          m_attachDataBuffer.SetDimensions(pg->nElementGroup);
+          BOOST_AUTO(attachData, m_attachDataBuffer.map());
 
+          m_attachmentBuffer.SetContext(context);
+          m_attachmentBuffer.SetDimensions(nAttachCoeffTotal*QnDistance->StateRank);
+          BOOST_AUTO(attachment, m_attachmentBuffer.map());
 
-          ElVis::InteropBuffer<PX_SolutionOrderData>& attachDataBuffer = m_attachDataBuffer;
-          attachDataBuffer.SetContextInfo(context, module);
-          attachDataBuffer.SetDimensions(pg->nElementGroup);
-          PX_SolutionOrderData* const attachData = static_cast<PX_SolutionOrderData*>(attachDataBuffer.map());
-
-          ElVis::InteropBuffer<ElVisFloat>& attachmentBuffer = m_attachmentBuffer;
-          attachmentBuffer.SetContextInfo(context, module);
-          attachmentBuffer.SetDimensions(nAttachCoeffTotal*QnDistance->StateRank);
-          ElVisFloat* const attachment = static_cast<ElVisFloat*>(attachmentBuffer.map());
-
-
-
-          ElVis::InteropBuffer<unsigned int>& globalElemToEgrpElemBuffer = m_globalElemToEgrpElemBuffer;
-          globalElemToEgrpElemBuffer.SetContextInfo(context, module);
-          globalElemToEgrpElemBuffer.SetDimensions(2*nElemTotal);
-          unsigned int* const globalElemToEgrpElem = static_cast<unsigned int*>(globalElemToEgrpElemBuffer.map());
+          m_globalElemToEgrpElemBuffer.SetContext(context);
+          m_globalElemToEgrpElemBuffer.SetDimensions(2*nElemTotal);
+          BOOST_AUTO(globalElemToEgrpElem, m_globalElemToEgrpElemBuffer.map());
 
           /* Cut Cell magic */
           if(m_cutCellFlag == 1){
@@ -735,13 +670,12 @@ namespace ElVis
               puts("Assertions passed.");
 
               /* Load surface mesh coordinates (quadratic patches) */
-              ElVis::InteropBuffer<ElVisFloat>& patchCoordinateBuffer = m_patchCoordinateBuffer;
-              patchCoordinateBuffer.SetContextInfo(context, module);
-              patchCoordinateBuffer.SetDimensions(meshSurf->nElement*PATCH_NBF*Dim);
-              ElVisFloat* const patchCoordinate = static_cast<ElVisFloat*>(patchCoordinateBuffer.map());
+              m_patchCoordinateBuffer.SetContext(context);
+              m_patchCoordinateBuffer.SetDimensions(meshSurf->nElement*PATCH_NBF*Dim);
+              BOOST_AUTO(patchCoordinate, m_patchCoordinateBuffer.map());
 
               geomRank = PATCH_NBF*Dim;
-              ElVisFloat* patchCoordPtr = patchCoordinate;
+              ElVisFloat* patchCoordPtr = patchCoordinate.get();
               for(elem=0; elem<meshSurf->nElement; elem++){
                   // for(i=0; i<nbfQ; i++){
                   //   patchCoordPtr[i*Dim +0] = meshSurf->Element[elem].coordinate[i*Dim+0];
@@ -754,26 +688,22 @@ namespace ElVis
                   patchCoordPtr += geomRank;
               }
               //sanity check that pointers are where they should be
-              lengthCheck = (char *)patchCoordPtr - (char *)patchCoordinate;
+              lengthCheck = (char *)patchCoordPtr - (char *)patchCoordinate.get();
               printf("Length check: %ld\n",lengthCheck - (ptrdiff_t)(meshSurf->nElement*geomRank*sizeof(*patchCoordPtr)));
-
-              patchCoordinateBuffer.unmap();
 
               puts("PatchCoordinateBuffer complete");
 
               // Load shadow element coordinates
-              ElVis::InteropBuffer<ElVisFloat>& shadowCoordinateBuffer = m_shadowCoordinateBuffer;
-              shadowCoordinateBuffer.SetContextInfo(context, module);
-              shadowCoordinateBuffer.SetDimensions(nCutCellTotal*SHADOW_NBF*Dim);
-              ElVisFloat* const shadowCoordinate = static_cast<ElVisFloat*>(shadowCoordinateBuffer.map());
+              m_shadowCoordinateBuffer.SetContext(context);
+              m_shadowCoordinateBuffer.SetDimensions(nCutCellTotal*SHADOW_NBF*Dim);
+              BOOST_AUTO(shadowCoordinate, m_shadowCoordinateBuffer.map());
 
-              ElVis::InteropBuffer<unsigned int>& EgrpToShadowIndexBuffer = m_egrpToShadowIndexBuffer;
-              EgrpToShadowIndexBuffer.SetContextInfo(context, module);
-              EgrpToShadowIndexBuffer.SetDimensions(pg->nElementGroup);
-              unsigned int* const EgrpToShadowIndex = static_cast<unsigned int*>(EgrpToShadowIndexBuffer.map());
+              m_egrpToShadowIndexBuffer.SetContext(context);
+              m_egrpToShadowIndexBuffer.SetDimensions(pg->nElementGroup);
+              BOOST_AUTO(EgrpToShadowIndex, m_egrpToShadowIndexBuffer.map());
 
               geomRank = SHADOW_NBF*Dim;
-              ElVisFloat* shadowCoordPtr = shadowCoordinate;
+              ElVisFloat* shadowCoordPtr = shadowCoordinate.get();
               int tempCutCellCtr = 0;
               for(egrp = 0; egrp<pg->nElementGroup; egrp++){
 
@@ -790,9 +720,6 @@ namespace ElVis
                   }else
                       EgrpToShadowIndex[egrp] = (unsigned int) -1;
               }
-
-              shadowCoordinateBuffer.unmap();
-              EgrpToShadowIndexBuffer.unmap();
 
               puts("ShadowCoordinateBuffer complete.");
 
@@ -848,28 +775,23 @@ namespace ElVis
               puts("CutCellBuffer sizing data gathered.");
               printf("nThreeDTotal = %d, nPatchIndexesTotal = %d\n", nThreeDTotal, nPatchIndexesTotal);
 
-              ElVis::InteropBuffer<PX_REAL>& knownPointBuffer = m_knownPointBuffer;
-              knownPointBuffer.SetContextInfo(context, module);
-              knownPointBuffer.SetDimensions(nThreeDTotal*Dim);
-              PX_REAL* const knownPointBase = static_cast<PX_REAL*>(knownPointBuffer.map());
+              m_knownPointBuffer.SetContext(context);
+              m_knownPointBuffer.SetDimensions(nThreeDTotal*Dim);
+              BOOST_AUTO(knownPointBase, m_knownPointBuffer.map());
 
-              ElVis::InteropBuffer<PX_REAL>& backgroundCoordinateBuffer = m_backgroundCoordinateBuffer;
-              backgroundCoordinateBuffer.SetContextInfo(context, module);
-              backgroundCoordinateBuffer.SetDimensions(nThreeDTotal*BACK_NBF*Dim);
-              PX_REAL* const backgroundCoordinateBase = static_cast<PX_REAL*>(backgroundCoordinateBuffer.map());
+              m_backgroundCoordinateBuffer.SetContext(context);
+              m_backgroundCoordinateBuffer.SetDimensions(nThreeDTotal*BACK_NBF*Dim);
+              BOOST_AUTO(backgroundCoordinateBase, m_backgroundCoordinateBuffer.map());
 
-
-              ElVis::InteropBuffer<char>& CutCellBuffer = m_cutCellBuffer;
-              CutCellBuffer.SetContextInfo(context, module);
-              CutCellBuffer.SetDimensions(nCutCellTotal*sizeof(PX_CutCellElVis) +
+              m_cutCellBuffer.SetContext(context);
+              m_cutCellBuffer.SetDimensions(nCutCellTotal*sizeof(PX_CutCellElVis) +
                                           nThreeDTotal*sizeof(PX_PatchGroup) +
                                           nPatchIndexesTotal*sizeof(int));
-              char* const CutCellBase = static_cast<char*>(CutCellBuffer.map());
+              BOOST_AUTO(CutCellBase, m_cutCellBuffer.map());
 
-              ElVis::InteropBuffer<unsigned int>& GlobalElemToCutCellBuffer = m_globalElemToCutCellBuffer;
-              GlobalElemToCutCellBuffer.SetContextInfo(context, module);
-              GlobalElemToCutCellBuffer.SetDimensions(nElemTotal);
-              unsigned int* const GlobalElemToCutCell = static_cast<unsigned int*>(GlobalElemToCutCellBuffer.map());
+              m_globalElemToCutCellBuffer.SetContext(context);
+              m_globalElemToCutCellBuffer.SetDimensions(nElemTotal);
+              BOOST_AUTO(GlobalElemToCutCell, m_globalElemToCutCellBuffer.map());
 
               int threeDCtr = 0;
               int nPatch;
@@ -879,11 +801,11 @@ namespace ElVis
               int totalPatchGroupLength; //cummulative length of patch groups over 1 cut cell
               int *patchList;
               PX_PatchGroup *patchGroup;
-              PX_CutCellElVis *cutCell = (PX_CutCellElVis *)CutCellBase;
-              unsigned int* globalToCutPtr = GlobalElemToCutCell;
+              PX_CutCellElVis *cutCell = (PX_CutCellElVis *)CutCellBase.get();
+              unsigned int* globalToCutPtr = GlobalElemToCutCell.get();
               geomRank = BACK_NBF*Dim;
-              PX_REAL *backgroundCoordPtr = backgroundCoordinateBase;
-              PX_REAL *knownPointPtr = knownPointBase;
+              PX_REAL *backgroundCoordPtr = backgroundCoordinateBase.get();
+              PX_REAL *knownPointPtr = knownPointBase.get();
 
               for(egrp = 0; egrp<pg->nElementGroup; egrp++){
                   if(pg->ElementGroup[egrp].type == PXE_TetCut){
@@ -958,7 +880,7 @@ namespace ElVis
                               backgroundCoordPtr += geomRank;
                           }//k over nCompThreeD
 
-                          globalToCutPtr[elem] = (unsigned int)((char*)cutCell - (char*)CutCellBase);;
+                          globalToCutPtr[elem] = (unsigned int)((char*)cutCell - (char*)CutCellBase.get());;
 
                           cutCell->length = sizeof(*cutCell)+totalPatchGroupLength;
                           cutCell->nPatchGroup = nCompThreeD;
@@ -978,7 +900,7 @@ namespace ElVis
 
               //sanity check: make sure cutCell pointer has exactly traversed the space
               //allocated to CutCellBuffer
-              lengthCheck = (char *)cutCell - (char *)CutCellBase;
+              lengthCheck = (char *)cutCell - (char *)CutCellBase.get();
               printf("CutCell length check: %ld\n",lengthCheck - (ptrdiff_t)(nCutCellTotal*sizeof(PX_CutCellElVis) + nThreeDTotal*sizeof(PX_PatchGroup) + nPatchIndexesTotal*sizeof(int)));
 
               //sanity check: make sure the length values in CutCell & PatchGroup types
@@ -987,7 +909,7 @@ namespace ElVis
               ptrdiff_t patchGroupCheck;
               unsigned int* cutCellSizeBase = (unsigned int*)malloc(nCutCellTotal*sizeof(unsigned int));
               unsigned int* cutCellSizePtr = cutCellSizeBase;
-              cutCell = (PX_CutCellElVis *)CutCellBase;
+              cutCell = (PX_CutCellElVis *)CutCellBase.get();
               for(i=0; i<nCutCellTotal; i++){
                   patchGroup = GetFirstPatchGroup(cutCell);
                   for(j=0; j<cutCell->nPatchGroup; j++){
@@ -1002,12 +924,12 @@ namespace ElVis
                   cutCellSizePtr[i] = cutCell->length;
                   cutCell = GetNextCutCell(cutCell);
               }
-              lengthCheck = (char *)cutCell - (char *)CutCellBase;
+              lengthCheck = (char *)cutCell - (char *)CutCellBase.get();
               printf("CutCell length check: %ld\n",lengthCheck - (ptrdiff_t)(nCutCellTotal*sizeof(PX_CutCellElVis) + nThreeDTotal*sizeof(PX_PatchGroup) + nPatchIndexesTotal*sizeof(int)));
 
               /* Check that GlobalElemToCutCellBuffer is set up correctly */
               cutCellSizePtr = cutCellSizeBase;
-              globalToCutPtr = GlobalElemToCutCell;
+              globalToCutPtr = GlobalElemToCutCell.get();
               //cutCell = (PX_CutCellElVis *)CutCellBase;
               int globalElemCtr = 0;
               int cutCellCtr = 0;
@@ -1015,7 +937,7 @@ namespace ElVis
               for(egrp=0; egrp<pg->nElementGroup; egrp++){
                   if(pg->ElementGroup[egrp].type == PXE_TetCut){
                       for(elem=0; elem<pg->ElementGroup[egrp].nElement; elem++){
-                          cutCell = (PX_CutCellElVis*)((char*)CutCellBase + GlobalElemToCutCell[globalElemCtr]);
+                          cutCell = (PX_CutCellElVis*)((char*)CutCellBase.get() + GlobalElemToCutCell[globalElemCtr]);
                           if(cutCell->length != cutCellSizePtr[cutCellCtr]){
                               printf("on global elem %d, cutCell->length = %d, cutCellSizePtr[%d] = %d\n",globalElemCtr, cutCell->length, cutCellCtr, cutCellSizePtr[cutCellCtr]);
                               passTestFlag = 0;
@@ -1030,7 +952,7 @@ namespace ElVis
               if(passTestFlag == 1)
                   puts("GlobalElemToCutCellBuffer appears consistent.");
 
-              globalToCutPtr = GlobalElemToCutCell;
+              globalToCutPtr = GlobalElemToCutCell.get();
               globalElemCtr = 0;
               for(egrp=0; egrp<pg->nElementGroup; egrp++){
                   for(elem=0; elem<pg->ElementGroup[egrp].nElement; elem++){
@@ -1039,42 +961,30 @@ namespace ElVis
                   }
               }
 
-              backgroundCoordinateBuffer.unmap();
-              knownPointBuffer.unmap();
-
-              CutCellBuffer.unmap();
-              GlobalElemToCutCellBuffer.unmap();
               puts("CutCellBuffer complete");
 
               free(cutCellSizeBase);
           }else{
-              ElVis::InteropBuffer<ElVisFloat>& shadowCoordinateBuffer = m_shadowCoordinateBuffer;
-              shadowCoordinateBuffer.SetContextInfo(context, module);
-              shadowCoordinateBuffer.SetDimensions(1);
+              m_shadowCoordinateBuffer.SetContext(context);
+              m_shadowCoordinateBuffer.SetDimensions(1);
 
-              ElVis::InteropBuffer<unsigned int>& EgrpToShadowIndexBuffer = m_egrpToShadowIndexBuffer;
-              EgrpToShadowIndexBuffer.SetContextInfo(context, module);
-              EgrpToShadowIndexBuffer.SetDimensions(1);
+              m_egrpToShadowIndexBuffer.SetContext(context);
+              m_egrpToShadowIndexBuffer.SetDimensions(1);
 
-              ElVis::InteropBuffer<ElVisFloat>& patchCoordinateBuffer = m_patchCoordinateBuffer;
-              patchCoordinateBuffer.SetContextInfo(context, module);
-              patchCoordinateBuffer.SetDimensions(1);
+              m_patchCoordinateBuffer.SetContext(context);
+              m_patchCoordinateBuffer.SetDimensions(1);
 
-              ElVis::InteropBuffer<PX_REAL>& knownPointBuffer = m_knownPointBuffer;
-              knownPointBuffer.SetContextInfo(context, module);
-              knownPointBuffer.SetDimensions(1);
+              m_knownPointBuffer.SetContext(context);
+              m_knownPointBuffer.SetDimensions(1);
 
-              ElVis::InteropBuffer<PX_REAL>& backgroundCoordinateBuffer = m_backgroundCoordinateBuffer;
-              backgroundCoordinateBuffer.SetContextInfo(context, module);
-              backgroundCoordinateBuffer.SetDimensions(1);
+              m_backgroundCoordinateBuffer.SetContext(context);
+              m_backgroundCoordinateBuffer.SetDimensions(1);
 
-              ElVis::InteropBuffer<char>& CutCellBuffer = m_cutCellBuffer;
-              CutCellBuffer.SetContextInfo(context, module);
-              CutCellBuffer.SetDimensions(1);
+              m_cutCellBuffer.SetContext(context);
+              m_cutCellBuffer.SetDimensions(1);
 
-              ElVis::InteropBuffer<unsigned int>& GlobalElemToCutCellBuffer = m_globalElemToCutCellBuffer;
-              GlobalElemToCutCellBuffer.SetContextInfo(context, module);
-              GlobalElemToCutCellBuffer.SetDimensions(1);
+              m_globalElemToCutCellBuffer.SetContext(context);
+              m_globalElemToCutCellBuffer.SetDimensions(1);
           }
 
           PX_REAL centroid[DIM3D];
@@ -1132,11 +1042,11 @@ namespace ElVis
               egrpData[egrp].egrpSolnCoeffStartIndex = egrpData[egrp-1].egrpSolnCoeffStartIndex + nbf*pg->ElementGroup[egrp-1].nElement;
           }
 
-          coordPtr = coordinate;
-          bBoxPtr = boundingBox;
-          solutionPtr = solution;
-          attachmentPtr = attachment;
-          globalToLocalPtr = globalElemToEgrpElem;
+          coordPtr = coordinate.get();
+          bBoxPtr = boundingBox.get();
+          solutionPtr = solution.get();
+          attachmentPtr = attachment.get();
+          globalToLocalPtr = globalElemToEgrpElem.get();
           char cutCellFlag = 0;
           for(egrp = 0; egrp<pg->nElementGroup; egrp++){
               PXOrder2nbf(State->order[egrp], &nbf);
@@ -1189,15 +1099,6 @@ namespace ElVis
               globalToLocalPtr += pg->ElementGroup[egrp].nElement*2;
           }
 
-
-          solutionBuffer.unmap();
-          coordinateBuffer.unmap();
-          boundingBoxBuffer.unmap();
-          egrpDataBuffer.unmap();
-          globalElemToEgrpElemBuffer.unmap();
-          attachDataBuffer.unmap();
-          attachmentBuffer.unmap();
-
           group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );
           //group->setAcceleration( context->createAcceleration("MedianBvh","Bvh") );
           //group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
@@ -1221,7 +1122,7 @@ namespace ElVis
 
 
 
-  void PXModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, CUmodule module, optixu::Geometry& faces)
+  void PXModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces)
   {
       PX_Grid *pg = m_pxa->pg;
       PX_AttachmentGlobRealElem *State;
@@ -1294,23 +1195,21 @@ namespace ElVis
       PXType2nbf(baseFaceType, &nbfQFace);
       geomRank = nbfQFace*Dim;
 
-      ElVis::InteropBuffer<ElVisFloat>& faceCoordinateBuffer = m_faceCoordinateBuffer;
-      faceCoordinateBuffer.SetContextInfo(context, module);
-      faceCoordinateBuffer.SetDimensions(nFaceTotal*geomRank);
-      ElVisFloat* const faceCoordinate = static_cast<ElVisFloat*>(faceCoordinateBuffer.map());
+      m_faceCoordinateBuffer.SetContext(context);
+      m_faceCoordinateBuffer.SetDimensions(nFaceTotal*geomRank);
+      BOOST_AUTO(faceCoordinate, m_faceCoordinateBuffer.map());
 
 
-      ElVis::InteropBuffer<PX_FaceData>& faceDataBuffer = m_faceDataBuffer;
-      faceDataBuffer.SetContextInfo(context, module);
-      faceDataBuffer.SetDimensions(nFaceTotal);
-      PX_FaceData* const faceData = static_cast<PX_FaceData*>(faceDataBuffer.map());
+      m_faceDataBuffer.SetContext(context);
+      m_faceDataBuffer.SetDimensions(nFaceTotal);
+      BOOST_AUTO(faceData, m_faceDataBuffer.map());
 
 
-      scene->GetFaceMinExtentBuffer()->setSize(nFaceTotal);
-      scene->GetFaceMaxExtentBuffer()->setSize(nFaceTotal);
+      scene->GetFaceMinExtentBuffer().SetDimensions(nFaceTotal);
+      scene->GetFaceMaxExtentBuffer().SetDimensions(nFaceTotal);
 
-      ElVisFloat* minBuffer = reinterpret_cast<ElVisFloat*>(scene->GetFaceMinExtentBuffer()->map());
-      ElVisFloat* maxBuffer = reinterpret_cast<ElVisFloat*>(scene->GetFaceMaxExtentBuffer()->map());
+      BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().map());
+      BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().map());
 
       ////////////////////////////////////////
       // BLAKE - TODO
@@ -1318,8 +1217,8 @@ namespace ElVis
       // which elements are in/out and if the face is curved or planar.
       ////////////////////////////////////////
 
-      scene->GetFaceIdBuffer()->setSize(nFaceTotal);
-      FaceDef* faceDefs = static_cast<FaceDef*>(scene->GetFaceIdBuffer()->map());
+      scene->GetFaceIdBuffer().SetDimensions(nFaceTotal);
+      BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
 
       PX_REAL *nodeCoord;
       nodeCoord = (PX_REAL*) malloc(maxnbfQ*(Dim+1)*sizeof(PX_REAL));
@@ -1330,11 +1229,11 @@ namespace ElVis
       int nNodesOnFace;
       int globalFaceIndex = 0;
 
-      faceDefsPtr = faceDefs;
-      faceCoordPtr = faceCoordinate;
-      faceDataPtr = faceData;
-      bBoxMinPtr = minBuffer;
-      bBoxMaxPtr = maxBuffer;
+      faceDefsPtr = faceDefs.get();
+      faceCoordPtr = faceCoordinate.get();
+      faceDataPtr = faceData.get();
+      bBoxMinPtr = reinterpret_cast<ElVisFloat*>(minBuffer.get());
+      bBoxMaxPtr = reinterpret_cast<ElVisFloat*>(maxBuffer.get());
       for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
           for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){
               /* for now, ALWAYS use LEFT face */
@@ -1438,12 +1337,6 @@ namespace ElVis
       free(nodeCoord);
       free(egrp2GlobalElemIndex);
 
-      scene->GetFaceIdBuffer()->unmap();
-      scene->GetFaceMinExtentBuffer()->unmap();
-      scene->GetFaceMaxExtentBuffer()->unmap();
-      faceCoordinateBuffer.unmap();
-      faceDataBuffer.unmap();
-
       faces->setPrimitiveCount(nFaceTotal);
 
       int nFaceVertex = 3;
@@ -1466,25 +1359,25 @@ namespace ElVis
       // context["faceOrder"]->setInt((int) PXE_LagrangeP1);
       // context["porderFace"]->setInt(1);
 
-      std::string nFaceVertexName = "nFaceVertex";
-      CudaGlobalVariable<int> nFaceVertexVariable((nFaceVertexName), (module));
-      nFaceVertexVariable.WriteToDevice(nFaceVertex);
+//      std::string nFaceVertexName = "nFaceVertex";
+//      CudaGlobalVariable<int> nFaceVertexVariable((nFaceVertexName), (module));
+//      nFaceVertexVariable.WriteToDevice(nFaceVertex);
 
-      std::string nbfQFaceName = "nbfQFace";
-      CudaGlobalVariable<int> nbfQFaceVariable((nbfQFaceName), (module));
-      nbfQFaceVariable.WriteToDevice(nbfQFace);
+//      std::string nbfQFaceName = "nbfQFace";
+//      CudaGlobalVariable<int> nbfQFaceVariable((nbfQFaceName), (module));
+//      nbfQFaceVariable.WriteToDevice(nbfQFace);
 
-      std::string faceTypeName = "faceType";
-      CudaGlobalVariable<int> faceTypeVariable((faceTypeName), (module));
-      faceTypeVariable.WriteToDevice((int) baseFaceType);
+//      std::string faceTypeName = "faceType";
+//      CudaGlobalVariable<int> faceTypeVariable((faceTypeName), (module));
+//      faceTypeVariable.WriteToDevice((int) baseFaceType);
 
-      std::string faceOrderName = "faceOrder";
-      CudaGlobalVariable<int> faceOrderVariable((faceOrderName), (module));
-      faceOrderVariable.WriteToDevice(faceOrder);
+//      std::string faceOrderName = "faceOrder";
+//      CudaGlobalVariable<int> faceOrderVariable((faceOrderName), (module));
+//      faceOrderVariable.WriteToDevice(faceOrder);
 
-      std::string porderFaceName = "porderFace";
-      CudaGlobalVariable<int> porderFaceVariable((porderFaceName), (module));
-      porderFaceVariable.WriteToDevice(porderFace);
+//      std::string porderFaceName = "porderFace";
+//      CudaGlobalVariable<int> porderFaceVariable((porderFaceName), (module));
+//      porderFaceVariable.WriteToDevice(porderFace);
 
 
       printf("baseFaceType = %d\n", baseFaceType);
@@ -1538,5 +1431,13 @@ namespace ElVis
       free(fgrp2GlobalFaceIndex);
   }
 
+  std::vector<optixu::GeometryInstance> PXModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
+  {
+      return std::vector<optixu::GeometryInstance>();
+  }
+  optixu::Material PXModel::DoGet2DPrimaryGeometryMaterial(SceneView* view)
+  {
+      return optixu::Material();
+  }
 }
 

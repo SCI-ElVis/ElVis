@@ -57,7 +57,7 @@ namespace ElVis
         m_allPrimaryObjects(),
         m_optixStackSize(8000),
         m_colorMaps(),
-        m_enableOptiXTrace(false),
+        m_enableOptiXTrace(true),
         m_optiXTraceBufferSize(100000),
         m_optixTraceIndex(),
         m_enableOptiXExceptions(false),
@@ -65,10 +65,9 @@ namespace ElVis
         m_tracePixelDirty(true),
         m_enableTraceDirty(true),
         m_faceIntersectionProgram(),
-//        m_newtonIntersectionProgram(),
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
-        m_faceIdBuffer(),
+        m_faceIdBuffer("FaceIdBuffer"),
         m_faceMinExtentBuffer("FaceMinExtentBuffer"),
         m_faceMaxExtentBuffer("FaceMaxExtentBuffer"),
         m_faceGeometry(),
@@ -84,14 +83,7 @@ namespace ElVis
         // For some reason in gcc, setting this in the constructor initialization list
         // doesn't work.
         m_enableOptiXExceptions = false;
-        if( m_enableOptiXExceptions )
-        {
-            std::cout << "Enabling optix exceptions in scene constructor." << std::endl;
-        }
-        else
-        {
-            std::cout << "Disabling optix exceptions in scene constructor.." << std::endl;
-        }
+        m_optixDataDirty = true;
     }
 
     Scene::~Scene()
@@ -272,16 +264,15 @@ namespace ElVis
     void Scene::InitializeFaces()
     {
         optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
-        m_faceIdBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_USER, 1);
-        m_faceIdBuffer->setElementSize(sizeof(FaceDef));
+
+        m_faceIdBuffer.SetContext(m_context);
+        m_faceIdBuffer.SetDimensions(1);
 
         m_faceMinExtentBuffer.SetContext(m_context);
         m_faceMinExtentBuffer.SetDimensions(1);
 
         m_faceMaxExtentBuffer.SetContext(m_context);
         m_faceMaxExtentBuffer.SetDimensions(1);
-
-        m_context["FaceIdBuffer"]->set(m_faceIdBuffer);
 
         m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");

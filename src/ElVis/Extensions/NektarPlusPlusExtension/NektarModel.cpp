@@ -66,6 +66,7 @@ namespace ElVis
         const std::string NektarModel::HexahedronBoundingProgramName("HexahedronBounding");
 
         NektarModel::NektarModel(const std::string& modelPrefix) :
+            Model(modelPrefix),
             m_impl()
             ,m_graph()
             ,m_globalExpansions()
@@ -532,17 +533,16 @@ namespace ElVis
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(numFaces);
 
-            scene->GetFaceIdBuffer()->setSize(numFaces);
-            FaceDef* faceDefs = static_cast<FaceDef*>(scene->GetFaceIdBuffer()->map());
+            scene->GetFaceIdBuffer().SetDimensions(numFaces);
+            BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
-            AddFaces(m_graph->GetAllTriGeoms(), minBuffer.get(), maxBuffer.get(), faceVertexBuffer.get(), faceDefs, normalBuffer.get());
+            AddFaces(m_graph->GetAllTriGeoms(), minBuffer.get(), maxBuffer.get(), faceVertexBuffer.get(), faceDefs.get(), normalBuffer.get());
 
             int offset = m_graph->GetAllTriGeoms().size();
-            AddFaces(m_graph->GetAllQuadGeoms(), minBuffer.get()+offset, maxBuffer.get()+offset, faceVertexBuffer.get()+offset, faceDefs+offset, normalBuffer.get()+offset);
+            AddFaces(m_graph->GetAllQuadGeoms(), minBuffer.get()+offset, maxBuffer.get()+offset, faceVertexBuffer.get()+offset, faceDefs.get()+offset, normalBuffer.get()+offset);
 
-            scene->GetFaceIdBuffer()->unmap();
             faceGeometry->setPrimitiveCount(numFaces);
             //curvedFaces->setPrimitiveCount(faces.size());
         }

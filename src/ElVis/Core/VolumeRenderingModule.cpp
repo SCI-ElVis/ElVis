@@ -133,10 +133,6 @@ namespace ElVis
 
     void VolumeRenderingModule::IntegrateSegment(SceneView* view)
     {
-
-
-        view->GetScene()->GetModel()->MapInteropBuffersForCuda();
-
         switch( m_segmentIntegrationType )
         {
             case eRiemann_SingleThreadPerRay:
@@ -161,9 +157,6 @@ namespace ElVis
             default:
                 std::cout << "Unknown integration type." << std::endl;
         };
-
-        view->GetScene()->GetModel()->UnMapInteropBuffersForCuda();
-
     }
 
 

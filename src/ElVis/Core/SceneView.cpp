@@ -77,7 +77,6 @@ namespace ElVis
         m_colorBuffer("color_buffer"),
         m_rawColorBuffer(RawColorBufferName),
         m_depthBuffer(DepthBufferName),
-        m_enableStencilBuffer(false),
         m_normalBuffer(NormalBufferName),
         m_intersectionBuffer(IntersectionBufferName),
         m_sampleBuffer("SampleBuffer"),
@@ -751,7 +750,6 @@ namespace ElVis
 
         if( m_projectionType.IsDirty() )
         {
-            std::cout << "Setting projection type." << std::endl;
             ElVis::SceneViewProjection data = *m_projectionType;
             context["ProjectionType"]->setUserData(sizeof(ElVis::SceneViewProjection), &data);
             m_projectionType.MarkClean();

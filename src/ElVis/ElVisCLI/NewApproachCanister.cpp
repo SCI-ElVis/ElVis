@@ -454,7 +454,7 @@ int GenericCLIInterface(int argc, char** argv,
     view->Draw();
 
 
-    ElVisFloat* times = new ElVisFloat[numTests-1];
+    double* times = new double[numTests-1];
     for(unsigned int testNum = 1; testNum < numTests; ++testNum)
     {
         // Repeated redraws will do nothing if we don't signal that the view has changed in some way.

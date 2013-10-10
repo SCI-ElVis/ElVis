@@ -34,7 +34,7 @@ namespace ElVis
     enum SceneViewProjection
     {
         ePerspective,
-        eOrthographics
+        eOrthographic
     };
 }
 

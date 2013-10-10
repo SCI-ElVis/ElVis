@@ -28,11 +28,14 @@
 
 #include "Model.h"
 #include "Util.hpp"
+#include <boost/filesystem.hpp>
 
 namespace ElVis
 {
 
-    Model::Model() :
+    Model::Model(const std::string& modelPath) :
+        m_modelPath(modelPath),
+        m_plugin(),
         m_minExtent(std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max()),
         m_maxExtent(-std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max()),
         m_center()
@@ -42,6 +45,12 @@ namespace ElVis
 
     Model::~Model()
     {
+    }
+
+    std::string Model::GetModelName() const
+    {
+        boost::filesystem::path path(m_modelPath);
+        return path.filename().string();
     }
 
     void Model::CalculateExtents()

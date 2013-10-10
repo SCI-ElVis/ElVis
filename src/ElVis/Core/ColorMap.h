@@ -41,6 +41,9 @@
 #include <iostream>
 
 #include <boost/signals.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/map.hpp>
 
 namespace ElVis
 {
@@ -50,6 +53,7 @@ namespace ElVis
     class ColorMap
     {
         public:
+            friend class boost::serialization::access;
             ELVIS_EXPORT ColorMap();
             ELVIS_EXPORT virtual ~ColorMap() {}
 
@@ -68,6 +72,12 @@ namespace ElVis
             virtual void DoPopulateTexture(optixu::Buffer& buffer) = 0;
 
         private:
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_min);
+                ar & BOOST_SERIALIZATION_NVP(m_max);
+            }
             float m_min;
             float m_max;
     };
@@ -130,8 +140,16 @@ namespace ElVis
     
     struct ColorMapBreakpoint
     {
+        friend class boost::serialization::access;
         ElVis::Color Col;
         ElVisFloat Scalar;
+    private:
+        template<typename Archive>
+        void serialize(Archive& ar, const unsigned int version)
+        {
+            ar & BOOST_SERIALIZATION_NVP(Col);
+            ar & BOOST_SERIALIZATION_NVP(Scalar);
+        }
     };
 
     /// \brief Provides a color map with linear interpolation between points.
@@ -142,6 +160,7 @@ namespace ElVis
     class PiecewiseLinearColorMap : public ColorMap
     {
         public:
+            friend class boost::serialization::access;
             ELVIS_EXPORT PiecewiseLinearColorMap();
             ELVIS_EXPORT virtual ~PiecewiseLinearColorMap() {}
 
@@ -161,6 +180,13 @@ namespace ElVis
             virtual void DoPopulateTexture(optixu::Buffer& buffer);
 
         private:
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ColorMap);
+                ar & BOOST_SERIALIZATION_NVP(m_breakpoints);
+            }
+
             PiecewiseLinearColorMap(const PiecewiseLinearColorMap& rhs);
             PiecewiseLinearColorMap& operator=(const PiecewiseLinearColorMap& rhs);
 

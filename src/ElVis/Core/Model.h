@@ -34,17 +34,21 @@
 
 #include <optixu/optixpp.h>
 #include <vector>
+#include <string>
 #include <ElVis/Core/ElVisDeclspec.h>
+
+#include <boost/enable_shared_from_this.hpp>
 
 namespace ElVis
 {
     class Scene;
     class SceneView;
+    class Plugin;
 
     class Model
     {
         public:
-            ELVIS_EXPORT Model();
+            ELVIS_EXPORT explicit Model(const std::string& modelPath);
             ELVIS_EXPORT virtual ~Model();
 
             const WorldPoint& MinExtent() const { return m_minExtent; }
@@ -69,8 +73,6 @@ namespace ElVis
             // created customized SceneViews.
             ELVIS_EXPORT const std::string& GetPTXPrefix() const { return DoGetPTXPrefix(); }
 
-            ELVIS_EXPORT void MapInteropBuffersForCuda() { return DoMapInteropBufferForCuda(); }
-            ELVIS_EXPORT void UnMapInteropBuffersForCuda() { return DoUnMapInteropBufferForCuda(); }
             ELVIS_EXPORT void CalculateExtents();
             ELVIS_EXPORT const WorldPoint& GetMidpoint();
 
@@ -80,6 +82,10 @@ namespace ElVis
             ELVIS_EXPORT int GetNumberOfBoundarySurfaces() const;
             ELVIS_EXPORT void GetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds);
 
+            ELVIS_EXPORT boost::shared_ptr<Plugin> GetPlugin() const { return m_plugin; }
+            ELVIS_EXPORT void SetPlugin(boost::shared_ptr<Plugin> plugin) { m_plugin = plugin; }
+            ELVIS_EXPORT std::string GetModelName() const; 
+            ELVIS_EXPORT const std::string& GetPath() const { return m_modelPath; }
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
             void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }
@@ -126,21 +132,6 @@ namespace ElVis
             /// \param faceIds Output parameter that returns the ids of each face that belongs to this surface.
             ELVIS_EXPORT virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds) = 0;
 
-
-            /// \brief Maps Opix/Cuda interop buffers to be used by Cuda.
-            ///
-            /// If the model has created any OptiX/Cuda interop buffers, they must be mapped here.
-            /// This method is called immediately before starting a cuda kernel.  This method
-            /// will be called before ElVis runs any code in the cuda module.
-            ELVIS_EXPORT virtual void DoMapInteropBufferForCuda() = 0;
-
-            /// \brief Unmaps Opix/Cuda interop buffers to be used by OptiX.
-            ///
-            /// If the model has created any OptiX/Cuda interop buffers, they must be unmapped here.
-            /// This method is called immediately after a cuda kernel completes.  This method
-            /// is called immediately after ElVis finishes running code in the cuda module.
-            ELVIS_EXPORT virtual void DoUnMapInteropBufferForCuda() = 0;
-
             /// \brief Calculates the axis-aligned bounding box of the model.
             /// \param min Output parameter storing the smallest point of the model's axis-aligned bounding box.
             /// \param max Output parameter storing the smallest point of the model's axis-aligned bounding box.
@@ -156,7 +147,6 @@ namespace ElVis
             ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context) = 0;
             ELVIS_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view) = 0;
 
-
             // These are for the conversion extension and shouldn't be here.
             //            virtual unsigned int DoGetNumberOfPoints() const = 0;
             //            virtual WorldPoint DoGetPoint(unsigned int id) const = 0;
@@ -165,6 +155,8 @@ namespace ElVis
             Model& operator=(const Model& rhs);
             Model(const Model& rhs);
 
+            std::string m_modelPath;
+            boost::shared_ptr<Plugin> m_plugin;
             WorldPoint m_minExtent;
             WorldPoint m_maxExtent;
             WorldPoint m_center;

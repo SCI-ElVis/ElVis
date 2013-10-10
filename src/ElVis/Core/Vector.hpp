@@ -13,6 +13,9 @@
 #include <boost/call_traits.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/signals.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/split_member.hpp>
 
 #if defined max
 #undef max
@@ -194,12 +197,12 @@ namespace ElVis
             
             
             /// \brief Returns the number of dimensions for the point.
-            inline unsigned int GetDimension() const
+            inline size_t GetDimension() const
             {
                 return m_data.size();
             }
 
-            inline unsigned int GetRows() const
+            inline size_t GetRows() const
             {
                 return m_data.size();
             }
@@ -343,6 +346,26 @@ namespace ElVis
             
             void Normalize() { ElVis::Normalize(*this); OnVectorChanged(*this); }
             
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
+            {
+            }
+
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
+            {
+                OnVectorChanged(*this);
+            }
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_data);    
+                NotifyLoad(ar, version);
+            }
+
         protected:
                         
         private:
@@ -405,9 +428,9 @@ namespace ElVis
                                                         const T& t)
     {
         Point<DataType, ThreeD, space> result;
-        result.SetX(lhs[0]*t);
-        result.SetY(lhs[1]*t);
-        result.SetZ(lhs[2]*t);
+        result.SetX(static_cast<DataType>(lhs[0]*t));
+        result.SetY(static_cast<DataType>(lhs[1]*t));
+        result.SetZ(static_cast<DataType>(lhs[2]*t));
 
         return result;
     }
@@ -627,7 +650,7 @@ namespace ElVis
         ResultDataType* r_buf = result.GetRawPtr();
         for(unsigned int i = 0; i < result.GetDimension(); ++i)
         {
-            r_buf[i] /= rhs;
+            r_buf[i] = static_cast<ResultDataType>(r_buf[i] / rhs);
         }
     }
     
