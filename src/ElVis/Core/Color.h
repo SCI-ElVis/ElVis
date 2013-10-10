@@ -33,6 +33,10 @@
 #include <ElVis/Core/Float.h>
 
 #include <boost/signals.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/split_member.hpp>
+
 
 namespace ElVis
 {
@@ -87,6 +91,29 @@ namespace ElVis
             ELVIS_EXPORT void SetGreen(int value);
             ELVIS_EXPORT void SetBlue(int value);
             ELVIS_EXPORT void SetAlpha(int value);
+
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
+            {
+            }
+
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
+            {
+                OnColorChanged(*this);
+            }
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_red);
+                ar & BOOST_SERIALIZATION_NVP(m_green);
+                ar & BOOST_SERIALIZATION_NVP(m_blue);
+                ar & BOOST_SERIALIZATION_NVP(m_alpha);
+                NotifyLoad(ar, version);
+            }
 
         private:
             float m_red;

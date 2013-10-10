@@ -46,17 +46,29 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
+#include <QDir>
+
 namespace ElVis
 {
     class Model;
     class Light;
     class HostTransferFunction;
 
+    /// \brief The scene represents the data to be visualized, independent 
+    /// of the specific visualization algorithms or technologies.
     class Scene
     {
         public:
+            friend class boost::serialization::access;
             struct ColorMapInfo
             {
+                friend class boost::serialization::access;
                 ELVIS_EXPORT ColorMapInfo();
                 ELVIS_EXPORT ColorMapInfo(const ColorMapInfo& rhs);
                 ELVIS_EXPORT ColorMapInfo& operator=(const ColorMapInfo& rhs);
@@ -64,6 +76,15 @@ namespace ElVis
                 boost::shared_ptr<PiecewiseLinearColorMap> Map;
                 boost::filesystem::path Path;
                 std::string Name;
+                PiecewiseLinearColorMap Map1;
+            private:
+                template<typename Archive>
+                void serialize(Archive& ar, const unsigned int version)
+                {
+                    ar & BOOST_SERIALIZATION_NVP(Map1);
+                    //ar & BOOST_SERIALIZATION_NVP(Path);
+                    ar & BOOST_SERIALIZATION_NVP(Name);
+                }
             };
 
         public:
@@ -120,12 +141,74 @@ namespace ElVis
             boost::signal<void (int)> OnOptixPrintBufferSizeChanged;
             boost::signal<void (bool)> OnEnableTraceChanged;
 
+
+
         private:
             Scene(const Scene& rhs);
             Scene& operator=(const Scene& rhs);
 
+
             void InitializeFaces();
             void Get3DModelInformation();
+
+            template<typename Archive>
+            void do_serialize(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
+            {
+                // On output, write the path to the model.  If possible, make 
+                // it relative to the execution directory for maximum portability.
+                BOOST_AUTO(path, m_model->GetPath());
+
+                QDir dir;
+                std::string relativeModelPath = dir.relativeFilePath(QString(path.c_str())).toStdString();
+                ar & BOOST_SERIALIZATION_NVP(relativeModelPath);   
+
+                BOOST_AUTO(pluginName, m_model->GetPlugin()->GetName());
+                ar & BOOST_SERIALIZATION_NVP(pluginName);
+            }
+
+            template<typename Archive>
+            void do_serialize(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
+            {
+                // On input, if there is a model defined, load it.  We will need the
+                // plugin pointer as well.  Get it by name, and assume it is already
+                // loaded.  Future iterations can relax this restriction.
+
+
+                // When serializing, we expect a model to already be loaded.
+                if( m_model )
+                {
+                    throw new runtime_error("Can't load state with a model already loaded.");
+                }
+
+                
+                m_optixDataDirty = true;
+                m_tracePixelDirty = true;
+                m_enableTraceDirty = true;
+                OnSceneChanged(*this);
+            }
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                std::cout << "Primary object size: " << m_allPrimaryObjects.size() << std::endl;
+                ar & BOOST_SERIALIZATION_NVP(m_allLights);
+                ar & BOOST_SERIALIZATION_NVP(m_ambientLightColor);
+                ar & BOOST_SERIALIZATION_NVP(m_allPrimaryObjects);
+                ar & BOOST_SERIALIZATION_NVP(m_optixStackSize);
+
+                ar & BOOST_SERIALIZATION_NVP(m_colorMaps);
+                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXTrace);
+                ar & BOOST_SERIALIZATION_NVP(m_optiXTraceBufferSize);
+                ar & BOOST_SERIALIZATION_NVP(m_optixTraceIndex);
+                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
+                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
+                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
+                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
+
+                do_serialize(ar, version);
+            }
 
             std::list<Light*> m_allLights;
             Color m_ambientLightColor;

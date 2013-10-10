@@ -13,6 +13,9 @@
 #include <boost/call_traits.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/signals.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/split_member.hpp>
 
 #if defined max
 #undef max
@@ -343,6 +346,26 @@ namespace ElVis
             
             void Normalize() { ElVis::Normalize(*this); OnVectorChanged(*this); }
             
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
+            {
+            }
+
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
+            {
+                OnVectorChanged(*this);
+            }
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_data);    
+                NotifyLoad(ar, version);
+            }
+
         protected:
                         
         private:

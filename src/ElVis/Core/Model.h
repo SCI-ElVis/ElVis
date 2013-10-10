@@ -85,7 +85,7 @@ namespace ElVis
             ELVIS_EXPORT boost::shared_ptr<Plugin> GetPlugin() const { return m_plugin; }
             ELVIS_EXPORT void SetPlugin(boost::shared_ptr<Plugin> plugin) { m_plugin = plugin; }
             ELVIS_EXPORT std::string GetModelName() const; 
-
+            ELVIS_EXPORT const std::string& GetPath() const { return m_modelPath; }
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
             void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }

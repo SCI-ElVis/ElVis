@@ -33,6 +33,8 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 
 #include <boost/signals.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 namespace ElVis
 {
@@ -40,6 +42,7 @@ namespace ElVis
     class Object
     {
         public:
+            friend class boost::serialization::access;
             Object()
             {
             }
@@ -72,6 +75,13 @@ namespace ElVis
             // but callers may replace it.
             ELVIS_EXPORT virtual void DoCreateNode(SceneView* view, 
                 optixu::Transform& transform, optixu::GeometryGroup& group) = 0;
+
+
+        private:
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+            }
     };
 }
 

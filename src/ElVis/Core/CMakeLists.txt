@@ -101,7 +101,7 @@ INCLUDE_DIRECTORIES(
 )
 INCLUDE_DIRECTORIES(${ELVIS_CUDA_INCLUDE})                    
 ADD_DEFINITIONS(-DELVIS_EXPORTS)
-
+add_definitions(-DQT_NO_KEYWORDS)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisConfig.cpp.in
                ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp @ONLY)

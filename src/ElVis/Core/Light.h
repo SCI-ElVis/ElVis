@@ -32,6 +32,9 @@
 #include <ElVis/Core/Color.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Point.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/split_member.hpp>
 
 namespace ElVis
 {
@@ -50,6 +53,14 @@ namespace ElVis
 
             ELVIS_EXPORT bool IsDirectional() const { return m_isDirectionalLight; }
             ELVIS_EXPORT void SetIsDirectional(bool value) { m_isDirectionalLight = value; }
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_color);
+                ar & BOOST_SERIALIZATION_NVP(m_position);
+                ar & BOOST_SERIALIZATION_NVP(m_isDirectionalLight);
+            }
 
         private:
             Light& operator=(const Light& rhs);

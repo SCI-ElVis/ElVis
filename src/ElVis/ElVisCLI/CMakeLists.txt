@@ -10,10 +10,6 @@ ENDIF()
  
 SET(ProjectName ElVisCLI)
 
-
-
-
-
 # Default location
 IF( MSVC )
   SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
@@ -40,6 +36,7 @@ INCLUDE_DIRECTORIES(
 )
 
 add_definitions(${PNG_DEFINITIONS})
+add_definitions(-DQT_NO_KEYWORDS)
 
 SET(HEADERS
     Nektar++Models.h

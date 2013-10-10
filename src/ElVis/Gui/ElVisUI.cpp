@@ -62,6 +62,9 @@
 #include <string>
 #include <boost/bind.hpp>
 #include <boost/timer.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 #include <ElVis/Core/Cylinder.h>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -816,31 +819,41 @@ namespace ElVis
             QStringList::Iterator it = list.begin();
             QString fileName = *it;
 
-            tinyxml::TiXmlDocument doc;
-            BOOST_AUTO(decl, new tinyxml::TiXmlDeclaration("1.0", "", ""));
-            doc.LinkEndChild(decl);
+            BOOST_AUTO(pScene, m_appData->GetSurfaceSceneView()->GetScene());
+            std::ofstream outFile(fileName.toStdString().c_str());
+            boost::archive::xml_oarchive oa(outFile);
+            ElVis::Scene& scene = *pScene;
+            oa << BOOST_SERIALIZATION_NVP(scene);
+            outFile.close();
 
-            BOOST_AUTO(settings, new tinyxml::TiXmlElement("ElVisSettings"));
-            doc.LinkEndChild(settings);
+            //tinyxml::TiXmlDocument doc;
+            //BOOST_AUTO(decl, new tinyxml::TiXmlDeclaration("1.0", "", ""));
+            //doc.LinkEndChild(decl);
 
-            // Camera
-            boost::shared_ptr<Camera> camera = m_appData->GetSurfaceSceneView()->GetViewSettings();
-            BOOST_AUTO(cameraElement, new tinyxml::TiXmlElement("Camera"));
-            settings->LinkEndChild(cameraElement);
-            addElement("EyeX", cameraElement, camera->GetEye().x());
-            addElement("EyeY", cameraElement, camera->GetEye().y());
-            addElement("EyeZ", cameraElement, camera->GetEye().z());
-            addElement("LookAtX", cameraElement, camera->GetLookAt().x());
-            addElement("LookAtY", cameraElement, camera->GetLookAt().y());
-            addElement("LookAtZ", cameraElement, camera->GetLookAt().z());
-            addElement("UpX", cameraElement, camera->GetUp().x());
-            addElement("UpY", cameraElement, camera->GetUp().y());
-            addElement("UpZ", cameraElement, camera->GetUp().z());
-            addElement("FOV", cameraElement, camera->GetFieldOfView());
-            addElement("Near", cameraElement, camera->GetNear());
-            addElement("Far", cameraElement, camera->GetFar());
+            //BOOST_AUTO(settings, new tinyxml::TiXmlElement("ElVisSettings"));
+            //doc.LinkEndChild(settings);
 
-            doc.SaveFile(fileName.toStdString().c_str());
+            //BOOST_AUTO(scene, m_appData->GetSurfaceSceneView()->GetScene());
+
+            //// Camera
+            //boost::shared_ptr<Camera> camera = m_appData->GetSurfaceSceneView()->GetViewSettings();
+            //BOOST_AUTO(cameraElement, new tinyxml::TiXmlElement("Camera"));
+            //settings->LinkEndChild(cameraElement);
+            //addElement("EyeX", cameraElement, camera->GetEye().x());
+            //addElement("EyeY", cameraElement, camera->GetEye().y());
+            //addElement("EyeZ", cameraElement, camera->GetEye().z());
+            //addElement("LookAtX", cameraElement, camera->GetLookAt().x());
+            //addElement("LookAtY", cameraElement, camera->GetLookAt().y());
+            //addElement("LookAtZ", cameraElement, camera->GetLookAt().z());
+            //addElement("UpX", cameraElement, camera->GetUp().x());
+            //addElement("UpY", cameraElement, camera->GetUp().y());
+            //addElement("UpZ", cameraElement, camera->GetUp().z());
+            //addElement("FOV", cameraElement, camera->GetFieldOfView());
+            //addElement("Near", cameraElement, camera->GetNear());
+            //addElement("Far", cameraElement, camera->GetFar());
+
+
+            //doc.SaveFile(fileName.toStdString().c_str());
 
             QDir CurrentDir;
             m_settings->setValue(DEFAULT_STATE_DIR_SETTING_NAME, CurrentDir.absoluteFilePath(fileName));
