@@ -197,12 +197,12 @@ namespace ElVis
             
             
             /// \brief Returns the number of dimensions for the point.
-            inline unsigned int GetDimension() const
+            inline size_t GetDimension() const
             {
                 return m_data.size();
             }
 
-            inline unsigned int GetRows() const
+            inline size_t GetRows() const
             {
                 return m_data.size();
             }
@@ -428,9 +428,9 @@ namespace ElVis
                                                         const T& t)
     {
         Point<DataType, ThreeD, space> result;
-        result.SetX(lhs[0]*t);
-        result.SetY(lhs[1]*t);
-        result.SetZ(lhs[2]*t);
+        result.SetX(static_cast<DataType>(lhs[0]*t));
+        result.SetY(static_cast<DataType>(lhs[1]*t));
+        result.SetZ(static_cast<DataType>(lhs[2]*t));
 
         return result;
     }
@@ -650,7 +650,7 @@ namespace ElVis
         ResultDataType* r_buf = result.GetRawPtr();
         for(unsigned int i = 0; i < result.GetDimension(); ++i)
         {
-            r_buf[i] /= rhs;
+            r_buf[i] = static_cast<ResultDataType>(r_buf[i] / rhs);
         }
     }
     

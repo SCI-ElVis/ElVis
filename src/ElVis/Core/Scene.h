@@ -61,7 +61,8 @@ namespace ElVis
     class HostTransferFunction;
 
     /// \brief The scene represents the data to be visualized, independent 
-    /// of the specific visualization algorithms or technologies.
+    /// of the specific visualization algorithms.  OptiX data structures can 
+    /// be included in the scene.
     class Scene
     {
         public:
@@ -192,7 +193,6 @@ namespace ElVis
             template<typename Archive>
             void serialize(Archive& ar, const unsigned int version)
             {
-                std::cout << "Primary object size: " << m_allPrimaryObjects.size() << std::endl;
                 ar & BOOST_SERIALIZATION_NVP(m_allLights);
                 ar & BOOST_SERIALIZATION_NVP(m_ambientLightColor);
                 ar & BOOST_SERIALIZATION_NVP(m_allPrimaryObjects);

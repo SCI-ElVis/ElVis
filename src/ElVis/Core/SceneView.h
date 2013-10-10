@@ -47,6 +47,14 @@
 #include <boost/signals.hpp>
 #include <boost/foreach.hpp>
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
+
 namespace ElVis
 {
     class RenderModule;
@@ -55,6 +63,7 @@ namespace ElVis
     class SceneView
     {
         public:
+            friend class boost::serialization::access;
             ELVIS_EXPORT SceneView();
             ELVIS_EXPORT virtual ~SceneView();
 
@@ -83,9 +92,6 @@ namespace ElVis
             ELVIS_EXPORT optixu::Context GetContext() {return GetScene()->GetContext();}
 
             ELVIS_EXPORT void AddRenderModule(boost::shared_ptr<RenderModule>  module);
-
-            ELVIS_EXPORT void EnableStencilBuffer() { m_enableStencilBuffer = true; }
-            ELVIS_EXPORT void DisableStencilBuffer() { m_enableStencilBuffer = false; }
 
             ELVIS_EXPORT OptiXBuffer<uchar4>& GetColorBuffer() { return m_colorBuffer; }
             ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetRawColorBuffer() { return m_rawColorBuffer; }
@@ -187,6 +193,23 @@ namespace ElVis
             void ClearColorBuffer();
             void HandleRenderModuleChanged(const RenderModule&);
 
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_scene);
+                ar & BOOST_SERIALIZATION_NVP(m_width);
+                ar & BOOST_SERIALIZATION_NVP(m_height);
+                ar & BOOST_SERIALIZATION_NVP(m_viewSettings);
+                ar & BOOST_SERIALIZATION_NVP(m_depthBits);
+                //ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
+                ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
+                ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
+                ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
+                ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
+                ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
+                //do_serialize(ar, version);
+            }
+
             boost::shared_ptr<Scene> m_scene;
             int m_width;
             int m_height;
@@ -197,7 +220,6 @@ namespace ElVis
 
             // Must be float for OpenGL.
             OptiXBuffer<float> m_depthBuffer;
-            bool m_enableStencilBuffer;
             OptiXBuffer<ElVisFloat3> m_normalBuffer;
             OptiXBuffer<ElVisFloat3> m_intersectionBuffer;
             OptiXBuffer<ElVisFloat> m_sampleBuffer;

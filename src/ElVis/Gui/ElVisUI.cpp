@@ -74,6 +74,7 @@
 
 #include <tinyxml.h>
 
+#include <boost/serialization/shared_ptr.hpp>
 
 namespace ElVis
 {
@@ -823,7 +824,8 @@ namespace ElVis
             std::ofstream outFile(fileName.toStdString().c_str());
             boost::archive::xml_oarchive oa(outFile);
             ElVis::Scene& scene = *pScene;
-            oa << BOOST_SERIALIZATION_NVP(scene);
+            BOOST_AUTO(pSceneView, m_appData->GetSurfaceSceneView());
+            oa << BOOST_SERIALIZATION_NVP(pSceneView);
             outFile.close();
 
             //tinyxml::TiXmlDocument doc;

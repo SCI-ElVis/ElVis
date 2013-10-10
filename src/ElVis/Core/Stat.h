@@ -44,8 +44,8 @@ namespace ElVis
             Stat() :
                 Mean(0.0),
                 StdDev(0.0),
-                Min(std::numeric_limits<ElVisFloat>::max()),
-                Max(-std::numeric_limits<ElVisFloat>::max())
+                Min(std::numeric_limits<double>::max()),
+                Max(-std::numeric_limits<double>::max())
             {
             };
 
@@ -65,7 +65,7 @@ namespace ElVis
             }
 
 
-            Stat(const ElVisFloat* samples, ElVisFloat cutoff, int sampleSize, double confidence) :
+            Stat(const double* samples, double cutoff, int sampleSize, double confidence) :
                 Mean(0.0),
                 HalfWidth(0.0),
                 Confidence(confidence),
@@ -74,7 +74,7 @@ namespace ElVis
                 Calculate(samples, cutoff, sampleSize);
             }
 
-            Stat(const ElVisFloat* samples, ElVisFloat cutoff, int sampleSize) :
+            Stat(const double* samples, double cutoff, int sampleSize) :
                 Mean(0.0),
                 HalfWidth(0.0),
                 Confidence(.95),
@@ -91,15 +91,15 @@ namespace ElVis
 
             double Low() const { return Mean - HalfWidth; }
             double High() const { return Mean + HalfWidth; }
-            ElVisFloat Mean;
-            ElVisFloat HalfWidth;
-            ElVisFloat Confidence;
-            ElVisFloat StdDev;
-            ElVisFloat Min;
-            ElVisFloat Max;
+            double Mean;
+            double HalfWidth;
+            double Confidence;
+            double StdDev;
+            double Min;
+            double Max;
 
         private:
-            void Calculate(const ElVisFloat* samples, ElVisFloat cutoff, int sampleSize)
+            void Calculate(const double* samples, double cutoff, int sampleSize)
             {
                 double sum = 0.0;
                 int numValidSamples = 0;
