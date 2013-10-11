@@ -209,6 +209,10 @@ namespace ElVis
                         {
                             Nektar::SpatialDomains::ElementFaceVectorSharedPtr elements = castPtr->GetElementsFromFace(geom);
                             assert(elements->size() <= 2 );
+                            faceDefs[faceIndex].CommonElements[0].Id = -1;
+                            faceDefs[faceIndex].CommonElements[0].Type = -1;
+                            faceDefs[faceIndex].CommonElements[1].Id = -1;
+                            faceDefs[faceIndex].CommonElements[1].Type = -1;
                             for(int elementId = 0; elementId < elements->size(); ++elementId)
                             {
                                 faceDefs[faceIndex].CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();

@@ -208,8 +208,8 @@ namespace ElVis
             {
                 const JacobiFace& face = (*iter).first;
                 FaceDef faceDef = (*iter).second;
-                faceDef.Type = eCurved;
-                //faceDef.Type = ePlanar;
+                //faceDef.Type = eCurved;
+                faceDef.Type = ePlanar;
 
                 WorldPoint minExtent = face.MinExtent();
                 WorldPoint maxExtent = face.MaxExtent();

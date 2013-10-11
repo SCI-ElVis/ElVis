@@ -707,6 +707,7 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
             {
                 if(  rtPotentialIntersection( t ) )
                 {
+                    ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", primitiveId, t);
                     intersectedFaceId = primitiveId;
                     faceIntersectionReferencePoint.x = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePoint.y = MAKE_FLOAT(-2.0);
@@ -777,6 +778,7 @@ RT_PROGRAM void FaceIntersection(int primitiveId)
 
 RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
 {
+    ELVIS_PRINTF("FaceForTraversalIntersection: Testing %d\n", primitiveId);
     const ElVis::FaceDef& faceDef = FaceIdBuffer[primitiveId];
     if( faceDef.Type == ElVis::ePlanar )
     {
@@ -790,9 +792,12 @@ RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
 
 RT_PROGRAM void ElementTraversalFaceClosestHitProgram()
 {
+    ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);
     volumePayload.FoundIntersection = 1;
     volumePayload.IntersectionT = closest_t;
     volumePayload.FaceId = intersectedFaceId;
+    ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
+        volumePayload.IntersectionT, volumePayload.FaceId);
 }
 
 RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])
@@ -928,7 +933,7 @@ RT_PROGRAM void PerformVolumeRendering()
     ElVisFloat3 finalColor = integrator.accumulatedColor +
       expf(-integrator.accumulatedDensity)*BGColor;
     raw_color_buffer[launch_index] = finalColor;
-	  color_buffer[launch_index] = ConvertToColor(finalColor);
+      color_buffer[launch_index] = ConvertToColor(finalColor);
   }
 }
 

@@ -80,7 +80,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& result)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType == Nektar::SpatialDomains::eHexahedron )
     {
         result = TransformWorldToTensor(elementId, wp);
     }
@@ -94,7 +94,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType == Nektar::SpatialDomains::eHexahedron )
     {
         gradient.x = EvaluateHexGradientDir1AtTensorPoint(elementId, refPoint.x, refPoint.y, refPoint.z);
         gradient.y = EvaluateHexGradientDir2AtTensorPoint(elementId, refPoint.x, refPoint.y, refPoint.z);
@@ -110,7 +110,7 @@ ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementT
 ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType ==  Nektar::SpatialDomains::eHexahedron )
     {
         calculateTensorToWorldSpaceMappingJacobian(elementId, refPoint, J);
     }
@@ -129,7 +129,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                ResultType& result)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType == Nektar::SpatialDomains::eHexahedron )
     {
         result = EvaluateNektarPlusPlusHexAtTensorPoint(elementId, tp);
     }

@@ -326,8 +326,8 @@ namespace ElVis
 
         facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
         facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
-        optixu::GeometryGroup faceForTraversalGroup = m_context->createGeometryGroup();
-        faceForTraversalGroup->setChildCount(1);
+        optixu::GeometryGroup ElementTraversalGroup = m_context->createGeometryGroup();
+        ElementTraversalGroup->setChildCount(1);
 
         optixu::GeometryInstance faceForTraversalInstance = m_context->createGeometryInstance();
         optixu::Material faceForTraversalMaterial = m_context->createMaterial();
@@ -336,9 +336,9 @@ namespace ElVis
         faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
         faceForTraversalInstance->setGeometry(facesForTraversal);
 
-        faceForTraversalGroup->setChild(0, faceForTraversalInstance);
-        faceForTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
-        m_context["faceForTraversalGroup"]->set(faceForTraversalGroup);
+        ElementTraversalGroup->setChild(0, faceForTraversalInstance);
+        ElementTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
+        m_context["ElementTraversalGroup"]->set(ElementTraversalGroup);
 
 
     }

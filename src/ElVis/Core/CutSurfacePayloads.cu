@@ -65,7 +65,7 @@ struct CutSurfaceScalarValuePayload
     ElVisFloat3 IntersectionPoint;
     float IntersectionT;
     ElVisFloat3 Normal;
-	ElVisFloat3 Color;
+    ElVisFloat3 Color;
     ElVisFloat scalarValue;
     int ReferencePointSet;
 };

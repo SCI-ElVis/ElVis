@@ -39,6 +39,10 @@ namespace ElVis
 {
     struct ElementId
     {
+#ifndef __CUDACC__
+        ElementId() : Id(-1), Type(-1) {}
+#endif
+
         int Id;
         int Type;
 

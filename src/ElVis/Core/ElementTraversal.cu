@@ -32,9 +32,7 @@
 #include <ElVis/Core/PrimaryRayGenerator.cu>
 #include <ElVis/Core/Cuda.h>
 
-rtDeclareVariable(rtObject, faceGroup, , );
 rtDeclareVariable(ElVisFloat, FaceTolerance, , );
-rtDeclareVariable(rtObject, faceForTraversalGroup, ,);
 
 struct Segment
 {
@@ -74,7 +72,7 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
 
   optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
   //rtTrace(PointLocationGroup, ray, payload);
-  rtTrace(faceForTraversalGroup, ray, payload);
+  rtTrace(ElementTraversalGroup, ray, payload);
   //rtTrace(faceGroup, ray, payload);
 
   if( payload.FoundIntersection == 0 )

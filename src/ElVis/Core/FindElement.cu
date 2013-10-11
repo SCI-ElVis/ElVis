@@ -51,6 +51,80 @@ __device__ __forceinline__ ElementFinderPayload FindElement(const ElVisFloat3& p
     return findElementPayload;
 }
 
+/// \brief Finds the element enclosing point p
+__device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisFloat3& p)
+{
+    // Random direction since rays in any direction should intersect the element.  We did have some accuracy
+    // issues with a direciton of (1, 0, 0) with axis-aligned elements.  This direction won't solve that
+    // problem, but it does make it less likely to occur.
+    ElVisFloat3 direction = MakeFloat3(ray.direction);
+
+    VolumeRenderingPayload payload_v;
+    payload_v.FoundIntersection = 0;
+
+    optix::Ray findElementRay = optix::make_Ray( ConvertToFloat3(p), ConvertToFloat3(direction), 2, 0.0f, RT_DEFAULT_MAX );
+    rtTrace(ElementTraversalGroup, findElementRay, payload_v);
+
+    ELVIS_PRINTF("FindElementFromFace: Found %d T %f id %d\n", payload_v.FoundIntersection,
+        payload_v.IntersectionT, payload_v.FaceId);
+
+    ElementFinderPayload findElementPayload;
+    findElementPayload.Initialize(p);
+    if( payload_v.FoundIntersection == 0 )
+    {
+        ELVIS_PRINTF("FindElementFromFace: Did not find element intersection.\n");
+        return findElementPayload;
+    }
+    else
+    {
+        ELVIS_PRINTF("FindElementFromFace: Found element intersection.\n");
+        findElementPayload.elementId = 0;
+        findElementPayload.elementType = 0;
+    }
+
+    ElVisFloat3 faceNormal;
+    ElVisFloat3 pointOnFace = p + payload_v.IntersectionT*direction;
+    GetFaceNormal(pointOnFace, payload_v.FaceId, faceNormal);
+
+    ElVisFloat3 vectorToPointOnFace = p - pointOnFace;
+
+    ElVisFloat d = dot(faceNormal, vectorToPointOnFace);
+
+    ELVIS_PRINTF("FindElement: Face Id %d, Normal (%f, %f, %f), test point (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", payload_v.FaceId,
+                 faceNormal.x, faceNormal.y, faceNormal.z,
+                 pointOnFace.x, pointOnFace.y, pointOnFace.z,
+                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
+    ELVIS_PRINTF("Face buffer size: %d\n", FaceIdBuffer.size());
+     
+//    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
+//                 FaceIdBuffer[faceId].CommonElements[0].Id,
+//                 FaceIdBuffer[faceId].CommonElements[0].Type,
+//                 FaceIdBuffer[faceId].CommonElements[1].Id,
+//                 FaceIdBuffer[faceId].CommonElements[1].Type);
+    // The test point is "inside" the element if d >= 0
+    ElVis::ElementId id;
+    if( d >= 0 )
+    {
+        
+        id = FaceIdBuffer[payload_v.FaceId].CommonElements[0];
+    }
+    else
+    {
+        id = FaceIdBuffer[payload_v.FaceId].CommonElements[1];
+    }
+    
+    findElementPayload.elementId = id.Id;
+    findElementPayload.elementType = id.Type;
+    //findElementPayload.IntersectionPoint = pointOnFace;
+    ELVIS_PRINTF("Element Id %d and Type %d\n", id.Id, id.Type);
+    ELVIS_PRINTF("Inside id %d and tpye %d, outside id %d and type %d\n", 
+        FaceIdBuffer[payload_v.FaceId].CommonElements[0].Id,
+        FaceIdBuffer[payload_v.FaceId].CommonElements[0].Type,
+        FaceIdBuffer[payload_v.FaceId].CommonElements[1].Id,
+        FaceIdBuffer[payload_v.FaceId].CommonElements[1].Type);
+    return findElementPayload;
+}
+
 // In this version, we don't know the reference space coordinates for the face intersection, so
 // we rely on the simulation package to do the calculation for us.
 __device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& faceNormal)

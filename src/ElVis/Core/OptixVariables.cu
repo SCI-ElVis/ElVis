@@ -63,14 +63,29 @@ rtBuffer<ElVisFloat3, 2> normal_buffer;
 // The intersection point of the surface at the given pixel.
 rtBuffer<ElVisFloat3, 2> intersection_buffer;
 
+// The depth value at each pixel.
+rtBuffer<float, 2> depth_buffer;
+
 // This group should contain all surfaces that are meant to be rendered 
 // directly.  Examples include cut-surface and element faces.  Element faces
 // that are not meant to be rendered directly should not go into this group.
 rtDeclareVariable(rtObject, SurfaceGeometryGroup, , );
+rtDeclareVariable(rtObject, PointLocationGroup, , );
+
+// This group contains all elemental faces.  Ray tracing into this group 
+// will return the closest element face.  2D elements do not belong in this 
+// group.  Currently used by isosurfaces and volume rendering to go from 
+// element to element, but they do use the PointLocation group to find the element
+// between faces.
+rtDeclareVariable(rtObject, ElementTraversalGroup, ,);
+
+// Currently commented out in the volume rendering.  May be my trial code.
+// Most likely, only one of ElementTraversalGroup and faceGroup need to remain.
+// Currently, face intersection sets the face id and only applies if the face is 
+// turned on.
+rtDeclareVariable(rtObject, faceGroup, , );
 
 rtDeclareVariable(ElVisFloat3, normal, attribute normal_vec, );
-
-
 
 rtDeclareVariable(int, FieldId, , );
 
@@ -92,9 +107,9 @@ rtBuffer<int, 2> ElementTypeBuffer;
 
 rtDeclareVariable(float, closest_t, rtIntersectionDistance, );
 
-rtDeclareVariable(rtObject,      PointLocationGroup, , );
 
-rtBuffer<float, 2> depth_buffer;
+
+
 
 // For depth buffer calculations for interop with OpenGL.
 rtDeclareVariable(float, near, , );
@@ -107,28 +122,12 @@ rtBuffer<ElVis::FaceDef, 1> FaceIdBuffer;
 rtBuffer<ElVisFloat3, 1> FaceMinExtentBuffer;
 rtBuffer<ElVisFloat3, 1> FaceMaxExtentBuffer;
 
-rtDeclareVariable(rtObject, DummyGroup, , );
-
 rtDeclareVariable(int, intersectedFaceId, attribute IntersectedFaceId, );
 rtDeclareVariable(ElVisFloat2, faceIntersectionReferencePoint, attribute FaceIntersectionReferencePoint, );
 rtDeclareVariable(bool, faceIntersectionReferencePointIsValid, attribute FaceIntersectionReferencePointIsValid, );
 
 rtDeclareVariable(ElVisFloat3, HeadlightColor, ,);
 
-RT_PROGRAM void Fake()
-{
-    int payload;
-    optix::size_t2 screen = color_buffer.size();
-
-    ElVisFloat2 d = MakeFloat2(launch_index) / MakeFloat2(screen) * MAKE_FLOAT(2.0) - MAKE_FLOAT(1.0);
-
-    ElVisFloat3 ray_origin;
-    ElVisFloat3 ray_direction;
-
-    optix::Ray ray = optix::make_Ray( ConvertToFloat3(ray_origin), ConvertToFloat3(ray_direction), 0, .001f, RT_DEFAULT_MAX);
-
-    rtTrace(DummyGroup, ray, payload);
-}
 
 #endif
 

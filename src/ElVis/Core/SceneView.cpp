@@ -619,59 +619,6 @@ namespace ElVis
 
             SetFloat(m_context["BGColor"], bgColor);
 
-
-            //////////////////////////////////////////////
-            // Test Code
-            // To try to get a feel for what triggers recompiles, add a dummy geometry node for a plane and
-            // see what happens.
-            ////////////////////////////////////////////////
-//            {
-//                boost::shared_ptr<Plane> plane(new Plane());
-//                SampleVolumeSamplerObject* obj = new SampleVolumeSamplerObject(plane);
-
-//                int numSurfaces = 1;
-
-//                optixu::Group m_group = m_context->createGroup();
-//                m_group->setAcceleration( m_context->createAcceleration("NoAccel","NoAccel") );
-//                m_context["DummyGroup"]->set( m_group );
-//                m_group->setChildCount(numSurfaces);
-
-
-//                optixu::Transform transform;
-//                optixu::GeometryGroup geometryGroup;
-
-//                obj->CreateNode(this, transform, geometryGroup);
-
-//                if( transform.get() )
-//                {
-//                    m_group->setChild(0, transform);
-//                }
-//                else if ( geometryGroup.get() )
-//                {eye
-//                    m_group->setChild(0, geometryGroup);
-//                }
-//            }
-            // Add a cut plane primitive to the scene to make it so we don't have to have
-            // a separate recompile.  This may not be the best long term solution for all
-            // possible shapes.
-//            {
-//                // Default to a cut plane that spans the volume with a normal (1,0,0).
-//                WorldPoint normal(1.0, 0.0, 0.0);
-//                WorldPoint p(1e10, 1e10, 1e10);
-//                boost::shared_ptr<ElVis::Plane> cutPlane(new ElVis::Plane(normal, p));
-
-//                boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule = GetPrimaryRayModule();
-
-//                boost::shared_ptr<ElVis::SampleVolumeSamplerObject> sampler(new ElVis::SampleVolumeSamplerObject(cutPlane));
-//                if( primaryRayModule )
-//                {
-//                    primaryRayModule->AddObject(sampler);
-//                }
-//            }
-            ///////////////////////////////////
-            // End Test Code
-            //////////////////////////////////
-
             m_passedInitialOptixSetup = true;
         }
         catch( optixu::Exception& e )
