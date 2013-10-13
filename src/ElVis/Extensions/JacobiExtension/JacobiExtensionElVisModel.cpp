@@ -84,10 +84,8 @@ namespace ElVis
 
             for(int i = 0; i < 4; ++i)
             {
-                if( lhs.sorted[i] != rhs.sorted[i] )
-                {
-                    return lhs.sorted[i] < rhs.sorted[i];
-                }
+                if( closePointLessThan(lhs.sorted[i], rhs.sorted[i]) ) return true;
+                if( closePointLessThan(rhs.sorted[i], lhs.sorted[i]) ) return false;
             }
             return false;
 
@@ -179,6 +177,17 @@ namespace ElVis
             info.Id = 0;
             info.Shortcut = "";
             return info;
+        }
+
+        bool closePointLessThan(const WorldPoint& lhs, const WorldPoint& rhs)
+        {
+            double tol = .001;
+            for(unsigned int i = 0; i < 3; ++i)
+            {
+                if( lhs[i] < (rhs[i]-tol) ) return true;
+                if( lhs[i] > (rhs[i]+tol) ) return false;
+            }
+            return false;
         }
 
         void JacobiExtensionModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)

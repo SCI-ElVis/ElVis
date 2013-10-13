@@ -52,6 +52,8 @@ namespace ElVis
 {
     namespace JacobiExtension
     {
+        bool closePointLessThan(const WorldPoint& lhs, const WorldPoint& rhs);
+
         // Temporary face structure to find unique faces among all elements.
         struct JacobiFace
         {
@@ -94,7 +96,7 @@ namespace ElVis
                     sorted[i] = p[i];
                 }
 
-                std::sort(sorted, sorted+4);
+                std::sort(sorted, sorted+4, closePointLessThan);
             }
 
             JacobiFace(const JacobiFace& rhs) :
