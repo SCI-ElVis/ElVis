@@ -672,7 +672,7 @@ ELVIS_DEVICE bool IsCounterClockwise(const ElVisFloat3& v0, const ElVisFloat3& v
 
 ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, const ElVisFloat3& b, const ElVisFloat3& c )
 {
-    ELVIS_PRINTF("TriangleIntersection (%f, %f, %f), (%f, %f, %f), (%f, %f, %f).\n", a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+    //ELVIS_PRINTF("TriangleIntersection (%f, %f, %f), (%f, %f, %f), (%f, %f, %f).\n", a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
     ElVisFloat3 v0 = a;
     ElVisFloat3 v1 = b;
     ElVisFloat3 v2 = c;
@@ -707,7 +707,7 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
             {
                 if(  rtPotentialIntersection( t ) )
                 {
-                    ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", primitiveId, t);
+                    //ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", primitiveId, t);
                     intersectedFaceId = primitiveId;
                     faceIntersectionReferencePoint.x = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePoint.y = MAKE_FLOAT(-2.0);
@@ -724,7 +724,7 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
 ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
 {
 
-    ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
+    //ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
     int numVertices;
     GetNumberOfVerticesForFace(primitiveId, numVertices);
 
@@ -734,10 +734,10 @@ ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
     ElVisFloat tmin, tmax;
     FindBoxEntranceAndExit(ray.origin, ray.direction, p0, p1, ray.tmin, ray.tmax, tmin, tmax);
 
-    ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
-                 p0.x, p0.y, p0.z,
-                 p1.x, p1.y, p1.z,
-                 primitiveId, tmin, tmax);
+    //ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
+    //             p0.x, p0.y, p0.z,
+    //             p1.x, p1.y, p1.z,
+    //             primitiveId, tmin, tmax);
 
     ElVisFloat4 v0, v1, v2;
     GetFaceVertex(primitiveId, 0, v0);
@@ -778,7 +778,7 @@ RT_PROGRAM void FaceIntersection(int primitiveId)
 
 RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
 {
-    ELVIS_PRINTF("FaceForTraversalIntersection: Testing %d\n", primitiveId);
+    //ELVIS_PRINTF("FaceForTraversalIntersection: Testing %d\n", primitiveId);
     const ElVis::FaceDef& faceDef = FaceIdBuffer[primitiveId];
     if( faceDef.Type == ElVis::ePlanar )
     {
@@ -792,12 +792,12 @@ RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
 
 RT_PROGRAM void ElementTraversalFaceClosestHitProgram()
 {
-    ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);
+    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);
     volumePayload.FoundIntersection = 1;
     volumePayload.IntersectionT = closest_t;
     volumePayload.FaceId = intersectedFaceId;
-    ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
-        volumePayload.IntersectionT, volumePayload.FaceId);
+    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
+    //    volumePayload.IntersectionT, volumePayload.FaceId);
 }
 
 RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])

@@ -58,6 +58,8 @@
 #include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/CutSurfaceContourModule.h>
 #include <ElVis/Core/SurfaceObject.h>
+#include <ElVis/Core/Cylinder.h>
+#include <ElVis/Core/SampleVolumeSamplerObject.h>
 
 #include <string>
 #include <boost/bind.hpp>
@@ -721,6 +723,26 @@ namespace ElVis
                 {
                     boost::shared_ptr<ElVis::Model> model = plugin->LoadModel(bytes.constData());
                     m_appData->GetScene()->SetModel(model);
+
+
+                    ElVis::Cylinder* cylinderToMap = new ElVis::Cylinder();
+                    cylinderToMap->GetTransformationMatrix()[11] = 0;
+
+                    cylinderToMap->GetTransformationMatrix()[0] = .1f;
+                    cylinderToMap->GetTransformationMatrix()[5] = .1f;
+                    cylinderToMap->GetTransformationMatrix()[10] = 20.0f;
+
+                    boost::shared_ptr<ElVis::Cylinder> cylinder(new ElVis::Cylinder());
+                    cylinder->GetTransformationMatrix()[11] = 2.0;
+
+                    cylinder->GetTransformationMatrix()[0] = .10001f;
+                    cylinder->GetTransformationMatrix()[5] = .10001f;
+                    cylinder->GetTransformationMatrix()[10] = .4f;
+
+                    BOOST_AUTO(m_primaryRayModule, m_appData->GetSurfaceSceneView()->GetPrimaryRayModule());
+                    boost::shared_ptr<ElVis::SampleVolumeSamplerObject> cylinderSurface(new ElVis::SampleVolumeSamplerObject(cylinder));
+                    m_primaryRayModule->AddObject(cylinderSurface);
+
                     SetCurrentFile(fileName, filter);
                     break;
                 }
