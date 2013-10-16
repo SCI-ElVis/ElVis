@@ -420,8 +420,8 @@ namespace ElVis
             void NotifyLoad(Archive& ar, const unsigned int version, 
                 typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
             {
-                UpdateBasisVectors();
-                OnCameraChanged();
+                this->UpdateBasisVectors();
+                this->OnCameraChanged();
             }
 
             template<typename Archive>
