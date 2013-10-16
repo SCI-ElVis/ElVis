@@ -30,6 +30,7 @@
 #define ELVIS_ELVIS_NATIVE_SCENE_H
 
 #include <list>
+#include <stdexcept>
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Color.h>
 #include <ElVis/Core/ColorMap.h>
@@ -39,7 +40,7 @@
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/FaceDef.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
-
+#include <ElVis/Core/Plugin.h>
 #include <optixu/optixpp.h>
 
 #include <boost/filesystem.hpp>
@@ -180,7 +181,7 @@ namespace ElVis
                 // When serializing, we expect a model to already be loaded.
                 if( m_model )
                 {
-                    throw new runtime_error("Can't load state with a model already loaded.");
+                    throw new std::runtime_error("Can't load state with a model already loaded.");
                 }
 
                 
