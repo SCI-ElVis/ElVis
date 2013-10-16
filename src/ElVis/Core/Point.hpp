@@ -421,7 +421,7 @@ namespace ElVis
                 typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
             {
                 this->UpdateBasisVectors();
-                OnCameraChanged();
+                this->OnCameraChanged();
             }
 
             template<typename Archive>
