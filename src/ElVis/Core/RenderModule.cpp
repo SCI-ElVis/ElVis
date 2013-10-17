@@ -119,6 +119,10 @@ namespace ElVis
         }
     }
 
+    bool RenderModule::GetRenderRequired() const
+    {
+        return m_flags.test(eRenderRequired);
+    }
     void RenderModule::DoSynchronize(SceneView* view)
     {
     }

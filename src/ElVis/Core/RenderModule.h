@@ -84,7 +84,7 @@ namespace ElVis
             // Handlers
             ELVIS_EXPORT void SetSyncAndRenderRequired();
             ELVIS_EXPORT void SetRenderRequired();
-
+            ELVIS_EXPORT bool GetRenderRequired() const;
             // Signals
             boost::signal<void (const RenderModule&)> OnModuleChanged;
             boost::signal<void (const RenderModule&, bool)> OnEnabledChanged;

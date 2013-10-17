@@ -303,6 +303,17 @@ namespace ElVis
             result.Start();
 
             PrepareForDisplay();
+
+            bool continueWithRender = false;
+            BOOST_FOREACH(boost::shared_ptr<RenderModule>  module, m_allRenderModules)
+            {
+                if( module->GetEnabled() && module->GetRenderRequired() ) 
+                {
+                    continueWithRender = true;
+                }
+            }
+            if( !continueWithRender ) return result;
+
 //            ClearDepthBuffer();
             ClearColorBuffer();
             BOOST_FOREACH(boost::shared_ptr<RenderModule>  module, m_allRenderModules)
