@@ -107,7 +107,7 @@ extern "C"{
   }
 
   ElVis::Model* LoadModel(const char* path){
-    ElVis::PXModel * result = new ElVis::PXModel();
+    ElVis::PXModel * result = new ElVis::PXModel(path);
     result->LoadVolume(std::string(path));
     return result;
   }
@@ -175,7 +175,8 @@ namespace ElVis
     return extensionName;
   }
 
-  PXModel::PXModel() :
+  PXModel::PXModel(const std::string& modelPath) :
+    Model(modelPath),
     m_solutionBuffer(prefix + "SolutionBuffer"),
     m_coordinateBuffer(prefix + "CoordinateBuffer"),
     m_boundingBoxBuffer(prefix + "BoundingBoxBuffer"),

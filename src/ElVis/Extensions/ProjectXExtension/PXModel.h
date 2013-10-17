@@ -64,7 +64,7 @@ namespace ElVis
   class PXModel : public Model
   {
   public:
-    PXModel();
+    PXModel(const std::string& modelPath);
     PXModel(const PXModel& rhs);
     virtual ~PXModel();
 
