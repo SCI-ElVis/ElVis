@@ -76,7 +76,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
 
     cylinder->GetTransformationMatrix()[0] = .10001f;
     cylinder->GetTransformationMatrix()[5] = .10001f;
-    cylinder->GetTransformationMatrix()[10] = .4f;
+    cylinder->GetTransformationMatrix()[10] = .41f;
    
     
     ElVis::PointLight* l = new ElVis::PointLight();
@@ -106,17 +106,9 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     triangle2->SetP2(ElVis::WorldPoint(0, 1, 0));
     triangle2->SetP1(ElVis::WorldPoint(0, 1, 18));
   
-    ElVis::Cylinder* cylinderToMap = new ElVis::Cylinder();
-    cylinderToMap->GetTransformationMatrix()[11] = 0;
-
-    cylinderToMap->GetTransformationMatrix()[0] = .1f;
-    cylinderToMap->GetTransformationMatrix()[5] = .1f;
-    cylinderToMap->GetTransformationMatrix()[10] = 20.0f;
-
     boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(new ElVis::PrimaryRayModule());
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t1Sampler(new ElVis::SampleVolumeSamplerObject(triangle1));
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t2Sampler(new ElVis::SampleVolumeSamplerObject(triangle2));
-    //boost::shared_ptr<ElVis::SurfaceObject> cylinderSurface(new ElVis::SurfaceObject(cylinder));
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> cylinderSurface(new ElVis::SampleVolumeSamplerObject(cylinder));
     primaryRayModule->AddObject(t1Sampler);
     primaryRayModule->AddObject(t2Sampler);
