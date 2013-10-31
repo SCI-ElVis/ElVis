@@ -236,7 +236,7 @@ namespace ElVis
             {
                     m_globalExpansions[j]->ExtractDataToCoeffs(m_fieldDefinitions[i],
                                                 fieldData[i],
-                                                m_fieldDefinitions[i]->m_fields[j]);
+							       m_fieldDefinitions[i]->m_fields[j], m_globalExpansions[j]->UpdateCoeffs());
                 }
                 m_globalExpansions[j]->BwdTrans(
                     m_globalExpansions[j]->GetCoeffs(),
