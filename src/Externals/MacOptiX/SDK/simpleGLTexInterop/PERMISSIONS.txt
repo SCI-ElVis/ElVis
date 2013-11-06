@@ -1,3 +1,0 @@
-Marine life models and textures in this directory copyright Toru Miyazawa, Toucan Corporation.
-Used by permission.
-http://toucan.web.infoseek.co.jp/3DCG/3ds/FishModelsE.html

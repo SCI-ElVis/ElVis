@@ -1,7 +1,4 @@
 .DS_Store
 bin/
-build_make/
-build_xcode/
-build_unix/
-build/
+build*/
 makebin/
