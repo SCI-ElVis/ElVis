@@ -2,7 +2,6 @@
 SET(ProjectName ElVisCore)
 
 FIND_PACKAGE(OpenGL REQUIRED)
-#FIND_PACKAGE(GLEW REQUIRED)
 # Default location
 IF( MSVC )
     SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
@@ -10,93 +9,99 @@ IF( MSVC )
     SET(GLUT_glut_LIBRARY ${GLUT_ROOT_PATH}/release/glut32.lib)
 ENDIF()
 
+IF (APPLE) #set the env vars to use the cuda path
+    SET(ENV_PATH $ENV{PATH})
+    SET(ENV_DYLD $ENV{DYLD_LIBRARY_PATH})
+    SET(ENV{PATH} ${CUDA_TOOLKIT_ROOT_DIR}/bin)
+    SET(ENV{DYLD_LIBRARY_PATH} ${CUDA_TOOLKIT_ROOT_DIR}/lib)
+ENDIF()
+
 #############################
 # Check for GPUs present and their compute capability
 # based on http://stackoverflow.com/questions/2285185/easiest-way-to-test-for-existence-of-cuda-capable-gpu-from-cmake/2297877#2297877 (Christopher Bruns)
-if(CUDA_FOUND)
-	message(STATUS "${CMAKE_SOURCE_DIR}/cuda_compute_capability.c")
-	try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
-		${CMAKE_BINARY_DIR} 
-		${CMAKE_SOURCE_DIR}/cuda_compute_capability.c
-		CMAKE_FLAGS 
-		-DINCLUDE_DIRECTORIES:STRING=${CUDA_TOOLKIT_INCLUDE}
-		-DLINK_LIBRARIES:STRING=${CUDA_CUDART_LIBRARY}
-		COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT_VAR
-		RUN_OUTPUT_VARIABLE RUN_OUTPUT_VAR)
-	message(STATUS "Compile: ${RUN_OUTPUT_VAR}")
-	if (COMPILE_RESULT_VAR)
-		message(STATUS "compiled -> " ${RUN_RESULT_VAR})
-	else()
-		message(STATUS "didn't compile")
-	endif()
-	# COMPILE_RESULT_VAR is TRUE when compile succeeds
-	# RUN_RESULT_VAR is zero when a GPU is found
-	if(COMPILE_RESULT_VAR AND NOT RUN_RESULT_VAR)
-		message(STATUS "worked")
-		set(CUDA_HAVE_GPU TRUE CACHE BOOL "Whether CUDA-capable GPU is present")
-		set(CUDA_COMPUTE_CAPABILITY ${RUN_OUTPUT_VAR} CACHE STRING "Compute capability of CUDA-capable GPU present")
-		set(CUDA_GENERATE_CODE "arch=compute_${CUDA_COMPUTE_CAPABILITY},code=sm_${CUDA_COMPUTE_CAPABILITY}" CACHE STRING "Which GPU architectures to generate code for (each arch/code pair will be passed as --generate-code option to nvcc, separate multiple pairs by ;)")
-		mark_as_advanced(CUDA_COMPUTE_CAPABILITY CUDA_GENERATE_CODE)
+if(CUDA_FOUND AND NOT CUDA_HAVE_GPU)
+    message(STATUS "Checking CUDA compute capability.")
+    try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
+        ${CMAKE_BINARY_DIR} 
+        ${CMAKE_SOURCE_DIR}/cuda_compute_capability.c
+        CMAKE_FLAGS 
+        -DINCLUDE_DIRECTORIES:STRING=${CUDA_TOOLKIT_INCLUDE}
+        -DLINK_LIBRARIES:STRING=${CUDA_CUDART_LIBRARY}
+        COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT_VAR
+        RUN_OUTPUT_VARIABLE RUN_OUTPUT_VAR)
+    #message(STATUS "Compile: ${RUN_OUTPUT_VAR}")
+    #if (COMPILE_RESULT_VAR)
+    #    message(STATUS "compiled -> " ${RUN_RESULT_VAR})
+    #else()
+    #    message(STATUS "didn't compile")
+    #endif()
+    # COMPILE_RESULT_VAR is TRUE when compile succeeds
+    # RUN_RESULT_VAR is zero when a GPU is found
+    if(COMPILE_RESULT_VAR AND NOT RUN_RESULT_VAR)
+        #message(STATUS "worked")
+        set(CUDA_HAVE_GPU TRUE CACHE BOOL "Whether CUDA-capable GPU is present")
+        set(CUDA_COMPUTE_CAPABILITY ${RUN_OUTPUT_VAR} CACHE STRING "Compute capability of CUDA-capable GPU present")
+        set(CUDA_GENERATE_CODE "arch=compute_${CUDA_COMPUTE_CAPABILITY},code=sm_${CUDA_COMPUTE_CAPABILITY}" CACHE STRING "Which GPU architectures to generate code for (each arch/code pair will be passed as --generate-code option to nvcc, separate multiple pairs by ;)")
+        mark_as_advanced(CUDA_COMPUTE_CAPABILITY CUDA_GENERATE_CODE)
         LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21" "-arch=sm_30" "-arch=sm_31")
-		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-arch=sm_${CUDA_COMPUTE_CAPABILITY}"  CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-		message(STATUS "CUDA FLAGS ${CUDA_NVCC_FLAGS}")
-	else()
-		message(STATUS "didn't work")
-		set(CUDA_HAVE_GPU FALSE CACHE BOOL "Whether CUDA-capable GPU is present")
-	endif()
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-arch=sm_${CUDA_COMPUTE_CAPABILITY}"  CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+        SET(CUDA_COMPUTE_CAPABILITY_SUCCESS TRUE CACHE BOOL "")
+    else()
+        #message(STATUS "didn't work")
+        SET(CUDA_COMPUTE_CAPABILITY_SUCCESS FALSE CACHE BOOL "")
+        set(CUDA_HAVE_GPU FALSE CACHE BOOL "Whether CUDA-capable GPU is present")
+    endif()
 endif()
 
-# SET(CUDA_USE_COMPUTE_CAPABILITY_10 false CACHE BOOL "Use Compute Capability 1.0")
-# SET(CUDA_USE_COMPUTE_CAPABILITY_11 false CACHE BOOL "Use Compute Capability 1.1")
-# SET(CUDA_USE_COMPUTE_CAPABILITY_12 false CACHE BOOL "Use Compute Capability 1.2")
-# SET(CUDA_USE_COMPUTE_CAPABILITY_13 false CACHE BOOL "Use Compute Capability 1.3")
-# SET(CUDA_USE_COMPUTE_CAPABILITY_20 true CACHE BOOL "Use Compute Capability 2.0")
-# SET(CUDA_USE_COMPUTE_CAPABILITY_21 false CACHE BOOL "Use Compute Capability 2.1")
+IF (NOT CUDA_COMPUTE_CAPABILITY_SUCCESS)
+    SET(CUDA_USE_COMPUTE_CAPABILITY_10 false CACHE BOOL "Use Compute Capability 1.0")
+    SET(CUDA_USE_COMPUTE_CAPABILITY_11 false CACHE BOOL "Use Compute Capability 1.1")
+    SET(CUDA_USE_COMPUTE_CAPABILITY_12 false CACHE BOOL "Use Compute Capability 1.2")  
+    SET(CUDA_USE_COMPUTE_CAPABILITY_13 false CACHE BOOL "Use Compute Capability 1.3")
+    SET(CUDA_USE_COMPUTE_CAPABILITY_20 true CACHE BOOL "Use Compute Capability 2.0")
+    SET(CUDA_USE_COMPUTE_CAPABILITY_21 false CACHE BOOL "Use Compute Capability 2.1")
+    
+    IF(CUDA_USE_COMPUTE_CAPABILITY_10)
+      LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+      LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_10")
+      SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+    ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_11)
+      LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+      LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_11")
+      SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+    ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_12)
+      LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+      LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_12")
+      SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+    ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_13)
+      LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+      LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_13")
+      SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+    ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_20)
+      LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+      LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_20")
+      SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+    ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_21)
+      LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
+      LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_21")
+      SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+    ENDIF()
+ENDIF ()
 
-
-# SET(CUDA_USE_COMPUTE_CAPABILITY_30 true CACHE BOOL "Use Compute Capability 3.0")
-
-# IF(CUDA_USE_COMPUTE_CAPABILITY_30)
-  # LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-  # LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_30")
-  # SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-# ENDIF()
-
-# IF(CUDA_USE_COMPUTE_CAPABILITY_10)
-  # LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-  # LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_10")
-  # SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-# ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_11)
-  # LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-  # LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_11")
-  # SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-# ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_12)
-  # LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-  # LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_12")
-  # SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-# ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_13)
-  # LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-  # LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_13")
-  # SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-# ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_20)
-  # LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-  # LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_20")
-  # SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-# ELSEIF(CUDA_USE_COMPUTE_CAPABILITY_21)
-  # LIST(REMOVE_ITEM CUDA_NVCC_FLAGS "-arch=sm_10" "-arch=sm_11" "-arch=sm_12" "-arch=sm_13" "-arch=sm_20" "-arch=sm_21")
-  # LIST(APPEND CUDA_NVCC_FLAGS "-arch=sm_21")
-  # SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
-# ENDIF()
-
+#set the env vars back
+IF (APPLE)
+    SET(ENV{PATH} ${ENV_PATH})
+    SET(ENV{DYLD_LIBRARY_PATH} ${ENV_DYLD})
+ENDIF ()
 
 INCLUDE_DIRECTORIES(
     ${OPENGL_INCLUDE_DIR} 
     ${GLUT_INCLUDE_DIR}
   ${TINY_XML_DIR}
 )
-                    
+INCLUDE_DIRECTORIES(${ELVIS_CUDA_INCLUDE})                    
 ADD_DEFINITIONS(-DELVIS_EXPORTS)
-
+add_definitions(-DQT_NO_KEYWORDS)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisConfig.cpp.in
                ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp @ONLY)
@@ -106,13 +111,10 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/Float.cu.in
                ${CMAKE_BINARY_DIR}/ElVis/Core/Float.cu )
 
 SET(ELVIS_HEADERS
-    Buffer.h
     Camera.h
     Color.h
     ColorMap.h
     Cuda.h
-    CudaGlobalBuffer.hpp
-    CudaGlobalVariable.hpp
     CutSurfaceContourModule.h
     CutSurfaceMeshModule.h
     Cylinder.h
@@ -130,15 +132,15 @@ SET(ELVIS_HEADERS
     ExtensionPTXConfig.cpp.in
     ExtensionPTXConfig.h.in
     HostTransferFunction.h
-    InteropBuffer.hpp
     Interval.hpp
-    IsosurfaceObject.h
     Jacobi.hpp
     Light.h
     Model.h
     Octree.hpp
     OpenGL.h
+    OptiXBuffer.hpp
     OptiXExtensions.hpp
+    OptiXSynchedObject.hpp
     Plugin.h
     Point.hpp
     PointLight.h
@@ -171,7 +173,6 @@ SET(ELVIS_MATH_HEADERS
 )
 
 SET(ELVIS_SOURCES
-    Buffer.cpp
     Camera.cpp
     Color.cpp
     ColorMap.cpp
@@ -182,7 +183,6 @@ SET(ELVIS_SOURCES
     DynamicLib.cpp
     ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp
     FaceObject.cpp
-    IsosurfaceObject.cpp
     Light.cpp
     Model.cpp
     Plugin.cpp
@@ -221,8 +221,6 @@ SET(PrimaryRayObjectFiles
 SET(ModuleFiles
     ColorMapperModule.h
     ColorMapperModule.cpp
-    ElementTraversalModule.h
-    ElementTraversalModule.cpp
     IsosurfaceModule.h
     IsosurfaceModule.cpp
     LightingModule.h
@@ -243,7 +241,7 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/CutSurfaceContourModule.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/CutSurfacePayloads.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/DiffuseLighting.cu
-    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversalModule.h
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversal.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FieldEvaluator.cu
@@ -254,6 +252,7 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/InnerIntegralAdaptiveTrapezoidal.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/IntervalMatrix.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/IntervalPoint.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/IsosurfaceOptiXModule.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/IsosurfaceModuleCuda.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/jacobi.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/matrix.cu
@@ -286,18 +285,14 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_SOURCE_DIR}/Externals/tinyxml
 )
 
-# Create a separate library for the Cuda code because the default way of compiling .cu
-# files in ElVis is directly to ptx, which I can't link to.
-#ADD_ELVIS_CUDA_LIBRARY(${ProjectName}CudaInterface ThrustInterface.cu)
-
 add_definitions(${PNG_DEFINITIONS})
 
-#LINK_DIRECTORIES(${BOOST_LIBRARY})
 SOURCE_GROUP("Cuda" FILES ${ELVIS_CUDA_HEADERS})
 SET_SOURCE_FILES_PROPERTIES(${ELVIS_CUDA_HEADERS} PROPERTIES HEADER_FILE_ONLY ON)
 SOURCE_GROUP("Modules" FILES ${ModuleFiles})
 SOURCE_GROUP("Primary Ray Objects" FILES ${PrimaryRayObjectFiles})
 SOURCE_GROUP("Objects" FILES ${ObjectFiles})
+SOURCE_GROUP("Core" FILES ${ELVIS_SOURCES} ${ELVIS_HEADERS})
 ADD_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${PrimaryRayObjectFiles} ${ObjectFiles} ${ELVIS_MATH_HEADERS} ${ELVIS_SOURCES} ${ModuleFiles} ${ELVIS_CUDA_HEADERS})
 
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
@@ -310,8 +305,6 @@ SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 
 TARGET_LINK_LIBRARIES(${ProjectName} 
     ${BOOST_LIBRARY}
-    ${CUDA_CUDA_LIBRARY}
-    ${CUDA_CUDART_LIBRARY}
     ${GLEW_LIBRARY}
     ${GLUT_glut_LIBRARY}
     ${PNG_LIBRARY}
@@ -324,9 +317,9 @@ INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR}
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 
-if(APPLE)	
-  set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
-endif(APPLE)
+#if(APPLE)	
+#  set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
+#endif(APPLE)
                 
 INSTALL(FILES ${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
     Nodes.txt Weights.txt MonomialConversionTables.txt
@@ -347,7 +340,7 @@ INSTALL(FILES ${ELVIS_MATH_HEADERS}
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in
                ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
-			   
+               
 SET (CORE_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "core build path")
 
 MESSAGE(STATUS "CORE: ${CUDA_GENERATE_CODE}")

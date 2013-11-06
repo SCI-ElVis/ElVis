@@ -34,14 +34,19 @@
 
 #include <string>
 #include <boost/filesystem/operations.hpp>
-#include <ElVis/Core/Model.h>
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
+#include <ElVis/Core/Model.h>
 #include <ElVis/Core/DynamicLib.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 
 namespace ElVis
 {
-    class Plugin
+    /// \brief Plugins allow custom funtionality to be added to ElVis.
+    ///
+    /// Plugins must support the following functions:
+    class Plugin : public boost::enable_shared_from_this<Plugin>
     {
         public:
             ELVIS_EXPORT explicit Plugin(const boost::filesystem::path& pluginPath);
@@ -49,7 +54,8 @@ namespace ElVis
 
             const std::string& GetName() const { return m_name; }
             const std::string& GetModelFileFilter() const { return m_volumeFileFilter; }
-            ELVIS_EXPORT ElVis::Model* LoadModel(const std::string& name);
+            ELVIS_EXPORT boost::shared_ptr<ElVis::Model> LoadModel(const std::string& name);
+            ELVIS_EXPORT const boost::filesystem::path& GetPath() { return m_path; }
 
         private:
             Plugin(const Plugin& rhs);

@@ -40,7 +40,8 @@ std::string GetPluginName()
 
 ElVis::Model* LoadModel(const char* path)
 {
-    ElVis::JacobiExtension::JacobiExtensionModel* result = new ElVis::JacobiExtension::JacobiExtensionModel();
+    ElVis::JacobiExtension::JacobiExtensionModel* result = 
+        new ElVis::JacobiExtension::JacobiExtensionModel(std::string(path));
     result->LoadVolume(std::string(path));
     return result;
 }

@@ -7,6 +7,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/signals.hpp>
+#include <boost/serialization/split_member.hpp>
 
 #include <string>
 #include <string>
@@ -409,6 +410,27 @@ namespace ElVis
                 return result;
             }
 
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
+            {
+            }
+
+            template<typename Archive>
+            void NotifyLoad(Archive& ar, const unsigned int version, 
+                typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
+            {
+                this->UpdateBasisVectors();
+                this->OnCameraChanged();
+            }
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_data);    
+                NotifyLoad(ar, version);
+            }
+
         private:
             DataType m_data[dim::Value];
     };
@@ -541,7 +563,7 @@ namespace ElVis
     std::istream& operator>>(std::istream& is, Point<DataType, dim, space>& obj)
     {
         for(unsigned int i = 0; i < dim::Value; ++i)
-		{
+        {
             DataType temp;
             is >> temp;
             obj[i] = temp;

@@ -30,6 +30,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <ElVis/Core/Plugin.h>
+#include <ElVis/Core/Util.hpp>
 
 namespace ElVis
 {
@@ -73,9 +74,19 @@ namespace ElVis
     {
     }
 
-    ElVis::Model* Plugin::LoadModel(const std::string& name)
+    boost::shared_ptr<ElVis::Model> Plugin::LoadModel(const std::string& name)
     {
-        return m_loadModelFunction(name.c_str());
+        BOOST_AUTO(rawPtr, m_loadModelFunction(name.c_str()));
+        rawPtr->SetPlugin(shared_from_this());
+
+        // We want to return a shared ptr to maintain consistency across ElVis,
+        // but we can't assume that the model can be deleted in the context 
+        // of ElVis (for example, if the plugin is written with a different 
+        // C runtime library on Windows, deleting the model in ElVis rather 
+        // than the plugin will cause a crash).  
+        // TODO - Require plugins to implement a cleanup function that we can 
+        // then attach to the shared ptr deleter.
+        return boost::shared_ptr<ElVis::Model>(rawPtr, noDelete);
     }
 }
 

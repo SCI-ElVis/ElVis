@@ -10,10 +10,6 @@ ENDIF()
  
 SET(ProjectName ElVisCLI)
 
-
-
-
-
 # Default location
 IF( MSVC )
   SET(GLUT_ROOT_PATH ${CMAKE_SOURCE_DIR}/Externals/glut)
@@ -40,6 +36,7 @@ INCLUDE_DIRECTORIES(
 )
 
 add_definitions(${PNG_DEFINITIONS})
+add_definitions(-DQT_NO_KEYWORDS)
 
 SET(HEADERS
     Nektar++Models.h
@@ -70,6 +67,11 @@ TARGET_LINK_LIBRARIES(${ProjectName}
 )
 
 
+IF( MSVC )
+  INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR}
+                                LIBRARY DESTINATION ${ELVIS_BIN_DIR}
+                                ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
+ENDIF()
 SET(BaselineDir ${CMAKE_SOURCE_DIR}/../Testing/${ELVIS_FLOAT}/${CMAKE_HOST_SYSTEM_NAME})
 
 IF( ELVIS_ENABLE_JACOBI_EXTENSION )
@@ -172,7 +174,7 @@ IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
 
     ADD_TEST(NAME NektarPlusPlusVolumeRenderSphere_Type5 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset3.xml"    --Width 1024    --Height 1024    --OutFile NektarPlusPlusVolumeRenderSphere_Type1
-        --VolumeRenderingEnabled 1
+        --VolumeRenderingModuleEnabled 1
         --IntegrationType 0
         --Module ${ExtensionPath}
         --Eye 0.0 0.0 0.0 --Up 0 1 0 --At 0.0 0.0 -2.0
@@ -184,7 +186,7 @@ IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
     ADD_TEST(NAME NektarPlusPlusVolumeRenderSphere_Type6 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset3.xml"    --Width 1024    --Height 1024
         --Module ${ExtensionPath}
-        --VolumeRenderingEnabled 1
+        --VolumeRenderingModuleEnabled 1
         --IntegrationType 1
         --Eye 0.0 0.0 0.0 --Up 0 1 0 --At 0.0 0.0 -2.0
         --Breakpoints 4.0 4.1 4.2 5.0 5.1 5.2  6.0 6.1 6.2 
@@ -197,7 +199,7 @@ IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
     ADD_TEST(NAME NektarPlusPlusVolumeRenderSphere_Type1_h01 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset3.xml"    --Width 1024    --Height 1024
         --Module ${ExtensionPath}
-        --VolumeRenderingEnabled 1
+        --VolumeRenderingModuleEnabled 1
         --IntegrationType 1
         --Eye 0.0 0.0 0.0 --Up 0 1 0 --At 0.0 0.0 -2.0
         --Breakpoints 4.0 4.1 4.2 5.0 5.1 5.2  6.0 6.1 6.2 

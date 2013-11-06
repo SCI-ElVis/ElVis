@@ -39,6 +39,8 @@ struct VolumeRenderingPayload
     ELVIS_DEVICE void Initialize()
     {
         FoundIntersection = 0;
+        ElementId = 0;
+        ElementTypeId = 0;
         IntersectionT = MAKE_FLOAT(-1.0);
         FaceId = -1;
     }

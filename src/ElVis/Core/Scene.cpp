@@ -55,11 +55,9 @@ namespace ElVis
         m_model(),
         m_context(0),
         m_allPrimaryObjects(),
-        m_cudaContext(0),
-        m_cudaModule(0),
         m_optixStackSize(8000),
         m_colorMaps(),
-        m_enableOptiXTrace(false),
+        m_enableOptiXTrace(true),
         m_optiXTraceBufferSize(100000),
         m_optixTraceIndex(),
         m_enableOptiXExceptions(false),
@@ -67,12 +65,11 @@ namespace ElVis
         m_tracePixelDirty(true),
         m_enableTraceDirty(true),
         m_faceIntersectionProgram(),
-//        m_newtonIntersectionProgram(),
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
-        m_faceIdBuffer(),
-        m_faceMinExtentBuffer("FaceMinExtentBuffer", 3),
-        m_faceMaxExtentBuffer("FaceMaxExtentBuffer", 3),
+        m_faceIdBuffer("FaceIdBuffer"),
+        m_faceMinExtentBuffer("FaceMinExtentBuffer"),
+        m_faceMaxExtentBuffer("FaceMaxExtentBuffer"),
         m_faceGeometry(),
 //        m_curvedFaceGeometry(0),
 //        m_planarFaceGeometry(0),
@@ -86,27 +83,12 @@ namespace ElVis
         // For some reason in gcc, setting this in the constructor initialization list
         // doesn't work.
         m_enableOptiXExceptions = false;
-        if( m_enableOptiXExceptions )
-        {
-            std::cout << "Enabling optix exceptions in scene constructor." << std::endl;
-        }
-        else
-        {
-            std::cout << "Disabling optix exceptions in scene constructor.." << std::endl;
-        }
+        m_optixDataDirty = true;
     }
 
     Scene::~Scene()
     {
-        if( m_cudaContext )
-        {
-            checkedCudaCall(cuCtxDestroy(m_cudaContext));
-            m_cudaContext = 0;
-        }
-
         m_context = 0;
-
-        m_cudaModule = 0;
     }
 
     void Scene::SetAmbientLightColor(const Color& value) 
@@ -116,50 +98,6 @@ namespace ElVis
         m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
     }
     
-    CUmodule Scene::GetCudaModule()
-    {
-        InitializeCudaIfNeeded();
-        return m_cudaModule;
-    }
-
-    CUcontext Scene::GetCudaContext()
-    {
-        InitializeCudaIfNeeded();
-        return m_cudaContext;
-    }
-
-    void Scene::InitializeCudaIfNeeded()
-    {
-        if( m_cudaContext ) return;
-
-        checkedCudaCall(cuInit(0));
-
-        int driverVersion = 0;
-        checkedCudaCall(cuDriverGetVersion(&driverVersion));
-
-        std::cout << "Driver version " << driverVersion << std::endl;
-
-        int deviceCount = 0;
-        checkedCudaCall(cuDeviceGetCount(&deviceCount));
-
-        std::cout << "Number of available devices: " << deviceCount << std::endl;
-
-        CUdevice curDevice;
-        checkedCudaCall(cuDeviceGet(&curDevice, 0));
-
-        // In order to use OpenGL interop, we need cuGLCtxCreate.
-        // A valid OpenGL context must have been created first, which 
-        // we assume has been done.
-        checkedCudaCall(cuGLCtxCreate(&m_cudaContext, CU_CTX_BLOCKING_SYNC, curDevice));
-
-        #ifdef _MSC_VER
-            std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.obj.cubin.txt";
-        #else
-            std::string modulePath = GetCubinPath() + "/" + m_model->GetPTXPrefix() + "Cuda_generated_ElVisCuda.cu.o.cubin.txt";
-        #endif
-        std::cout << "Loading module from " << modulePath << std::endl;
-        checkedCudaCall(cuModuleLoad(&m_cudaModule, modulePath.c_str()));
-    }
 
     void Scene::SetOptixStackSize(int size)
     {
@@ -190,10 +128,8 @@ namespace ElVis
 
                 unsigned int deviceCount = 0;
                 rtDeviceGetDeviceCount(&deviceCount);
-                DeviceProperties();
 
                 m_context = optixu::Context::create();
-                InitializeCudaIfNeeded();
 
                 PtxManager::SetupContext(m_model->GetPTXPrefix(), m_context);
 
@@ -201,15 +137,6 @@ namespace ElVis
                 rtGetVersion(&optixVersion);
                 std::cout << "OptiX Version: " << optixVersion << std::endl;
 
-                cudaError_t cacheResult = cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-                if( cacheResult != cudaSuccess )
-                {
-                    std::cout << "Error setting cache: " << cudaGetErrorString(cacheResult) << std::endl;
-                }
-                cudaFuncCache cacheType;
-                
-                cudaDeviceGetCacheConfig(&cacheType);
-                std::cout << "Cache Type: " << cacheType << std::endl;
 
                 // Ray Type 0 - Primary rays that intersect actual geometry.  Closest
                 // hit programs determine exactly how the geometry is handled.
@@ -217,8 +144,6 @@ namespace ElVis
                 // value at a point.
                 // Ray Type 2 - Rays that perform volume rendering.
                 m_context->setRayTypeCount(3);
-
-
 
                 // Setup Lighting
                 // TODO - Move this into the base
@@ -293,9 +218,6 @@ namespace ElVis
                     InitializeFaces();
                 }
 
-                // Eventually get rid of this once the conversion for the Jacobi extension are done.
-                GetModel()->SetupCudaContext(GetCudaModule());
-
                 m_context->setStackSize(m_optixStackSize);
                 m_context->setPrintLaunchIndex(-1, -1, -1);
 
@@ -320,7 +242,7 @@ namespace ElVis
     {
         //if( GetModel()->GetModelDimension() != 3 ) return;
 
-        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context, GetCudaModule());
+        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context);
         optixu::Group volumeGroup = m_context->createGroup();
         volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
 
@@ -342,22 +264,21 @@ namespace ElVis
     void Scene::InitializeFaces()
     {
         optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
-        m_faceIdBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_USER, 1);
-        m_faceIdBuffer->setElementSize(sizeof(FaceDef));
 
-        m_faceMinExtentBuffer.Create(m_context, RT_BUFFER_INPUT, 1);
-        m_faceMaxExtentBuffer.Create(m_context, RT_BUFFER_INPUT, 1);
+        m_faceIdBuffer.SetContext(m_context);
+        m_faceIdBuffer.SetDimensions(1);
 
-        m_context["FaceIdBuffer"]->set(m_faceIdBuffer);
-        m_context[m_faceMinExtentBuffer.Name().c_str()]->set(*m_faceMinExtentBuffer);
-        m_context[m_faceMaxExtentBuffer.Name().c_str()]->set(*m_faceMaxExtentBuffer);
+        m_faceMinExtentBuffer.SetContext(m_context);
+        m_faceMinExtentBuffer.SetDimensions(1);
 
+        m_faceMaxExtentBuffer.SetContext(m_context);
+        m_faceMaxExtentBuffer.SetDimensions(1);
 
         m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
         m_faceGeometry = m_context->createGeometry();
         m_faceGeometry->setPrimitiveCount(0);
-        GetModel()->GetFaceGeometry(this, m_context, GetCudaModule(), m_faceGeometry);
+        GetModel()->GetFaceGeometry(this, m_context, m_faceGeometry);
         m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
         m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
 
@@ -475,7 +396,7 @@ namespace ElVis
             return result;
         }
 
-        TiXmlDocument doc(p.string().c_str());
+        tinyxml::TiXmlDocument doc(p.string().c_str());
         bool loadOkay = doc.LoadFile();
 
         if( !loadOkay )
@@ -484,9 +405,9 @@ namespace ElVis
             return result;
         }
 
-        TiXmlHandle docHandle(&doc);
-        TiXmlNode* node = 0;
-        TiXmlElement* rootElement = doc.FirstChildElement("ColorMap");
+        tinyxml::TiXmlHandle docHandle(&doc);
+        tinyxml::TiXmlNode* node = 0;
+        tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ColorMap");
 
         if( !rootElement )
         {
@@ -517,7 +438,7 @@ namespace ElVis
         info.Path = p;
         info.Name = colorMapName;
 
-        TiXmlElement* pointElement = rootElement->FirstChildElement("Point");
+        tinyxml::TiXmlElement* pointElement = rootElement->FirstChildElement("Point");
 
         while( pointElement )
         {
@@ -528,11 +449,11 @@ namespace ElVis
             int bResult = pointElement->QueryFloatAttribute("b", &b);
             int oResult = pointElement->QueryFloatAttribute("o", &o);
 
-            if( rResult == TIXML_SUCCESS &&
-                gResult == TIXML_SUCCESS &&
-                bResult == TIXML_SUCCESS &&
-                oResult == TIXML_SUCCESS &&
-                scalarResult == TIXML_SUCCESS)
+            if( rResult == tinyxml::TIXML_SUCCESS &&
+                gResult == tinyxml::TIXML_SUCCESS &&
+                bResult == tinyxml::TIXML_SUCCESS &&
+                oResult == tinyxml::TIXML_SUCCESS &&
+                scalarResult == tinyxml::TIXML_SUCCESS)
             {
                 Color c(r, g, b, o);
                 info.Map->SetBreakpoint(scalar, c);

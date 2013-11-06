@@ -69,6 +69,7 @@ URL:    http://raphael.mit.edu
 #ifndef PXCOORDINATES_ELVIS_C 
 #define PXCOORDINATES_ELVIS_C 
 
+#include <stdio.h>
 
 /******************************************************************/
 //   FUNCTION Definition: PXRef2GlobFromCoordinates

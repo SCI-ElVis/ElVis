@@ -35,18 +35,20 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Object.h>
 #include <ElVis/Core/Point.hpp>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/Float.h>
 
 #include <iostream>
 
 #include <boost/signals.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 namespace ElVis
 {
     class Plane : public Object
     {
         public:
+            friend class boost::serialization::access;
             ELVIS_EXPORT Plane();
             ELVIS_EXPORT Plane(const WorldPoint& normal, const WorldPoint& p);
             ELVIS_EXPORT virtual ~Plane() {}
@@ -76,6 +78,14 @@ namespace ElVis
             void CopyDataToOptiX();
             void HandlePointChanged(const WorldPoint& p);
             void SetupSubscriptions();
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Object);
+                ar & BOOST_SERIALIZATION_NVP(m_normal);
+                ar & BOOST_SERIALIZATION_NVP(m_point);
+            }
 
             optixu::GeometryGroup m_group;
             optixu::GeometryInstance m_instance;

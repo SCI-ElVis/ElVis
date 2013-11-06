@@ -37,6 +37,7 @@ namespace ElVis
     {
         m_flags.set(eSetupRequired);
         m_flags.set(eRenderRequired);
+        m_flags.set(eSyncRequired);
     }
 
     /// \brief Prepares the module for rendering.  This method is only
@@ -58,9 +59,8 @@ namespace ElVis
         if( m_flags.test(eRenderRequired) )
         {
             DoRender(view);
+            m_flags.reset(eRenderRequired);
         }
-
-        m_flags.reset();
     }
 
     void RenderModule::Synchronize(SceneView* view)

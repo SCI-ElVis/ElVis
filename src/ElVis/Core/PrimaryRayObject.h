@@ -38,12 +38,17 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signals.hpp>
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/list.hpp>
+
 namespace ElVis
 {
     /// \brief Adapts objects so they can be used by the primary ray module.
     class PrimaryRayObject
     {
         public:
+            friend class boost::serialization::access;
             ELVIS_EXPORT PrimaryRayObject();
             ELVIS_EXPORT explicit PrimaryRayObject(boost::shared_ptr<Object> obj);
             ELVIS_EXPORT virtual ~PrimaryRayObject();
@@ -63,6 +68,12 @@ namespace ElVis
 
             void HandleObjectChanged(const Object&);
             void SetupSubscriptions();
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_NVP(m_object);
+            }
 
             boost::shared_ptr<Object> m_object;
     };

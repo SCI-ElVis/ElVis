@@ -30,20 +30,17 @@
 #define ELVIS_VOLUME_RENDERING_MODULE_H
 
 #include <ElVis/Core/ElVisDeclspec.h>
-#include <ElVis/Core/ElementTraversalModule.h>
+#include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
-#include <ElVis/Core/Buffer.h>
 #include <ElVis/Core/OpenGL.h>
-#include <ElVis/Core/InteropBuffer.hpp>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/TransferFunction.h>
 #include <ElVis/Core/HostTransferFunction.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <vector>
-
-#include <cuda.h>
 
 namespace ElVis
 {
@@ -55,7 +52,7 @@ namespace ElVis
     };
 
 
-    class VolumeRenderingModule : public ElementTraversalModule
+    class VolumeRenderingModule : public RenderModule
     {
         public:
             ELVIS_EXPORT VolumeRenderingModule();
@@ -85,7 +82,7 @@ namespace ElVis
 
         protected:
             ELVIS_EXPORT virtual void DoRender(SceneView* view);
-            ELVIS_EXPORT virtual void DoSetupAfterInteropModule(SceneView* view);
+            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
             ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
 
             virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
@@ -96,10 +93,13 @@ namespace ElVis
             VolumeRenderingModule& operator=(const VolumeRenderingModule& rhs);
             VolumeRenderingModule(const VolumeRenderingModule& rhs);
             
+            static bool InitializeStatic();
+            static bool Initialized;
+
+            //virtual void DoAfterSetup(SceneView* view);
 
             void IntegrateSegment(SceneView* view);
             void IntegrateSegmentSingleThreadPerRayRiemann(SceneView* view);
-            void IntegrateSingleThreadPerRayWithSpacing(SceneView* view, CUfunction f);
             void IntegrateSingleThreadPerRayFull(SceneView* view);
             void IntegrateSingleWarpPerSegmentFull(SceneView* view);
             void IntegrateSegmentSingleThreadPerRay(SceneView* view);
@@ -122,25 +122,23 @@ namespace ElVis
             ///////////////////////////////////////////////////////////
             void ResetSampleCount();
 
+            OptiXBuffer<ElVisFloat> DensityBreakpoints;
+            OptiXBuffer<ElVisFloat> RedBreakpoints;
+            OptiXBuffer<ElVisFloat> GreenBreakpoints;
+            OptiXBuffer<ElVisFloat> BlueBreakpoints;
+
+            OptiXBuffer<ElVisFloat> DensityValues;
+            OptiXBuffer<ElVisFloat> RedValues;
+            OptiXBuffer<ElVisFloat> GreenValues;
+            OptiXBuffer<ElVisFloat> BlueValues;
+
             RayGeneratorProgram m_program;
+            static RayGeneratorProgram m_PerformVolumeRendering;
 
             // Element by Element Approach
             VolumeRenderingIntegrationType m_segmentIntegrationType;
-            CUfunction m_integrateSegmentSingleThreadPerRayRiemann;
-            CUfunction m_integrateFull;
-            CUfunction m_integrateFullSingleSegmentPerWarp;
-            CUfunction m_integrateSegmentSingleThreadPerRay;
-            CUfunction m_gkOnly;
-            CUfunction m_Trapezoidal_SingleThreadPerRay;
 
-            CUdeviceptr m_mappedSegmentIndex;
-            CUdeviceptr m_pixelCategoryBuf;
-            CUdeviceptr m_accumulatedOpacityBuf;
-            CUdeviceptr m_accumulatedColorBuf;
-            CUdeviceptr m_numSamples;
             bool m_enableSampleTracking;
-            CUfunction m_clearAccumlatorBuffers;
-            CUfunction m_populateColorBuffer;
             boost::shared_ptr<HostTransferFunction> m_transferFunction;
             ElVisFloat m_compositingStepSize;
             ElVisFloat m_epsilon;

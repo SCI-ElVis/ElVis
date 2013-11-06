@@ -29,6 +29,8 @@
 
 #include <ElVis/Core/SampleOntoNrrdModule.h>
 #include <ElVis/Core/SceneView.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
+
 #include <fstream>
 
 namespace ElVis
@@ -48,7 +50,7 @@ namespace ElVis
         }
 
         ElVisFloat3 h = MakeFloat3(targeth, targeth, targeth);
-        int3 n;
+        uint3 n;
 
         view->GetScene()->GetModel()->CalculateExtents();
         WorldPoint minExtent = view->GetScene()->GetModel()->MinExtent();
@@ -91,9 +93,9 @@ namespace ElVis
         SetFloat(context["SampleOntoNrrdH"], h);
 
         int bufferSize = n.x*n.y;
-        FloatingPointBuffer sampleBuffer("SampleOntoNrrdSamples", 1);
-        sampleBuffer.Create(context, RT_BUFFER_OUTPUT, n.x, n.y);
-        context["SampledOntoNrrdSamples"]->set(*sampleBuffer);
+        OptiXBuffer<ElVisFloat> sampleBuffer("SampleOntoNrrdSamples");
+        sampleBuffer.SetContext(context);
+        sampleBuffer.SetDimensions(n.x, n.y);
 
         float* convertBuffer = new float[n.x*n.y];
         SetFloat(context["SampleOntoNrrdMinExtent"], minExtent);
@@ -107,21 +109,20 @@ namespace ElVis
         try
         {
 
-            for(int i = 0; i < n.z; ++i)
+            for(unsigned int i = 0; i < n.z; ++i)
             {
                 context["SampleOntoNrrdPlane"]->setInt(i);
                 std::cout << "Sampling " << i << " of " << n.z-1 << std::endl;
                 context->launch(Program.Index, n.x, n.y);
                 std::cout << "Done sampling." << std::endl;
 
-                ElVisFloat* data = static_cast<ElVisFloat*>(sampleBuffer->map());
+                BOOST_AUTO(data, sampleBuffer.Map());
                 for(unsigned int i = 0; i < n.x*n.y; ++i)
                 {
                     convertBuffer[i] = data[i];
                 }
 
                 fwrite(convertBuffer, sizeof(float), bufferSize, nrrdDataFile);
-                sampleBuffer->unmap();
             }
         }
         catch(optixu::Exception& e)

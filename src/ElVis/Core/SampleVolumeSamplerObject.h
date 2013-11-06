@@ -34,12 +34,16 @@
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <optixu/optixpp.h>
 #include <optix_math.h>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/list.hpp>
 
 namespace ElVis
 {
     class SampleVolumeSamplerObject : public PrimaryRayObject
     {
         public:
+            friend class boost::serialization::access;
             ELVIS_EXPORT SampleVolumeSamplerObject();
             ELVIS_EXPORT explicit SampleVolumeSamplerObject(boost::shared_ptr<Object> obj);
             ELVIS_EXPORT virtual ~SampleVolumeSamplerObject();
@@ -54,6 +58,12 @@ namespace ElVis
             static bool Initialized;
             static bool InitializeStatic();
             static void LoadPrograms(const std::string& prefix, optixu::Context context);
+
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(PrimaryRayObject);
+            }
 
             static optixu::Material Material;
             static optixu::Program ClosestHitProgram;

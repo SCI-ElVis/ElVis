@@ -37,8 +37,14 @@
 #include <ElVis/Core/IntervalPoint.cu>
 #include <ElVis/Core/IntervalMatrix.cu>
 #include <ElVis/Core/ElementId.h>
+#include <ElVis/Core/ElementTraversal.cu>
+#include <ElVis/Core/FieldEvaluator.cu>
 
 #include <ElVis/Math/TrapezoidalIntegration.hpp>
+#include <ElVis/Core/TransferFunction.h>
+#include <ElVis/Core/InnerIntegralFunctor.cu>
+#include <ElVis/Core/GaussKronrod.cu>
+#include <ElVis/Core/FieldTrapezoidalIntegration.cu>
 
 // This file is meant to be included from a higher level .cu file which has already managed
 // the many of the necessary header inclusions.
@@ -50,170 +56,46 @@ rtBuffer<ElVisFloat2> OpacityTransferFunction;
 rtBuffer<ElVisFloat> IntensityBreakpoints;
 rtBuffer<ElVisFloat2> IntensityTransferFunction;
 
-rtBuffer<int> SegmentElementIdBuffer;
-rtBuffer<int> SegmentElementTypeBuffer;
-rtBuffer<ElVisFloat> SegmentStart;
-rtBuffer<ElVisFloat> SegmentEnd;
-rtBuffer<ElVisFloat3> SegmentRayDirection;
-rtBuffer<int> SegmentIdBuffer;
-rtBuffer<ElVis::ElementId> IdSortBuffer;
 
-rtBuffer<int> SomeSegmentsNeedToBeIntegrated;
+rtDeclareVariable(ElVisFloat, desiredH, , );
 
-rtDeclareVariable(rtObject, faceGroup, , );
-rtDeclareVariable(ElVisFloat, FaceTolerance, , );
-rtDeclareVariable(rtObject, faceForTraversalGroup, ,);
+// Data members for the transfer function.
+rtBuffer<ElVisFloat> DensityBreakpoints;
+rtBuffer<ElVisFloat> RedBreakpoints;
+rtBuffer<ElVisFloat> GreenBreakpoints;
+rtBuffer<ElVisFloat> BlueBreakpoints;
+
+rtBuffer<ElVisFloat> DensityValues;
+rtBuffer<ElVisFloat> RedValues;
+rtBuffer<ElVisFloat> GreenValues;
+rtBuffer<ElVisFloat> BlueValues;
+
+__device__ void GenerateTransferFunction(ElVis::TransferFunction& transferFunction)
+{
+    transferFunction.BlueBreakpoints() = &BlueBreakpoints[0];
+    transferFunction.RedBreakpoints() = &RedBreakpoints[0];
+    transferFunction.GreenBreakpoints() = &GreenBreakpoints[0];
+    transferFunction.DensityBreakpoints() = &DensityBreakpoints[0];
+
+    transferFunction.BlueValues() = &BlueValues[0];
+    transferFunction.GreenValues() = &GreenValues[0];
+    transferFunction.RedValues() = &RedValues[0];
+    transferFunction.DensityValues() = &DensityValues[0];
+
+    transferFunction.NumBlueBreakpoints() = BlueBreakpoints.size();
+    transferFunction.NumRedBreakpoints() = RedBreakpoints.size();
+    transferFunction.NumGreenBreakpoints() = GreenBreakpoints.size();
+    transferFunction.NumDensityBreakpoints() = DensityBreakpoints.size();
+}
 
 RT_PROGRAM void ElementByElementVolumeTraversalInit()
 {
-    ELVIS_PRINTF("Entering ElementByElementVolumeTraversalInit\n");
-    optix::size_t2 screen = color_buffer.size();
-    int segmentIndex = screen.x*launch_index.y + launch_index.x;
-   
-    ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Segment Index %d eye (%f, %f, %f)\n", segmentIndex, ray.origin.x, ray.origin.y, ray.origin.z);
-
-    SegmentIdBuffer[segmentIndex] = segmentIndex;
-    optix::Ray initialRay = GeneratePrimaryRay(screen, 2, 1e-3f);
-
-    ElVisFloat3 origin0 = MakeFloat3(initialRay.origin);
-    ElVisFloat3 rayDirection = MakeFloat3(initialRay.direction);
-    SegmentRayDirection[segmentIndex] = MakeFloat3(initialRay.direction);
-
-    VolumeRenderingPayload payload0;
-    payload0.Initialize();
-
-    optix::Ray ray0 = optix::make_Ray(initialRay.origin, initialRay.direction, 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray0, payload0);
-    rtTrace(faceForTraversalGroup, ray0, payload0);
-    //rtTrace(faceGroup, ray0, payload0);
-
-
-    if( payload0.FoundIntersection == 0 )
-    {
-         // Missed the volume entirely.
-        ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Missed volume.\n");
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        return;
-    }
-
-    // Cast a second ray to find where we leave the current element.
-    VolumeRenderingPayload payload1;
-    payload1.Initialize();
-
-    ElVisFloat3 origin1 = origin0 + payload0.IntersectionT*rayDirection;
-    optix::Ray ray1 = optix::make_Ray(ConvertToFloat3(origin1), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray1, payload1);
-    rtTrace(faceForTraversalGroup, ray1, payload1);
-    //rtTrace(faceGroup, ray1, payload1);
-
-    if( payload1.FoundIntersection == 0 )
-    {
-        // This means we just barely clipped a small portion of the volume, so we had
-        // an entrance, but no exit within the epsilon
-        ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Clipped volume.\n");
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        return;
-    }
-
-    SomeSegmentsNeedToBeIntegrated[0] = 1;
-
-    SegmentStart[segmentIndex] = payload0.IntersectionT;
-    SegmentEnd[segmentIndex] = payload0.IntersectionT + payload1.IntersectionT;
-
-    ELVIS_PRINTF("ElementByElementVolumeTraversalInit: Found intersection %2.15f.\n", payload0.IntersectionT);
-
-//    ElVisFloat3 normal;
-//    ElVisFloat3 pointOnSecondFace = origin1 + payload1.IntersectionT*rayDirection;
-//    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload1.FaceId, normal);
-//    SegmentElementIdBuffer[segmentIndex] = element.Id;
-//    SegmentElementTypeBuffer[segmentIndex] = element.Type;
-
-    // Determine the element by casting rays.
-    // For linear volumes not much slower than the comparisons with the normals,
-    // but quite slow for curved.
-    ElementFinderPayload findElementPayload = FindElement(origin1 + (MAKE_FLOAT(.5)*payload1.IntersectionT)*rayDirection);
-
-    if( findElementPayload.elementId >= 0 )
-    {
-        SegmentElementIdBuffer[segmentIndex] = findElementPayload.elementId;
-        SegmentElementTypeBuffer[segmentIndex] = findElementPayload.elementType;
-    }
-    else
-    {
-        SegmentElementIdBuffer[segmentIndex] = -1;
-    }
 
 }
 
 RT_PROGRAM void ElementByElementVolumeTraversal()
 {
-    optix::size_t2 screen = color_buffer.size();
-    int segmentIndex = screen.x*launch_index.y + launch_index.x;
-   
-    if( SegmentEnd[segmentIndex] < MAKE_FLOAT(0.0) )
-    {
-        // This ray has already left the volume.
-        return;
-    }
-    ElVisFloat startingT = SegmentEnd[segmentIndex];
-    ElVisFloat3 rayDirection = SegmentRayDirection[segmentIndex];
 
-    ELVIS_PRINTF("ElementByElementVolumeTraversal: Starting t %f \n", startingT);
-
-    // If we have already encountered an object we don't need to continue along this ray.
-    ElVisFloat depth = depth_buffer[launch_index];
-    ELVIS_PRINTF("ElementByElementVolumeTraversal best depth so far %2.10f\n", depth_buffer[launch_index]);
-    if( depth < startingT )
-    {
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        SegmentElementIdBuffer[segmentIndex] = -1;
-        return;
-    }
-
-    VolumeRenderingPayload payload;
-    payload.FoundIntersection = 0;
-    ElVisFloat3 origin = eye + startingT*rayDirection;
-
-    optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-    //rtTrace(PointLocationGroup, ray, payload);
-    rtTrace(faceForTraversalGroup, ray, payload);
-    //rtTrace(faceGroup, ray, payload);
-
-    if( payload.FoundIntersection == 0 )
-    {
-        // Left the volume.
-        SegmentEnd[segmentIndex] = MAKE_FLOAT(-1.0);
-        SegmentElementIdBuffer[segmentIndex] = -1;
-        return;
-    }
-
-    SomeSegmentsNeedToBeIntegrated[0] = 1;
-    ElVisFloat endingT = startingT + payload.IntersectionT;
-    SegmentStart[segmentIndex] = startingT;
-    SegmentEnd[segmentIndex] = endingT;
-       
-
-//    ElVisFloat3 normal;
-//    ElVisFloat3 pointOnSecondFace = origin + payload.IntersectionT*rayDirection;
-//    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload.FaceId, normal);
-//    SegmentElementIdBuffer[segmentIndex] = element.Id;
-//    SegmentElementTypeBuffer[segmentIndex] = element.Type;
-
-    // Determine the element by casting rays.
-    // For linear volumes not much slower than the comparisons with the normals,
-    // but quite slow for curved.
-    double h = (payload.IntersectionT)*MAKE_FLOAT(.5);
-    ElementFinderPayload findElementPayload = FindElement(origin + h*rayDirection);
-
-    if( findElementPayload.elementId >= 0 )
-    {
-        SegmentElementIdBuffer[segmentIndex] = findElementPayload.elementId;
-        SegmentElementTypeBuffer[segmentIndex] = findElementPayload.elementType;
-    }
-    else
-    {
-        SegmentElementIdBuffer[segmentIndex] = -1;
-    }
 }
 
 
@@ -941,6 +823,113 @@ RT_PROGRAM void FaceForTraversalBoundingBoxProgram(int primitiveId, float result
 
     aabb->m_min = make_float3(p0.x, p0.y, p0.z);
     aabb->m_max = make_float3(p1.x, p1.y, p1.z);
+}
+
+struct RiemannIntegration
+{
+  __device__ RiemannIntegration()
+  {
+    accumulatedColor = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+    accumulatedDensity = MAKE_FLOAT(0.0);
+  }
+
+  ElVisFloat3 accumulatedColor;
+  ElVisFloat accumulatedDensity;
+
+  __device__ bool operator()(const Segment& seg, const ElVisFloat3& origin)
+  {
+    ELVIS_PRINTF("RiemannIntegration\n");
+    optix::size_t2 screen = color_buffer.size();
+
+    uint2 pixel;
+    pixel.x = launch_index.x;
+    pixel.y = launch_index.y;
+
+    int elementId = seg.ElementId;
+    int elementTypeId = seg.ElementTypeId;
+
+    ElVisFloat a = seg.Start;
+    ElVisFloat b = seg.End;
+
+    ElVisFloat3 dir = seg.RayDirection;
+    ElVisFloat d = (b-a);
+
+    int n = Floor(d/desiredH);
+
+    ElVisFloat h;
+
+    if( n <= 1 )
+    {
+      h = b-a;
+      n = 1;
+    }
+    else
+    {
+      h= d/(ElVisFloat)(n-1);
+    }
+
+    //if( traceEnabled )
+    //{
+    //  ELVIS_PRINTF("Total segment range: [%2.15f, %2.15f], segment Id %d\n", segmentStart[segmentIndex], segmentEnd[segmentIndex], segmentIndex);
+    //  ELVIS_PRINTF("D = %2.15f, H = %2.15f, N = %d\n", d, h, n);
+    //}
+
+    //// First test for density identically 0.  This means the segment does not contribute at
+    //// all to the integral and can be skipped.
+    FieldEvaluator f;
+    f.Origin = origin;
+    f.Direction = dir;
+    f.ElementId = elementId;
+    f.ElementType = elementTypeId;
+    f.sampleCount = 0;
+    f.FieldId = FieldId;
+
+    ElVis::TransferFunction transferFunction;
+    GenerateTransferFunction(transferFunction);
+    ElVisFloat s0 = f(a);
+    ElVisFloat d0 = transferFunction.Sample(ElVis::eDensity, s0);
+    ElVisFloat3 color0 = transferFunction.SampleColor(s0);
+    ElVisFloat atten = expf(-accumulatedDensity);
+    accumulatedColor += h*color0*d0*atten;
+
+    accumulatedDensity += d0*h;
+
+    for(int i = 1; i < n; ++i)
+    {
+      ElVisFloat t = a+i*h;
+      ElVisFloat sample = f(t);
+      ElVisFloat densityValue = transferFunction.Sample(ElVis::eDensity, sample);
+
+      ElVisFloat3 sampleColor = transferFunction.SampleColor(sample);
+
+      ElVisFloat atten = expf(-accumulatedDensity);
+
+      accumulatedColor += h*sampleColor*densityValue*atten;
+
+      accumulatedDensity += densityValue*h;
+    }
+
+    return false;
+  }
+};
+
+__device__ bool UdpateVolumeRenderingForElement(const Segment& seg, const ElVisFloat3& origin)
+{
+  return false;
+}
+
+RT_PROGRAM void PerformVolumeRendering()
+{
+  RiemannIntegration integrator;
+  ElementTraversal(integrator);
+
+  if( integrator.accumulatedDensity > MAKE_FLOAT(0.0) )
+  {
+    ElVisFloat3 finalColor = integrator.accumulatedColor +
+      expf(-integrator.accumulatedDensity)*BGColor;
+    raw_color_buffer[launch_index] = finalColor;
+	  color_buffer[launch_index] = ConvertToColor(finalColor);
+  }
 }
 
 #endif

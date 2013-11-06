@@ -26,16 +26,28 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef ELVIS_CORE_INNER_INTEGRAL_FUNCTOR_CU
+#define ELVIS_CORE_INNER_INTEGRAL_FUNCTOR_CU
 
-#ifndef ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_CUDA_QUAD_CU
-#define ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_CUDA_QUAD_CU
+#include <ElVis/Core/Float.cu>
+#include <ElVis/Core/TransferFunction.h>
 
-__device__ uint* QuadVertexIndices;
-__device__ uint2* QuadModes;
+namespace ElVis
+{
+    struct InnerIntegralFunctor
+    {
+        ELVIS_DEVICE ElVisFloat GetMaxValue(const Interval<ElVisFloat>& domain) const
+        {
+            return transferFunction->GetMaxValue(eDensity, domain);
+        }
 
-__device__ uint* QuadCoeffMappingDir0;
-__device__ uint* QuadCoeffMappingDir1;
-__device__ ElVisFloat* QuadMappingCoeffsDir0;
-__device__ ElVisFloat* QuadMappingCoeffsDir1;
+
+        ELVIS_DEVICE ElVisFloat operator()(const ElVisFloat& t, const ElVisFloat& s, bool traceEnabled=false) const
+        {
+            return transferFunction->Sample(eDensity, s);
+        }
+        TransferFunction* transferFunction;
+    };
+}
 
 #endif

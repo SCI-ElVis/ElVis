@@ -57,10 +57,18 @@ MESSAGE(STATUS "Configuring tinyxml")
 ADD_SUBDIRECTORY(tinyxml)
 
 ##################################################
-# ADDING BOOST
+# Adding BOOST
 ##################################################
 
 MESSAGE(STATUS "Configuring boost")
 ADD_SUBDIRECTORY(boost)
+
+##################################################
+# ADDING OptiX
+##################################################
+
+#MESSAGE(STATUS "Configuring OptiX")
+#ADD_SUBDIRECTORY(OptiX)
+
 
 MESSAGE(STATUS "Configuring ElVis")

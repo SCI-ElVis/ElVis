@@ -29,7 +29,6 @@
 #ifndef ELVIS_FLOAT_H
 #define ELVIS_FLOAT_H
 
-#include <cuda.h>
 #include <vector_types.h>
 #include <optix.h>
 #include <device_functions.h>
