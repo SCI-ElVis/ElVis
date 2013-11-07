@@ -76,9 +76,9 @@ ELVIS_DEVICE void PXErrorReport( const char *file, const int line, const char *c
 #define PXErrorDebug(X) (X)
 #endif
 
-#include "PXShape_Elvis.c"
-#include "PXCoordinates_Elvis.c"
-#include "PXNormal_Elvis.c"
+#include "PXShape_Elvis.cu"
+#include "PXCoordinates_Elvis.cu"
+#include "PXNormal_Elvis.cu"
 
 
 
@@ -165,7 +165,7 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
     /* compute derived quantities */
     PX_REAL gmi = SpecificHeatRatio - 1.0;
     PX_REAL irho = 1.0/state[0];
-    PX_REAL vmag, p, M; //magnitude of velocity, pressure, speed of sound
+    PX_REAL vmag, p; //magnitude of velocity, pressure, speed of sound
     PX_REAL v2, q, E, e, a, a2, ia;
     PX_REAL vel[DIM3D] = {state[1]*irho, state[2]*irho, state[3]*irho};
     
@@ -183,7 +183,7 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
     ia = 1.0/a;
     vmag = sqrt(v2);
 
-    M = vmag*ia;
+    //M = vmag*ia;
 
     /* done if physicality check fails */
     if(p>0.0 && state[0] > 0.0){ //if not, leave result as 0.0

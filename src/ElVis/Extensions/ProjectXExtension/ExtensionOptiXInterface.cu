@@ -30,6 +30,7 @@
 #define _PX_EXTENSION_OPTIX_INTERFACE_CU
 
 #include <Fundamentals/PX.h>
+#include <ElVis/Core/OptixVariables.cu>
 
 rtDeclareVariable(int, Dim, , );
 rtDeclareVariable(int, StateRank, , );
@@ -46,7 +47,7 @@ rtDeclareVariable(PX_REAL, GasConstant, , );
 
 
 #include "PXOptiXCudaCommon.cu"
-#include "PXCutCell_ElVis.c"
+#include "PXCutCell_ElVis.cu"
 #include <ElVis/Core/Interval.hpp>
 
 rtBuffer<ElVisFloat> PXSimplexBoundingBoxBuffer;
@@ -108,6 +109,7 @@ void EstimateRange(unsigned int elementId, unsigned int elementType,
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result)
 {
+	return eConvergenceFailure;
 #if PX_USE_ISOSURF
     ElVisFloat r = refPoint.x;
     ElVisFloat s = refPoint.y;
@@ -138,6 +140,8 @@ ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPo
 
 RT_PROGRAM void PXSimplexContainsOriginByCheckingPoint(int PXSimplexId)
 {
+	return;
+
     ELVIS_PRINTF("PXSimplexContainsOriginByCheckingPoint: Checking element %d\n", PXSimplexId);
     PX_REAL xglobal[3] = {ray.origin.x, ray.origin.y, ray.origin.z};
     int boundingBoxFlag = 0;
@@ -393,6 +397,8 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
 {
     ELVIS_PRINTF("ConvertWorldToReferenceSpaceOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
                  elementId, worldPoint.x, worldPoint.y, worldPoint.z);
+    return eConvergenceFailure;
+
     if( referenceType != ElVis::eReferencePointIsValid )
     {
         int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
@@ -431,6 +437,9 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                const PointType& referencePoint,
                                                                ResultType& result)
 {
+	result = 0;
+	return eNoError;
+
     ELVIS_PRINTF("SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
                  elementId, worldPoint.x, worldPoint.y, worldPoint.z);
     int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
@@ -468,12 +477,10 @@ ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
 
 ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
 {
-#if PX_USE_ISOSURF
     result.x = PXSimplexFaceCoordinateBuffer[DIM3D*nbfQFace*faceId+vertexId*DIM3D];
     result.y = PXSimplexFaceCoordinateBuffer[DIM3D*nbfQFace*faceId+vertexId*DIM3D+1];
     result.z = PXSimplexFaceCoordinateBuffer[DIM3D*nbfQFace*faceId+vertexId*DIM3D+2];
     return eNoError;
-#endif
 }
 
 ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& p, bool& result)
@@ -493,6 +500,14 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds)
 {
+
+	   dx_dr = 0.0; dx_ds = 0.0;
+	   dy_dr = 0.0; dy_ds = 0.0;
+	   dz_dr = 0.0; dz_ds = 0.0;
+
+   return eNoError;
+
+   ELVIS_PRINTF("EvaluateFaceJacobian");
    const T& r = p.x;
    const T& s = p.y;
 
@@ -531,6 +546,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
 // This function assumes it will only be called for planar faces.
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& result)
 {
+	//return eConvergenceFailure;
     PX_REAL xface[2] = {MAKE_FLOAT(0.0), MAKE_FLOAT(0.0)};
     PX_REAL nvec[3];
 
@@ -544,6 +560,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId
 
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, int faceId, ElVisFloat3& result)
 {
+	return eConvergenceFailure;
 #if PX_USE_ISOSURF
     PX_REAL xface[2] = {referencePointOnFace.x, referencePointOnFace.y};
     PX_REAL nvec[3];

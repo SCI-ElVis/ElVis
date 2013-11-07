@@ -72,7 +72,7 @@ URL:    http://raphael.mit.edu
 /******************************************************************/
 //   FUNCTION Definition: PXCrossProduct
 ELVIS_DEVICE void 
-PXCrossProduct(PX_REAL const * RESTRICT u, PX_REAL const * RESTRICT v, PX_REAL * RESTRICT w)
+PXCrossProduct(PX_REAL const *u, PX_REAL const *v, PX_REAL *w)
 {
   w[0] = u[1]*v[2] - u[2]*v[1];
   w[1] = u[2]*v[0] - u[0]*v[2];
@@ -108,21 +108,18 @@ PXFaceNormalReferenceGivenGradients( int Dim, int nnode, PX_REAL const *gphi,
   int d;          // index over dimension
   int t;          // index over tangent vectors
   int k;          // number of basis functions
-  PX_REAL x_u[6] = {0.0}; // tangent vectors
-  
-  /* Zero out Tangent vectors */
-  //memset( x_u, 0.0, Dim*(Dim-1)*sizeof(PX_REAL) );
-  
+  PX_REAL x_u[6] = {0., 0., 0., 0., 0., 0.}; // tangent vectors
+
   /* Compute tangent vectors */
   for ( t = 0; t < DIM3D-1; t++)
     for ( k = 0; k < nnode; k++)
       for ( d = 0; d < DIM3D; d++)
-	x_u[t*DIM3D+d] += xnodes[k*DIM3D+d]*gphi[t*nnode+k];
+        x_u[t*DIM3D+d] += xnodes[k*DIM3D+d]*gphi[t*nnode+k];
   
   /* Compute normal */
 
     /* Compute normal as cross product */
-    PXCrossProduct( x_u, x_u+DIM3D, nvec);
+  PXCrossProduct( x_u, x_u+DIM3D, nvec);
 
   return PX_NO_ERROR;
 }
@@ -155,7 +152,6 @@ PXOutwardNormal( enum PXE_SolutionOrder orderQ, int qorder, int nbfQ, PX_FaceDat
 
   int d;                 // dimension
 
-  int k,nbf,nnode;         // number of nodes on face 
   PX_REAL xfacelocal[2];         // reference coordinates on element face
   PX_REAL gphi[DIM3D*MAX_NBF_FACE];
 

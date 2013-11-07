@@ -30,7 +30,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <ElVis/Extensions/ProjectXExtension/PXModel.h>
+#define ELVIS_USE_PROJECTX
+
+#include "PXModel.h"
 #include <ElVis/Core/PtxManager.h>
 #include <ElVis/Core/Util.hpp>
 #include <ElVis/Core/Scene.h>
@@ -100,25 +102,25 @@ extern "C"{
       bBox[dim+d] = center + (1.0+padFactor)*delta;
     }
   }
+}
 
-  std::string GetPluginName(){
-    std::string pluginName("ProjectXPlugin");
-    return pluginName;
-  }
+std::string GetPluginName()
+{
+  std::string pluginName("ProjectXPlugin");
+  return pluginName;
+}
 
-  ElVis::Model* LoadModel(const char* path){
-    ElVis::PXModel * result = new ElVis::PXModel();
-    result->LoadVolume(std::string(path));
-    return result;
-  }
+ElVis::Model* LoadModel(const char* path)
+{
+  ElVis::PXModel * result = new ElVis::PXModel(path);
+  result->LoadVolume(std::string(path));
+  return result;
+}
 
-
-  std::string GetVolumeFileFilter(){
-    std::string fileExtension("ProjectX PXA (*.pxa)");
-    return fileExtension;
-  }
-
-
+std::string GetVolumeFileFilter()
+{
+  std::string fileExtension("ProjectX PXA (*.pxa)");
+  return fileExtension;
 }
 
 
@@ -162,20 +164,13 @@ namespace ElVis
   // const std::string PXModel::PrismBoundingProgramName("PrismBounding");
   // const std::string PXModel::PrismClosestHitProgramName("EvaluatePrismScalarValueArrayVersion");
 
-  unsigned int PXModel::DoGetNumberOfPoints() const{
-    return 0;
-  }
-
-  WorldPoint PXModel::DoGetPoint(unsigned int id) const {
-    return WorldPoint();
-  }
-
   const std::string& PXModel::DoGetPTXPrefix() const{
     static std::string extensionName("ProjectXExtension");
     return extensionName;
   }
 
-  PXModel::PXModel() :
+  PXModel::PXModel(const std::string& modelPath) :
+    Model(modelPath),
     m_solutionBuffer(prefix + "SolutionBuffer"),
     m_coordinateBuffer(prefix + "CoordinateBuffer"),
     m_boundingBoxBuffer(prefix + "BoundingBoxBuffer"),
@@ -242,15 +237,16 @@ namespace ElVis
     }
 
 
-    PX_AttachmentGlobRealElem *State;
+    PX_AttachmentGlobRealElem *State = 0;
     int currentIndex = 0;
     PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL,
 				      &State, NULL ) );
 
-    int d;
+    //State can be null if the file was not found
     int StateRank = State->StateRank;
     printf("StateRank = %d\n", StateRank);
     m_numFieldsToPlot = StateRank + 7;
+
 
     printf("00000000000\n");
   }
@@ -269,6 +265,7 @@ namespace ElVis
     }
     /* WARNING this is NOT safe.  But I'm too lazy to give
        ElVis access to PXCompressible.h */
+
     char svalue[200];
     int turbulenceModel = 1;
 
@@ -280,6 +277,7 @@ namespace ElVis
     PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL,
 				      &State, NULL ) );
     int StateRank = State->StateRank;
+
 
     FieldInfo result;
     result.Name = "UNINITIALIZED";
@@ -595,7 +593,7 @@ namespace ElVis
 
               /* assert that all elements in meshsurf are Q2 tets */
               enum PXE_ElementType truthSurfType = PXE_UniformTriangleQ2;
-              int nCorrect=0, nCorrect2=0, nCorrect3=0, nCorrect4=0;
+              int nCorrect=0, nCorrect2=0, nCorrect3=0;
               for(elem=0; elem<meshSurf->nElement; elem++){
                   nCorrect += meshSurf->Element[elem].MasterGridElement->Type == truthSurfType;
               }
@@ -616,7 +614,7 @@ namespace ElVis
 
               for(egrp = 0; egrp<pg->nElementGroup; egrp++){
                   if(pg->ElementGroup[egrp].type == PXE_TetCut){
-                      nCorrect = 0; nCorrect2 = 0; nCorrect3 = 0; nCorrect4=0;
+                      nCorrect = 0; nCorrect2 = 0; nCorrect3 = 0;
                       nThreeDTotal = 0;
                       for(elem=0; elem<pg->ElementGroup[egrp].nElement; elem++){
                           nCorrect += pg->ElementGroup[egrp].ShadowType[elem] == truthShadowType;
@@ -731,7 +729,6 @@ namespace ElVis
               int nPatchIndexesTotal = 0;
               int nLinkedTwoD;
               int kTwoD, jTwoD;
-              int nPatchFace = 0;
               int *linkedTwoD;
               ThreeD_TwoD* TwoD;
               ThreeD_TwoD* allTwoD = Intersect->TwoD;
@@ -795,9 +792,6 @@ namespace ElVis
 
               int threeDCtr = 0;
               int nPatch;
-              int nPatchGroup;
-              int curCutCellLength; //in bytes
-              int curPatchGroupLength; //in bytes
               int totalPatchGroupLength; //cummulative length of patch groups over 1 cut cell
               int *patchList;
               PX_PatchGroup *patchGroup;
@@ -905,7 +899,6 @@ namespace ElVis
 
               //sanity check: make sure the length values in CutCell & PatchGroup types
               //are at least consistent
-              ptrdiff_t cutCellTotalCheck;
               ptrdiff_t patchGroupCheck;
               unsigned int* cutCellSizeBase = (unsigned int*)malloc(nCutCellTotal*sizeof(unsigned int));
               unsigned int* cutCellSizePtr = cutCellSizeBase;
@@ -1125,7 +1118,6 @@ namespace ElVis
   void PXModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces)
   {
       PX_Grid *pg = m_pxa->pg;
-      PX_AttachmentGlobRealElem *State;
       ElVisFloat *faceCoordPtr;
       ElVisFloat * bBoxMinPtr;
       ElVisFloat * bBoxMaxPtr;
@@ -1135,15 +1127,14 @@ namespace ElVis
       PX_REAL bBoxTemp[BBOX_SIZE];
       ElVisFloat bBoxTempElVis[BBOX_SIZE];
 
-      int solnRank, geomRank;
+      int geomRank;
       int fgrp, face;
       int egrp, elem, lface;
-      int egrpR, elemR, lfaceR;
-      int i,j,k;
+      int egrpR, elemR;
+      int i;
       int qorder;
-      int nbf, nbfQ, nbfQFace;
+      int nbfQ, nbfQFace;
       int nFaceTotal = 0;
-      int nCutFaceTotal = 0;
 
       int d;
       int Dim = pg->Dim;
@@ -1163,9 +1154,6 @@ namespace ElVis
       //count number of faces
       for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
           nFaceTotal += pg->FaceGroup[fgrp].nFace;
-          for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){
-
-          }
       }
 
       //assert that all face types are the same
@@ -1227,7 +1215,6 @@ namespace ElVis
 
       int nodesOnFace[36];
       int nNodesOnFace;
-      int globalFaceIndex = 0;
 
       faceDefsPtr = faceDefs.get();
       faceCoordPtr = faceCoordinate.get();
@@ -1241,19 +1228,19 @@ namespace ElVis
               elem = pg->FaceGroup[fgrp].FaceL[face].Element;
               lface = pg->FaceGroup[fgrp].FaceL[face].Face;
               elemType = pg->ElementGroup[egrp].type;
-
+/*
               if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) ){
                   egrpR = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
                   elemR = pg->FaceGroup[fgrp].FaceR[face].Element;
-                  lfaceR = pg->FaceGroup[fgrp].FaceR[face].Face;
+                  //lfaceR = pg->FaceGroup[fgrp].FaceR[face].Face;
                   elemTypeR = pg->ElementGroup[egrpR].type;
               }else{
                   egrpR = egrp;
                   elemR = elem;
-                  lfaceR = lface;
+                  //lfaceR = lface;
                   elemTypeR = elemType;
               }
-
+*/
 	      //for curved faces
               PXNodesOnFace(elemType, lface, nodesOnFace, &nNodesOnFace);
               if(nNodesOnFace != nbfQFace)
@@ -1315,8 +1302,20 @@ namespace ElVis
               faceDefsPtr[face].CommonElements[0].Id = egrp2GlobalElemIndex[egrp] + elem;
               faceDefsPtr[face].CommonElements[0].Type = (int) elemType;
 
-              faceDefsPtr[face].CommonElements[1].Id = egrp2GlobalElemIndex[egrpR] + elemR;
-              faceDefsPtr[face].CommonElements[1].Type = (int) elemTypeR;
+   
+
+              if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) ){
+                  egrpR = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+                  elemR = pg->FaceGroup[fgrp].FaceR[face].Element;
+                  elemTypeR = pg->ElementGroup[egrpR].type;
+
+                  faceDefsPtr[face].CommonElements[1].Id = egrp2GlobalElemIndex[egrpR] + elemR;
+                  faceDefsPtr[face].CommonElements[1].Type = (int) elemTypeR;
+
+              }else{
+                  faceDefsPtr[face].CommonElements[1].Id = -1;
+                  faceDefsPtr[face].CommonElements[1].Type = -1;
+              }
 
               if(qorder == 1)
                   faceDefsPtr[face].Type = ePlanar;
@@ -1390,8 +1389,7 @@ namespace ElVis
   {
       PX_Grid *pg = m_pxa->pg;
 
-       int fgrp, face;
-       int bfgrp;
+       int fgrp;
 
        //COUNTING boundary face groups
        int numBoundaryFaceGroup = 0;

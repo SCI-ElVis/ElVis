@@ -179,8 +179,8 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceCuda(int elementId, int elem
     int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
     int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
 
-    int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
-    int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+    //int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
+    //int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
 
     int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
     int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
