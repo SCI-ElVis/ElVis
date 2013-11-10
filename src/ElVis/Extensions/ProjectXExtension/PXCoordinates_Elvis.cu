@@ -77,8 +77,6 @@ ELVIS_DEVICE int
 PXRef2GlobFromCoordinatesGivenShape2(int nbf, int globDim, PX_REAL const * RESTRICT nodeCoordinates, 
 				     PX_REAL * RESTRICT xglobal, PX_REAL const * RESTRICT phi)
 {
-  int ierr;
-  int d;
   int node;
   PX_REAL temp1;
   PX_REAL temp2;
@@ -131,11 +129,11 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nb
 					      DT const * RESTRICT xref, DT * RESTRICT JACT, 
 					      DT * RESTRICT pJ, DT * RESTRICT ijac, 
 					      DT const * RESTRICT gphi, enum PXE_Boolean CoordinateVerbosity){
-  int ierr;
+  //int ierr;
   //int Dim;
   //int nnode;
-  int i,j,k;
-  enum PXE_SolutionOrder order;
+  int i,k;
+  //enum PXE_SolutionOrder order;
   DT T[9];
   DT J=0.0;
   DT *jacT;
@@ -238,7 +236,6 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nb
   default:
     //ELVIS_PRINTF("Dim = %d not supported in ProjectX\n", Dim);
     return PXErrorDebug(PX_CODE_FLOW_ERROR);
-    break;
   }
 
   /* set pointer */
@@ -444,7 +441,7 @@ PXFace2RefTetOrientation0(int lface, PX_REAL const * RESTRICT xfacelocal, PX_REA
  RETURNS:
    Error Code
 */
-  PX_REAL temp;
+  //PX_REAL temp;
 
   /* xface held face reference coordinates on the reference triangle
      {(0,0),(1,0),(0,1)} in some orientation (so the basis vectors
@@ -729,7 +726,7 @@ ELVIS_DEVICE int
 PXGlob2RefFromCoordinates2(PX_ElementTypeData const *typeData, PX_REAL const *xnodes, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref, enum PXE_Boolean initialGuessProvided, enum PXE_Boolean CoordinateVerbosity)
 {
   int ierr = PX_NO_ERROR;              // error code
-  int d, d1, d2;
+  int d;
   const int Dim = DIM3D;
   int node;              // index over the nodes of an element
   int qorder;            // polynomial order of the element
