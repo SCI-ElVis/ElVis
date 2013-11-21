@@ -103,7 +103,8 @@ namespace ElVis
             HexPlaneBuffer("HexPlaneBuffer"),
             PrismPlaneBuffer("PrismPlaneBuffer"),
             FaceVertexBuffer("FaceVertexBuffer"),
-            FaceNormalBuffer("FaceNormalBuffer")
+            FaceNormalBuffer("FaceNormalBuffer"),
+            m_verticesLookupMap(closePointLessThan)
         {
         }
 
@@ -134,6 +135,11 @@ namespace ElVis
             std::cout << "Max Extent: " << maxExtent << std::endl;
             SetMinExtent(minExtent);
             SetMaxExtent(maxExtent);
+
+
+
+            PopulateFaces<Hexahedron>(m_volume, m_faces);
+            PopulateFaces<Prism>(m_volume, m_faces);
 
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
             {
@@ -192,28 +198,23 @@ namespace ElVis
 
         void JacobiExtensionModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)
         {
-            std::map<JacobiFace, FaceDef> faces;
-
-            PopulateFaces<Hexahedron>(m_volume, faces);
-            PopulateFaces<Prism>(m_volume, faces);
-
-            scene->GetFaceMinExtentBuffer().SetDimensions(faces.size());
-            scene->GetFaceMaxExtentBuffer().SetDimensions(faces.size());
+            scene->GetFaceMinExtentBuffer().SetDimensions(m_faces.size());
+            scene->GetFaceMaxExtentBuffer().SetDimensions(m_faces.size());
 
             BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
             BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
             FaceVertexBuffer.SetContext(context);
-            FaceVertexBuffer.SetDimensions(faces.size()*4);
+            FaceVertexBuffer.SetDimensions(m_faces.size()*4);
             FaceNormalBuffer.SetContext(context);
-            FaceNormalBuffer.SetDimensions(faces.size());
+            FaceNormalBuffer.SetDimensions(m_faces.size());
 
-            scene->GetFaceIdBuffer().SetDimensions(faces.size());
+            scene->GetFaceIdBuffer().SetDimensions(m_faces.size());
             BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             int index = 0;
-            for(std::map<JacobiFace, FaceDef>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
+            for(std::map<JacobiFace, FaceDef>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
             {
                 const JacobiFace& face = (*iter).first;
                 FaceDef faceDef = (*iter).second;
@@ -261,7 +262,7 @@ namespace ElVis
             // All Jacobi faces are planar, but can be switched to curved for testing the
             // intersection routines.
 
-            faceGeometry->setPrimitiveCount(faces.size());
+            faceGeometry->setPrimitiveCount(m_faces.size());
             //curvedFaces->setPrimitiveCount(faces.size());
         }
 
@@ -400,6 +401,41 @@ namespace ElVis
 
         void JacobiExtensionModel::DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds)
         {
+        }
+
+        size_t JacobiExtensionModel::DoGetNumberOfLinearFaces() const
+        {
+            return 0;
+        }
+
+        size_t JacobiExtensionModel::DoGetNumberOfLinearFaceVertices() const
+        {
+            return m_vertices.size();
+        }
+
+        size_t JacobiExtensionModel::DoGetNumberOfVerticesForLinearFace(size_t faceId) const
+        {
+            return 0;
+        }
+
+        size_t JacobiExtensionModel::DoGetFaceVertexIndex(size_t faceId, size_t vertexId)
+        {
+            return 0;
+        }
+
+        WorldPoint JacobiExtensionModel::DoGetVertex(size_t vertexId) const
+        {
+            return WorldPoint();
+        }
+
+        size_t JacobiExtensionModel::DoGetInsideElementId(size_t faceId) const
+        {
+            return 0;
+        }
+
+        size_t JacobiExtensionModel::DoGetOutsideElementId(size_t faceId) const
+        {
+            return 0;
         }
 
     }
