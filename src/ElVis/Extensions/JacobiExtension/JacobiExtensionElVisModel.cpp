@@ -190,7 +190,7 @@ namespace ElVis
             return false;
         }
 
-        void JacobiExtensionModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)
+        void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faceGeometry)
         {
             std::map<JacobiFace, FaceDef> faces;
 
@@ -265,7 +265,7 @@ namespace ElVis
             //curvedFaces->setPrimitiveCount(faces.size());
         }
 
-        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
+        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
         {
             try
             {        
@@ -338,7 +338,7 @@ namespace ElVis
             }
         }
 
-        std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
+        std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
         {
             return std::vector<optixu::GeometryInstance>();
         }

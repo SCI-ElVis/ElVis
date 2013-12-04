@@ -155,7 +155,7 @@ namespace ElVis
                 std::list<DirectionalLight*> allDirectionalLights;
                 std::list<PointLight*> allPointLights;
                 std::cout << "Total Lights: " << m_allLights.size() << std::endl;
-                for(std::list<Light*>::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
+                for(std::list<boost::shared_ptr<Light>>::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
                 {
                     DirectionalLight* asDirectional = dynamic_cast<DirectionalLight*>(*iter);
                     PointLight* asPointLight = dynamic_cast<PointLight*>(*iter);
@@ -242,7 +242,7 @@ namespace ElVis
     {
         //if( GetModel()->GetModelDimension() != 3 ) return;
 
-        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context);
+        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(shared_from_this(), m_context);
         optixu::Group volumeGroup = m_context->createGroup();
         volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
 
@@ -278,7 +278,7 @@ namespace ElVis
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
         m_faceGeometry = m_context->createGeometry();
         m_faceGeometry->setPrimitiveCount(0);
-        GetModel()->GetFaceGeometry(this, m_context, m_faceGeometry);
+        GetModel()->GetFaceGeometry(shared_from_this(), m_context, m_faceGeometry);
         m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
         m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
 

@@ -290,7 +290,7 @@ namespace ElVis
             LoadFields(fieldFile);
         }
 
-        std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
+        std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
         {
            
             try
@@ -516,7 +516,7 @@ namespace ElVis
             return numFaces;
         }
 
-        void NektarModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)
+        void NektarModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faceGeometry)
         {
             int numFaces = 0;
             numFaces += m_graph->GetAllTriGeoms().size();
@@ -603,7 +603,7 @@ namespace ElVis
 
         }
 
-        std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
+        std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
         {
             std::vector<optixu::GeometryInstance> result;
             if( m_graph->GetMeshDimension() != 2 )

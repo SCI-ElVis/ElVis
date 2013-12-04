@@ -46,6 +46,7 @@
 #include <ElVis/Core/Cylinder.h>
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 //#define OFFSET -.1
 
@@ -66,7 +67,7 @@ namespace ElVis
         }
 
         ApplicationState::ApplicationState() :
-            m_scene(new ElVis::Scene()),
+            m_scene(boost::make_shared<ElVis::Scene())),
             m_surfaceSceneView(new SceneView()),
             m_selectedObject(),
             m_selectedTransferFunction(),

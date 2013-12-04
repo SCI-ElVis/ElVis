@@ -116,10 +116,10 @@ namespace ElVis
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT LibUtilities::SessionReaderSharedPtr GetSession() const;
 
             protected:
-                virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context);
+                virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const;

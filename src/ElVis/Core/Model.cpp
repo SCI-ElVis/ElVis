@@ -70,12 +70,12 @@ namespace ElVis
         return m_center;
     }
 
-    std::vector<optixu::GeometryGroup> Model::GetPointLocationGeometry(Scene* scene, optixu::Context context)
+    std::vector<optixu::GeometryGroup> Model::GetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
     {
         return DoGetPointLocationGeometry(scene, context);
     }
 
-    void Model::GetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces)
+    void Model::GetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces)
     {
         return DoGetFaceGeometry(scene, context, faces);
     }
@@ -90,9 +90,14 @@ namespace ElVis
         DoGetBoundarySurface(surfaceIndex, name, faceIds);
     }
 
-    std::vector<optixu::GeometryInstance> Model::Get2DPrimaryGeometry(Scene* scene, optixu::Context context)
+    std::vector<optixu::GeometryInstance> Model::Get2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
     {
         return DoGet2DPrimaryGeometry(scene, context);
+    }
+
+    void Model::InitializeOptiX(boost::shared_ptr<Scene> scene, optixu::Context context)
+    {
+      DoInitializeOptiX(scene, context);
     }
 
     int Model::GetModelDimension() const

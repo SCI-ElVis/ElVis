@@ -54,16 +54,14 @@ namespace ElVis
             const WorldPoint& MinExtent() const { return m_minExtent; }
             const WorldPoint& MaxExtent() const { return m_maxExtent; }
 
-            // These are for the conversion extension and shouldn't be here.
-//            ELVIS_EXPORT unsigned int GetNumberOfPoints() const { return DoGetNumberOfPoints(); }
-//            ELVIS_EXPORT WorldPoint GetPoint(unsigned int id) const { return DoGetPoint(id); }
-
             ELVIS_EXPORT unsigned int GetNumberOfElements() const { return DoGetNumberOfElements(); }
 
             /// \brief Generates the OptiX geometry nodes necessary to perform ray/element intersections.
-            ELVIS_EXPORT std::vector<optixu::GeometryGroup> GetPointLocationGeometry(Scene* scene, optixu::Context context);
-            ELVIS_EXPORT void GetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
-            ELVIS_EXPORT std::vector<optixu::GeometryInstance> Get2DPrimaryGeometry(Scene* scene, optixu::Context context);
+            ELVIS_EXPORT virtual void InitializeOptiX(boost::shared_ptr<Scene> scene, optixu::Context context);
+
+            ELVIS_EXPORT std::vector<optixu::GeometryGroup> GetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
+            ELVIS_EXPORT void GetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces);
+            ELVIS_EXPORT std::vector<optixu::GeometryInstance> Get2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
             ELVIS_EXPORT virtual optixu::Material Get2DPrimaryGeometryMaterial(SceneView* view) { return DoGet2DPrimaryGeometryMaterial(view); }
 
             ELVIS_EXPORT int GetModelDimension() const; 
@@ -142,9 +140,17 @@ namespace ElVis
 
             virtual const std::string& DoGetPTXPrefix() const = 0;
 
-            ELVIS_EXPORT virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context) = 0;
-            ELVIS_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces) = 0;
-            ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context) = 0;
+            /// \brief This method should initialize any OptiX information not
+            ///  handled by the other virtual methods.
+            ///
+            ///  An example of data not called out in other virtual methods 
+            ///  is field information.  This data should be transferred to the 
+            ///  GPU in this function.
+            ELVIS_EXPORT virtual void DoInitializeOptiX(boost::shared_ptr<Scene> scene, optixu::Context context) = 0;
+
+            ELVIS_EXPORT virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context) = 0;
+            ELVIS_EXPORT virtual void DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces) = 0;
+            ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context) = 0;
             ELVIS_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view) = 0;
 
             // These are for the conversion extension and shouldn't be here.

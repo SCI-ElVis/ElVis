@@ -58,7 +58,7 @@
 #include <ElVis/Core/ColorMapperModule.h>
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
 
-
+#include <boost/make_shared.hpp>
 
 
 int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath)
@@ -68,7 +68,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     glutInitWindowSize(100, 100);
     glutCreateWindow("fake");
 
-    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
     boost::shared_ptr<ElVis::Cylinder> cylinder(new ElVis::Cylinder());
