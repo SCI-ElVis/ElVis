@@ -57,7 +57,7 @@ int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> m
     boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);

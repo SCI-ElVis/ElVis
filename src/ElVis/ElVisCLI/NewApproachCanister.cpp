@@ -79,7 +79,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     cylinder->GetTransformationMatrix()[10] = .41f;
    
     
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -276,7 +276,7 @@ int GenericCLIInterface(int argc, char** argv,
     system("nvidia-smi");
     #endif
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);

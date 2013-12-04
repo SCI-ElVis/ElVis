@@ -127,7 +127,7 @@ namespace ElVis
         }
 
 
-        std::vector<optixu::GeometryInstance> twoDGroups = model->Get2DPrimaryGeometry(m_scene.get(), context);
+        std::vector<optixu::GeometryInstance> twoDGroups = model->Get2DPrimaryGeometry(m_scene, context);
         if( twoDGroups.empty() )
         {
             return;

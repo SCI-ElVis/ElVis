@@ -136,6 +136,22 @@ namespace ElVis
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetModelDimension() const;
 
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoInitializeOptiX(boost::shared_ptr<Scene> scene, optixu::Context context) {}
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfLinearFaces() const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfLinearFaceVertices() const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfVerticesForLinearFace(size_t faceId) const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetFaceVertexIndex(size_t faceId, size_t vertexId);
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual WorldPoint DoGetVertex(size_t vertexId) const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetInsideElementId(size_t faceId) const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetOutsideElementId(size_t faceId) const;
+
             private:
                 NektarModel(const NektarModel& rhs);
 

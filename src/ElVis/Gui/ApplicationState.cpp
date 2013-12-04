@@ -67,7 +67,7 @@ namespace ElVis
         }
 
         ApplicationState::ApplicationState() :
-            m_scene(boost::make_shared<ElVis::Scene())),
+            m_scene(boost::make_shared<ElVis::Scene>()),
             m_surfaceSceneView(new SceneView()),
             m_selectedObject(),
             m_selectedTransferFunction(),

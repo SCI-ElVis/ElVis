@@ -236,7 +236,7 @@ namespace ElVis
             {
                     m_globalExpansions[j]->ExtractDataToCoeffs(m_fieldDefinitions[i],
                                                 fieldData[i],
-							       m_fieldDefinitions[i]->m_fields[j], m_globalExpansions[j]->UpdateCoeffs());
+                     m_fieldDefinitions[i]->m_fields[j], m_globalExpansions[j]->UpdateCoeffs());
                 }
                 m_globalExpansions[j]->BwdTrans(
                     m_globalExpansions[j]->GetCoeffs(),
@@ -561,6 +561,41 @@ namespace ElVis
             }
         }
 
+        size_t NektarModel::DoGetNumberOfLinearFaces() const
+        {
+          return 0;
+        }
+
+        size_t NektarModel::DoGetNumberOfLinearFaceVertices() const
+        {
+          return 0;
+        }
+
+        size_t NektarModel::DoGetNumberOfVerticesForLinearFace(size_t faceId) const
+        {
+          return 0;
+        }
+
+        size_t NektarModel::DoGetFaceVertexIndex(size_t faceId, size_t vertexId)
+        {
+          return 0;
+        }
+
+        WorldPoint NektarModel::DoGetVertex(size_t vertexId) const
+        {
+          return WorldPoint();
+        }
+
+        size_t NektarModel::DoGetInsideElementId(size_t faceId) const
+        {
+          return 0;
+        }
+
+        size_t NektarModel::DoGetOutsideElementId(size_t faceId) const
+        {
+          return 0;
+        }
+
         namespace detail
         {
             
@@ -586,6 +621,8 @@ namespace ElVis
                     
                 ++idx;
             }
+
+
 
             void CopyTriangleCoefficients(Nektar::SpatialDomains::TriGeomSharedPtr tri,
               ElVisFloat*& coeffs0, ElVisFloat*& coeffs1)

@@ -71,7 +71,7 @@ int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> mode
     scene->SetModel(model);
 
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -255,7 +255,7 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
     scene->SetModel(model);
 
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);

@@ -152,13 +152,13 @@ namespace ElVis
                 // same scene.
                 m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
 
-                std::list<DirectionalLight*> allDirectionalLights;
-                std::list<PointLight*> allPointLights;
+                std::list<boost::shared_ptr<DirectionalLight> > allDirectionalLights;
+                std::list<boost::shared_ptr<PointLight> > allPointLights;
                 std::cout << "Total Lights: " << m_allLights.size() << std::endl;
                 for(std::list<boost::shared_ptr<Light>>::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
                 {
-                    DirectionalLight* asDirectional = dynamic_cast<DirectionalLight*>(*iter);
-                    PointLight* asPointLight = dynamic_cast<PointLight*>(*iter);
+                    BOOST_AUTO(asDirectional, boost::shared_dynamic_cast<DirectionalLight>(*iter));
+                    BOOST_AUTO(asPointLight, boost::shared_dynamic_cast<PointLight>(*iter));
 
                     if( asDirectional )
                     {
@@ -183,7 +183,7 @@ namespace ElVis
                 float* colorData = static_cast<float*>(lightColorBuffer->map());
 
                 int i = 0;
-                for(std::list<PointLight*>::const_iterator iter = allPointLights.begin(); iter != allPointLights.end(); ++iter)
+                for(std::list<boost::shared_ptr<PointLight> >::const_iterator iter = allPointLights.begin(); iter != allPointLights.end(); ++iter)
                 {
                     positionData[i] = static_cast<float>((*iter)->Position().x());
                     positionData[i+1] = static_cast<float>((*iter)->Position().y());
