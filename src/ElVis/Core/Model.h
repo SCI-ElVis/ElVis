@@ -84,6 +84,29 @@ namespace ElVis
             ELVIS_EXPORT void SetPlugin(boost::shared_ptr<Plugin> plugin) { m_plugin = plugin; }
             ELVIS_EXPORT std::string GetModelName() const; 
             ELVIS_EXPORT const std::string& GetPath() const { return m_modelPath; }
+
+            /// \brief Returns the number of linear faces present in the model.
+            ELVIS_EXPORT size_t GetNumberOfLinearFaces() const;
+
+            /// \brief Returns the number of vertices associated with the linear
+            /// faces.
+            ///
+            /// This method returns the total number of vertices associated with
+            /// linear faces.  Vertices shared among faces are counted only once.
+            ELVIS_EXPORT size_t GetNumberOfLinearFaceVertices() const;
+
+            /// \brief Returns the number of vertices associated with a single linear face.
+            ELVIS_EXPORT size_t GetNumberOfVerticesForLinearFace(size_t faceId) const;
+
+            /// \brief Returns the vertex id in the range [0, DoGetNumberOfLinearFaceVertices)
+            ELVIS_EXPORT size_t GetFaceVertexIndex(size_t faceId, size_t vertexId);
+
+            ELVIS_EXPORT WorldPoint GetVertex(size_t vertexId) const;
+
+            ELVIS_EXPORT size_t GetInsideElementId(size_t faceId) const;
+
+            ELVIS_EXPORT size_t GetOutsideElementId(size_t faceId) const;
+
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
             void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }
@@ -153,9 +176,37 @@ namespace ElVis
             ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context) = 0;
             ELVIS_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view) = 0;
 
-            // These are for the conversion extension and shouldn't be here.
-            //            virtual unsigned int DoGetNumberOfPoints() const = 0;
-            //            virtual WorldPoint DoGetPoint(unsigned int id) const = 0;
+            // 3D Face Information
+            // When rendering 3D models, the ray-tracer uses the faces to
+            // traverse the model during isosurface and volume rendering,
+            // and to perform point location queries when rendering cut-surfaces.
+            //
+            // ElVis provides an implementation for linear triangles and
+            // quadrilaterals, which are enabled by overriding the
+            // functions listed below.  Curved faces require interface from the
+            // extension.
+
+            /// \brief Returns the number of linear faces present in the model.
+            ELVIS_EXPORT virtual size_t DoGetNumberOfLinearFaces() const = 0;
+
+            /// \brief Returns the number of vertices associated with the linear
+            /// faces.
+            ///
+            /// This method returns the total number of vertices associated with
+            /// linear faces.  Vertices shared among faces are counted only once.
+            ELVIS_EXPORT virtual size_t DoGetNumberOfLinearFaceVertices() const = 0;
+
+            /// \brief Returns the number of vertices associated with a single linear face.
+            ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForLinearFace(size_t faceId) const = 0;
+
+            /// \brief Returns the vertex id in the range [0, DoGetNumberOfLinearFaceVertices)
+            ELVIS_EXPORT virtual size_t DoGetFaceVertexIndex(size_t faceId, size_t vertexId) = 0;
+
+            ELVIS_EXPORT virtual WorldPoint DoGetVertex(size_t vertexId) const = 0;
+
+            ELVIS_EXPORT virtual size_t DoGetInsideElementId(size_t faceId) const = 0;
+
+            ELVIS_EXPORT virtual size_t DoGetOutsideElementId(size_t faceId) const = 0;
 
         private:
             Model& operator=(const Model& rhs);

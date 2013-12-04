@@ -104,4 +104,39 @@ namespace ElVis
     {
         return DoGetModelDimension();
     }
+
+    size_t Model::GetNumberOfLinearFaces() const
+    {
+        return DoGetNumberOfLinearFaces();
+    }
+
+    size_t Model::GetNumberOfLinearFaceVertices() const
+    {
+        return DoGetNumberOfLinearFaceVertices();
+    }
+
+    size_t Model::GetNumberOfVerticesForLinearFace(size_t faceId) const
+    {
+        return DoGetNumberOfVerticesForLinearFace(faceId);
+    }
+
+    size_t Model::GetFaceVertexIndex(size_t faceId, size_t vertexId)
+    {
+        return DoGetFaceVertexIndex(faceId, vertexId);
+    }
+
+    WorldPoint Model::GetVertex(size_t vertexId) const
+    {
+        return DoGetVertex(vertexId);
+    }
+
+    size_t Model::GetInsideElementId(size_t faceId) const
+    {
+        return DoGetInsideElementId(faceId);
+    }
+
+    size_t Model::GetOutsideElementId(size_t faceId) const
+    {
+        return DoGetOutsideElementId(faceId);
+    }
 }

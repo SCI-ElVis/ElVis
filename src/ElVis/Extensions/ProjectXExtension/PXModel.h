@@ -75,8 +75,6 @@ namespace ElVis
   protected:
     virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context);
     virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
-    virtual unsigned int DoGetNumberOfPoints() const;
-    virtual WorldPoint DoGetPoint(unsigned int id) const;
     virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context);
     virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
     virtual int DoGetModelDimension() const { return 3; }
