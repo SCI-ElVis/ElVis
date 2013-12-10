@@ -146,7 +146,7 @@ namespace ElVis
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
 
             private:
                 NektarModel(const NektarModel& rhs);

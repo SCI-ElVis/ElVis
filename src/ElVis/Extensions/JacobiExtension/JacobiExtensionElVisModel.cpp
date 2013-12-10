@@ -99,10 +99,14 @@ namespace ElVis
             SetMinExtent(minExtent);
             SetMaxExtent(maxExtent);
 
+            PopulateFaces<Hexahedron>(m_volume, m_oldFaces);
+            PopulateFaces<Prism>(m_volume, m_oldFaces);
 
-
-            PopulateFaces<Hexahedron>(m_volume, m_faces);
-            PopulateFaces<Prism>(m_volume, m_faces);
+            for(std::map<JacobiFace, FaceDef>::const_iterator iter = m_oldFaces.begin();
+                iter != m_oldFaces.end(); ++iter)
+            {
+              m_faces.push_back((*iter).second);
+            }
 
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
             {
@@ -159,7 +163,8 @@ namespace ElVis
             return false;
         }
 
-        void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faceGeometry)
+        void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, 
+          optixu::Context context, optixu::Geometry& faceGeometry)
         {
             scene->GetFaceMinExtentBuffer().SetDimensions(m_faces.size());
             scene->GetFaceMaxExtentBuffer().SetDimensions(m_faces.size());
@@ -177,45 +182,46 @@ namespace ElVis
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             int index = 0;
-            for(std::map<JacobiFace, FaceDef>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
+            for(std::map<JacobiFace, FaceDef>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
+            //for(std::vector<FaceDef>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
             {
-                const JacobiFace& face = (*iter).first;
                 FaceDef faceDef = (*iter).second;
                 //faceDef.Type = eCurved;
                 faceDef.Type = ePlanar;
 
-                WorldPoint minExtent = face.MinExtent();
-                WorldPoint maxExtent = face.MaxExtent();
+                ElVisFloat3 minExtent = faceDef.MinExtent;
+                ElVisFloat3 maxExtent = faceDef.MaxExtent;
 
                 // There is no proof that OptiX can't handle degenerate boxes,
                 // but just in case...
-                if( minExtent.x() == maxExtent.x() )
+                if( minExtent.x == maxExtent.x )
                 {
-                    minExtent.SetX(minExtent.x() - .0001);
-                    maxExtent.SetX(maxExtent.x() + .0001);
+                    minExtent.x = minExtent.x - .0001;
+                    maxExtent.x = maxExtent.x + .0001;
                 }
 
-                if( minExtent.y() == maxExtent.y() )
+                if( minExtent.y == maxExtent.y )
                 {
-                    minExtent.SetY(minExtent.y() - .0001);
-                    maxExtent.SetY(maxExtent.y() + .0001);
+                    minExtent.y = minExtent.y - .0001;
+                    maxExtent.y = maxExtent.y + .0001;
                 }
 
-                if( minExtent.z() == maxExtent.z() )
+                if( minExtent.z == maxExtent.z )
                 {
-                    minExtent.SetZ(minExtent.z() - .0001);
-                    maxExtent.SetZ(maxExtent.z() + .0001);
+                    minExtent.z = minExtent.z - .0001;
+                    maxExtent.z = maxExtent.z + .0001;
                 }
 
-                minBuffer[index] = MakeFloat3(minExtent);
-                maxBuffer[index] = MakeFloat3(maxExtent);
+                minBuffer[index] = minExtent;
+                maxBuffer[index] = maxExtent;
 
-                faceVertexBuffer[4*index] = MakeFloat4(face.p[0]);
-                faceVertexBuffer[4*index+1] = MakeFloat4(face.p[1]);
-                faceVertexBuffer[4*index+2] = MakeFloat4(face.p[2]);
-                faceVertexBuffer[4*index+3] = MakeFloat4(face.p[3]);
+                const JacobiFace& jf = (*iter).first;
+                faceVertexBuffer[4*index] = MakeFloat4(jf.p[0]);
+                faceVertexBuffer[4*index+1] = MakeFloat4(jf.p[1]);
+                faceVertexBuffer[4*index+2] = MakeFloat4(jf.p[2]);
+                faceVertexBuffer[4*index+3] = MakeFloat4(jf.p[3]);
 
-                normalBuffer[index] = MakeFloat4(face.normal);
+                normalBuffer[index] = MakeFloat4(jf.normal);
 
                 faceDefs[index] = faceDef;
                 ++index;
@@ -364,9 +370,7 @@ namespace ElVis
 
         FaceDef JacobiExtensionModel::DoGetFaceDefinition(size_t globalFaceId) const
         {
-          BOOST_AUTO(iter, m_faces.begin());
-          std::advance(iter, globalFaceId);
-          return (*iter).second;
+          return m_faces[globalFaceId];
         }
 
         size_t JacobiExtensionModel::DoGetNumberOfPlanarFaceVertices() const
@@ -384,7 +388,7 @@ namespace ElVis
           return 0;
         }
 
-        size_t JacobiExtensionModel::DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId)
+        size_t JacobiExtensionModel::DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
         {
           return 0;
         }

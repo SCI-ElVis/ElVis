@@ -106,7 +106,7 @@ namespace ElVis
 
             virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
 
-            virtual size_t DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId);
+            virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
 
             template<typename T>
             int NumCoefficientsForElementType(unsigned int alignment) const 
@@ -323,6 +323,8 @@ namespace ElVis
                             nextElement.Type = -1;
                             value.CommonElements[1] = nextElement;
 
+                            value.MinExtent = MakeFloat3(quadFace.MinExtent());
+                            value.MaxExtent = MakeFloat3(quadFace.MaxExtent());
                             values[quadFace] = value;
                         }
                     }
@@ -336,7 +338,8 @@ namespace ElVis
 
             std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> m_verticesLookupMap;
             std::vector<WorldPoint> m_vertices;
-            std::map<JacobiFace, FaceDef> m_faces;
+            std::map<JacobiFace, FaceDef> m_oldFaces;
+            std::vector<FaceDef> m_faces;
 
             ElVis::OptiXBuffer<int> HexCoefficientBufferIndices;
             ElVis::OptiXBuffer<int> PrismCoefficientBufferIndices;

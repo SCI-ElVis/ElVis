@@ -133,11 +133,16 @@ namespace ElVis
       }
     }
 
+    void Model::createLinearFaceGeometry(optixu::Context context)
+    {
+    }
+
     void Model::CopyToOptiX(optixu::Context context)
     {
       size_t numPlanarFaces = 0;
       copyFaceDefsToOptiX(context, numPlanarFaces);
       copyPlanarFaceVerticesToOptiX(context);
+      createLinearFaceGeometry(context);
       // Populate custom faces.
 
       // Populate fields.
@@ -187,8 +192,8 @@ namespace ElVis
     }
 
     /// \brief Returns the vertex id in the range [0, DoGetNumberOfPlanarFaceVertices)
-    size_t Model::GetFaceVertexIndex(size_t globalFaceId, size_t vertexId)
+    size_t Model::GetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
     {
-      return DoGetFaceVertexIndex(globalFaceId, vertexId);
+      return DoGetPlanarFaceVertexIndex(globalFaceId, vertexId);
     }
 }

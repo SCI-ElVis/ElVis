@@ -31,6 +31,7 @@
 
 #include <ElVis/Core/PrimaryRayGenerator.cu>
 #include <ElVis/Core/Cuda.h>
+#include <ElVis/Core/FaceIntersection.cu>
 
 rtDeclareVariable(ElVisFloat, FaceTolerance, , );
 
@@ -66,15 +67,10 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
     return false;
   }
 
-  VolumeRenderingPayload payload;
-  payload.FoundIntersection = 0;
   ElVisFloat3 origin = eye + seg.Start*rayDirection;
 
-  optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-  //rtTrace(PointLocationGroup, ray, payload);
-  rtTrace(ElementTraversalGroup, ray, payload);
-  //rtTrace(faceGroup, ray, payload);
-
+  VolumeRenderingPayload payload = FindNextFaceIntersection(origin, rayDirection);
+  
   if( payload.FoundIntersection == 0 )
   {
     ELVIS_PRINTF("Did not find element intersection.\n");

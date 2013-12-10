@@ -581,7 +581,7 @@ namespace ElVis
           return 0;
         }
 
-        size_t NektarModel::DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId)
+        size_t NektarModel::DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
         {
           return 0;
         }

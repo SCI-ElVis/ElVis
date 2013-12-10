@@ -244,6 +244,7 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversal.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/FaceIntersection.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FieldEvaluator.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FindElement.cu
     ${CMAKE_BINARY_DIR}/ElVis/Core/Float.cu

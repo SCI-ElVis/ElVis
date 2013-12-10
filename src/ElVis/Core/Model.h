@@ -108,7 +108,7 @@ namespace ElVis
             ELVIS_EXPORT virtual size_t GetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
 
             /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
-            ELVIS_EXPORT virtual size_t GetFaceVertexIndex(size_t globalFaceId, size_t vertexId);
+            ELVIS_EXPORT virtual size_t GetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
 
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
@@ -214,7 +214,7 @@ namespace ElVis
             ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const = 0;
 
             /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
-            ELVIS_EXPORT virtual size_t DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId) = 0;
+            ELVIS_EXPORT virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId) = 0;
 
 
 
@@ -225,7 +225,8 @@ namespace ElVis
 
             void copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces);
             void copyPlanarFaceVerticesToOptiX(optixu::Context context);
-
+            void createLinearFaceGeometry(optixu::Context context);
+            
             std::string m_modelPath;
             boost::shared_ptr<Plugin> m_plugin;
             WorldPoint m_minExtent;
