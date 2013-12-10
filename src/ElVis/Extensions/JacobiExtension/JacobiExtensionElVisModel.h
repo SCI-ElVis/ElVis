@@ -44,6 +44,7 @@
 #include <ElVis/Extensions/JacobiExtension/Hexahedron.h>
 #include <ElVis/Extensions/JacobiExtension/Tetrahedron.h>
 #include <ElVis/Extensions/JacobiExtension/Prism.h>
+#include <ElVis/Extensions/JacobiExtension/JacobiFace.h>
 
 #include <map>
 #include <set>
@@ -52,101 +53,6 @@ namespace ElVis
 {
     namespace JacobiExtension
     {
-        bool closePointLessThan(const WorldPoint& lhs, const WorldPoint& rhs);
-
-        // Temporary face structure to find unique faces among all elements.
-        struct JacobiFace
-        {
-//            JacobiFace(const WorldPoint& point0, const WorldPoint& point1, const WorldPoint& point2) :
-////                p0(point0),
-////                p1(point1),
-////                p2(point2),
-////                p3(std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max()),
-//                NumEdges(3),
-//                normal()
-//            {
-//                p[0] = point0;
-//                p[1] = point1;
-//                p[2] = point2;
-//                p[3] = WorldPoint(std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max());
-
-//                for(int i = 0; i < 4; ++i)
-//                {
-//                    sorted[i] = p[i];
-//                }
-
-//                std::sort(sorted, sorted+4);
-//            }
-
-            JacobiFace(const WorldPoint& point0, const WorldPoint& point1, const WorldPoint& point2, const WorldPoint& point3, int numEdges, const WorldVector& n) :
-//                p0(point0),
-//                p1(point1),
-//                p2(point2),
-//                p3(point3),
-                NumEdges(numEdges),
-                normal(n)
-            {
-                p[0] = point0;
-                p[1] = point1;
-                p[2] = point2;
-                p[3] = point3;
-
-                for(int i = 0; i < 4; ++i)
-                {
-                    sorted[i] = p[i];
-                }
-
-                std::sort(sorted, sorted+4, closePointLessThan);
-            }
-
-            JacobiFace(const JacobiFace& rhs) :
-//                p0(rhs.p0),
-//                p1(rhs.p1),
-//                p2(rhs.p2),
-//                p3(rhs.p3),
-                NumEdges(rhs.NumEdges),
-                normal(rhs.normal)
-            {
-                for(int i = 0; i < 4; ++i)
-                {
-                    p[i] = rhs.p[i];
-                }
-
-                for(int i = 0; i < 4; ++i)
-                {
-                    sorted[i] = rhs.sorted[i];
-                }
-            }
-
-            JacobiFace& operator=(const JacobiFace& rhs)
-            {
-                for(int i = 0; i < 4; ++i)
-                {
-                    p[i] = rhs.p[i];
-                    sorted[i] = rhs.sorted[i];
-                }
-                NumEdges = rhs.NumEdges;
-                normal = rhs.normal;
-                return *this;
-            }
-
-            WorldPoint MinExtent() const;
-            WorldPoint MaxExtent() const;
-
-            int NumVertices() const;
-
-            WorldPoint p[4];
-            WorldPoint sorted[4];
-            int NumEdges;
-//            WorldPoint p0;
-//            WorldPoint p1;
-//            WorldPoint p2;
-//            WorldPoint p3;
-            WorldVector normal;
-        };
-
-        bool operator<(const JacobiFace& lhs, const JacobiFace& rhs);
-
         class JacobiExtensionModel : public ElVis::Model
         {
         public:
@@ -223,16 +129,6 @@ namespace ElVis
 
             virtual size_t DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId);
 
-            unsigned int RequiredCoefficientStorage(unsigned int numberOfCoefficients, unsigned int alignment) const
-            {
-                return numberOfCoefficients;
-                //unsigned int baseline = numberOfCoefficients/alignment;
-                //if( baseline%alignment != 0 )
-                //{
-                //    baseline += 1;
-                //}
-                //return baseline * alignment;
-            }
             template<typename T>
             int NumCoefficientsForElementType(unsigned int alignment) const 
             {
@@ -241,14 +137,14 @@ namespace ElVis
                 {
                     BOOST_FOREACH(boost::shared_ptr<Polyhedron> iter, m_volume->IterateElementsOfType<T>() )
                     {
-                        result += RequiredCoefficientStorage(iter->NumberOfCoefficientsForOrder(m_numberOfModes-1), alignment);
+                        result += iter->NumberOfCoefficientsForOrder(m_numberOfModes-1);
                     }
                 }
                 else
                 {
                     BOOST_FOREACH(boost::shared_ptr<Polyhedron> iter, m_volume->IterateElementsOfType<T>() )
                     {
-                        result += RequiredCoefficientStorage(iter->basisCoefficients().size(), alignment);
+                        result += iter->basisCoefficients().size();
                     }
                 }
                 return result;
@@ -368,7 +264,7 @@ namespace ElVis
                             }
                             ++tempIndex;
                         }
-                        unsigned int storageRequired = RequiredCoefficientStorage(numCoefficients, coefficientAlignment);
+                        unsigned int storageRequired = numCoefficients;
                         curCoefficientIndex += storageRequired;
 
                         // Faces and planes

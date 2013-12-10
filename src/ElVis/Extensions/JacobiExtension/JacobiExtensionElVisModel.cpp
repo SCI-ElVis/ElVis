@@ -53,43 +53,6 @@ namespace ElVis
         const std::string JacobiExtensionModel::PrismPointLocationProgramName("PrismContainsOriginByCheckingPoint");
         const std::string JacobiExtensionModel::PrismBoundingProgramName("PrismBounding");
 
-        WorldPoint JacobiFace::MinExtent() const
-        {
-            //return sorted[0];
-            return CalcMin(p[0], CalcMin(p[1], CalcMin(p[2], p[3])));
-        }
-
-        WorldPoint JacobiFace::MaxExtent() const
-        {
-            //return sorted[4];
-            return CalcMax(p[0], CalcMax(p[1], CalcMax(p[2], p[3])));
-        }
-
-        int JacobiFace::NumVertices() const
-        {
-            return NumEdges;
-        }
-
-        bool operator<(const JacobiFace& lhs, const JacobiFace& rhs)
-        {
-            if( lhs.NumVertices() != rhs.NumVertices() )
-            {
-                return lhs.NumVertices() < rhs.NumVertices();
-            }
-
-//            WorldPoint lhsPoints[] = {lhs.p[0], lhs.p[1], lhs.p[2], lhs.p[3]};
-//            WorldPoint rhsPoints[] = {rhs.p[0], rhs.p[1], rhs.p[2], rhs.p[3]};
-//            std::sort(lhsPoints, lhsPoints+4);
-//            std::sort(rhsPoints, rhsPoints+4);
-
-            for(int i = 0; i < 4; ++i)
-            {
-                if( closePointLessThan(lhs.sorted[i], rhs.sorted[i]) ) return true;
-                if( closePointLessThan(rhs.sorted[i], lhs.sorted[i]) ) return false;
-            }
-            return false;
-
-        }
 
         JacobiExtensionModel::JacobiExtensionModel(const std::string& modelPath) :
             Model(modelPath),
