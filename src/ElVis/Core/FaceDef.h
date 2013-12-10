@@ -31,6 +31,7 @@
 
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/Float.h>
+#include <ElVis/Core/Point.hpp>
 
 namespace ElVis
 {
@@ -44,6 +45,8 @@ namespace ElVis
     {
         ElementId CommonElements[2];
         FaceType Type;
+        ElVisFloat3 MinExtent;
+        ElVisFloat3 MaxExtent;
     };
 }
 

@@ -70,6 +70,9 @@ rtBuffer<float, 2> depth_buffer;
 // directly.  Examples include cut-surface and element faces.  Element faces
 // that are not meant to be rendered directly should not go into this group.
 rtDeclareVariable(rtObject, SurfaceGeometryGroup, , );
+
+// This deprecated group contains geometry information required to do point
+// location.
 rtDeclareVariable(rtObject, PointLocationGroup, , );
 
 // This group contains all elemental faces.  Ray tracing into this group 
@@ -118,6 +121,8 @@ rtDeclareVariable(int, DepthBits, , );
 
 
 // For face intersections.
+// This is a global array of faces, and can potentially mix straight and 
+// curved faces, as well as triangles and quads.
 rtBuffer<ElVis::FaceDef, 1> FaceIdBuffer;
 rtBuffer<ElVisFloat3, 1> FaceMinExtentBuffer;
 rtBuffer<ElVisFloat3, 1> FaceMaxExtentBuffer;

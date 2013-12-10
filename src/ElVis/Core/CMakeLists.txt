@@ -293,7 +293,7 @@ SOURCE_GROUP("Modules" FILES ${ModuleFiles})
 SOURCE_GROUP("Primary Ray Objects" FILES ${PrimaryRayObjectFiles})
 SOURCE_GROUP("Objects" FILES ${ObjectFiles})
 SOURCE_GROUP("Core" FILES ${ELVIS_SOURCES} ${ELVIS_HEADERS})
-ADD_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${PrimaryRayObjectFiles} ${ObjectFiles} ${ELVIS_MATH_HEADERS} ${ELVIS_SOURCES} ${ModuleFiles} ${ELVIS_CUDA_HEADERS})
+ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${PrimaryRayObjectFiles} ${ObjectFiles} ${ELVIS_MATH_HEADERS} ${ELVIS_SOURCES} ${ModuleFiles} ${ELVIS_CUDA_HEADERS})
 
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 

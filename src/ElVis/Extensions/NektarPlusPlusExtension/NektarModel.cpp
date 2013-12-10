@@ -505,17 +505,6 @@ namespace ElVis
         }
         
 
-        int NektarModel::GetNumberOfFaces() const 
-        {
-            int numFaces = 0;
-            if( m_graph )
-            {
-                numFaces += m_graph->GetAllTriGeoms().size();
-                numFaces += m_graph->GetAllQuadGeoms().size();
-            }
-            return numFaces;
-        }
-
         void NektarModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faceGeometry)
         {
             int numFaces = 0;
@@ -561,37 +550,38 @@ namespace ElVis
             }
         }
 
-        size_t NektarModel::DoGetNumberOfLinearFaces() const
+        size_t NektarModel::DoGetNumberOfFaces() const
+        {
+            int numFaces = 0;
+            if( m_graph )
+            {
+                numFaces += m_graph->GetAllTriGeoms().size();
+                numFaces += m_graph->GetAllQuadGeoms().size();
+            }
+            return numFaces;
+        }
+
+        FaceDef NektarModel::DoGetFaceDefinition(size_t globalFaceId) const
+        {
+          return FaceDef();
+        }
+
+        size_t NektarModel::DoGetNumberOfPlanarFaceVertices() const
         {
           return 0;
         }
 
-        size_t NektarModel::DoGetNumberOfLinearFaceVertices() const
-        {
-          return 0;
-        }
-
-        size_t NektarModel::DoGetNumberOfVerticesForLinearFace(size_t faceId) const
-        {
-          return 0;
-        }
-
-        size_t NektarModel::DoGetFaceVertexIndex(size_t faceId, size_t vertexId)
-        {
-          return 0;
-        }
-
-        WorldPoint NektarModel::DoGetVertex(size_t vertexId) const
+        WorldPoint NektarModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
         {
           return WorldPoint();
         }
 
-        size_t NektarModel::DoGetInsideElementId(size_t faceId) const
+        size_t NektarModel::DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const
         {
           return 0;
         }
 
-        size_t NektarModel::DoGetOutsideElementId(size_t faceId) const
+        size_t NektarModel::DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId)
         {
           return 0;
         }

@@ -38,7 +38,9 @@ namespace ElVis
         m_plugin(),
         m_minExtent(std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max()),
         m_maxExtent(-std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max()),
-        m_center()
+        m_center(),
+        m_faceIdBuffer("FaceIdBuffer"),
+        m_planarFaceVertexBuffer("LinearFaceVertexBuffer")
     {
     }
 
@@ -95,6 +97,52 @@ namespace ElVis
         return DoGet2DPrimaryGeometry(scene, context);
     }
 
+    void Model::copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces)
+    {
+      numPlanarFaces = 0;
+      
+      // Get information about faces and copy to OptiX.
+      // Array of [0, numFaces] of faceDefs.
+      BOOST_AUTO(numFaces, GetNumberOfFaces());
+
+      // Populate the face id buffer.
+      m_faceIdBuffer.SetContext(context);
+      m_faceIdBuffer.SetDimensions(numFaces);
+      BOOST_AUTO(mappedFaceIdBuffer, m_faceIdBuffer.Map());
+
+      for(size_t i = 0; i < numFaces; ++i)
+      {
+        BOOST_AUTO(faceDef, GetFaceDefinition(i));
+        if( faceDef.Type == ePlanar ) ++numPlanarFaces;
+        mappedFaceIdBuffer[i] = faceDef;
+      }
+    }
+
+    void Model::copyPlanarFaceVerticesToOptiX(optixu::Context context)
+    {
+      BOOST_AUTO(numPlanarVertices, GetNumberOfPlanarFaceVertices());
+
+      // Populate the linear fields that we will handle.
+      m_planarFaceVertexBuffer.SetContext(context);
+      m_planarFaceVertexBuffer.SetDimensions(numPlanarVertices);
+      BOOST_AUTO(mappedPlanarVertices, m_planarFaceVertexBuffer.Map());
+
+      for(size_t i = 0; i < numPlanarVertices; ++i)
+      {
+        mappedPlanarVertices[i] = GetPlanarFaceVertex(i);
+      }
+    }
+
+    void Model::CopyToOptiX(optixu::Context context)
+    {
+      size_t numPlanarFaces = 0;
+      copyFaceDefsToOptiX(context, numPlanarFaces);
+      copyPlanarFaceVerticesToOptiX(context);
+      // Populate custom faces.
+
+      // Populate fields.
+    }
+
     void Model::InitializeOptiX(boost::shared_ptr<Scene> scene, optixu::Context context)
     {
       DoInitializeOptiX(scene, context);
@@ -105,38 +153,42 @@ namespace ElVis
         return DoGetModelDimension();
     }
 
-    size_t Model::GetNumberOfLinearFaces() const
+    size_t Model::GetNumberOfFaces() const
     {
-        return DoGetNumberOfLinearFaces();
+      return DoGetNumberOfFaces();
     }
 
-    size_t Model::GetNumberOfLinearFaceVertices() const
+    /// \brief Returns the given face definition.
+    FaceDef Model::GetFaceDefinition(size_t globalFaceId) const
     {
-        return DoGetNumberOfLinearFaceVertices();
+      return DoGetFaceDefinition(globalFaceId);
     }
 
-    size_t Model::GetNumberOfVerticesForLinearFace(size_t faceId) const
+    /// \brief Returns the number of vertices associated with the linear
+    /// faces.
+    ///
+    /// This method returns the total number of vertices associated with
+    /// linear faces.  Vertices shared among faces are counted only once.
+    size_t Model::GetNumberOfPlanarFaceVertices() const
     {
-        return DoGetNumberOfVerticesForLinearFace(faceId);
+      return DoGetNumberOfPlanarFaceVertices();
     }
 
-    size_t Model::GetFaceVertexIndex(size_t faceId, size_t vertexId)
+    /// Get the vertex for a linear face.
+    WorldPoint Model::GetPlanarFaceVertex(size_t vertexIdx) const
     {
-        return DoGetFaceVertexIndex(faceId, vertexId);
+      return DoGetPlanarFaceVertex(vertexIdx);
     }
 
-    WorldPoint Model::GetVertex(size_t vertexId) const
+    /// \brief Returns the number of vertices associated with a single linear face.
+    size_t Model::GetNumberOfVerticesForPlanarFace(size_t globalFaceId) const
     {
-        return DoGetVertex(vertexId);
+      return DoGetNumberOfVerticesForPlanarFace(globalFaceId);
     }
 
-    size_t Model::GetInsideElementId(size_t faceId) const
+    /// \brief Returns the vertex id in the range [0, DoGetNumberOfPlanarFaceVertices)
+    size_t Model::GetFaceVertexIndex(size_t globalFaceId, size_t vertexId)
     {
-        return DoGetInsideElementId(faceId);
-    }
-
-    size_t Model::GetOutsideElementId(size_t faceId) const
-    {
-        return DoGetOutsideElementId(faceId);
+      return DoGetFaceVertexIndex(globalFaceId, vertexId);
     }
 }

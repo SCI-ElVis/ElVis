@@ -31,7 +31,8 @@
 
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/FieldInfo.h>
-
+#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 #include <optixu/optixpp.h>
 #include <vector>
 #include <string>
@@ -85,27 +86,29 @@ namespace ElVis
             ELVIS_EXPORT std::string GetModelName() const; 
             ELVIS_EXPORT const std::string& GetPath() const { return m_modelPath; }
 
-            /// \brief Returns the number of linear faces present in the model.
-            ELVIS_EXPORT size_t GetNumberOfLinearFaces() const;
+            /// \brief Copies the model to the given optix context
+            ELVIS_EXPORT void CopyToOptiX(optixu::Context context);
+
+            ELVIS_EXPORT virtual size_t GetNumberOfFaces() const;
+
+            /// \brief Returns the given face definition.
+            ELVIS_EXPORT virtual FaceDef GetFaceDefinition(size_t globalFaceId) const;
 
             /// \brief Returns the number of vertices associated with the linear
             /// faces.
             ///
             /// This method returns the total number of vertices associated with
             /// linear faces.  Vertices shared among faces are counted only once.
-            ELVIS_EXPORT size_t GetNumberOfLinearFaceVertices() const;
+            ELVIS_EXPORT virtual size_t GetNumberOfPlanarFaceVertices() const;
+
+            /// Get the vertex for a linear face.
+            ELVIS_EXPORT virtual WorldPoint GetPlanarFaceVertex(size_t vertexIdx) const;
 
             /// \brief Returns the number of vertices associated with a single linear face.
-            ELVIS_EXPORT size_t GetNumberOfVerticesForLinearFace(size_t faceId) const;
+            ELVIS_EXPORT virtual size_t GetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
 
-            /// \brief Returns the vertex id in the range [0, DoGetNumberOfLinearFaceVertices)
-            ELVIS_EXPORT size_t GetFaceVertexIndex(size_t faceId, size_t vertexId);
-
-            ELVIS_EXPORT WorldPoint GetVertex(size_t vertexId) const;
-
-            ELVIS_EXPORT size_t GetInsideElementId(size_t faceId) const;
-
-            ELVIS_EXPORT size_t GetOutsideElementId(size_t faceId) const;
+            /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
+            ELVIS_EXPORT virtual size_t GetFaceVertexIndex(size_t globalFaceId, size_t vertexId);
 
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
@@ -185,38 +188,52 @@ namespace ElVis
             // quadrilaterals, which are enabled by overriding the
             // functions listed below.  Curved faces require interface from the
             // extension.
+            //
+            // ElVis assumes that each face will have a global id that can 
+            // be used to identify it.
 
-            /// \brief Returns the number of linear faces present in the model.
-            ELVIS_EXPORT virtual size_t DoGetNumberOfLinearFaces() const = 0;
+            /// \brief Returns the total number of faces in the model.
+            /// This number is used to assign a global id to each face in 
+            /// the range [0, DoGetNumberOfFaces)
+            ELVIS_EXPORT virtual size_t DoGetNumberOfFaces() const = 0;
+
+            /// \brief Returns the given face definition.
+            ELVIS_EXPORT virtual FaceDef DoGetFaceDefinition(size_t globalFaceId) const = 0;
 
             /// \brief Returns the number of vertices associated with the linear
             /// faces.
             ///
             /// This method returns the total number of vertices associated with
             /// linear faces.  Vertices shared among faces are counted only once.
-            ELVIS_EXPORT virtual size_t DoGetNumberOfLinearFaceVertices() const = 0;
+            ELVIS_EXPORT virtual size_t DoGetNumberOfPlanarFaceVertices() const = 0;
+
+            /// Get the vertex for a linear face.
+            ELVIS_EXPORT virtual WorldPoint DoGetPlanarFaceVertex(size_t vertexIdx) const = 0;
 
             /// \brief Returns the number of vertices associated with a single linear face.
-            ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForLinearFace(size_t faceId) const = 0;
+            ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const = 0;
 
-            /// \brief Returns the vertex id in the range [0, DoGetNumberOfLinearFaceVertices)
-            ELVIS_EXPORT virtual size_t DoGetFaceVertexIndex(size_t faceId, size_t vertexId) = 0;
+            /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
+            ELVIS_EXPORT virtual size_t DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId) = 0;
 
-            ELVIS_EXPORT virtual WorldPoint DoGetVertex(size_t vertexId) const = 0;
 
-            ELVIS_EXPORT virtual size_t DoGetInsideElementId(size_t faceId) const = 0;
 
-            ELVIS_EXPORT virtual size_t DoGetOutsideElementId(size_t faceId) const = 0;
 
         private:
             Model& operator=(const Model& rhs);
             Model(const Model& rhs);
+
+            void copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces);
+            void copyPlanarFaceVerticesToOptiX(optixu::Context context);
 
             std::string m_modelPath;
             boost::shared_ptr<Plugin> m_plugin;
             WorldPoint m_minExtent;
             WorldPoint m_maxExtent;
             WorldPoint m_center;
+
+            OptiXBuffer<FaceDef> m_faceIdBuffer;
+            OptiXBuffer<WorldPoint> m_planarFaceVertexBuffer;
     };
 
 }

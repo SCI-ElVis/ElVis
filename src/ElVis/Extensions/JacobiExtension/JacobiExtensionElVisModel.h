@@ -211,13 +211,17 @@ namespace ElVis
             virtual void DoUnMapInteropBufferForCuda();
             virtual int DoGetModelDimension() const { return 3; }
 
-            ELVIS_EXPORT virtual size_t DoGetNumberOfLinearFaces() const;
-            ELVIS_EXPORT virtual size_t DoGetNumberOfLinearFaceVertices() const;
-            ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForLinearFace(size_t faceId) const;
-            ELVIS_EXPORT virtual size_t DoGetFaceVertexIndex(size_t faceId, size_t vertexId);
-            ELVIS_EXPORT virtual WorldPoint DoGetVertex(size_t vertexId) const;
-            ELVIS_EXPORT virtual size_t DoGetInsideElementId(size_t faceId) const;
-            ELVIS_EXPORT virtual size_t DoGetOutsideElementId(size_t faceId) const;
+            virtual size_t DoGetNumberOfFaces() const;
+
+            virtual FaceDef DoGetFaceDefinition(size_t globalFaceId) const;
+
+            virtual size_t DoGetNumberOfPlanarFaceVertices() const;
+
+            virtual WorldPoint DoGetPlanarFaceVertex(size_t vertexIdx) const;
+
+            virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
+
+            virtual size_t DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId);
 
             unsigned int RequiredCoefficientStorage(unsigned int numberOfCoefficients, unsigned int alignment) const
             {
@@ -462,9 +466,6 @@ namespace ElVis
             unsigned m_numberOfCopies;
             int m_numberOfModes;
 
-            // This set of vertices is used for external queries for points and isn't used for 
-            // rendering.  I tried a boost::bimap, but couldn't figure out how to get a 
-            // non-const WorldPoint reference out (which is required for vtkDataSet::GetPoint).
             std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> m_verticesLookupMap;
             std::vector<WorldPoint> m_vertices;
             std::map<JacobiFace, FaceDef> m_faces;

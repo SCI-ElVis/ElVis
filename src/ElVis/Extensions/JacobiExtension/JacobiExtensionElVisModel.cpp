@@ -403,39 +403,36 @@ namespace ElVis
         {
         }
 
-        size_t JacobiExtensionModel::DoGetNumberOfLinearFaces() const
+        size_t JacobiExtensionModel::DoGetNumberOfFaces() const
         {
-            return 0;
+          return m_faces.size();
         }
 
-        size_t JacobiExtensionModel::DoGetNumberOfLinearFaceVertices() const
+        FaceDef JacobiExtensionModel::DoGetFaceDefinition(size_t globalFaceId) const
         {
-            return m_vertices.size();
+          BOOST_AUTO(iter, m_faces.begin());
+          std::advance(iter, globalFaceId);
+          return (*iter).second;
         }
 
-        size_t JacobiExtensionModel::DoGetNumberOfVerticesForLinearFace(size_t faceId) const
+        size_t JacobiExtensionModel::DoGetNumberOfPlanarFaceVertices() const
         {
-            return 0;
+          return m_vertices.size();
         }
 
-        size_t JacobiExtensionModel::DoGetFaceVertexIndex(size_t faceId, size_t vertexId)
+        WorldPoint JacobiExtensionModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
         {
-            return 0;
+          return m_vertices[vertexIdx];
         }
 
-        WorldPoint JacobiExtensionModel::DoGetVertex(size_t vertexId) const
+        size_t JacobiExtensionModel::DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const
         {
-            return WorldPoint();
+          return 0;
         }
 
-        size_t JacobiExtensionModel::DoGetInsideElementId(size_t faceId) const
+        size_t JacobiExtensionModel::DoGetFaceVertexIndex(size_t globalFaceId, size_t vertexId)
         {
-            return 0;
-        }
-
-        size_t JacobiExtensionModel::DoGetOutsideElementId(size_t faceId) const
-        {
-            return 0;
+          return 0;
         }
 
     }

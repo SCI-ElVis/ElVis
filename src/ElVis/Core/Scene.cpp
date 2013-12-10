@@ -205,17 +205,15 @@ namespace ElVis
                     GetModel()->CalculateExtents();
                     std::cout << "Min Extent: " << GetModel()->MinExtent() << std::endl;
                     std::cout << "Max Extent: " << GetModel()->MaxExtent() << std::endl;
-
-                    Get3DModelInformation();
-
-                    //////////////////////////////////////////
-                    // Module min/max
-                    /////////////////////////////////////////
-                    GetModel()->CalculateExtents();
                     SetFloat(m_context["VolumeMinExtent"], GetModel()->MinExtent());
                     SetFloat(m_context["VolumeMaxExtent"], GetModel()->MaxExtent());
 
+                    // Version 1.0 interface.
+                    Get3DModelInformation();
                     InitializeFaces();
+
+                    // Version 2.0 Interface.
+                    // GetModel()->CopyToOptiX(m_context);
                 }
 
                 m_context->setStackSize(m_optixStackSize);
