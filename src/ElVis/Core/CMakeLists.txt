@@ -123,7 +123,7 @@ SET(ELVIS_HEADERS
     ElementId.h
     ElVisConfig.h
     ElVisConfig.cpp.in
-    FaceDef.h
+    FaceInfo.h
     FaceObject.h
     ${CMAKE_BINARY_DIR}/ElVis/Core/Float.h
     Float.h.in
@@ -259,6 +259,7 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/matrix.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/OptixVariables.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/OuterIntegralAdaptiveTrapezoidal.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/PlanarFaceIntersection.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/Plane.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/PrimaryRayGenerator.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/PrimaryRayModule.cu

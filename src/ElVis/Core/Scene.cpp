@@ -67,7 +67,7 @@ namespace ElVis
         m_faceIntersectionProgram(),
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
-        m_faceIdBuffer("FaceIdBuffer"),
+        m_faceIdBuffer("FaceInfoBuffer"),
         m_faceMinExtentBuffer("FaceMinExtentBuffer"),
         m_faceMaxExtentBuffer("FaceMaxExtentBuffer"),
         m_faceGeometry(),
@@ -213,7 +213,7 @@ namespace ElVis
                     InitializeFaces();
 
                     // Version 2.0 Interface.
-                    // GetModel()->CopyToOptiX(m_context);
+                    GetModel()->CopyToOptiX(m_context);
                 }
 
                 m_context->setStackSize(m_optixStackSize);
@@ -311,13 +311,7 @@ namespace ElVis
         m_context["faceGroup"]->set(faceGroup);
 
 
-
-        // For isosurface/volume rendering
-        // Somehow, enabling this code screws up the face rendering with what looks like
-        // memory corruption or something else that causes random patterns.
         optixu::Geometry facesForTraversal = m_context->createGeometry();
-//        optixu::Buffer tempBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, m_faceGeometry->getPrimitiveCount());
-//        facesForTraversal["FaceEnabled"]->set(tempBuffer);
         facesForTraversal->setPrimitiveCount(m_faceGeometry->getPrimitiveCount());
         optixu::Program faceForTraversalBBProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalBoundingBoxProgram");
         optixu::Program faceForTraversalIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalIntersection");

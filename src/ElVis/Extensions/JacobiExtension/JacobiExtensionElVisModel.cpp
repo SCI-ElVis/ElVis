@@ -102,7 +102,7 @@ namespace ElVis
             PopulateFaces<Hexahedron>(m_volume, m_oldFaces);
             PopulateFaces<Prism>(m_volume, m_oldFaces);
 
-            for(std::map<JacobiFace, FaceDef>::const_iterator iter = m_oldFaces.begin();
+            for(std::map<JacobiFace, FaceInfo>::const_iterator iter = m_oldFaces.begin();
                 iter != m_oldFaces.end(); ++iter)
             {
               m_faces.push_back((*iter).second);
@@ -176,16 +176,16 @@ namespace ElVis
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(m_faces.size());
 
-            scene->GetFaceIdBuffer().SetDimensions(m_faces.size());
-            BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
+            scene->GetFaceInfoBuffer().SetDimensions(m_faces.size());
+            BOOST_AUTO(faceDefs, scene->GetFaceInfoBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             int index = 0;
-            for(std::map<JacobiFace, FaceDef>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
-            //for(std::vector<FaceDef>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
+            for(std::map<JacobiFace, FaceInfo>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
+            //for(std::vector<FaceInfo>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
             {
-                FaceDef faceDef = (*iter).second;
+                FaceInfo faceDef = (*iter).second;
                 //faceDef.Type = eCurved;
                 faceDef.Type = ePlanar;
 
@@ -368,7 +368,7 @@ namespace ElVis
           return m_faces.size();
         }
 
-        FaceDef JacobiExtensionModel::DoGetFaceDefinition(size_t globalFaceId) const
+        FaceInfo JacobiExtensionModel::DoGetFaceDefinition(size_t globalFaceId) const
         {
           return m_faces[globalFaceId];
         }

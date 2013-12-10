@@ -41,7 +41,7 @@ namespace ElVis
         ePlanar
     };
 
-    struct FaceDef
+    struct FaceInfo
     {
         ElementId CommonElements[2];
         FaceType Type;

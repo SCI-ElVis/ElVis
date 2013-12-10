@@ -79,23 +79,23 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
                  faceNormal.x, faceNormal.y, faceNormal.z,
                  pointOnFace.x, pointOnFace.y, pointOnFace.z,
                  vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
-    ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceIdBuffer.size());
+    ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceInfoBuffer.size());
      
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
-//                 FaceIdBuffer[faceId].CommonElements[0].Id,
-//                 FaceIdBuffer[faceId].CommonElements[0].Type,
-//                 FaceIdBuffer[faceId].CommonElements[1].Id,
-//                 FaceIdBuffer[faceId].CommonElements[1].Type);
+//                 FaceInfoBuffer[faceId].CommonElements[0].Id,
+//                 FaceInfoBuffer[faceId].CommonElements[0].Type,
+//                 FaceInfoBuffer[faceId].CommonElements[1].Id,
+//                 FaceInfoBuffer[faceId].CommonElements[1].Type);
     // The test point is "inside" the element if d >= 0
     ElVis::ElementId id;
     if( d >= 0 )
     {
         
-        id = FaceIdBuffer[payload_v.FaceId].CommonElements[0];
+        id = FaceInfoBuffer[payload_v.FaceId].CommonElements[0];
     }
     else
     {
-        id = FaceIdBuffer[payload_v.FaceId].CommonElements[1];
+        id = FaceInfoBuffer[payload_v.FaceId].CommonElements[1];
     }
     
     findElementPayload.elementId = id.Id;
@@ -103,10 +103,10 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
     //findElementPayload.IntersectionPoint = pointOnFace;
     ELVIS_PRINTF("FindElementFromFace: Element Id %d and Type %d\n", id.Id, id.Type);
     ELVIS_PRINTF("FindElementFromFace: Inside id %d and tpye %d, outside id %d and type %d\n", 
-        FaceIdBuffer[payload_v.FaceId].CommonElements[0].Id,
-        FaceIdBuffer[payload_v.FaceId].CommonElements[0].Type,
-        FaceIdBuffer[payload_v.FaceId].CommonElements[1].Id,
-        FaceIdBuffer[payload_v.FaceId].CommonElements[1].Type);
+        FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Id,
+        FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Type,
+        FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Id,
+        FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Type);
     return findElementPayload;
 }
 
@@ -174,23 +174,23 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
 //                 faceNormal.x, faceNormal.y, faceNormal.z,
 //                 pointOnFace.x, pointOnFace.y, pointOnFace.z,
 //                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
-//    ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceIdBuffer.size());
+//    ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceInfoBuffer.size());
 //     
 ////    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
-////                 FaceIdBuffer[faceId].CommonElements[0].Id,
-////                 FaceIdBuffer[faceId].CommonElements[0].Type,
-////                 FaceIdBuffer[faceId].CommonElements[1].Id,
-////                 FaceIdBuffer[faceId].CommonElements[1].Type);
+////                 FaceInfoBuffer[faceId].CommonElements[0].Id,
+////                 FaceInfoBuffer[faceId].CommonElements[0].Type,
+////                 FaceInfoBuffer[faceId].CommonElements[1].Id,
+////                 FaceInfoBuffer[faceId].CommonElements[1].Type);
 //    // The test point is "inside" the element if d >= 0
 //    ElVis::ElementId id;
 //    if( d >= 0 )
 //    {
 //        
-//        id = FaceIdBuffer[payload_v.FaceId].CommonElements[0];
+//        id = FaceInfoBuffer[payload_v.FaceId].CommonElements[0];
 //    }
 //    else
 //    {
-//        id = FaceIdBuffer[payload_v.FaceId].CommonElements[1];
+//        id = FaceInfoBuffer[payload_v.FaceId].CommonElements[1];
 //    }
 //    
 //    findElementPayload.elementId = id.Id;
@@ -198,10 +198,10 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
 //    //findElementPayload.IntersectionPoint = pointOnFace;
 //    ELVIS_PRINTF("FindElementFromFace: Element Id %d and Type %d\n", id.Id, id.Type);
 //    ELVIS_PRINTF("FindElementFromFace: Inside id %d and tpye %d, outside id %d and type %d\n", 
-//        FaceIdBuffer[payload_v.FaceId].CommonElements[0].Id,
-//        FaceIdBuffer[payload_v.FaceId].CommonElements[0].Type,
-//        FaceIdBuffer[payload_v.FaceId].CommonElements[1].Id,
-//        FaceIdBuffer[payload_v.FaceId].CommonElements[1].Type);
+//        FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Id,
+//        FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Type,
+//        FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Id,
+//        FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Type);
 //    return findElementPayload;
 }
 
@@ -219,18 +219,18 @@ __device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVi
 //                 testPoint.x, testPoint.y, testPoint.z,
 //                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
-//                 FaceIdBuffer[faceId].CommonElements[0].Id,
-//                 FaceIdBuffer[faceId].CommonElements[0].Type,
-//                 FaceIdBuffer[faceId].CommonElements[1].Id,
-//                 FaceIdBuffer[faceId].CommonElements[1].Type);
+//                 FaceInfoBuffer[faceId].CommonElements[0].Id,
+//                 FaceInfoBuffer[faceId].CommonElements[0].Type,
+//                 FaceInfoBuffer[faceId].CommonElements[1].Id,
+//                 FaceInfoBuffer[faceId].CommonElements[1].Type);
     // The test point is "inside" the element if d >= 0
     if( d >= 0 )
     {
-        return FaceIdBuffer[faceId].CommonElements[0];
+        return FaceInfoBuffer[faceId].CommonElements[0];
     }
     else
     {
-        return FaceIdBuffer[faceId].CommonElements[1];
+        return FaceInfoBuffer[faceId].CommonElements[1];
     }
 }
 
@@ -246,18 +246,18 @@ __device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVi
 //                 testPoint.x, testPoint.y, testPoint.z,
 //                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
-//                 FaceIdBuffer[faceId].CommonElements[0].Id,
-//                 FaceIdBuffer[faceId].CommonElements[0].Type,
-//                 FaceIdBuffer[faceId].CommonElements[1].Id,
-//                 FaceIdBuffer[faceId].CommonElements[1].Type);
+//                 FaceInfoBuffer[faceId].CommonElements[0].Id,
+//                 FaceInfoBuffer[faceId].CommonElements[0].Type,
+//                 FaceInfoBuffer[faceId].CommonElements[1].Id,
+//                 FaceInfoBuffer[faceId].CommonElements[1].Type);
     // The test point is "inside" the element if d >= 0
     if( d >= 0 )
     {
-        return FaceIdBuffer[faceId].CommonElements[0];
+        return FaceInfoBuffer[faceId].CommonElements[0];
     }
     else
     {
-        return FaceIdBuffer[faceId].CommonElements[1];
+        return FaceInfoBuffer[faceId].CommonElements[1];
     }
 }
 

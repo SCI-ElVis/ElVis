@@ -38,7 +38,7 @@
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/HostTransferFunction.h>
 #include <ElVis/Core/Point.hpp>
-#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/FaceInfo.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/Plugin.h>
 #include <optixu/optixpp.h>
@@ -127,7 +127,7 @@ namespace ElVis
 
             ELVIS_EXPORT void SynchronizeWithOptiXIfNeeded();
 
-            ELVIS_EXPORT OptiXBuffer<FaceDef>& GetFaceIdBuffer() { return m_faceIdBuffer; }
+            ELVIS_EXPORT OptiXBuffer<FaceInfo>& GetFaceInfoBuffer() { return m_faceIdBuffer; }
             ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMinExtentBuffer() { return m_faceMinExtentBuffer; }
             ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMaxExtentBuffer() { return m_faceMaxExtentBuffer; }
 
@@ -235,7 +235,7 @@ namespace ElVis
             // Optix variables and programs for use in the newton intersection program.
             optixu::Program m_faceBoundingBoxProgram;
             optixu::Program m_faceIntersectionProgram;
-            OptiXBuffer<FaceDef> m_faceIdBuffer;
+            OptiXBuffer<FaceInfo> m_faceIdBuffer;
             OptiXBuffer<ElVisFloat3> m_faceMinExtentBuffer;
             OptiXBuffer<ElVisFloat3> m_faceMaxExtentBuffer;
             optixu::Geometry m_faceGeometry;

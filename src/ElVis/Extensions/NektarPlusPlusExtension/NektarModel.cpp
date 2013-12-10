@@ -522,8 +522,8 @@ namespace ElVis
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(numFaces);
 
-            scene->GetFaceIdBuffer().SetDimensions(numFaces);
-            BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
+            scene->GetFaceInfoBuffer().SetDimensions(numFaces);
+            BOOST_AUTO(faceDefs, scene->GetFaceInfoBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
@@ -561,9 +561,9 @@ namespace ElVis
             return numFaces;
         }
 
-        FaceDef NektarModel::DoGetFaceDefinition(size_t globalFaceId) const
+        FaceInfo NektarModel::DoGetFaceDefinition(size_t globalFaceId) const
         {
-          return FaceDef();
+          return FaceInfo();
         }
 
         size_t NektarModel::DoGetNumberOfPlanarFaceVertices() const

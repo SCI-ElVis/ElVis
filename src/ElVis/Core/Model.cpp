@@ -39,8 +39,10 @@ namespace ElVis
         m_minExtent(std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max()),
         m_maxExtent(-std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max()),
         m_center(),
-        m_faceIdBuffer("FaceIdBuffer"),
-        m_planarFaceVertexBuffer("LinearFaceVertexBuffer")
+        m_faceIdBuffer("FaceInfoBuffer"),
+        m_planarFaceVertexBuffer("LinearFaceVertexBuffer"),
+        m_PlanarFaceToGlobalIdxMap("PlanarFaceToGlobalIdxMap"),
+        m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap")
     {
     }
 
@@ -108,13 +110,13 @@ namespace ElVis
       // Populate the face id buffer.
       m_faceIdBuffer.SetContext(context);
       m_faceIdBuffer.SetDimensions(numFaces);
-      BOOST_AUTO(mappedFaceIdBuffer, m_faceIdBuffer.Map());
+      BOOST_AUTO(mappedFaceInfoBuffer, m_faceIdBuffer.Map());
 
       for(size_t i = 0; i < numFaces; ++i)
       {
         BOOST_AUTO(faceDef, GetFaceDefinition(i));
         if( faceDef.Type == ePlanar ) ++numPlanarFaces;
-        mappedFaceIdBuffer[i] = faceDef;
+        mappedFaceInfoBuffer[i] = faceDef;
       }
     }
 
@@ -137,12 +139,45 @@ namespace ElVis
     {
     }
 
+    void Model::copyPlanarFaces(optixu::Context context)
+    {
+      m_PlanarFaceToGlobalIdxMap.SetContext(context);
+      m_PlanarFaceToGlobalIdxMap.SetDimensions(1);
+
+      // Planar faces need the following:
+      //facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
+      //  facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
+      //  optixu::GeometryGroup ElementTraversalGroup = m_context->createGeometryGroup();
+      //  ElementTraversalGroup->setChildCount(1);
+
+      //  optixu::GeometryInstance faceForTraversalInstance = m_context->createGeometryInstance();
+      //  optixu::Material faceForTraversalMaterial = m_context->createMaterial();
+      //  faceForTraversalMaterial->setClosestHitProgram(2, closestHit);
+      //  faceForTraversalInstance->setMaterialCount(1);
+      //  faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
+      //  faceForTraversalInstance->setGeometry(facesForTraversal);
+
+    }
+    
+    void Model::copyCurvedFaces(optixu::Context context)
+    {
+      m_CurvedFaceToGlobalIdxMap.SetContext(context);
+      m_CurvedFaceToGlobalIdxMap.SetDimensions(1);
+    }
+
     void Model::CopyToOptiX(optixu::Context context)
     {
-      size_t numPlanarFaces = 0;
-      copyFaceDefsToOptiX(context, numPlanarFaces);
-      copyPlanarFaceVerticesToOptiX(context);
-      createLinearFaceGeometry(context);
+      copyPlanarFaces(context);
+      copyCurvedFaces(context);
+      // CopyPlanarFaces(context);
+      // CopyCurvedFaces(context);
+      // CopyFaceAdjacency(context);
+      // CopyFields(context);
+
+      //size_t numPlanarFaces = 0;
+      //copyFaceDefsToOptiX(context, numPlanarFaces);
+      //copyPlanarFaceVerticesToOptiX(context);
+      //createLinearFaceGeometry(context);
       // Populate custom faces.
 
       // Populate fields.
@@ -164,7 +199,7 @@ namespace ElVis
     }
 
     /// \brief Returns the given face definition.
-    FaceDef Model::GetFaceDefinition(size_t globalFaceId) const
+    FaceInfo Model::GetFaceDefinition(size_t globalFaceId) const
     {
       return DoGetFaceDefinition(globalFaceId);
     }

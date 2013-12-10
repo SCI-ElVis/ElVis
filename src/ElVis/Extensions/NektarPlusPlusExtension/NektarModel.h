@@ -42,7 +42,7 @@
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/OptiXBuffer.hpp>
-#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/FaceInfo.h>
 #include <ElVis/Core/Util.hpp>
 
 #include <ElVis/Extensions/NektarPlusPlusExtension/Declspec.h>
@@ -138,7 +138,7 @@ namespace ElVis
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfFaces() const;
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual FaceDef DoGetFaceDefinition(size_t globalFaceId) const;
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual FaceInfo DoGetFaceDefinition(size_t globalFaceId) const;
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfPlanarFaceVertices() const;
 
@@ -161,7 +161,7 @@ namespace ElVis
                 void SetupOptixVertexBuffers(optixu::Context context);
 
                 template<typename FaceContainer>
-                void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceDef* faceDefs, ElVisFloat4* normalBuffer)
+                void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceInfo* faceDefs, ElVisFloat4* normalBuffer)
                 {
                     int faceIndex = 0;
                     typedef typename FaceContainer::const_iterator Iterator;

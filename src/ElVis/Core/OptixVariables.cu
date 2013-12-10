@@ -35,7 +35,7 @@
 #include <optixu/optixu_aabb.h>
 #include <ElVis/Core/CutSurfacePayloads.cu>
 #include <ElVis/Core/VolumeRenderingPayload.cu>
-#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/FaceInfo.h>
 
 // Communication with OptiX is accomplished via global, named variables.
 // Each variable must be defined and visible to the OptiX programs at global
@@ -122,19 +122,35 @@ rtDeclareVariable(float, far, , );
 rtDeclareVariable(int, DepthBits, , );
 
 
-// For face intersections.
-// This is a global array of faces, and can potentially mix straight and 
-// curved faces, as well as triangles and quads.
-rtBuffer<ElVis::FaceDef, 1> FaceIdBuffer;
-rtBuffer<ElVisFloat3, 1> FaceMinExtentBuffer;
-rtBuffer<ElVisFloat3, 1> FaceMaxExtentBuffer;
-
 rtDeclareVariable(int, intersectedFaceId, attribute IntersectedFaceId, );
 rtDeclareVariable(ElVisFloat2, faceIntersectionReferencePoint, attribute FaceIntersectionReferencePoint, );
 rtDeclareVariable(bool, faceIntersectionReferencePointIsValid, attribute FaceIntersectionReferencePointIsValid, );
 
 rtDeclareVariable(ElVisFloat3, HeadlightColor, ,);
 
+
+/////////////////////////////////////////////////////////////////////////////
+// Faces
+//
+// Faces have a global index and a type-specific index.  ElVis currently 
+// distinguishes between planar and curved faces.  Each planar face will have a 
+// global face index and a different planar face index.  Similarly for curved 
+// faces.
+/////////////////////////////////////////////////////////////////////////////
+
+// Information about each face that is valid regardless of the type of face.
+// Indexing is by global face index.
+rtBuffer<ElVis::FaceInfo, 1> FaceInfoBuffer;
+
+// The bounding box for each face is calculated up-front and then stored in 
+// these buffers.
+// Indexing is by global face index.
+rtBuffer<ElVisFloat3, 1> FaceMinExtentBuffer;
+rtBuffer<ElVisFloat3, 1> FaceMaxExtentBuffer;
+
+
+rtBuffer<uint, 1> PlanarFaceToGlobalIdxMap;
+rtBuffer<uint, 1> CurvedFaceToGlobalIdxMap;
 
 #endif
 

@@ -39,7 +39,7 @@
 
 #include <optixu/optixpp.h>
 #include <ElVis/Core/ElementId.h>
-#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/FaceInfo.h>
 
 #include <ElVis/Extensions/JacobiExtension/Hexahedron.h>
 #include <ElVis/Extensions/JacobiExtension/Tetrahedron.h>
@@ -98,7 +98,7 @@ namespace ElVis
 
             virtual size_t DoGetNumberOfFaces() const;
 
-            virtual FaceDef DoGetFaceDefinition(size_t globalFaceId) const;
+            virtual FaceInfo DoGetFaceDefinition(size_t globalFaceId) const;
 
             virtual size_t DoGetNumberOfPlanarFaceVertices() const;
 
@@ -283,7 +283,7 @@ namespace ElVis
             }
 
             template<typename T>
-            void PopulateFaces(boost::shared_ptr<FiniteElementVolume> volume, std::map<JacobiFace, FaceDef>& values)
+            void PopulateFaces(boost::shared_ptr<FiniteElementVolume> volume, std::map<JacobiFace, FaceInfo>& values)
             {
                 int id = 0;
                 BOOST_FOREACH( boost::shared_ptr<Polyhedron> element, volume->IterateElementsOfType<T>() )
@@ -302,7 +302,7 @@ namespace ElVis
                         ElVis::WorldVector normal = -(asT->GetFaceNormal(i));
                         JacobiFace quadFace(p0, p1, p2, p3, T::NumEdgesForEachFace[i], normal);
 
-                        std::map<JacobiFace, FaceDef>::iterator found = values.find(quadFace);
+                        std::map<JacobiFace, FaceInfo>::iterator found = values.find(quadFace);
                         ElementId curElement;
                         curElement.Id = id;
                         curElement.Type = T::TypeId;
@@ -310,12 +310,12 @@ namespace ElVis
                         if( found != values.end() )
                         {
                             const JacobiFace& key = (*found).first;
-                            FaceDef& value = (*found).second;
+                            FaceInfo& value = (*found).second;
                             (*found).second.CommonElements[1] = curElement;
                         }
                         else
                         {
-                            FaceDef value;
+                            FaceInfo value;
                             value.CommonElements[0] = curElement;
 
                             ElementId nextElement;
@@ -338,8 +338,8 @@ namespace ElVis
 
             std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> m_verticesLookupMap;
             std::vector<WorldPoint> m_vertices;
-            std::map<JacobiFace, FaceDef> m_oldFaces;
-            std::vector<FaceDef> m_faces;
+            std::map<JacobiFace, FaceInfo> m_oldFaces;
+            std::vector<FaceInfo> m_faces;
 
             ElVis::OptiXBuffer<int> HexCoefficientBufferIndices;
             ElVis::OptiXBuffer<int> PrismCoefficientBufferIndices;

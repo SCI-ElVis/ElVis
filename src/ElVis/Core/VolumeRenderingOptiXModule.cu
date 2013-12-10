@@ -765,7 +765,7 @@ RT_PROGRAM void FaceIntersection(int primitiveId)
         }
     }
 
-    const ElVis::FaceDef& faceDef = FaceIdBuffer[primitiveId];
+    const ElVis::FaceInfo& faceDef = FaceInfoBuffer[primitiveId];
     if( faceDef.Type == ElVis::ePlanar )
     {
         PlanarFaceIntersection(primitiveId);
@@ -779,7 +779,7 @@ RT_PROGRAM void FaceIntersection(int primitiveId)
 RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
 {
     //ELVIS_PRINTF("FaceForTraversalIntersection: Testing %d\n", primitiveId);
-    const ElVis::FaceDef& faceDef = FaceIdBuffer[primitiveId];
+    const ElVis::FaceInfo& faceDef = FaceInfoBuffer[primitiveId];
     if( faceDef.Type == ElVis::ePlanar )
     {
         PlanarFaceIntersection(primitiveId);

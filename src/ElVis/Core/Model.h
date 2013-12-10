@@ -31,7 +31,7 @@
 
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/FieldInfo.h>
-#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/FaceInfo.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
 #include <optixu/optixpp.h>
 #include <vector>
@@ -92,7 +92,7 @@ namespace ElVis
             ELVIS_EXPORT virtual size_t GetNumberOfFaces() const;
 
             /// \brief Returns the given face definition.
-            ELVIS_EXPORT virtual FaceDef GetFaceDefinition(size_t globalFaceId) const;
+            ELVIS_EXPORT virtual FaceInfo GetFaceDefinition(size_t globalFaceId) const;
 
             /// \brief Returns the number of vertices associated with the linear
             /// faces.
@@ -198,7 +198,7 @@ namespace ElVis
             ELVIS_EXPORT virtual size_t DoGetNumberOfFaces() const = 0;
 
             /// \brief Returns the given face definition.
-            ELVIS_EXPORT virtual FaceDef DoGetFaceDefinition(size_t globalFaceId) const = 0;
+            ELVIS_EXPORT virtual FaceInfo DoGetFaceDefinition(size_t globalFaceId) const = 0;
 
             /// \brief Returns the number of vertices associated with the linear
             /// faces.
@@ -226,15 +226,19 @@ namespace ElVis
             void copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces);
             void copyPlanarFaceVerticesToOptiX(optixu::Context context);
             void createLinearFaceGeometry(optixu::Context context);
-            
+            void copyPlanarFaces(optixu::Context context);
+            void copyCurvedFaces(optixu::Context context);
+
             std::string m_modelPath;
             boost::shared_ptr<Plugin> m_plugin;
             WorldPoint m_minExtent;
             WorldPoint m_maxExtent;
             WorldPoint m_center;
 
-            OptiXBuffer<FaceDef> m_faceIdBuffer;
+            OptiXBuffer<FaceInfo> m_faceIdBuffer;
             OptiXBuffer<WorldPoint> m_planarFaceVertexBuffer;
+            OptiXBuffer<uint> m_PlanarFaceToGlobalIdxMap;
+            OptiXBuffer<uint> m_CurvedFaceToGlobalIdxMap;
     };
 
 }
