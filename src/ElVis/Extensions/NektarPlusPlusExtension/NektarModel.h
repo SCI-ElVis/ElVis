@@ -157,9 +157,6 @@ namespace ElVis
 
                 NektarModel& operator=(NektarModel& rhs);
 
-                virtual void DoMapInteropBufferForCuda();
-                virtual void DoUnMapInteropBufferForCuda();
-
                 void SetupOptixCoefficientBuffers(optixu::Context context);
                 void SetupOptixVertexBuffers(optixu::Context context);
 

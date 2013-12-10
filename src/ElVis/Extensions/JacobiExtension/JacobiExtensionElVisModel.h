@@ -63,24 +63,6 @@ namespace ElVis
             JACOBI_EXTENSION_EXPORT void writeCellVolumeForVTK(const char* fileName);
             JACOBI_EXTENSION_EXPORT boost::shared_ptr<FiniteElementVolume> Volume() const { return m_volume; }
 
-            // Number of copies is a temporary idea for testing purposes.  I needed large 
-            // volumes to test, but Nektar++ models use far too much memory, so I couldn't
-            // create anything large, nor did I have any volumes from before that were larger
-            // than 10,000 elements.  So I can arbitrarily inflate the sizes by creating 
-            // extra copies.
-            JACOBI_EXTENSION_EXPORT void SetNumberOfCopies(unsigned int n) 
-            {
-                m_numberOfCopies = n;
-            }
-
-            // Number of modes is temporary and allows the user to make the volume 
-            // one with an arbitrary number of modes.  This is for testing purposes for 
-            // evaluating high-order data.
-            JACOBI_EXTENSION_EXPORT void SetNumberOfModes(int n)
-            {
-                m_numberOfModes = n;
-            }
-
         protected:
             virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
             virtual void DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces );
@@ -92,7 +74,6 @@ namespace ElVis
             virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds);
 
             virtual void DoCalculateExtents(WorldPoint& min, WorldPoint& max);
-            //virtual unsigned int DoGetNumberOfPoints() const;
             virtual WorldPoint DoGetPoint(unsigned int id) const;
             virtual const std::string& DoGetPTXPrefix() const;
             virtual unsigned int DoGetNumberOfElements() const;
@@ -113,8 +94,6 @@ namespace ElVis
 
             JacobiExtensionModel& operator=(const JacobiExtensionModel& rhs);
 
-            virtual void DoMapInteropBufferForCuda();
-            virtual void DoUnMapInteropBufferForCuda();
             virtual int DoGetModelDimension() const { return 3; }
 
             virtual size_t DoGetNumberOfFaces() const;
@@ -167,13 +146,6 @@ namespace ElVis
                 int numCoefficients = NumCoefficientsForElementType<T>(coefficientAlignment)*m_numberOfCopies;
                 optixu::GeometryInstance instance;
 
-                std::cout << "Number of elements = " << numElements << std::endl;
-                std::cout << "Number of Coefficients = " << numCoefficients << std::endl;
-
-//                if( numElements == 0 )
-//                {
-//                    return optixu::GeometryInstance();
-//                }
                 std::string vertexBufferName = variablePrefix + "VertexBuffer";
                 OptiXBuffer<ElVisFloat4> VertexBuffer(vertexBufferName);
                 VertexBuffer.SetContext(context);

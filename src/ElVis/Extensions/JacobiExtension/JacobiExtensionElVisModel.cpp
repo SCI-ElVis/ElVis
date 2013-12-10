@@ -312,15 +312,6 @@ namespace ElVis
             return optixu::Material();
         }
 
-        void JacobiExtensionModel::DoMapInteropBufferForCuda()
-        {
-
-        }
-
-        void JacobiExtensionModel::DoUnMapInteropBufferForCuda()
-        {
-        }
-
         template<>
         ElVis::OptiXBuffer<int>& JacobiExtensionModel::GetCoefficientIndexBuffer<Hexahedron>()
         {

@@ -940,16 +940,6 @@ namespace ElVis
             return result;
         }
 
-        void NektarModel::DoMapInteropBufferForCuda()
-        {
-
-        }
-
-        void NektarModel::DoUnMapInteropBufferForCuda()
-        {
-
-        }
-
         int NektarModel::DoGetModelDimension() const
         {
             if( boost::dynamic_pointer_cast<ThreeDNektarModel>(m_impl) )
