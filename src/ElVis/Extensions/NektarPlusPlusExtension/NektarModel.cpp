@@ -524,8 +524,6 @@ namespace ElVis
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(numFaces);
 
-            //scene->GetFaceInfoBuffer().SetDimensions(numFaces);
-            //BOOST_AUTO(faceDefs, scene->GetFaceInfoBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 

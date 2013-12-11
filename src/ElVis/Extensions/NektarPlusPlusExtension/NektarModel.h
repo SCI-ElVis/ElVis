@@ -218,11 +218,6 @@ namespace ElVis
                             maxExtent.SetZ(maxExtent.z() + .0001);
                         }
 
-                        //minBuffer[faceIndex] = MakeFloat3(minExtent);
-                        //maxBuffer[faceIndex] = MakeFloat3(maxExtent);
-
-                        //faceDefs[faceIndex].Type = ePlanar;
-
                         Nektar::SpatialDomains::MeshGraph3DSharedPtr castPtr = boost::dynamic_pointer_cast<Nektar::SpatialDomains::MeshGraph3D>(m_graph);
                         if( castPtr )
                         {

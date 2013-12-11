@@ -175,8 +175,6 @@ namespace ElVis
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(m_faces.size());
 
-            //scene->GetFaceInfoBuffer().SetDimensions(m_faces.size());
-            //BOOST_AUTO(faceDefs, scene->GetFaceInfoBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
@@ -185,40 +183,6 @@ namespace ElVis
             //for(std::vector<FaceInfo>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
             {
                 FaceInfo faceDef = (*iter).second;
-                //faceDef.Type = eCurved;
-                //faceDef.Type = ePlanar;
-
-                //ElVisFloat3 minExtent = faceDef.MinExtent;
-                //ElVisFloat3 maxExtent = faceDef.MaxExtent;
-
-                //// There is no proof that OptiX can't handle degenerate boxes,
-                //// but just in case...
-                //if( minExtent.x == maxExtent.x )
-                //{
-                //    minExtent.x = minExtent.x - .0001;
-                //    maxExtent.x = maxExtent.x + .0001;
-                //}
-
-                //if( minExtent.y == maxExtent.y )
-                //{
-                //    minExtent.y = minExtent.y - .0001;
-                //    maxExtent.y = maxExtent.y + .0001;
-                //}
-
-                //if( minExtent.z == maxExtent.z )
-                //{
-                //    minExtent.z = minExtent.z - .0001;
-                //    maxExtent.z = maxExtent.z + .0001;
-                //}
-
-                //minBuffer[index] = minExtent;
-                //maxBuffer[index] = maxExtent;
-/*                minBuffer[index].x = 1;
-                minBuffer[index].y = 1;
-                minBuffer[index].z = 1;
-                maxBuffer[index].x = 1;
-                maxBuffer[index].y = 1;
-                maxBuffer[index].z = 1;   */             
 
                 const JacobiFace& jf = (*iter).first;
                 faceVertexBuffer[4*index] = MakeFloat4(jf.p[0]);
@@ -228,7 +192,6 @@ namespace ElVis
 
                 normalBuffer[index] = MakeFloat4(jf.normal);
 
-                //faceDefs[index] = faceDef;
                 ++index;
             }
 
