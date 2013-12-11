@@ -47,6 +47,27 @@ namespace ElVis
         FaceType Type;
         ElVisFloat3 MinExtent;
         ElVisFloat3 MaxExtent;
+
+        void widenExtents()
+        {
+          if( MinExtent.x == MaxExtent.x )
+          {
+            MinExtent.x = MinExtent.x - .0001;
+            MaxExtent.x = MaxExtent.x + .0001;
+          }
+
+          if( MinExtent.y == MaxExtent.y )
+          {
+            MinExtent.y = MinExtent.y - .0001;
+            MaxExtent.y = MaxExtent.y + .0001;
+          }
+
+          if( MinExtent.z == MaxExtent.z )
+          {
+            MinExtent.z = MinExtent.z - .0001;
+            MaxExtent.z = MaxExtent.z + .0001;
+          }
+        }
     };
 }
 

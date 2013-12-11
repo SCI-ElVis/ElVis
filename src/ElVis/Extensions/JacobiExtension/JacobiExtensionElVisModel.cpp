@@ -41,6 +41,8 @@
 
 #include <boost/typeof/typeof.hpp>
 
+#include <ElVis/Core/Float.h>
+
 namespace ElVis
 {
     namespace JacobiExtension
@@ -105,7 +107,9 @@ namespace ElVis
             for(std::map<JacobiFace, FaceInfo>::const_iterator iter = m_oldFaces.begin();
                 iter != m_oldFaces.end(); ++iter)
             {
-              m_faces.push_back((*iter).second);
+              BOOST_AUTO(face, (*iter).second);
+              face.widenExtents();
+              m_faces.push_back(face);
             }
 
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
@@ -212,8 +216,14 @@ namespace ElVis
                     maxExtent.z = maxExtent.z + .0001;
                 }
 
-                minBuffer[index] = minExtent;
-                maxBuffer[index] = maxExtent;
+                //minBuffer[index] = minExtent;
+                //maxBuffer[index] = maxExtent;
+                minBuffer[index].x = 1;
+                minBuffer[index].y = 1;
+                minBuffer[index].z = 1;
+                maxBuffer[index].x = 1;
+                maxBuffer[index].y = 1;
+                maxBuffer[index].z = 1;                
 
                 const JacobiFace& jf = (*iter).first;
                 faceVertexBuffer[4*index] = MakeFloat4(jf.p[0]);

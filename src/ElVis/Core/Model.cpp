@@ -203,7 +203,9 @@ namespace ElVis
     /// \brief Returns the given face definition.
     FaceInfo Model::GetFaceDefinition(size_t globalFaceId) const
     {
-      return DoGetFaceDefinition(globalFaceId);
+      FaceInfo result = DoGetFaceDefinition(globalFaceId);
+      result.widenExtents();
+      return result;
     }
 
     /// \brief Returns the number of vertices associated with the linear

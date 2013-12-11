@@ -42,24 +42,24 @@ RT_PROGRAM void PlanarFaceIntersection(int primitiveId)
 
 RT_PROGRAM void PlanarFaceBoundingBoxProgram(int primitiveId, float result[6])
 {
-  // primitiveId is the local index for a planar face.
-  uint globalIdx = PlanarFaceToGlobalIdxMap[primitiveId];
+  //// primitiveId is the local index for a planar face.
+  //uint globalIdx = PlanarFaceToGlobalIdxMap[primitiveId];
 
-  optix::Aabb* aabb = (optix::Aabb*)result;
+  //optix::Aabb* aabb = (optix::Aabb*)result;
 
-  if( FaceEnabled[globalIdx] )
-  {
-      ElVisFloat3 p0 = FaceMinExtentBuffer[globalIdx];
-      ElVisFloat3 p1 = FaceMaxExtentBuffer[globalIdx];
+  //if( FaceEnabled[globalIdx] )
+  //{
+  //    ElVisFloat3 p0 = FaceMinExtentBuffer[globalIdx];
+  //    ElVisFloat3 p1 = FaceMaxExtentBuffer[globalIdx];
 
-      aabb->m_min = make_float3(p0.x, p0.y, p0.z);
-      aabb->m_max = make_float3(p1.x, p1.y, p1.z);
-  }
-  else
-  {
-      aabb->m_min = make_float3(100000.0f, 100000.0f, 100000.0f);
-      aabb->m_max = make_float3(100000.1f, 100000.1f, 100000.1f);
-  }
+  //    aabb->m_min = make_float3(p0.x, p0.y, p0.z);
+  //    aabb->m_max = make_float3(p1.x, p1.y, p1.z);
+  //}
+  //else
+  //{
+  //    aabb->m_min = make_float3(100000.0f, 100000.0f, 100000.0f);
+  //    aabb->m_max = make_float3(100000.1f, 100000.1f, 100000.1f);
+  //}
 }
 
 #endif

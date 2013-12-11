@@ -574,6 +574,8 @@ ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
     // to reject this face immediately if a better intersection has already been found.
     ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
     ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+    //ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
+    //ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
 //    ELVIS_PRINTF("NewtonFaceIntersection: Primitive %d, min (%f, %f, %f) - max (%f, %f, %f)\n",
 //                 primitiveId, p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
@@ -728,16 +730,19 @@ ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
     int numVertices;
     GetNumberOfVerticesForFace(primitiveId, numVertices);
 
-    ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+    ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
+    ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
+
+    //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
+    //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
 
     ElVisFloat tmin, tmax;
     FindBoxEntranceAndExit(ray.origin, ray.direction, p0, p1, ray.tmin, ray.tmax, tmin, tmax);
 
-    //ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
-    //             p0.x, p0.y, p0.z,
-    //             p1.x, p1.y, p1.z,
-    //             primitiveId, tmin, tmax);
+    ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
+                 p0.x, p0.y, p0.z,
+                 p1.x, p1.y, p1.z,
+                 primitiveId, tmin, tmax);
 
     ElVisFloat4 v0, v1, v2;
     GetFaceVertex(primitiveId, 0, v0);
@@ -808,7 +813,11 @@ RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])
     {
         ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
         ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+        //ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
+        //ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
+        //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
+        //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
         aabb->m_min = make_float3(p0.x, p0.y, p0.z);
         aabb->m_max = make_float3(p1.x, p1.y, p1.z);
     }
@@ -823,9 +832,13 @@ RT_PROGRAM void FaceForTraversalBoundingBoxProgram(int primitiveId, float result
 {
     optix::Aabb* aabb = (optix::Aabb*)result;
 
-    ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+    //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
+    //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+    ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
+    ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
+    //rtPrintf("FaceForTraversalBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
+    //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
     aabb->m_min = make_float3(p0.x, p0.y, p0.z);
     aabb->m_max = make_float3(p1.x, p1.y, p1.z);
 }
