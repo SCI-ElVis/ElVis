@@ -218,8 +218,8 @@ namespace ElVis
                             maxExtent.SetZ(maxExtent.z() + .0001);
                         }
 
-                        minBuffer[faceIndex] = MakeFloat3(minExtent);
-                        maxBuffer[faceIndex] = MakeFloat3(maxExtent);
+                        //minBuffer[faceIndex] = MakeFloat3(minExtent);
+                        //maxBuffer[faceIndex] = MakeFloat3(maxExtent);
 
                         //faceDefs[faceIndex].Type = ePlanar;
 

@@ -572,10 +572,10 @@ ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
 
     // Step 1 - Bound t with bounding box intersection tests.  Note that it is possible
     // to reject this face immediately if a better intersection has already been found.
-    ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
-    //ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
-    //ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
+    //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
+    //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+    ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
+    ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
 //    ELVIS_PRINTF("NewtonFaceIntersection: Primitive %d, min (%f, %f, %f) - max (%f, %f, %f)\n",
 //                 primitiveId, p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
@@ -811,10 +811,10 @@ RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])
 
     if( FaceEnabled[primitiveId] )
     {
-        ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-        ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
-        //ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
-        //ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
+        //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
+        //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+        ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
+        ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
         //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
         //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
