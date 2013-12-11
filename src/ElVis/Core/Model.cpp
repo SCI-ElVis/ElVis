@@ -167,6 +167,9 @@ namespace ElVis
 
     void Model::CopyToOptiX(optixu::Context context)
     {
+      size_t numPlanarFaces = 0;
+      copyFaceDefsToOptiX(context, numPlanarFaces);
+
       copyPlanarFaces(context);
       copyCurvedFaces(context);
       // CopyPlanarFaces(context);
@@ -174,8 +177,7 @@ namespace ElVis
       // CopyFaceAdjacency(context);
       // CopyFields(context);
 
-      //size_t numPlanarFaces = 0;
-      //copyFaceDefsToOptiX(context, numPlanarFaces);
+      
       //copyPlanarFaceVerticesToOptiX(context);
       //createLinearFaceGeometry(context);
       // Populate custom faces.

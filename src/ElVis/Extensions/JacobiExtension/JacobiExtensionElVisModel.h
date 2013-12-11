@@ -317,7 +317,7 @@ namespace ElVis
                         {
                             FaceInfo value;
                             value.CommonElements[0] = curElement;
-
+                            value.Type = ePlanar;
                             ElementId nextElement;
                             nextElement.Id = -1;
                             nextElement.Type = -1;

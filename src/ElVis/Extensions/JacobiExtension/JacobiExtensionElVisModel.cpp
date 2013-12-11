@@ -176,8 +176,8 @@ namespace ElVis
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(m_faces.size());
 
-            scene->GetFaceInfoBuffer().SetDimensions(m_faces.size());
-            BOOST_AUTO(faceDefs, scene->GetFaceInfoBuffer().map());
+            //scene->GetFaceInfoBuffer().SetDimensions(m_faces.size());
+            //BOOST_AUTO(faceDefs, scene->GetFaceInfoBuffer().map());
             BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
@@ -223,7 +223,7 @@ namespace ElVis
 
                 normalBuffer[index] = MakeFloat4(jf.normal);
 
-                faceDefs[index] = faceDef;
+                //faceDefs[index] = faceDef;
                 ++index;
             }
 

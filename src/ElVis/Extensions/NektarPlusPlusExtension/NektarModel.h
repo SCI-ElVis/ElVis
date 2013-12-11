@@ -161,7 +161,7 @@ namespace ElVis
                 void SetupOptixVertexBuffers(optixu::Context context);
 
                 template<typename FaceContainer>
-                void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceInfo* faceDefs, ElVisFloat4* normalBuffer)
+                void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceInfo*, ElVisFloat4* normalBuffer)
                 {
                     int faceIndex = 0;
                     typedef typename FaceContainer::const_iterator Iterator;
@@ -211,22 +211,22 @@ namespace ElVis
                         minBuffer[faceIndex] = MakeFloat3(minExtent);
                         maxBuffer[faceIndex] = MakeFloat3(maxExtent);
 
-                        faceDefs[faceIndex].Type = ePlanar;
+                        //faceDefs[faceIndex].Type = ePlanar;
 
                         Nektar::SpatialDomains::MeshGraph3DSharedPtr castPtr = boost::dynamic_pointer_cast<Nektar::SpatialDomains::MeshGraph3D>(m_graph);
                         if( castPtr )
                         {
                             Nektar::SpatialDomains::ElementFaceVectorSharedPtr elements = castPtr->GetElementsFromFace(geom);
                             assert(elements->size() <= 2 );
-                            faceDefs[faceIndex].CommonElements[0].Id = -1;
-                            faceDefs[faceIndex].CommonElements[0].Type = -1;
-                            faceDefs[faceIndex].CommonElements[1].Id = -1;
-                            faceDefs[faceIndex].CommonElements[1].Type = -1;
-                            for(int elementId = 0; elementId < elements->size(); ++elementId)
-                            {
-                                faceDefs[faceIndex].CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
-                                faceDefs[faceIndex].CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
-                            }
+                            //faceDefs[faceIndex].CommonElements[0].Id = -1;
+                            //faceDefs[faceIndex].CommonElements[0].Type = -1;
+                            //faceDefs[faceIndex].CommonElements[1].Id = -1;
+                            //faceDefs[faceIndex].CommonElements[1].Type = -1;
+                            //for(int elementId = 0; elementId < elements->size(); ++elementId)
+                            //{
+                            //    faceDefs[faceIndex].CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
+                            //    faceDefs[faceIndex].CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
+                            //}
                         }
                         
                         // TODO - Normal.

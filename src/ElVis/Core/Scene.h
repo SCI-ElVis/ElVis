@@ -127,7 +127,7 @@ namespace ElVis
 
             ELVIS_EXPORT void SynchronizeWithOptiXIfNeeded();
 
-            ELVIS_EXPORT OptiXBuffer<FaceInfo>& GetFaceInfoBuffer() { return m_faceIdBuffer; }
+            //ELVIS_EXPORT OptiXBuffer<FaceInfo>& GetFaceInfoBuffer() { return m_faceIdBuffer; }
             ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMinExtentBuffer() { return m_faceMinExtentBuffer; }
             ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMaxExtentBuffer() { return m_faceMaxExtentBuffer; }
 

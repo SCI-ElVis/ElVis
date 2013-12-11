@@ -26,8 +26,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVIS_CORE_FACEDEF_H
-#define ELVIS_CORE_FACEDEF_H
+#ifndef ELVIS_CORE_FACEINFO_H
+#define ELVIS_CORE_FACEINFO_H
 
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/Float.h>

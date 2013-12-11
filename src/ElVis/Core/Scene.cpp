@@ -263,8 +263,8 @@ namespace ElVis
     {
         optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
 
-        m_faceIdBuffer.SetContext(m_context);
-        m_faceIdBuffer.SetDimensions(1);
+        //m_faceIdBuffer.SetContext(m_context);
+        //m_faceIdBuffer.SetDimensions(1);
 
         m_faceMinExtentBuffer.SetContext(m_context);
         m_faceMinExtentBuffer.SetDimensions(1);
