@@ -105,6 +105,8 @@ namespace ElVis
             ,m_QuadCoeffMappingDir0("QuadCoeffMappingDir0")
             ,m_QuadCoeffMappingDir1("QuadCoeffMappingDir1")
             ,m_deviceQuadVertexIndexMap("QuadVertexIndices")
+            ,m_triLocalToGlobalIdxMap()
+            ,m_quadLocalToGlobalIdxMap()
         {
             boost::filesystem::path geometryFile(modelPrefix + ".xml");
             boost::filesystem::path fieldFile(modelPrefix + ".fld");
@@ -288,6 +290,12 @@ namespace ElVis
         }
             CalculateExtents();
             LoadFields(fieldFile);
+        }
+
+        void NektarModel::SetupFaces()
+        {
+          CreateLocalToGlobalIdxMap(m_graph->GetAllTriGeoms(), m_triLocalToGlobalIdxMap);
+          CreateLocalToGlobalIdxMap(m_graph->GetAllQuadGeoms(), m_quadLocalToGlobalIdxMap);
         }
 
         std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
@@ -561,9 +569,103 @@ namespace ElVis
             return numFaces;
         }
 
+        namespace
+        {
+          void setupFaceAdjacency(Nektar::SpatialDomains::MeshGraphSharedPtr m_graph,
+            boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> face,
+            FaceInfo& result)
+          {
+            boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> geom = boost::dynamic_pointer_cast<Nektar::SpatialDomains::Geometry2D>( face );
+
+            Nektar::SpatialDomains::MeshGraph3DSharedPtr castPtr = boost::dynamic_pointer_cast<Nektar::SpatialDomains::MeshGraph3D>(m_graph);
+            if( castPtr )
+            {
+              Nektar::SpatialDomains::ElementFaceVectorSharedPtr elements = castPtr->GetElementsFromFace(geom);
+              assert(elements->size() <= 2 );
+              result.CommonElements[0].Id = -1;
+              result.CommonElements[0].Type = -1;
+              result.CommonElements[1].Id = -1;
+              result.CommonElements[1].Type = -1;
+              for(int elementId = 0; elementId < elements->size(); ++elementId)
+              {
+                  result.CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
+                  result.CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
+              }
+            }
+          }
+
+          void calculateBoundingBox(boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> face,
+            FaceInfo& result)
+          {
+            WorldPoint minExtent(std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max());
+            WorldPoint maxExtent(-std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max());
+
+            boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> geom = boost::dynamic_pointer_cast<Nektar::SpatialDomains::Geometry2D>( face );
+
+            for(int i = 0; i < geom->GetNumVerts(); ++i)
+            {
+              Nektar::SpatialDomains::VertexComponentSharedPtr rawVertex = geom->GetVertex(i);
+              WorldPoint v(rawVertex->x(), rawVertex->y(), rawVertex->z());
+              minExtent = CalcMin(minExtent, v);
+              maxExtent = CalcMax(maxExtent, v);
+            }
+
+            // There is no proof that OptiX can't handle degenerate boxes,
+            // but just in case...
+            if( minExtent.x() == maxExtent.x() )
+            {
+              minExtent.SetX(minExtent.x() - .0001);
+              maxExtent.SetX(maxExtent.x() + .0001);
+            }
+
+            if( minExtent.y() == maxExtent.y() )
+            {
+              minExtent.SetY(minExtent.y() - .0001);
+              maxExtent.SetY(maxExtent.y() + .0001);
+            }
+
+            if( minExtent.z() == maxExtent.z() )
+            {
+              minExtent.SetZ(minExtent.z() - .0001);
+              maxExtent.SetZ(maxExtent.z() + .0001);
+            }
+
+            result.MinExtent = MakeFloat3(minExtent);
+            result.MaxExtent = MakeFloat3(maxExtent);
+          }
+        }
+
         FaceInfo NektarModel::DoGetFaceDefinition(size_t globalFaceId) const
         {
-          return FaceInfo();
+          boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> face;
+          BOOST_AUTO(foundTri, m_graph->GetAllTriGeoms().find(globalFaceId));
+          if( foundTri != m_graph->GetAllTriGeoms().end() )
+          {
+            face = (*foundTri).second;
+          }
+          else
+          {
+            BOOST_AUTO(foundQuad, m_graph->GetAllQuadGeoms().find(globalFaceId));
+            if( foundQuad != m_graph->GetAllQuadGeoms().end() )
+            {
+              face = (*foundQuad).second;
+            }
+          }
+
+          if( !face )
+          {
+            std::string msg = "Unable to find Nektar++ face with global id " +
+              boost::lexical_cast<std::string>(globalFaceId);
+            throw new std::runtime_error(msg.c_str());
+          }
+
+          FaceInfo result;
+
+          // TODO - Update to detect curved faces.
+          result.Type = ePlanar;
+          calculateBoundingBox(face, result);
+          setupFaceAdjacency(m_graph, face, result);
+          return result;
         }
 
         size_t NektarModel::DoGetNumberOfPlanarFaceVertices() const

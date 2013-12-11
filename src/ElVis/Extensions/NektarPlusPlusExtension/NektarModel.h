@@ -161,6 +161,16 @@ namespace ElVis
                 void SetupOptixVertexBuffers(optixu::Context context);
 
                 template<typename FaceContainer>
+                void CreateLocalToGlobalIdxMap(const FaceContainer& faces, std::vector<int>& idxMap)
+                {
+                  typedef typename FaceContainer::const_iterator Iterator;
+                  for(Iterator iter = faces.begin(); iter != faces.end(); ++iter)
+                  {
+                    idxMap.push_back((*iter).second->GetGlobalID());
+                  }
+                }
+
+                template<typename FaceContainer>
                 void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceInfo*, ElVisFloat4* normalBuffer)
                 {
                     int faceIndex = 0;
@@ -401,6 +411,7 @@ namespace ElVis
 
                 // Initialization methods.
                 void LoadFields(const boost::filesystem::path& fieldFile);
+                void SetupFaces();
 
                 void SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context);
                 void SetupCoefficientOffsetBuffer(optixu::Context context);
@@ -454,6 +465,8 @@ namespace ElVis
                 ElVis::OptiXBuffer<uint> m_QuadCoeffMappingDir0;
                 ElVis::OptiXBuffer<uint> m_QuadCoeffMappingDir1;
 
+                std::vector<int> m_triLocalToGlobalIdxMap;
+                std::vector<int> m_quadLocalToGlobalIdxMap;
         };
     }
 
