@@ -142,13 +142,6 @@ rtDeclareVariable(ElVisFloat3, HeadlightColor, ,);
 // Indexing is by global face index.
 rtBuffer<ElVis::FaceInfo, 1> FaceInfoBuffer;
 
-// The bounding box for each face is calculated up-front and then stored in 
-// these buffers.
-// Indexing is by global face index.
-rtBuffer<ElVisFloat3, 1> FaceMinExtentBuffer;
-rtBuffer<ElVisFloat3, 1> FaceMaxExtentBuffer;
-
-
 rtBuffer<uint, 1> PlanarFaceToGlobalIdxMap;
 rtBuffer<uint, 1> CurvedFaceToGlobalIdxMap;
 

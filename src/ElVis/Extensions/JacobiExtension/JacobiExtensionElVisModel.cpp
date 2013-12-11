@@ -170,11 +170,6 @@ namespace ElVis
         void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, 
           optixu::Context context, optixu::Geometry& faceGeometry)
         {
-            scene->GetFaceMinExtentBuffer().SetDimensions(m_faces.size());
-            scene->GetFaceMaxExtentBuffer().SetDimensions(m_faces.size());
-
-            BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
-            BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
             FaceVertexBuffer.SetContext(context);
             FaceVertexBuffer.SetDimensions(m_faces.size()*4);
             FaceNormalBuffer.SetContext(context);

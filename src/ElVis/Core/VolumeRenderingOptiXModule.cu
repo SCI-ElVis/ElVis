@@ -572,8 +572,6 @@ ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
 
     // Step 1 - Bound t with bounding box intersection tests.  Note that it is possible
     // to reject this face immediately if a better intersection has already been found.
-    //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
     ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
     ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
@@ -733,9 +731,6 @@ ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
     ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
     ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
-    //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
-
     ElVisFloat tmin, tmax;
     FindBoxEntranceAndExit(ray.origin, ray.direction, p0, p1, ray.tmin, ray.tmax, tmin, tmax);
 
@@ -811,8 +806,6 @@ RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])
 
     if( FaceEnabled[primitiveId] )
     {
-        //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-        //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
         ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
         ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
@@ -832,8 +825,6 @@ RT_PROGRAM void FaceForTraversalBoundingBoxProgram(int primitiveId, float result
 {
     optix::Aabb* aabb = (optix::Aabb*)result;
 
-    //ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    //ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
     ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
     ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
 
