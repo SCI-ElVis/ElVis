@@ -311,17 +311,17 @@ namespace ElVis
                         {
                             const JacobiFace& key = (*found).first;
                             FaceInfo& value = (*found).second;
-                            (*found).second.CommonElements[1] = curElement;
+                            (*found).second.CommonElements[0] = curElement;
                         }
                         else
                         {
                             FaceInfo value;
-                            value.CommonElements[0] = curElement;
+                            value.CommonElements[1] = curElement;
                             value.Type = ePlanar;
                             ElementId nextElement;
                             nextElement.Id = -1;
                             nextElement.Type = -1;
-                            value.CommonElements[1] = nextElement;
+                            value.CommonElements[0] = nextElement;
 
                             value.MinExtent = MakeFloat3(quadFace.MinExtent());
                             value.MaxExtent = MakeFloat3(quadFace.MaxExtent());

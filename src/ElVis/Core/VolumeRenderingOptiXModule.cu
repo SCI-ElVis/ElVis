@@ -734,10 +734,10 @@ ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
     ElVisFloat tmin, tmax;
     FindBoxEntranceAndExit(ray.origin, ray.direction, p0, p1, ray.tmin, ray.tmax, tmin, tmax);
 
-    ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
-                 p0.x, p0.y, p0.z,
-                 p1.x, p1.y, p1.z,
-                 primitiveId, tmin, tmax);
+    //ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
+    //             p0.x, p0.y, p0.z,
+    //             p1.x, p1.y, p1.z,
+    //             primitiveId, tmin, tmax);
 
     ElVisFloat4 v0, v1, v2;
     GetFaceVertex(primitiveId, 0, v0);

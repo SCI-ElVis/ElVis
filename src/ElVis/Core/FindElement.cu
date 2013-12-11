@@ -33,23 +33,7 @@
 #include "CutSurfacePayloads.cu"
 #include <ElVis/Core/FaceIntersection.cu>
 
-/// \brief Finds the element enclosing point p
-__device__ __forceinline__ ElementFinderPayload FindElement(const ElVisFloat3& p)
-{
-    // Random direction since rays in any direction should intersect the element.  We did have some accuracy
-    // issues with a direciton of (1, 0, 0) with axis-aligned elements.  This direction won't solve that
-    // problem, but it does make it less likely to occur.
-    const float3 direction = normalize(make_float3(1.0f, 2.0f, 3.0f));
 
-    optix::Ray findElementRay = optix::make_Ray( ConvertToFloat3(p), direction, 1, 0.0f, RT_DEFAULT_MAX );
-    ElementFinderPayload findElementPayload;
-    findElementPayload.Initialize(p);
-
-    ELVIS_PRINTF("FindElement: Finding element enclosing point (%f, %f, %f)\n", p.x, p.y, p.z);
-    rtTrace( PointLocationGroup, findElementRay, findElementPayload);
-    ELVIS_PRINTF("FindElement: Found Element %d\n", findElementPayload.elementId);
-    return findElementPayload;
-}
 
 __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisFloat3& p, const ElVisFloat3& direction, const VolumeRenderingPayload& payload_v)
 {
@@ -71,7 +55,7 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
     ElVisFloat3 pointOnFace = p + payload_v.IntersectionT*direction;
     GetFaceNormal(pointOnFace, payload_v.FaceId, faceNormal);
 
-    ElVisFloat3 vectorToPointOnFace = p - pointOnFace;
+    ElVisFloat3 vectorToPointOnFace = pointOnFace -p ;//p - pointOnFace;
 
     ElVisFloat d = dot(faceNormal, vectorToPointOnFace);
 
@@ -259,6 +243,12 @@ __device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVi
     {
         return FaceInfoBuffer[faceId].CommonElements[1];
     }
+}
+
+/// \brief Finds the element enclosing point p
+__device__ __forceinline__ ElementFinderPayload FindElement(const ElVisFloat3& p)
+{
+  return FindElementFromFace(p);
 }
 
 #endif

@@ -132,7 +132,7 @@ ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int el
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& referencePoint)
 {
-    ELVIS_PRINTF("EvaluateFieldOptiX 1\n");
+    //ELVIS_PRINTF("EvaluateFieldOptiX 1\n");
     if( referenceType != ElVis::eReferencePointIsValid )
     {
         ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, referenceType, referencePoint);
@@ -144,7 +144,7 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint)
 {
-    ELVIS_PRINTF("EvaluateFieldOptiX 2\n");
+    //ELVIS_PRINTF("EvaluateFieldOptiX 2\n");
     ElVisFloat3 dummy;
     return EvaluateFieldOptiX(elementId, elementType, fieldId, worldPoint, ElVis::eReferencePointIsInvalid, dummy);
 }

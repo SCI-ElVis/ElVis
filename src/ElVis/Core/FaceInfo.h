@@ -43,6 +43,8 @@ namespace ElVis
 
     struct FaceInfo
     {
+        // CommonElements[0] - The element on the opposite side as the face's normal.
+        // CommonElements[1] - The element on the same side of the face's normal.
         ElementId CommonElements[2];
         FaceType Type;
         ElVisFloat3 MinExtent;

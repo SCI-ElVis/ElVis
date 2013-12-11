@@ -174,6 +174,8 @@ int GenericCLIInterface(int argc, char** argv,
                         boost::shared_ptr<ElVis::ColorMap> colorMap,
                         unsigned int width, unsigned int height, const std::string& outFilePath, const ElVis::Camera& c)
 {
+  try
+  {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
     glutInitWindowSize(100, 100);
@@ -275,6 +277,27 @@ int GenericCLIInterface(int argc, char** argv,
     #ifdef __GNUC__
     system("nvidia-smi");
     #endif
+
+    bool trace = false;
+    if( vm.count(traceLabel) == 1 )
+    {
+        trace = vm[traceLabel].as<int>();
+    }
+
+    int tracex = -1;
+    int tracey = -1;
+    if( vm.count(traceXLabel) == 1)
+    {
+        tracex = vm[traceXLabel].as<int>();
+    }
+
+    if( vm.count(traceYLabel) == 1)
+    {
+        tracey = vm[traceYLabel].as<int>();
+    }
+
+    scene->SetEnableOptixTrace(trace);
+    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
 
     BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
@@ -466,7 +489,15 @@ int GenericCLIInterface(int argc, char** argv,
         #endif
 
     }
-
+  }
+  catch(std::exception& e)
+  {
+    std::cout << e.what() << std::endl;
+  }
+  catch(...)
+  {
+    std::cout << "Unknown exception." << std::endl;
+  }
 
     return 0;
 }
