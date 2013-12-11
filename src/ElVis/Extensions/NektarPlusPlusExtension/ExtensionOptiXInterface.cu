@@ -35,18 +35,16 @@
 #include <ElVis/Extensions/NektarPlusPlusExtension/OptixQuad.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/OptixTriangle.cu>
 
-
-rtBuffer<ElVisFloat4> FaceVertexBuffer;
 rtBuffer<ElVisFloat4> FaceNormalBuffer;
 
 // Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result)
 {
-    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v0 = PlanarFaceVertexBuffer[4*faceId];
+    ElVisFloat4 v1 = PlanarFaceVertexBuffer[4*faceId+1];
+    ElVisFloat4 v2 = PlanarFaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = PlanarFaceVertexBuffer[4*faceId+3];
 
     ElVisFloat r = refPoint.x;
     ElVisFloat s = refPoint.y;
@@ -142,8 +140,8 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
 
 ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
 {
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v2 = PlanarFaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = PlanarFaceVertexBuffer[4*faceId+3];
 
     if( v2 == v3 )
     {
@@ -159,7 +157,7 @@ ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
 
 ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
 {
-    result = FaceVertexBuffer[4*faceId+vertexId];
+    result = PlanarFaceVertexBuffer[4*faceId+vertexId];
     return eNoError;
 }
 
@@ -176,10 +174,10 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds)
 {
-    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v0 = PlanarFaceVertexBuffer[4*faceId];
+    ElVisFloat4 v1 = PlanarFaceVertexBuffer[4*faceId+1];
+    ElVisFloat4 v2 = PlanarFaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = PlanarFaceVertexBuffer[4*faceId+3];
 
     const T& r = p.x;
     const T& s = p.y;

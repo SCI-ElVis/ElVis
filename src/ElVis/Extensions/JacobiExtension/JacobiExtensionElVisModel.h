@@ -350,7 +350,7 @@ namespace ElVis
             ElVis::OptiXBuffer<ElVisFloat4> HexPlaneBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> PrismPlaneBuffer;
 
-            ElVis::OptiXBuffer<ElVisFloat4> FaceVertexBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> PlanarFaceVertexBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> FaceNormalBuffer;
         };
 

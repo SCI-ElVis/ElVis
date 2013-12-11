@@ -442,7 +442,7 @@ namespace ElVis
                 ElVis::OptiXBuffer<uint4> m_deviceHexVertexFaceIndex;
                 ElVis::OptiXBuffer<uint3> m_deviceNumberOfModes;
 
-                ElVis::OptiXBuffer<ElVisFloat4> FaceVertexBuffer;
+                ElVis::OptiXBuffer<ElVisFloat4> PlanarFaceVertexBuffer;
                 ElVis::OptiXBuffer<ElVisFloat4> FaceNormalBuffer;
 
                 ElVis::OptiXBuffer<uint> m_deviceTriangleVertexIndexMap;

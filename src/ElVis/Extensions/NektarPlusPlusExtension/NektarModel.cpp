@@ -90,7 +90,7 @@ namespace ElVis
             ,m_deviceHexPlaneBuffer("HexPlaneBuffer")
             ,m_deviceHexVertexFaceIndex("Hexvertex_face_index")
             ,m_deviceNumberOfModes("NumberOfModes")
-            ,FaceVertexBuffer("FaceVertexBuffer")
+            ,PlanarFaceVertexBuffer("PlanarFaceVertexBuffer")
             ,FaceNormalBuffer("FaceNormalBuffer")
             ,m_deviceTriangleVertexIndexMap("TriangleVertexIndices")
             ,m_TriangleModes("TriangleModes")
@@ -519,12 +519,12 @@ namespace ElVis
             numFaces += m_graph->GetAllTriGeoms().size();
             numFaces += m_graph->GetAllQuadGeoms().size();
 
-            FaceVertexBuffer.SetContext(context);
-            FaceVertexBuffer.SetDimensions(numFaces*4);
+            PlanarFaceVertexBuffer.SetContext(context);
+            PlanarFaceVertexBuffer.SetDimensions(numFaces*4);
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(numFaces);
 
-            BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
+            BOOST_AUTO(faceVertexBuffer, PlanarFaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             AddFaces(m_graph->GetAllTriGeoms(), 0, 0, faceVertexBuffer.get(), 0/* faceDefs.get()*/, normalBuffer.get());

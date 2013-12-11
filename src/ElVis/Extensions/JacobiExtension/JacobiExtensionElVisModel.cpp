@@ -67,7 +67,7 @@ namespace ElVis
             PrismCoefficientBuffer("PrismCoefficients"),
             HexPlaneBuffer("HexPlaneBuffer"),
             PrismPlaneBuffer("PrismPlaneBuffer"),
-            FaceVertexBuffer("FaceVertexBuffer"),
+            PlanarFaceVertexBuffer("PlanarFaceVertexBuffer"),
             FaceNormalBuffer("FaceNormalBuffer"),
             m_verticesLookupMap(closePointLessThan)
         {
@@ -170,12 +170,12 @@ namespace ElVis
         void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, 
           optixu::Context context, optixu::Geometry& faceGeometry)
         {
-            FaceVertexBuffer.SetContext(context);
-            FaceVertexBuffer.SetDimensions(m_faces.size()*4);
+            PlanarFaceVertexBuffer.SetContext(context);
+            PlanarFaceVertexBuffer.SetDimensions(m_faces.size()*4);
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(m_faces.size());
 
-            BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
+            BOOST_AUTO(faceVertexBuffer, PlanarFaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             int index = 0;
