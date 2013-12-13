@@ -30,6 +30,7 @@
 #define ELVIS_MODEL_H
 
 #include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/Vector.hpp>
 #include <ElVis/Core/FieldInfo.h>
 #include <ElVis/Core/FaceInfo.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
@@ -109,6 +110,9 @@ namespace ElVis
 
             /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
             ELVIS_EXPORT virtual size_t GetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
+
+            /// \brief Returns the normal for the given face.
+            ELVIS_EXPORT WorldVector GetPlanarFaceNormal(size_t localFaceId) const;
 
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
@@ -218,7 +222,7 @@ namespace ElVis
             /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
             ELVIS_EXPORT virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId) = 0;
 
-
+            ELVIS_EXPORT virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceId) const = 0;
 
 
         private:
@@ -230,6 +234,7 @@ namespace ElVis
             void createLinearFaceGeometry(optixu::Context context);
             void copyPlanarFaces(optixu::Context context, size_t numPlanarFaces);
             void copyCurvedFaces(optixu::Context context);
+            void copyPlanarNormalsToOptiX(optixu::Context context, size_t numPlanarFaces);
 
             std::string m_modelPath;
             boost::shared_ptr<Plugin> m_plugin;
@@ -246,6 +251,7 @@ namespace ElVis
             OptiXBuffer<PlanarFaceInfo> m_PlanarFaceInfo;
 
             OptiXBuffer<ElVisFloat4> m_PlanarFaceVertexBuffer;
+            ElVis::OptiXBuffer<ElVisFloat4> m_PlanarFaceNormalBuffer;
     };
 
 }

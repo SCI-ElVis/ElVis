@@ -150,6 +150,7 @@ rtBuffer<ElVis::PlanarFaceInfo> PlanarFaceInfoBuffer;
 
 rtBuffer<uint, 1> PlanarFaceToGlobalIdxMap;
 rtBuffer<uint, 1> CurvedFaceToGlobalIdxMap;
+rtBuffer<ElVisFloat4> PlanarFaceNormalBuffer;
 
 #endif
 

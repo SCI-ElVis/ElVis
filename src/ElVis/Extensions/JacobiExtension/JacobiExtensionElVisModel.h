@@ -108,6 +108,8 @@ namespace ElVis
 
             virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
 
+            virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceId) const;
+
             template<typename T>
             int NumCoefficientsForElementType(unsigned int alignment) const 
             {
@@ -335,7 +337,7 @@ namespace ElVis
             std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> m_verticesLookupMap;
             std::vector<WorldPoint> m_vertices;
             std::map<JacobiFaceKey, JacobiFace> m_oldFaces;
-            std::vector<FaceInfo> m_faces;
+            std::vector<JacobiFace> m_faces;
 
             ElVis::OptiXBuffer<int> HexCoefficientBufferIndices;
             ElVis::OptiXBuffer<int> PrismCoefficientBufferIndices;
@@ -347,7 +349,6 @@ namespace ElVis
             ElVis::OptiXBuffer<ElVisFloat4> PrismPlaneBuffer;
 
             ElVis::OptiXBuffer<ElVisFloat4> PlanarFaceVertexBuffer;
-            ElVis::OptiXBuffer<ElVisFloat4> FaceNormalBuffer;
         };
 
         template<>

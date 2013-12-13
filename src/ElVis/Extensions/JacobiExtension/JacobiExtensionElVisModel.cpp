@@ -68,7 +68,6 @@ namespace ElVis
             HexPlaneBuffer("HexPlaneBuffer"),
             PrismPlaneBuffer("PrismPlaneBuffer"),
             PlanarFaceVertexBuffer("PlanarFaceVertexBuffer"),
-            FaceNormalBuffer("FaceNormalBuffer"),
             m_verticesLookupMap(closePointLessThan)
         {
         }
@@ -109,7 +108,7 @@ namespace ElVis
             {
               BOOST_AUTO(face, (*iter).second);
               face.info.widenExtents();
-              m_faces.push_back(face.info);
+              m_faces.push_back(face);
             }
 
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
@@ -172,11 +171,8 @@ namespace ElVis
         {
             PlanarFaceVertexBuffer.SetContext(context);
             PlanarFaceVertexBuffer.SetDimensions(m_faces.size()*4);
-            FaceNormalBuffer.SetContext(context);
-            FaceNormalBuffer.SetDimensions(m_faces.size());
 
             BOOST_AUTO(faceVertexBuffer, PlanarFaceVertexBuffer.Map());
-            BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             int index = 0;
             for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
@@ -190,17 +186,10 @@ namespace ElVis
                 faceVertexBuffer[4*index+2] = MakeFloat4(jf.p[2]);
                 faceVertexBuffer[4*index+3] = MakeFloat4(jf.p[3]);
 
-                normalBuffer[index] = MakeFloat4((*iter).second.normal);
-
                 ++index;
             }
 
-
-            // All Jacobi faces are planar, but can be switched to curved for testing the
-            // intersection routines.
-
             faceGeometry->setPrimitiveCount(m_faces.size());
-            //curvedFaces->setPrimitiveCount(faces.size());
         }
 
         std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
@@ -338,7 +327,7 @@ namespace ElVis
 
         FaceInfo JacobiExtensionModel::DoGetFaceDefinition(size_t globalFaceId) const
         {
-          return m_faces[globalFaceId];
+          return m_faces[globalFaceId].info;
         }
 
         size_t JacobiExtensionModel::DoGetNumberOfPlanarFaceVertices() const
@@ -359,6 +348,11 @@ namespace ElVis
         size_t JacobiExtensionModel::DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
         {
           return 0;
+        }
+
+        WorldVector JacobiExtensionModel::DoGetPlanarFaceNormal(size_t localFaceId) const
+        {
+          return m_faces[localFaceId].normal;
         }
 
     }

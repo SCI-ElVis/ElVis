@@ -43,7 +43,8 @@ namespace ElVis
         m_PlanarFaceToGlobalIdxMap("PlanarFaceToGlobalIdxMap"),
         m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap"),
         m_PlanarFaceInfo("PlanarFaceInfoBuffer"),
-        m_PlanarFaceVertexBuffer("PlanarFaceVertexBuffer")
+        m_PlanarFaceVertexBuffer("PlanarFaceVertexBuffer"),
+        m_PlanarFaceNormalBuffer("PlanarFaceNormalBuffer")
     {
     }
 
@@ -100,6 +101,11 @@ namespace ElVis
         return DoGet2DPrimaryGeometry(scene, context);
     }
 
+    WorldVector Model::GetPlanarFaceNormal(size_t localFaceId) const
+    {
+      return DoGetPlanarFaceNormal(localFaceId);
+    }
+
     void Model::copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces)
     {
       numPlanarFaces = 0;
@@ -141,50 +147,65 @@ namespace ElVis
     {
     }
 
+    void Model::copyPlanarNormalsToOptiX(optixu::Context context, size_t numPlanarFaces)
+    {
+      m_PlanarFaceNormalBuffer.SetContext(context);
+      m_PlanarFaceNormalBuffer.SetDimensions(numPlanarFaces);
+      BOOST_AUTO(mappedPlanarFaceNormalBuffer, m_PlanarFaceNormalBuffer.Map());
+
+      for(unsigned int i = 0; i < numPlanarFaces; ++i)
+      {
+        BOOST_AUTO(normal, GetPlanarFaceNormal(i));
+        mappedPlanarFaceNormalBuffer[i] = MakeFloat4(normal);  
+      }
+    }
+
     void Model::copyPlanarFaces(optixu::Context context, size_t numPlanarFaces)
     {
-      copyPlanarFaceVerticesToOptiX(context);
+      copyPlanarNormalsToOptiX(context, numPlanarFaces);
 
-      m_PlanarFaceToGlobalIdxMap.SetContext(context);
-      m_PlanarFaceToGlobalIdxMap.SetDimensions(1);
+      //copyPlanarFaceVerticesToOptiX(context);
 
-      m_PlanarFaceInfo.SetContext(context);
-      m_PlanarFaceInfo.SetDimensions(numPlanarFaces);
+      //m_PlanarFaceToGlobalIdxMap.SetContext(context);
+      //m_PlanarFaceToGlobalIdxMap.SetDimensions(1);
 
-      BOOST_AUTO(numFaces, GetNumberOfFaces());
-      BOOST_AUTO(faceBuffer, m_PlanarFaceInfo.Map());
-      size_t localFaceIdx = 0;
-      for(size_t globalFaceIdx = 0; globalFaceIdx < numFaces; ++globalFaceIdx)
-      {
-        BOOST_AUTO(faceDef, GetFaceDefinition(globalFaceIdx));
-        if( faceDef.Type != ePlanar ) continue;
+      //m_PlanarFaceInfo.SetContext(context);
+      //m_PlanarFaceInfo.SetDimensions(numPlanarFaces);
 
-        PlanarFaceInfo info;
-        BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(globalFaceIdx));
-        if( numVertices == 3 )
-        {
-          info.Type = eTriangle;
-        }
-        else
-        {
-          info.Type = eQuad;
-        }
+      //BOOST_AUTO(numFaces, GetNumberOfFaces());
+      //BOOST_AUTO(faceBuffer, m_PlanarFaceInfo.Map());
+      //size_t localFaceIdx = 0;
+      //for(size_t globalFaceIdx = 0; globalFaceIdx < numFaces; ++globalFaceIdx)
+      //{
+      //  BOOST_AUTO(faceDef, GetFaceDefinition(globalFaceIdx));
+      //  if( faceDef.Type != ePlanar ) continue;
 
-        for(size_t vertexIdx = 0; vertexIdx < numVertices; ++vertexIdx)
-        {
-          info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(globalFaceIdx, vertexIdx);
-        }
-        if( info.Type == eTriangle )
-        {
-          info.vertexIdx[3] = info.vertexIdx[2];
-        }
-        if( localFaceIdx >= numPlanarFaces) 
-        {
-          throw std::runtime_error("Invalid planar face count.");
-        }
-        faceBuffer[localFaceIdx] = info;
-        ++localFaceIdx;
-      }
+      //  PlanarFaceInfo info;
+      //  BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(globalFaceIdx));
+      //  if( numVertices == 3 )
+      //  {
+      //    info.Type = eTriangle;
+      //  }
+      //  else
+      //  {
+      //    info.Type = eQuad;
+      //  }
+
+      //  for(size_t vertexIdx = 0; vertexIdx < numVertices; ++vertexIdx)
+      //  {
+      //    info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(globalFaceIdx, vertexIdx);
+      //  }
+      //  if( info.Type == eTriangle )
+      //  {
+      //    info.vertexIdx[3] = info.vertexIdx[2];
+      //  }
+      //  if( localFaceIdx >= numPlanarFaces) 
+      //  {
+      //    throw std::runtime_error("Invalid planar face count.");
+      //  }
+      //  faceBuffer[localFaceIdx] = info;
+      //  ++localFaceIdx;
+      //}
 
 
       // Planar faces need the following:
@@ -213,7 +234,7 @@ namespace ElVis
       size_t numPlanarFaces = 0;
       copyFaceDefsToOptiX(context, numPlanarFaces);
 
-      //copyPlanarFaces(context, numPlanarFaces);
+      copyPlanarFaces(context, numPlanarFaces);
       //copyCurvedFaces(context);
       // CopyPlanarFaces(context);
       // CopyCurvedFaces(context);

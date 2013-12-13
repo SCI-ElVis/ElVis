@@ -33,11 +33,6 @@
 #include <ElVis/Extensions/JacobiExtension/OptiXPrism.cu>
 
 
-rtBuffer<ElVisFloat4> FaceNormalBuffer;
-
-
-
-
 // Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result)
@@ -225,7 +220,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
 
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& result)
 {
-    result = MakeFloat3(FaceNormalBuffer[faceId]);
+    result = MakeFloat3(PlanarFaceNormalBuffer[faceId]);
     return eNoError;
 }
 
