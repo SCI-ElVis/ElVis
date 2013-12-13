@@ -104,12 +104,12 @@ namespace ElVis
             PopulateFaces<Hexahedron>(m_volume, m_oldFaces);
             PopulateFaces<Prism>(m_volume, m_oldFaces);
 
-            for(std::map<JacobiFace, FaceInfo>::const_iterator iter = m_oldFaces.begin();
+            for(std::map<JacobiFaceKey, JacobiFace>::const_iterator iter = m_oldFaces.begin();
                 iter != m_oldFaces.end(); ++iter)
             {
               BOOST_AUTO(face, (*iter).second);
-              face.widenExtents();
-              m_faces.push_back(face);
+              face.info.widenExtents();
+              m_faces.push_back(face.info);
             }
 
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
@@ -179,18 +179,18 @@ namespace ElVis
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
             int index = 0;
-            for(std::map<JacobiFace, FaceInfo>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
+            for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
             //for(std::vector<FaceInfo>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
             {
-                FaceInfo faceDef = (*iter).second;
+                FaceInfo faceDef = (*iter).second.info;
 
-                const JacobiFace& jf = (*iter).first;
+                const JacobiFaceKey& jf = (*iter).first;
                 faceVertexBuffer[4*index] = MakeFloat4(jf.p[0]);
                 faceVertexBuffer[4*index+1] = MakeFloat4(jf.p[1]);
                 faceVertexBuffer[4*index+2] = MakeFloat4(jf.p[2]);
                 faceVertexBuffer[4*index+3] = MakeFloat4(jf.p[3]);
 
-                normalBuffer[index] = MakeFloat4(jf.normal);
+                normalBuffer[index] = MakeFloat4((*iter).second.normal);
 
                 ++index;
             }

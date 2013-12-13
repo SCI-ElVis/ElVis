@@ -32,17 +32,17 @@ namespace ElVis
 {
     namespace JacobiExtension
     {
-        WorldPoint JacobiFace::MinExtent() const
+        WorldPoint JacobiFaceKey::MinExtent() const
         {
             return CalcMin(p[0], CalcMin(p[1], CalcMin(p[2], p[3])));
         }
 
-        WorldPoint JacobiFace::MaxExtent() const
+        WorldPoint JacobiFaceKey::MaxExtent() const
         {
             return CalcMax(p[0], CalcMax(p[1], CalcMax(p[2], p[3])));
         }
 
-        int JacobiFace::NumVertices() const
+        int JacobiFaceKey::NumVertices() const
         {
           if( !closePointLessThan(sorted[2], sorted[3]) &&
               !closePointLessThan(sorted[3], sorted[2]) )
@@ -52,7 +52,7 @@ namespace ElVis
           return 4;
         }
 
-        bool operator<(const JacobiFace& lhs, const JacobiFace& rhs)
+        bool operator<(const JacobiFaceKey& lhs, const JacobiFaceKey& rhs)
         {
             if( lhs.NumVertices() != rhs.NumVertices() )
             {

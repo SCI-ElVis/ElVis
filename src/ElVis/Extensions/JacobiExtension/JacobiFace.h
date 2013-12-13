@@ -31,6 +31,7 @@
 
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/Vector.hpp>
+#include <ElVis/Core/FaceInfo.h>
 #include <algorithm>
 
 namespace ElVis
@@ -39,11 +40,9 @@ namespace ElVis
     {
         bool closePointLessThan(const WorldPoint& lhs, const WorldPoint& rhs);
 
-        // Temporary face structure to find unique faces among all elements.
-        struct JacobiFace
+        struct JacobiFaceKey
         {
-            JacobiFace(const WorldPoint& point0, const WorldPoint& point1, const WorldPoint& point2, const WorldPoint& point3, const WorldVector& n) :
-                normal(n)
+            JacobiFaceKey(const WorldPoint& point0, const WorldPoint& point1, const WorldPoint& point2, const WorldPoint& point3) 
             {
                 p[0] = point0;
                 p[1] = point1;
@@ -58,8 +57,7 @@ namespace ElVis
                 std::sort(sorted, sorted+4, closePointLessThan);
             }
 
-            JacobiFace(const JacobiFace& rhs) :
-                normal(rhs.normal)
+            JacobiFaceKey(const JacobiFaceKey& rhs)
             {
                 for(int i = 0; i < 4; ++i)
                 {
@@ -72,14 +70,13 @@ namespace ElVis
                 }
             }
 
-            JacobiFace& operator=(const JacobiFace& rhs)
+            JacobiFaceKey& operator=(const JacobiFaceKey& rhs)
             {
                 for(int i = 0; i < 4; ++i)
                 {
                     p[i] = rhs.p[i];
                     sorted[i] = rhs.sorted[i];
                 }
-                normal = rhs.normal;
                 return *this;
             }
 
@@ -90,10 +87,41 @@ namespace ElVis
 
             WorldPoint p[4];
             WorldPoint sorted[4];
-            WorldVector normal;
         };
 
-        bool operator<(const JacobiFace& lhs, const JacobiFace& rhs);
+        // Temporary face structure to find unique faces among all elements.
+        struct JacobiFace
+        {
+            explicit JacobiFace(const WorldVector& n) :
+                normal(n),
+                info()
+            {
+
+            }
+
+            JacobiFace(const JacobiFace& rhs) :
+              normal(rhs.normal),
+              info(rhs.info)
+            {
+            }
+
+            JacobiFace& operator=(const JacobiFace& rhs)
+            {
+                normal = rhs.normal;
+                info = rhs.info;
+                return *this;
+            }
+
+            //WorldPoint MinExtent() const;
+            //WorldPoint MaxExtent() const;
+
+            //int NumVertices() const;
+
+            WorldVector normal;
+            FaceInfo info;
+        };
+
+        bool operator<(const JacobiFaceKey& lhs, const JacobiFaceKey& rhs);
     }
 }
 

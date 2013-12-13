@@ -41,6 +41,7 @@ namespace ElVis
     {
 #ifndef __CUDACC__
         ElementId() : Id(-1), Type(-1) {}
+        ElementId(int id, int type) : Id(id), Type(type) {}
 #endif
 
         int Id;

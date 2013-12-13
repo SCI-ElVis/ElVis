@@ -283,7 +283,7 @@ namespace ElVis
             }
 
             template<typename T>
-            void PopulateFaces(boost::shared_ptr<FiniteElementVolume> volume, std::map<JacobiFace, FaceInfo>& values)
+            void PopulateFaces(boost::shared_ptr<FiniteElementVolume> volume, std::map<JacobiFaceKey, JacobiFace>& faceMap)
             {
                 int id = 0;
                 BOOST_FOREACH( boost::shared_ptr<Polyhedron> element, volume->IterateElementsOfType<T>() )
@@ -300,32 +300,28 @@ namespace ElVis
                         // Since the jacobi extension provides normals as inward facing normals, we need to invert
                         // them so they point out for the types of intersection tests we will be doing.
                         ElVis::WorldVector normal = -(asT->GetFaceNormal(i));
-                        JacobiFace quadFace(p0, p1, p2, p3, normal);
+                        JacobiFaceKey key(p0, p1, p2, p3);
 
-                        std::map<JacobiFace, FaceInfo>::iterator found = values.find(quadFace);
-                        ElementId curElement;
-                        curElement.Id = id;
-                        curElement.Type = T::TypeId;
+                        BOOST_AUTO(found, faceMap.find(key));
+                        ElementId curElement(id, T::TypeId);
 
-                        if( found != values.end() )
+                        if( found != faceMap.end() )
                         {
-                            const JacobiFace& key = (*found).first;
-                            FaceInfo& value = (*found).second;
-                            (*found).second.CommonElements[0] = curElement;
+                            JacobiFace& face = (*found).second;
+                            face.info.CommonElements[0] = curElement;
                         }
                         else
                         {
-                            FaceInfo value;
-                            value.CommonElements[1] = curElement;
-                            value.Type = ePlanar;
-                            ElementId nextElement;
-                            nextElement.Id = -1;
-                            nextElement.Type = -1;
-                            value.CommonElements[0] = nextElement;
+                            JacobiFace face(normal);
+                            face.info.CommonElements[1] = curElement;
+                            face.info.Type = ePlanar;
+                            ElementId nextElement(-1, -1);
+                            face.info.CommonElements[0] = nextElement;
 
-                            value.MinExtent = MakeFloat3(quadFace.MinExtent());
-                            value.MaxExtent = MakeFloat3(quadFace.MaxExtent());
-                            values[quadFace] = value;
+                            face.info.MinExtent = MakeFloat3(key.MinExtent());
+                            face.info.MaxExtent = MakeFloat3(key.MaxExtent());
+                            BOOST_AUTO(insertValue, std::make_pair(key, face));
+                            faceMap.insert(insertValue);
                         }
                     }
                     ++id;
@@ -338,7 +334,7 @@ namespace ElVis
 
             std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> m_verticesLookupMap;
             std::vector<WorldPoint> m_vertices;
-            std::map<JacobiFace, FaceInfo> m_oldFaces;
+            std::map<JacobiFaceKey, JacobiFace> m_oldFaces;
             std::vector<FaceInfo> m_faces;
 
             ElVis::OptiXBuffer<int> HexCoefficientBufferIndices;
