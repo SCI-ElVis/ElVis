@@ -142,11 +142,11 @@ rtDeclareVariable(ElVisFloat3, HeadlightColor, ,);
 // Indexing is by global face index.
 rtBuffer<ElVis::FaceInfo, 1> FaceInfoBuffer;
 
-// The vertices associated with each planar face.  For local planar face 
-// index idx, the four vertices associated with the face are locateda at
-// PlanarFaceVertexBuffer[4*idx] - PlanarFaceVertexBuffer[4*idx+3].  For
-// triangles, the fourth verex is not used.
+// The vertices associated with each planar face.  This array contains 
+// all vertices used by all planar faces.  Planar faces have index fields
+// which indicate which vertex to use.
 rtBuffer<ElVisFloat4> PlanarFaceVertexBuffer;
+rtBuffer<ElVis::PlanarFaceInfo> PlanarFaceInfoBuffer;
 
 rtBuffer<uint, 1> PlanarFaceToGlobalIdxMap;
 rtBuffer<uint, 1> CurvedFaceToGlobalIdxMap;

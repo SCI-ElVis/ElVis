@@ -199,6 +199,8 @@ namespace ElVis
 
             /// \brief Returns the given face definition.
             ELVIS_EXPORT virtual FaceInfo DoGetFaceDefinition(size_t globalFaceId) const = 0;
+            //ELVIS_EXPORT virtual size_t DoGetNumberOfPlanarFaces() const = 0;
+            //ELVIS_EXPORT virtual size_t DoGetNumberOfCurvedFaces() const = 0;
 
             /// \brief Returns the number of vertices associated with the linear
             /// faces.
@@ -226,7 +228,7 @@ namespace ElVis
             void copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces);
             void copyPlanarFaceVerticesToOptiX(optixu::Context context);
             void createLinearFaceGeometry(optixu::Context context);
-            void copyPlanarFaces(optixu::Context context);
+            void copyPlanarFaces(optixu::Context context, size_t numPlanarFaces);
             void copyCurvedFaces(optixu::Context context);
 
             std::string m_modelPath;
@@ -236,9 +238,14 @@ namespace ElVis
             WorldPoint m_center;
 
             OptiXBuffer<FaceInfo> m_faceIdBuffer;
-            OptiXBuffer<WorldPoint> m_planarFaceVertexBuffer;
             OptiXBuffer<uint> m_PlanarFaceToGlobalIdxMap;
             OptiXBuffer<uint> m_CurvedFaceToGlobalIdxMap;
+
+            // Contains a PlanarFaceInfo object for each planar face in the model.
+            // Indexing is by local planar face index.
+            OptiXBuffer<PlanarFaceInfo> m_PlanarFaceInfo;
+
+            OptiXBuffer<ElVisFloat4> m_PlanarFaceVertexBuffer;
     };
 
 }

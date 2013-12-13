@@ -42,8 +42,7 @@ namespace ElVis
         // Temporary face structure to find unique faces among all elements.
         struct JacobiFace
         {
-            JacobiFace(const WorldPoint& point0, const WorldPoint& point1, const WorldPoint& point2, const WorldPoint& point3, int numEdges, const WorldVector& n) :
-                NumEdges(numEdges),
+            JacobiFace(const WorldPoint& point0, const WorldPoint& point1, const WorldPoint& point2, const WorldPoint& point3, const WorldVector& n) :
                 normal(n)
             {
                 p[0] = point0;
@@ -60,7 +59,6 @@ namespace ElVis
             }
 
             JacobiFace(const JacobiFace& rhs) :
-                NumEdges(rhs.NumEdges),
                 normal(rhs.normal)
             {
                 for(int i = 0; i < 4; ++i)
@@ -81,7 +79,6 @@ namespace ElVis
                     p[i] = rhs.p[i];
                     sorted[i] = rhs.sorted[i];
                 }
-                NumEdges = rhs.NumEdges;
                 normal = rhs.normal;
                 return *this;
             }
@@ -93,7 +90,6 @@ namespace ElVis
 
             WorldPoint p[4];
             WorldPoint sorted[4];
-            int NumEdges;
             WorldVector normal;
         };
 

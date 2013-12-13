@@ -300,7 +300,7 @@ namespace ElVis
                         // Since the jacobi extension provides normals as inward facing normals, we need to invert
                         // them so they point out for the types of intersection tests we will be doing.
                         ElVis::WorldVector normal = -(asT->GetFaceNormal(i));
-                        JacobiFace quadFace(p0, p1, p2, p3, T::NumEdgesForEachFace[i], normal);
+                        JacobiFace quadFace(p0, p1, p2, p3, normal);
 
                         std::map<JacobiFace, FaceInfo>::iterator found = values.find(quadFace);
                         ElementId curElement;

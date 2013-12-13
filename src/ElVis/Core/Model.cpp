@@ -40,9 +40,10 @@ namespace ElVis
         m_maxExtent(-std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max()),
         m_center(),
         m_faceIdBuffer("FaceInfoBuffer"),
-        m_planarFaceVertexBuffer("LinearFaceVertexBuffer"),
         m_PlanarFaceToGlobalIdxMap("PlanarFaceToGlobalIdxMap"),
-        m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap")
+        m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap"),
+        m_PlanarFaceInfo("PlanarFaceInfoBuffer"),
+        m_PlanarFaceVertexBuffer("PlanarFaceVertexBuffer")
     {
     }
 
@@ -123,15 +124,16 @@ namespace ElVis
     void Model::copyPlanarFaceVerticesToOptiX(optixu::Context context)
     {
       BOOST_AUTO(numPlanarVertices, GetNumberOfPlanarFaceVertices());
+      std::cout << "############ Num planar face vertices: " << numPlanarVertices << std::endl;
 
-      // Populate the linear fields that we will handle.
-      m_planarFaceVertexBuffer.SetContext(context);
-      m_planarFaceVertexBuffer.SetDimensions(numPlanarVertices);
-      BOOST_AUTO(mappedPlanarVertices, m_planarFaceVertexBuffer.Map());
+      //// Populate the linear fields that we will handle.
+      m_PlanarFaceVertexBuffer.SetContext(context);
+      m_PlanarFaceVertexBuffer.SetDimensions(numPlanarVertices);
+      BOOST_AUTO(mappedPlanarVertices, m_PlanarFaceVertexBuffer.Map());
 
       for(size_t i = 0; i < numPlanarVertices; ++i)
       {
-        mappedPlanarVertices[i] = GetPlanarFaceVertex(i);
+        mappedPlanarVertices[i] = MakeFloat4(GetPlanarFaceVertex(i));
       }
     }
 
@@ -139,10 +141,51 @@ namespace ElVis
     {
     }
 
-    void Model::copyPlanarFaces(optixu::Context context)
+    void Model::copyPlanarFaces(optixu::Context context, size_t numPlanarFaces)
     {
+      copyPlanarFaceVerticesToOptiX(context);
+
       m_PlanarFaceToGlobalIdxMap.SetContext(context);
       m_PlanarFaceToGlobalIdxMap.SetDimensions(1);
+
+      m_PlanarFaceInfo.SetContext(context);
+      m_PlanarFaceInfo.SetDimensions(numPlanarFaces);
+
+      BOOST_AUTO(numFaces, GetNumberOfFaces());
+      BOOST_AUTO(faceBuffer, m_PlanarFaceInfo.Map());
+      size_t localFaceIdx = 0;
+      for(size_t globalFaceIdx = 0; globalFaceIdx < numFaces; ++globalFaceIdx)
+      {
+        BOOST_AUTO(faceDef, GetFaceDefinition(globalFaceIdx));
+        if( faceDef.Type != ePlanar ) continue;
+
+        PlanarFaceInfo info;
+        BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(globalFaceIdx));
+        if( numVertices == 3 )
+        {
+          info.Type = eTriangle;
+        }
+        else
+        {
+          info.Type = eQuad;
+        }
+
+        for(size_t vertexIdx = 0; vertexIdx < numVertices; ++vertexIdx)
+        {
+          info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(globalFaceIdx, vertexIdx);
+        }
+        if( info.Type == eTriangle )
+        {
+          info.vertexIdx[3] = info.vertexIdx[2];
+        }
+        if( localFaceIdx >= numPlanarFaces) 
+        {
+          throw std::runtime_error("Invalid planar face count.");
+        }
+        faceBuffer[localFaceIdx] = info;
+        ++localFaceIdx;
+      }
+
 
       // Planar faces need the following:
       //facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
@@ -170,8 +213,8 @@ namespace ElVis
       size_t numPlanarFaces = 0;
       copyFaceDefsToOptiX(context, numPlanarFaces);
 
-      copyPlanarFaces(context);
-      copyCurvedFaces(context);
+      //copyPlanarFaces(context, numPlanarFaces);
+      //copyCurvedFaces(context);
       // CopyPlanarFaces(context);
       // CopyCurvedFaces(context);
       // CopyFaceAdjacency(context);

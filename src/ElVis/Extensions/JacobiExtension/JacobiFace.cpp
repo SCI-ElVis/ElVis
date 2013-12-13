@@ -44,7 +44,12 @@ namespace ElVis
 
         int JacobiFace::NumVertices() const
         {
-            return NumEdges;
+          if( !closePointLessThan(sorted[2], sorted[3]) &&
+              !closePointLessThan(sorted[3], sorted[2]) )
+          {
+            return 3;
+          }
+          return 4;
         }
 
         bool operator<(const JacobiFace& lhs, const JacobiFace& rhs)

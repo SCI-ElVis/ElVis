@@ -71,6 +71,18 @@ namespace ElVis
           }
         }
     };
+
+    enum TwoDElementType
+    {
+      eTriangle,
+      eQuad
+    };
+
+    struct PlanarFaceInfo
+    {
+      TwoDElementType Type;
+      unsigned int vertexIdx[4];
+    };
 }
 
 #endif
