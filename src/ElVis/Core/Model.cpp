@@ -42,7 +42,7 @@ namespace ElVis
         m_faceIdBuffer("FaceInfoBuffer"),
         m_PlanarFaceToGlobalIdxMap("PlanarFaceToGlobalIdxMap"),
         m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap"),
-        m_PlanarFaceInfo("PlanarFaceInfoBuffer"),
+        m_PlanarFaceInfoBuffer("PlanarFaceInfoBuffer"),
         m_PlanarFaceVertexBuffer("PlanarFaceVertexBuffer"),
         m_PlanarFaceNormalBuffer("PlanarFaceNormalBuffer")
     {
@@ -164,48 +164,49 @@ namespace ElVis
     {
       copyPlanarNormalsToOptiX(context, numPlanarFaces);
 
-      //copyPlanarFaceVerticesToOptiX(context);
+      copyPlanarFaceVerticesToOptiX(context);
 
-      //m_PlanarFaceToGlobalIdxMap.SetContext(context);
-      //m_PlanarFaceToGlobalIdxMap.SetDimensions(1);
+      m_PlanarFaceToGlobalIdxMap.SetContext(context);
+      m_PlanarFaceToGlobalIdxMap.SetDimensions(1);
 
-      //m_PlanarFaceInfo.SetContext(context);
-      //m_PlanarFaceInfo.SetDimensions(numPlanarFaces);
+      m_PlanarFaceInfoBuffer.SetContext(context);
+      m_PlanarFaceInfoBuffer.SetDimensions(numPlanarFaces);
 
-      //BOOST_AUTO(numFaces, GetNumberOfFaces());
-      //BOOST_AUTO(faceBuffer, m_PlanarFaceInfo.Map());
-      //size_t localFaceIdx = 0;
-      //for(size_t globalFaceIdx = 0; globalFaceIdx < numFaces; ++globalFaceIdx)
-      //{
-      //  BOOST_AUTO(faceDef, GetFaceDefinition(globalFaceIdx));
-      //  if( faceDef.Type != ePlanar ) continue;
+      BOOST_AUTO(numFaces, GetNumberOfFaces());
+      BOOST_AUTO(faceBuffer, m_PlanarFaceInfoBuffer.Map());
 
-      //  PlanarFaceInfo info;
-      //  BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(globalFaceIdx));
-      //  if( numVertices == 3 )
-      //  {
-      //    info.Type = eTriangle;
-      //  }
-      //  else
-      //  {
-      //    info.Type = eQuad;
-      //  }
+      size_t localFaceIdx = 0;
+      for(size_t globalFaceIdx = 0; globalFaceIdx < numFaces; ++globalFaceIdx)
+      {
+        BOOST_AUTO(faceDef, GetFaceDefinition(globalFaceIdx));
+        if( faceDef.Type != ePlanar ) continue;
 
-      //  for(size_t vertexIdx = 0; vertexIdx < numVertices; ++vertexIdx)
-      //  {
-      //    info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(globalFaceIdx, vertexIdx);
-      //  }
-      //  if( info.Type == eTriangle )
-      //  {
-      //    info.vertexIdx[3] = info.vertexIdx[2];
-      //  }
-      //  if( localFaceIdx >= numPlanarFaces) 
-      //  {
-      //    throw std::runtime_error("Invalid planar face count.");
-      //  }
-      //  faceBuffer[localFaceIdx] = info;
-      //  ++localFaceIdx;
-      //}
+        PlanarFaceInfo info;
+        BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(globalFaceIdx));
+        if( numVertices == 3 )
+        {
+          info.Type = eTriangle;
+        }
+        else
+        {
+          info.Type = eQuad;
+        }
+
+        for(size_t vertexIdx = 0; vertexIdx < numVertices; ++vertexIdx)
+        {
+          info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(globalFaceIdx, vertexIdx);
+        }
+        if( info.Type == eTriangle )
+        {
+          info.vertexIdx[3] = info.vertexIdx[2];
+        }
+        if( localFaceIdx >= numPlanarFaces) 
+        {
+          throw std::runtime_error("Invalid planar face count.");
+        }
+        faceBuffer[localFaceIdx] = info;
+        ++localFaceIdx;
+      }
 
 
       // Planar faces need the following:

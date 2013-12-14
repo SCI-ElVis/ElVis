@@ -335,12 +335,6 @@ namespace ElVis
                               face.planarInfo.Type = eTriangle;
                             }
 
-                            for(unsigned int i = 0; i < 4; ++i)
-                            {
-                              BOOST_AUTO(iter, std::find_if(m_vertices.begin(), m_vertices.end(), boost::bind(closePointEqual, _1, p[i])));
-                              face.planarInfo.vertexIdx[i] = std::distance(m_vertices.begin(), iter);
-                            }
-
                             BOOST_AUTO(insertValue, std::make_pair(key, face));
                             faceMap.insert(insertValue);
                         }
@@ -365,8 +359,6 @@ namespace ElVis
 
             ElVis::OptiXBuffer<ElVisFloat4> HexPlaneBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> PrismPlaneBuffer;
-
-            ElVis::OptiXBuffer<ElVisFloat4> PlanarFaceVertexBuffer;
         };
 
         template<>

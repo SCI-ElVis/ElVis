@@ -248,7 +248,7 @@ namespace ElVis
 
             // Contains a PlanarFaceInfo object for each planar face in the model.
             // Indexing is by local planar face index.
-            OptiXBuffer<PlanarFaceInfo> m_PlanarFaceInfo;
+            OptiXBuffer<PlanarFaceInfo> m_PlanarFaceInfoBuffer;
 
             OptiXBuffer<ElVisFloat4> m_PlanarFaceVertexBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> m_PlanarFaceNormalBuffer;

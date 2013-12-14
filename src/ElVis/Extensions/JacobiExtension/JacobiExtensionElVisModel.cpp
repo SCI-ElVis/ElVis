@@ -66,8 +66,7 @@ namespace ElVis
             HexCoefficientBuffer("HexCoefficients"),
             PrismCoefficientBuffer("PrismCoefficients"),
             HexPlaneBuffer("HexPlaneBuffer"),
-            PrismPlaneBuffer("PrismPlaneBuffer"),
-            PlanarFaceVertexBuffer("PlanarFaceVertexBuffer")
+            PrismPlaneBuffer("PrismPlaneBuffer")
         {
         }
 
@@ -102,13 +101,6 @@ namespace ElVis
             PopulateFaces<Hexahedron>(m_volume, m_oldFaces);
             PopulateFaces<Prism>(m_volume, m_oldFaces);
 
-            for(std::map<JacobiFaceKey, JacobiFace>::const_iterator iter = m_oldFaces.begin();
-                iter != m_oldFaces.end(); ++iter)
-            {
-              BOOST_AUTO(face, (*iter).second);
-              face.info.widenExtents();
-              m_faces.push_back(face);
-            }
 
             // Find all unique vertices.  The OptiX extension requires a unique list of vertices, 
             // which each face references via vertex index.
@@ -130,6 +122,27 @@ namespace ElVis
             // so we can easily find the vertex index with a binary search.
             std::copy(verticesLookupMap.begin(), verticesLookupMap.end(),
               std::back_inserter(m_vertices));
+
+            // Update the indices for each vertex.
+            for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = m_oldFaces.begin();
+                iter != m_oldFaces.end(); ++iter)
+            {
+              const JacobiFaceKey& key = (*iter).first;
+              JacobiFace& value = (*iter).second;
+              for(unsigned int i = 0; i < 4; ++i)
+              {
+                BOOST_AUTO(iter, std::find_if(m_vertices.begin(), m_vertices.end(), boost::bind(closePointEqual, _1, key.p[i])));
+                value.planarInfo.vertexIdx[i] = std::distance(m_vertices.begin(), iter);
+              }
+            }
+
+            for(std::map<JacobiFaceKey, JacobiFace>::const_iterator iter = m_oldFaces.begin();
+                iter != m_oldFaces.end(); ++iter)
+            {
+              BOOST_AUTO(face, (*iter).second);
+              face.info.widenExtents();
+              m_faces.push_back(face);
+            }
         }
 
         void JacobiExtensionModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
@@ -175,25 +188,25 @@ namespace ElVis
         void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, 
           optixu::Context context, optixu::Geometry& faceGeometry)
         {
-            PlanarFaceVertexBuffer.SetContext(context);
-            PlanarFaceVertexBuffer.SetDimensions(m_faces.size()*4);
+            //PlanarFaceVertexBuffer.SetContext(context);
+            //PlanarFaceVertexBuffer.SetDimensions(m_faces.size()*4);
 
-            BOOST_AUTO(faceVertexBuffer, PlanarFaceVertexBuffer.Map());
+            //BOOST_AUTO(faceVertexBuffer, PlanarFaceVertexBuffer.Map());
 
-            int index = 0;
-            for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
-            //for(std::vector<FaceInfo>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
-            {
-                FaceInfo faceDef = (*iter).second.info;
+            //int index = 0;
+            //for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
+            ////for(std::vector<FaceInfo>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
+            //{
+            //    FaceInfo faceDef = (*iter).second.info;
 
-                const JacobiFaceKey& jf = (*iter).first;
-                faceVertexBuffer[4*index] = MakeFloat4(jf.p[0]);
-                faceVertexBuffer[4*index+1] = MakeFloat4(jf.p[1]);
-                faceVertexBuffer[4*index+2] = MakeFloat4(jf.p[2]);
-                faceVertexBuffer[4*index+3] = MakeFloat4(jf.p[3]);
+            //    const JacobiFaceKey& jf = (*iter).first;
+            //    faceVertexBuffer[4*index] = MakeFloat4(jf.p[0]);
+            //    faceVertexBuffer[4*index+1] = MakeFloat4(jf.p[1]);
+            //    faceVertexBuffer[4*index+2] = MakeFloat4(jf.p[2]);
+            //    faceVertexBuffer[4*index+3] = MakeFloat4(jf.p[3]);
 
-                ++index;
-            }
+            //    ++index;
+            //}
 
             faceGeometry->setPrimitiveCount(m_faces.size());
         }
@@ -348,12 +361,19 @@ namespace ElVis
 
         size_t JacobiExtensionModel::DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const
         {
-          return 0;
+          if( m_faces[globalFaceId].planarInfo.Type == eTriangle )
+          {
+            return 3;
+          }
+          else
+          {
+            return 4;
+          }
         }
 
         size_t JacobiExtensionModel::DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
         {
-          return 0;
+          return m_faces[globalFaceId].planarInfo.vertexIdx[vertexId];
         }
 
         WorldVector JacobiExtensionModel::DoGetPlanarFaceNormal(size_t localFaceId) const
