@@ -39,7 +39,7 @@ namespace ElVis
     namespace JacobiExtension
     {
         bool closePointLessThan(const WorldPoint& lhs, const WorldPoint& rhs);
-
+        bool closePointEqual(const WorldPoint& lhs, const WorldPoint& rhs);
         struct JacobiFaceKey
         {
             JacobiFaceKey(const WorldPoint& point0, const WorldPoint& point1, const WorldPoint& point2, const WorldPoint& point3) 
@@ -94,14 +94,16 @@ namespace ElVis
         {
             explicit JacobiFace(const WorldVector& n) :
                 normal(n),
-                info()
+                info(),
+                planarInfo()
             {
 
             }
 
             JacobiFace(const JacobiFace& rhs) :
               normal(rhs.normal),
-              info(rhs.info)
+              info(rhs.info),
+              planarInfo(rhs.planarInfo)
             {
             }
 
@@ -109,6 +111,7 @@ namespace ElVis
             {
                 normal = rhs.normal;
                 info = rhs.info;
+                planarInfo = rhs.planarInfo;
                 return *this;
             }
 
@@ -119,6 +122,7 @@ namespace ElVis
 
             WorldVector normal;
             FaceInfo info;
+            PlanarFaceInfo planarInfo;
         };
 
         bool operator<(const JacobiFaceKey& lhs, const JacobiFaceKey& rhs);

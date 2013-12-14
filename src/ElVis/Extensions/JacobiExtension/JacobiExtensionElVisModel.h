@@ -292,17 +292,20 @@ namespace ElVis
                 {
                     for(unsigned int i = 0; i < T::NumFaces; ++i)
                     {
-                        const WorldPoint& p0 = element->vertex(T::VerticesForEachFace[i*4]);
-                        const WorldPoint& p1 = element->vertex(T::VerticesForEachFace[i*4+1]);
-                        const WorldPoint& p2 = element->vertex(T::VerticesForEachFace[i*4+2]);
-                        const WorldPoint& p3 = element->vertex(T::VerticesForEachFace[i*4+3]);
-
+                        WorldPoint p[] = 
+                        {
+                          element->vertex(T::VerticesForEachFace[i*4]),
+                          element->vertex(T::VerticesForEachFace[i*4+1]),
+                          element->vertex(T::VerticesForEachFace[i*4+2]),
+                          element->vertex(T::VerticesForEachFace[i*4+3])
+                        };
+                        
                         boost::shared_ptr<T> asT = boost::dynamic_pointer_cast<T>(element);
 
                         // Since the jacobi extension provides normals as inward facing normals, we need to invert
                         // them so they point out for the types of intersection tests we will be doing.
                         ElVis::WorldVector normal = -(asT->GetFaceNormal(i));
-                        JacobiFaceKey key(p0, p1, p2, p3);
+                        JacobiFaceKey key(p[0], p[1], p[2], p[3]);
 
                         BOOST_AUTO(found, faceMap.find(key));
                         ElementId curElement(id, T::TypeId);
@@ -322,6 +325,22 @@ namespace ElVis
 
                             face.info.MinExtent = MakeFloat3(key.MinExtent());
                             face.info.MaxExtent = MakeFloat3(key.MaxExtent());
+
+                            if( T::NumEdgesForEachFace[i] == 4 )
+                            {
+                              face.planarInfo.Type = eQuad;
+                            }
+                            else
+                            {
+                              face.planarInfo.Type = eTriangle;
+                            }
+
+                            for(unsigned int i = 0; i < 4; ++i)
+                            {
+                              BOOST_AUTO(iter, std::find_if(m_vertices.begin(), m_vertices.end(), boost::bind(closePointEqual, _1, p[i])));
+                              face.planarInfo.vertexIdx[i] = std::distance(m_vertices.begin(), iter);
+                            }
+
                             BOOST_AUTO(insertValue, std::make_pair(key, face));
                             faceMap.insert(insertValue);
                         }
@@ -334,7 +353,6 @@ namespace ElVis
             unsigned m_numberOfCopies;
             int m_numberOfModes;
 
-            std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> m_verticesLookupMap;
             std::vector<WorldPoint> m_vertices;
             std::map<JacobiFaceKey, JacobiFace> m_oldFaces;
             std::vector<JacobiFace> m_faces;

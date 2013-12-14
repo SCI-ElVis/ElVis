@@ -32,6 +32,12 @@ namespace ElVis
 {
     namespace JacobiExtension
     {
+        bool closePointEqual(const WorldPoint& lhs, const WorldPoint& rhs)
+        {
+          return !closePointLessThan(lhs, rhs) &&
+            !closePointLessThan(rhs, lhs);
+        }
+
         WorldPoint JacobiFaceKey::MinExtent() const
         {
             return CalcMin(p[0], CalcMin(p[1], CalcMin(p[2], p[3])));

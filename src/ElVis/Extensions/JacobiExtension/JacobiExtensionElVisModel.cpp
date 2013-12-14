@@ -67,8 +67,7 @@ namespace ElVis
             PrismCoefficientBuffer("PrismCoefficients"),
             HexPlaneBuffer("HexPlaneBuffer"),
             PrismPlaneBuffer("PrismPlaneBuffer"),
-            PlanarFaceVertexBuffer("PlanarFaceVertexBuffer"),
-            m_verticesLookupMap(closePointLessThan)
+            PlanarFaceVertexBuffer("PlanarFaceVertexBuffer")
         {
         }
 
@@ -111,19 +110,26 @@ namespace ElVis
               m_faces.push_back(face);
             }
 
+            // Find all unique vertices.  The OptiX extension requires a unique list of vertices, 
+            // which each face references via vertex index.
+            std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> verticesLookupMap(closePointLessThan);
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
             {
                 BOOST_AUTO(element, m_volume->getElement(i));
                 for(unsigned int j = 0; j < element->numVertices(); ++j)
                 {
                     BOOST_AUTO(vertex, element->vertex(j));
-                    if( m_verticesLookupMap.find(vertex) == m_verticesLookupMap.end() )
+                    if( verticesLookupMap.find(vertex) == verticesLookupMap.end() )
                     {
-                        m_verticesLookupMap.insert(vertex);
-                        m_vertices.push_back(vertex);
+                        verticesLookupMap.insert(vertex);
                     }
                 }
             }
+
+            // Put the unique vertices in a easily-indexed list for future use.  The list will be sorted, 
+            // so we can easily find the vertex index with a binary search.
+            std::copy(verticesLookupMap.begin(), verticesLookupMap.end(),
+              std::back_inserter(m_vertices));
         }
 
         void JacobiExtensionModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
