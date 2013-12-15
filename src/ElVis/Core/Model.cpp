@@ -230,7 +230,7 @@ namespace ElVis
       size_t numPlanarFaces = 0;
       copyFaceDefsToOptiX(context, numPlanarFaces);
 
-      std::cout << "Copy planar faces." << std::endl;
+      std::cout << "Copy planar faces: "<< numPlanarFaces << std::endl;
       copyPlanarFaces(context, numPlanarFaces);
       std::cout << "Copy field info" << std::endl;
       CopyFieldInfoToOptiX(context);

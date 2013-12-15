@@ -86,6 +86,22 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CompareFile "${BaselineDir}/BulletCutSurfaceP2Baseline"
     )
 
+    ADD_TEST(NAME BulletCutSurfaceP2WithFaces WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
+        --Module ${JacobiExtensionPath}
+        --Width 1000
+        --Height 600
+        --OutFile BulletCutSurfaceP2WithFaces
+        --CompareFile "${BaselineDir}/BulletCutSurfaceP2WithFacesBaseline"
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml"
+        --ColorMapMin -0.1
+        --ColorMapMax 0.0
+        --RenderFaces 14000
+        --Eye 1.8 0.46 3.7 --Up 0 1 0 --At 0 0 2.7
+        --CutPlaneNormal 1.0 0.0 0.0
+        --CutPlanePoint 0.0 -1.0 0.0
+    )
+
     ADD_TEST(NAME BulletCutSurfaceP3 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName CutSurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
         --Module ${JacobiExtensionPath}

@@ -188,6 +188,7 @@ int GenericCLIInterface(int argc, char** argv,
     const char* contourModuleEnabledLabel = "ContourModuleEnabled";
     const char* meshModuleEnabledLabel = "MeshModuleEnabled";
     const char* boundarySurfacesLabel = "BoundarySurfaces";
+    const char* renderFacesLabel = "RenderFaces";
 
     // Volume Rendering labels
     const char* integrationTypeLabel = "IntegrationType";
@@ -213,6 +214,7 @@ int GenericCLIInterface(int argc, char** argv,
     std::vector<double> breakpoints;
     std::vector<double> colors;
     std::vector<int> boundarySurfaces;
+    std::vector<int> faces;
     std::vector<double> isovalues;
     bool isosurfaceModuleEnabled = false;
     bool volumeRenderingModuleEnabled = false;
@@ -226,6 +228,7 @@ int GenericCLIInterface(int argc, char** argv,
     desc.add_options()
         (isovaluesLabel, boost::program_options::value<std::vector<double> >(&isovalues)->multitoken(), "Isovalues")
         (boundarySurfacesLabel, boost::program_options::value<std::vector<int> >(&boundarySurfaces)->multitoken(), "Boundary Surfaces")
+        (renderFacesLabel, boost::program_options::value<std::vector<int> >(&faces)->multitoken(), "Faces")
         (isosurfaceModuleEnabledLabel, boost::program_options::value<bool>(&isosurfaceModuleEnabled), "Isosurface Module Enabled")
         (volumeRenderingModuleEnabledLabel, boost::program_options::value<bool>(&volumeRenderingModuleEnabled), "Volume Rendering Module Enabled")
         (contourModuleEnabledLabel, boost::program_options::value<bool>(&contourModuleEnabled), "Contour Module Enabled")
@@ -389,6 +392,16 @@ int GenericCLIInterface(int argc, char** argv,
         }
     }
 
+    if( faces.size() > 0 )
+    {
+        boost::shared_ptr<ElVis::FaceObject> faceObject(new ElVis::FaceObject(scene));
+        boost::shared_ptr<ElVis::SampleFaceObject> obj(new ElVis::SampleFaceObject(faceObject));
+        primaryRayModule->AddObject(obj);
+        for(int i = 0; i < faces.size(); ++i)
+        {
+            obj->EnableFace(faces[i]);
+        }
+    }
     if( volumeRenderingModuleEnabled )
     {
         if( vm.count(integrationTypeLabel) == 0 )
