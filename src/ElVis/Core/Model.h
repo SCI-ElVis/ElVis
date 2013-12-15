@@ -114,7 +114,7 @@ namespace ElVis
             /// \brief Returns the normal for the given face.
             ELVIS_EXPORT WorldVector GetPlanarFaceNormal(size_t localFaceId) const;
 
-            ELVIS_EXPORT void CopyFieldInfoToOptiX() const;
+            ELVIS_EXPORT void CopyFieldInfoToOptiX(optixu::Context context);
 
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
@@ -228,7 +228,7 @@ namespace ElVis
 
             /// \brief Copies field information to OptiX.  ElVis has no requirement on the format 
             /// of this data.
-            ELVIS_EXPORT virtual void DoCopyFieldInfoToOptiX() const = 0;
+            ELVIS_EXPORT virtual void DoCopyFieldInfoToOptiX(optixu::Context context) = 0;
 
         private:
             Model& operator=(const Model& rhs);

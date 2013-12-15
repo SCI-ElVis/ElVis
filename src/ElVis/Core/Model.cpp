@@ -235,7 +235,10 @@ namespace ElVis
       size_t numPlanarFaces = 0;
       copyFaceDefsToOptiX(context, numPlanarFaces);
 
+      std::cout << "Copy planar faces." << std::endl;
       copyPlanarFaces(context, numPlanarFaces);
+      std::cout << "Copy field info" << std::endl;
+      CopyFieldInfoToOptiX(context);
       //copyCurvedFaces(context);
       // CopyPlanarFaces(context);
       // CopyCurvedFaces(context);
@@ -301,8 +304,8 @@ namespace ElVis
       return DoGetPlanarFaceVertexIndex(globalFaceId, vertexId);
     }
 
-    void Model::CopyFieldInfoToOptiX() const
+    void Model::CopyFieldInfoToOptiX(optixu::Context context)
     {
-      DoCopyFieldInfoToOptiX();
+      DoCopyFieldInfoToOptiX(context);
     }
 }

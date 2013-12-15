@@ -73,7 +73,7 @@ rtDeclareVariable(rtObject, SurfaceGeometryGroup, , );
 
 // This deprecated group contains geometry information required to do point
 // location.
-rtDeclareVariable(rtObject, PointLocationGroup, , );
+//rtDeclareVariable(rtObject, PointLocationGroup, , );
 
 // This group contains all elemental faces.  Ray tracing into this group 
 // will return the closest element face.  2D elements do not belong in this 

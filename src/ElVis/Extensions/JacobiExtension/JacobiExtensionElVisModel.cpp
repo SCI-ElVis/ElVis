@@ -191,8 +191,29 @@ namespace ElVis
             faceGeometry->setPrimitiveCount(m_faces.size());
         }
 
-        void JacobiExtensionModel::DoCopyFieldInfoToOptiX() const
+        void JacobiExtensionModel::DoCopyFieldInfoToOptiX(optixu::Context context)
         {
+          std::cout << "DoCopyFieldInfoToOptiX" << std::endl;
+            try
+            {        
+                if( !m_volume )
+                {
+                  std::cout << "Volume is not yet valid.  Why not?" << std::endl;
+                  return;
+                }
+                CopyFieldsForElementType<Hexahedron>(m_volume, context, "Hex");
+                CopyFieldsForElementType<Prism>(m_volume, context, "Prism");
+            }
+            catch(optixu::Exception& e)
+            {
+                std::cerr << e.getErrorString() << std::endl;
+                throw;
+            }
+            catch(std::exception& f)
+            {
+                std::cerr << f.what() << std::endl;
+                throw;
+            }
         }
 
         std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)

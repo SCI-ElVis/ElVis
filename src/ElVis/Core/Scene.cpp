@@ -236,25 +236,25 @@ namespace ElVis
 
     void Scene::Get3DModelInformation()
     {
-        //if( GetModel()->GetModelDimension() != 3 ) return;
+        ////if( GetModel()->GetModelDimension() != 3 ) return;
 
-        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(shared_from_this(), m_context);
-        optixu::Group volumeGroup = m_context->createGroup();
-        volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
+        //std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(shared_from_this(), m_context);
+        //optixu::Group volumeGroup = m_context->createGroup();
+        //volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
 
-        // No acceleration provides better performance since there are only a couple of nodes and the
-        // bounding box of each overlap each other.
-        optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("NoAccel","NoAccel");
-        //optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("Sbvh","Bvh");
+        //// No acceleration provides better performance since there are only a couple of nodes and the
+        //// bounding box of each overlap each other.
+        //optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("NoAccel","NoAccel");
+        ////optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("Sbvh","Bvh");
 
-        volumeGroup->setAcceleration( m_elementGroupAcceleration );
-        int childIndex = 0;
-        for(std::vector<optixu::GeometryGroup>::iterator iter = elements.begin(); iter != elements.end(); ++iter)
-        {
-            volumeGroup->setChild(childIndex, *iter);
-            ++childIndex;
-        }
-        m_context["PointLocationGroup"]->set(volumeGroup);
+        //volumeGroup->setAcceleration( m_elementGroupAcceleration );
+        //int childIndex = 0;
+        //for(std::vector<optixu::GeometryGroup>::iterator iter = elements.begin(); iter != elements.end(); ++iter)
+        //{
+        //    volumeGroup->setChild(childIndex, *iter);
+        //    ++childIndex;
+        //}
+        //m_context["PointLocationGroup"]->set(volumeGroup);
     }
 
     void Scene::InitializeFaces()
