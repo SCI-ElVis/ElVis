@@ -98,8 +98,9 @@ namespace ElVis
             SetMinExtent(minExtent);
             SetMaxExtent(maxExtent);
 
-            PopulateFaces<Hexahedron>(m_volume, m_oldFaces);
-            PopulateFaces<Prism>(m_volume, m_oldFaces);
+            std::map<JacobiFaceKey, JacobiFace> faceLookupMap;
+            PopulateFaces<Hexahedron>(m_volume, faceLookupMap);
+            PopulateFaces<Prism>(m_volume, faceLookupMap);
 
 
             // Find all unique vertices.  The OptiX extension requires a unique list of vertices, 
@@ -124,8 +125,8 @@ namespace ElVis
               std::back_inserter(m_vertices));
 
             // Update the indices for each vertex.
-            for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = m_oldFaces.begin();
-                iter != m_oldFaces.end(); ++iter)
+            for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = faceLookupMap.begin();
+                iter != faceLookupMap.end(); ++iter)
             {
               const JacobiFaceKey& key = (*iter).first;
               JacobiFace& value = (*iter).second;
@@ -136,8 +137,8 @@ namespace ElVis
               }
             }
 
-            for(std::map<JacobiFaceKey, JacobiFace>::const_iterator iter = m_oldFaces.begin();
-                iter != m_oldFaces.end(); ++iter)
+            for(std::map<JacobiFaceKey, JacobiFace>::const_iterator iter = faceLookupMap.begin();
+                iter != faceLookupMap.end(); ++iter)
             {
               BOOST_AUTO(face, (*iter).second);
               face.info.widenExtents();
@@ -148,11 +149,6 @@ namespace ElVis
         void JacobiExtensionModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
         {
             m_volume->calcOverallBoundingBox(min, max);
-        }
-
-        WorldPoint JacobiExtensionModel::DoGetPoint(unsigned int id) const
-        {
-            return m_vertices[id];
         }
 
         unsigned int JacobiExtensionModel::DoGetNumberOfElements() const
@@ -193,100 +189,9 @@ namespace ElVis
 
         void JacobiExtensionModel::DoCopyFieldInfoToOptiX(optixu::Context context)
         {
-          std::cout << "DoCopyFieldInfoToOptiX" << std::endl;
-            try
-            {        
-                if( !m_volume )
-                {
-                  std::cout << "Volume is not yet valid.  Why not?" << std::endl;
-                  return;
-                }
-                CopyFieldsForElementType<Hexahedron>(m_volume, context, "Hex");
-                CopyFieldsForElementType<Prism>(m_volume, context, "Prism");
-            }
-            catch(optixu::Exception& e)
-            {
-                std::cerr << e.getErrorString() << std::endl;
-                throw;
-            }
-            catch(std::exception& f)
-            {
-                std::cerr << f.what() << std::endl;
-                throw;
-            }
-        }
-
-        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
-        {
-            try
-            {        
-                std::vector<optixu::GeometryGroup> result;
-                if( !m_volume ) return result;
-
-                std::vector<optixu::GeometryInstance> geometryWithPrimitives;
-
-                optixu::GeometryInstance hexInstance = CreateGeometryForElementType<Hexahedron>(m_volume, context, "Hex");
-
-                if( hexInstance )
-                {
-                    geometryWithPrimitives.push_back(hexInstance);
-
-                    optixu::Material m_hexCutSurfaceMaterial = context->createMaterial();
-
-                    optixu::Program hexBoundingProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), HexahedronBoundingProgramName);
-                    optixu::Program hexIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), HexahedronIntersectionProgramName);
-
-                    hexInstance->setMaterialCount(1);
-                    hexInstance->setMaterial(0, m_hexCutSurfaceMaterial);
-                    optixu::Geometry hexGeometry = hexInstance->getGeometry();
-                    hexGeometry->setBoundingBoxProgram( hexBoundingProgram );
-                    hexGeometry->setIntersectionProgram( hexIntersectionProgram );
-                }
-
-                optixu::GeometryInstance prismInstance = CreateGeometryForElementType<Prism>(m_volume, context, "Prism");
-                if( prismInstance )
-                {
-                    optixu::Material prismCutSurfaceMaterial = context->createMaterial();
-
-                    optixu::Program prismBoundingProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), PrismBoundingProgramName);
-                    optixu::Program prismIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), PrismIntersectionProgramName);
-
-                    geometryWithPrimitives.push_back(prismInstance);
-                    prismInstance->setMaterialCount(1);
-                    prismInstance->setMaterial(0, prismCutSurfaceMaterial);
-
-                    optixu::Geometry prismGeometry = prismInstance->getGeometry();
-                    prismGeometry->setBoundingBoxProgram( prismBoundingProgram );
-                    prismGeometry->setIntersectionProgram( prismIntersectionProgram );
-                }
-
-
-                optixu::GeometryGroup group = context->createGeometryGroup();
-                group->setChildCount(geometryWithPrimitives.size());
-                for(unsigned int i = 0; i < geometryWithPrimitives.size(); ++i)
-                {
-                    group->setChild(i, geometryWithPrimitives[i]);
-                }
-
-
-                //group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
-                group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );
-                //group->setAcceleration( context->createAcceleration("MedianBvh","Bvh") );
-
-                result.push_back(group);
-
-                return result;
-            }
-            catch(optixu::Exception& e)
-            {
-                std::cerr << e.getErrorString() << std::endl;
-                throw;
-            }
-            catch(std::exception& f)
-            {
-                std::cerr << f.what() << std::endl;
-                throw;
-            }
+  
+            CopyFieldsForElementType<Hexahedron>(m_volume, context, "Hex");
+            CopyFieldsForElementType<Prism>(m_volume, context, "Prism");
         }
 
         std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
