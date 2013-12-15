@@ -43,7 +43,7 @@ namespace ElVis
         m_PlanarFaceToGlobalIdxMap("PlanarFaceToGlobalIdxMap"),
         m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap"),
         m_PlanarFaceInfoBuffer("PlanarFaceInfoBuffer"),
-        m_PlanarFaceVertexBuffer("PlanarFaceVertexBuffer"),
+        m_VertexBuffer("VertexBuffer"),
         m_PlanarFaceNormalBuffer("PlanarFaceNormalBuffer")
     {
     }
@@ -133,9 +133,9 @@ namespace ElVis
       std::cout << "############ Num planar face vertices: " << numPlanarVertices << std::endl;
 
       //// Populate the linear fields that we will handle.
-      m_PlanarFaceVertexBuffer.SetContext(context);
-      m_PlanarFaceVertexBuffer.SetDimensions(numPlanarVertices);
-      BOOST_AUTO(mappedPlanarVertices, m_PlanarFaceVertexBuffer.Map());
+      m_VertexBuffer.SetContext(context);
+      m_VertexBuffer.SetDimensions(numPlanarVertices);
+      BOOST_AUTO(mappedPlanarVertices, m_VertexBuffer.Map());
 
       for(size_t i = 0; i < numPlanarVertices; ++i)
       {
@@ -299,5 +299,10 @@ namespace ElVis
     size_t Model::GetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
     {
       return DoGetPlanarFaceVertexIndex(globalFaceId, vertexId);
+    }
+
+    void Model::CopyFieldInfoToOptiX() const
+    {
+      DoCopyFieldInfoToOptiX();
     }
 }

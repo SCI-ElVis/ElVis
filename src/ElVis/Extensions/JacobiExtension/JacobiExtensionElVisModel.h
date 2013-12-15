@@ -80,6 +80,7 @@ namespace ElVis
 
             virtual int DoGetNumFields() const;
             virtual FieldInfo DoGetFieldInfo(unsigned int index) const;
+            virtual void DoCopyFieldInfoToOptiX() const;
 
         private:
             JacobiExtensionModel(const JacobiExtensionModel& rhs);

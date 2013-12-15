@@ -114,6 +114,8 @@ namespace ElVis
             /// \brief Returns the normal for the given face.
             ELVIS_EXPORT WorldVector GetPlanarFaceNormal(size_t localFaceId) const;
 
+            ELVIS_EXPORT void CopyFieldInfoToOptiX() const;
+
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
             void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }
@@ -224,6 +226,9 @@ namespace ElVis
 
             ELVIS_EXPORT virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceId) const = 0;
 
+            /// \brief Copies field information to OptiX.  ElVis has no requirement on the format 
+            /// of this data.
+            ELVIS_EXPORT virtual void DoCopyFieldInfoToOptiX() const = 0;
 
         private:
             Model& operator=(const Model& rhs);
@@ -250,7 +255,7 @@ namespace ElVis
             // Indexing is by local planar face index.
             OptiXBuffer<PlanarFaceInfo> m_PlanarFaceInfoBuffer;
 
-            OptiXBuffer<ElVisFloat4> m_PlanarFaceVertexBuffer;
+            OptiXBuffer<ElVisFloat4> m_VertexBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> m_PlanarFaceNormalBuffer;
     };
 

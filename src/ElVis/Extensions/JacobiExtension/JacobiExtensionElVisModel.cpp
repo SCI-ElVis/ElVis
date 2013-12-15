@@ -188,27 +188,11 @@ namespace ElVis
         void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, 
           optixu::Context context, optixu::Geometry& faceGeometry)
         {
-            //PlanarFaceVertexBuffer.SetContext(context);
-            //PlanarFaceVertexBuffer.SetDimensions(m_faces.size()*4);
-
-            //BOOST_AUTO(faceVertexBuffer, PlanarFaceVertexBuffer.Map());
-
-            //int index = 0;
-            //for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = m_oldFaces.begin(); iter != m_oldFaces.end(); ++iter)
-            ////for(std::vector<FaceInfo>::iterator iter = m_faces.begin(); iter != m_faces.end(); ++iter)
-            //{
-            //    FaceInfo faceDef = (*iter).second.info;
-
-            //    const JacobiFaceKey& jf = (*iter).first;
-            //    faceVertexBuffer[4*index] = MakeFloat4(jf.p[0]);
-            //    faceVertexBuffer[4*index+1] = MakeFloat4(jf.p[1]);
-            //    faceVertexBuffer[4*index+2] = MakeFloat4(jf.p[2]);
-            //    faceVertexBuffer[4*index+3] = MakeFloat4(jf.p[3]);
-
-            //    ++index;
-            //}
-
             faceGeometry->setPrimitiveCount(m_faces.size());
+        }
+
+        void JacobiExtensionModel::DoCopyFieldInfoToOptiX() const
+        {
         }
 
         std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
