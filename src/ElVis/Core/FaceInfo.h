@@ -72,6 +72,16 @@ namespace ElVis
         }
     };
 
+    inline bool isPlanarFace(const FaceInfo& info)
+    {
+      return info.Type == ePlanar;
+    }
+
+    inline bool isCurvedFace(const FaceInfo& info)
+    {
+      return info.Type == eCurved;
+    }
+
     enum TwoDElementType
     {
       eTriangle,

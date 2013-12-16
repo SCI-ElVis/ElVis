@@ -39,6 +39,9 @@ namespace ElVis
         m_minExtent(std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max(),std::numeric_limits<ElVisFloat>::max()),
         m_maxExtent(-std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max()),
         m_center(),
+        m_faceInfo(),
+        m_numPlanarFaces(0),
+        m_numCurvedFaces(0),
         m_faceIdBuffer("FaceInfoBuffer"),
         m_PlanarFaceToGlobalIdxMap("PlanarFaceToGlobalIdxMap"),
         m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap"),
@@ -101,10 +104,8 @@ namespace ElVis
       return DoGetPlanarFaceNormal(localFaceId);
     }
 
-    void Model::copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces)
-    {
-      numPlanarFaces = 0;
-      
+    void Model::copyFaceDefsToOptiX(optixu::Context context)
+    {      
       // Get information about faces and copy to OptiX.
       // Array of [0, numFaces] of faceDefs.
       BOOST_AUTO(numFaces, GetNumberOfFaces());
@@ -117,9 +118,12 @@ namespace ElVis
       for(size_t i = 0; i < numFaces; ++i)
       {
         BOOST_AUTO(faceDef, GetFaceDefinition(i));
-        if( faceDef.Type == ePlanar ) ++numPlanarFaces;
+        m_faceInfo.push_back(faceDef);
         mappedFaceInfoBuffer[i] = faceDef;
       }
+
+      m_numPlanarFaces = std::count_if(m_faceInfo.begin(), m_faceInfo.end(), isPlanarFace);
+      m_numCurvedFaces = std::count_if(m_faceInfo.begin(), m_faceInfo.end(), isCurvedFace);
     }
 
     void Model::copyPlanarFaceVerticesToOptiX(optixu::Context context)
@@ -142,22 +146,22 @@ namespace ElVis
     {
     }
 
-    void Model::copyPlanarNormalsToOptiX(optixu::Context context, size_t numPlanarFaces)
+    void Model::copyPlanarNormalsToOptiX(optixu::Context context)
     {
       m_PlanarFaceNormalBuffer.SetContext(context);
-      m_PlanarFaceNormalBuffer.SetDimensions(numPlanarFaces);
+      m_PlanarFaceNormalBuffer.SetDimensions(m_numPlanarFaces);
       BOOST_AUTO(mappedPlanarFaceNormalBuffer, m_PlanarFaceNormalBuffer.Map());
 
-      for(unsigned int i = 0; i < numPlanarFaces; ++i)
+      for(unsigned int i = 0; i < m_numPlanarFaces; ++i)
       {
         BOOST_AUTO(normal, GetPlanarFaceNormal(i));
         mappedPlanarFaceNormalBuffer[i] = MakeFloat4(normal);  
       }
     }
 
-    void Model::copyPlanarFaces(optixu::Context context, size_t numPlanarFaces)
+    void Model::copyPlanarFaces(optixu::Context context)
     {
-      copyPlanarNormalsToOptiX(context, numPlanarFaces);
+      copyPlanarNormalsToOptiX(context);
 
       copyPlanarFaceVerticesToOptiX(context);
 
@@ -165,7 +169,7 @@ namespace ElVis
       m_PlanarFaceToGlobalIdxMap.SetDimensions(1);
 
       m_PlanarFaceInfoBuffer.SetContext(context);
-      m_PlanarFaceInfoBuffer.SetDimensions(numPlanarFaces);
+      m_PlanarFaceInfoBuffer.SetDimensions(m_numPlanarFaces);
 
       BOOST_AUTO(numFaces, GetNumberOfFaces());
       BOOST_AUTO(faceBuffer, m_PlanarFaceInfoBuffer.Map());
@@ -195,7 +199,7 @@ namespace ElVis
         {
           info.vertexIdx[3] = info.vertexIdx[2];
         }
-        if( localFaceIdx >= numPlanarFaces) 
+        if( localFaceIdx >= m_numPlanarFaces) 
         {
           throw std::runtime_error("Invalid planar face count.");
         }
@@ -225,14 +229,14 @@ namespace ElVis
       m_CurvedFaceToGlobalIdxMap.SetDimensions(1);
     }
 
+    void Model::createFaceIntersectionGeometry(optixu::Context context)
+    {
+    }
+
     void Model::CopyToOptiX(optixu::Context context)
     {
-      size_t numPlanarFaces = 0;
-      copyFaceDefsToOptiX(context, numPlanarFaces);
-
-      std::cout << "Copy planar faces: "<< numPlanarFaces << std::endl;
-      copyPlanarFaces(context, numPlanarFaces);
-      std::cout << "Copy field info" << std::endl;
+      copyFaceDefsToOptiX(context);
+      copyPlanarFaces(context);
       CopyFieldInfoToOptiX(context);
       //copyCurvedFaces(context);
       // CopyPlanarFaces(context);

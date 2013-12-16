@@ -48,4 +48,8 @@ __device__ VolumeRenderingPayload FindNextFaceIntersection(const ElVisFloat3& or
 
   return payload;
 }
+
+
+
+
 #endif

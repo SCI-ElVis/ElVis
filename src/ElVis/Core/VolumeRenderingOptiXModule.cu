@@ -720,10 +720,8 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
 }
 
 
-
 ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
 {
-
     //ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
     int numVertices;
     GetNumberOfVerticesForFace(primitiveId, numVertices);

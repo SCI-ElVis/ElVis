@@ -260,10 +260,6 @@ namespace ElVis
     void Scene::InitializeFaces()
     {
         optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
-
-        //m_faceIdBuffer.SetContext(m_context);
-        //m_faceIdBuffer.SetDimensions(1);
-
         m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
         m_faceGeometry = m_context->createGeometry();

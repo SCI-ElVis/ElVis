@@ -221,18 +221,22 @@ namespace ElVis
             Model& operator=(const Model& rhs);
             Model(const Model& rhs);
 
-            void copyFaceDefsToOptiX(optixu::Context context, size_t& numPlanarFaces);
+            void copyFaceDefsToOptiX(optixu::Context context);
             void copyPlanarFaceVerticesToOptiX(optixu::Context context);
             void createLinearFaceGeometry(optixu::Context context);
-            void copyPlanarFaces(optixu::Context context, size_t numPlanarFaces);
+            void copyPlanarFaces(optixu::Context context);
             void copyCurvedFaces(optixu::Context context);
-            void copyPlanarNormalsToOptiX(optixu::Context context, size_t numPlanarFaces);
-
+            void copyPlanarNormalsToOptiX(optixu::Context context);
+            void createFaceIntersectionGeometry(optixu::Context context);
             std::string m_modelPath;
             boost::shared_ptr<Plugin> m_plugin;
             WorldPoint m_minExtent;
             WorldPoint m_maxExtent;
             WorldPoint m_center;
+
+            std::vector<FaceInfo> m_faceInfo;
+            size_t m_numPlanarFaces;
+            size_t m_numCurvedFaces;
 
             OptiXBuffer<FaceInfo> m_faceIdBuffer;
             OptiXBuffer<uint> m_PlanarFaceToGlobalIdxMap;
