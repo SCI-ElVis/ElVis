@@ -86,44 +86,6 @@ __device__ __forceinline__ bool IntersectsFace(int hexId, unsigned int faceNumbe
 }
 
 
-// Half plane version.
-//// Determines if the given ray intersects the given hex.  Returns true if it does, false otherwise.  If an intersection is
-//// found, t is the value of the closest intersection.
-//__device__ bool HexahedronIntersection(const ElVisFloat3& origin, const ElVisFloat3& direction, int hexId, const ElVisFloat& closestT, ElVisFloat& t)
-//{
-//    t = closestT;
-//    for(int faceId = 0; faceId < 6; ++faceId)
-//    {
-//        // Check to see if we intersect this face.
-//        ElVisFloat plane_t;
-//        bool intersectsFace = FindPlaneIntersection(origin, direction, GetPlane(HexPlaneBuffer, hexId, faceId), plane_t);
-
-//        bool testInside = intersectsFace;
-//        testInside &= (plane_t < t );
-//        if( testInside )
-//        {
-//            WorldPoint intersectionPoint = origin + plane_t*direction;
-
-//            bool insideOtherFaces = true;
-//            for(int insideFaceId = 0; insideFaceId < 6; ++insideFaceId)
-//            {
-//                if( insideFaceId != faceId )
-//                {
-//                    ElVisFloat planeVal = EvaluatePlane(GetPlane(HexPlaneBuffer, hexId, insideFaceId), intersectionPoint);
-//                    insideOtherFaces &= planeVal <= MAKE_FLOAT(0.0);
-//                    if( !insideOtherFaces ) break;
-//                }
-//            }
-
-//            if( insideOtherFaces )
-//            {
-//                t = plane_t;
-//            }
-//        }
-//    }
-//    return t != ELVIS_FLOAT_MAX;
-//}
-
 __device__ __forceinline__ void FindRayElementIntersection(int hexId)
 {
 //    // This method causes slow compiles
@@ -242,43 +204,6 @@ __device__ __forceinline__ void  CheckIfOriginIsInElement(int hexId)
     }
 }
 
-RT_PROGRAM void HexahedronIntersection(int hexId)
-{
-    if( ray.ray_type == 1 )
-    {
-        // Find Element Ray
-        CheckIfOriginIsInElement(hexId);
-    }
-    else
-    {
-        FindRayElementIntersection(hexId);
-    }
-}
-
-
-
-
-RT_PROGRAM void hexahedron_bounding (int id, float result[6])
-{
-    
-    //optix::Aabb* aabb = (optix::Aabb*)result;
-    //const ElVisFloat4& v0 = GetVertex(&HexVertexBuffer[0], id, 0);
-    //const ElVisFloat4& v1 = GetVertex(&HexVertexBuffer[0], id, 1);
-    //const ElVisFloat4& v2 = GetVertex(&HexVertexBuffer[0], id, 2);
-    //const ElVisFloat4& v3 = GetVertex(&HexVertexBuffer[0], id, 3);
-    //const ElVisFloat4& v4 = GetVertex(&HexVertexBuffer[0], id, 4);
-    //const ElVisFloat4& v5 = GetVertex(&HexVertexBuffer[0], id, 5);
-    //const ElVisFloat4& v6 = GetVertex(&HexVertexBuffer[0], id, 6);
-    //const ElVisFloat4& v7 = GetVertex(&HexVertexBuffer[0], id, 7);
-
-    //aabb->m_min.x = fminf(fminf(fminf(fminf(fminf(fminf(fminf(v0.x, v1.x), v2.x), v3.x), v4.x), v5.x), v6.x), v7.x);
-    //aabb->m_min.y = fminf(fminf(fminf(fminf(fminf(fminf(fminf(v0.y, v1.y), v2.y), v3.y), v4.y), v5.y), v6.y), v7.y);
-    //aabb->m_min.z = fminf(fminf(fminf(fminf(fminf(fminf(fminf(v0.z, v1.z), v2.z), v3.z), v4.z), v5.z), v6.z), v7.z);
-
-    //aabb->m_max.x = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(v0.x, v1.x), v2.x), v3.x), v4.x), v5.x), v6.x), v7.x);
-    //aabb->m_max.y = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(v0.y, v1.y), v2.y), v3.y), v4.y), v5.y), v6.y), v7.y);
-    //aabb->m_max.z = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(v0.z, v1.z), v2.z), v3.z), v4.z), v5.z), v6.z), v7.z);
-}
 
 
 

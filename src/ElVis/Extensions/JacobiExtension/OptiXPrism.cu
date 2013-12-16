@@ -87,44 +87,6 @@ __device__ __forceinline__ bool IntersectsPrismFace(int prismId, unsigned int fa
 }
 
 
-// Intersection through half plane tests.
-//// Determines if the given ray intersects the given hex.  Returns true if it does, false otherwise.  If an intersection is
-//// found, t is the value of the closest intersection.
-//__device__ bool PrismIntersection(const ElVisFloat3& origin, const ElVisFloat3& direction, int prismId, const ElVisFloat& closestT, ElVisFloat& t)
-//{
-//    t = closestT;
-//    for(int faceId = 0; faceId < 5; ++faceId)
-//    {
-//        // Check to see if we intersect this face.
-//        ElVisFloat plane_t;
-//        bool intersectsFace = FindPlaneIntersection(origin, direction, GetPrismPlane(PrismPlaneBuffer, prismId, faceId), plane_t);
-
-//        bool testInside = intersectsFace;
-//        testInside &= (plane_t < t );
-//        if( testInside )
-//        {
-//            WorldPoint intersectionPoint = origin + plane_t*direction;
-
-//            bool insideOtherFaces = true;
-//            for(int insideFaceId = 0; insideFaceId < 5; ++insideFaceId)
-//            {
-//                if( insideFaceId != faceId )
-//                {
-//                    ElVisFloat planeVal = EvaluatePlane(GetPrismPlane(PrismPlaneBuffer, prismId, insideFaceId), intersectionPoint);
-//                    insideOtherFaces &= planeVal <= MAKE_FLOAT(0.0);
-//                    if( !insideOtherFaces ) break;
-//                }
-//            }
-
-//            if( insideOtherFaces )
-//            {
-//                t = plane_t;
-//            }
-//        }
-//    }
-//    return t != ELVIS_FLOAT_MAX;
-//}
-
 // Intersection through projection.
 __device__ __forceinline__ void FindRayPrismIntersection(int prismId)
 {
@@ -239,41 +201,6 @@ __device__ __forceinline__ void PrismContainsOrigin(int prismId)
         }
     }
 }
-
-RT_PROGRAM void PrismIntersection(int prismId)
-{
-    if( ray.ray_type == 1 )
-    {
-        PrismContainsOrigin(prismId);
-    }
-    else
-    {
-        FindRayPrismIntersection(prismId);
-    }
-}
-
-
-RT_PROGRAM void PrismBounding (int prismId, float result[6])
-{
-    optix::Aabb* aabb = (optix::Aabb*)result;
-    float3 v0 = ConvertToFloat3(GetPrismVertex(&PrismVertexBuffer[0], prismId, 0));
-    float3 v1 = ConvertToFloat3(GetPrismVertex(&PrismVertexBuffer[0], prismId, 1));
-    float3 v2 = ConvertToFloat3(GetPrismVertex(&PrismVertexBuffer[0], prismId, 2));
-    float3 v3 = ConvertToFloat3(GetPrismVertex(&PrismVertexBuffer[0], prismId, 3));
-    float3 v4 = ConvertToFloat3(GetPrismVertex(&PrismVertexBuffer[0], prismId, 4));
-    float3 v5 = ConvertToFloat3(GetPrismVertex(&PrismVertexBuffer[0], prismId, 5));
-
-    aabb->m_min.x = fminf(fminf(fminf(fminf(fminf(v0.x, v1.x), v2.x), v3.x), v4.x), v5.x);
-    aabb->m_min.y = fminf(fminf(fminf(fminf(fminf(v0.y, v1.y), v2.y), v3.y), v4.y), v5.y);
-    aabb->m_min.z = fminf(fminf(fminf(fminf(fminf(v0.z, v1.z), v2.z), v3.z), v4.z), v5.z);
-
-    aabb->m_max.x = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(v0.x, v1.x), v2.x), v3.x), v4.x), v5.x);
-    aabb->m_max.y = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(v0.y, v1.y), v2.y), v3.y), v4.y), v5.y);
-    aabb->m_max.z = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(v0.z, v1.z), v2.z), v3.z), v4.z), v5.z);
-}
-
-
-
 
 
 

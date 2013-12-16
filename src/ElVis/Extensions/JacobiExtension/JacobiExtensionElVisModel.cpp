@@ -47,15 +47,6 @@ namespace ElVis
 {
     namespace JacobiExtension
     {
-        const std::string JacobiExtensionModel::HexahedronIntersectionProgramName("HexahedronIntersection");
-        const std::string JacobiExtensionModel::HexahedronPointLocationProgramName("HexahedronContainsOriginByCheckingPoint");
-        const std::string JacobiExtensionModel::HexahedronBoundingProgramName("hexahedron_bounding");
-
-        const std::string JacobiExtensionModel::PrismIntersectionProgramName("PrismIntersection");
-        const std::string JacobiExtensionModel::PrismPointLocationProgramName("PrismContainsOriginByCheckingPoint");
-        const std::string JacobiExtensionModel::PrismBoundingProgramName("PrismBounding");
-
-
         JacobiExtensionModel::JacobiExtensionModel(const std::string& modelPath) :
             Model(modelPath),
             m_volume(),

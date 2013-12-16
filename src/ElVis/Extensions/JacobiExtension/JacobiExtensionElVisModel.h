@@ -81,15 +81,6 @@ namespace ElVis
 
         private:
             JacobiExtensionModel(const JacobiExtensionModel& rhs);
-
-            static const std::string HexahedronIntersectionProgramName;
-            static const std::string HexahedronPointLocationProgramName;
-            static const std::string HexahedronBoundingProgramName;
-
-            static const std::string PrismIntersectionProgramName;
-            static const std::string PrismPointLocationProgramName;
-            static const std::string PrismBoundingProgramName;
-
             JacobiExtensionModel& operator=(const JacobiExtensionModel& rhs);
 
             virtual int DoGetModelDimension() const { return 3; }
