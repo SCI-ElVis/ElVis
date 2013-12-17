@@ -28,6 +28,7 @@
 
 #include "Model.h"
 #include "Util.hpp"
+#include <ElVis/Core/PtxManager.h>
 #include <boost/filesystem.hpp>
 
 namespace ElVis
@@ -47,7 +48,11 @@ namespace ElVis
         m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap"),
         m_PlanarFaceInfoBuffer("PlanarFaceInfoBuffer"),
         m_VertexBuffer("VertexBuffer"),
-        m_PlanarFaceNormalBuffer("PlanarFaceNormalBuffer")
+        m_PlanarFaceNormalBuffer("PlanarFaceNormalBuffer"),
+        m_planarFaceBoundingBoxProgram(),
+        m_planarFaceIntersectionProgram(),
+        m_curvedFaceBoundingBoxProgram(),
+        m_curvedFaceIntersectionProgram()
     {
     }
 
@@ -231,6 +236,67 @@ namespace ElVis
 
     void Model::createFaceIntersectionGeometry(optixu::Context context)
     {
+        // Geometry group collects nodes in a tree.
+        BOOST_AUTO(planarFaceGroup, context->createGeometryGroup());
+        BOOST_AUTO(curvedFaceGroup, context->createGeometryGroup());
+
+        BOOST_AUTO(planarGeometry, context->createGeometry());
+        BOOST_AUTO(curvedGeometry, context->createGeometry());
+
+        BOOST_AUTO(planarGeometryInstance, context->createGeometryInstance());
+        BOOST_AUTO(curvedGeometryInstance, context->createGeometryInstance());
+
+        planarGeometry->setPrimitiveCount(m_numPlanarFaces);
+        curvedGeometry->setPrimitiveCount(m_numCurvedFaces);
+
+        m_planarFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceForTraversalBoundingBoxProgram");
+        m_curvedFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceForTraversalBoundingBoxProgram");
+
+        planarGeometry->setBoundingBoxProgram(m_planarFaceBoundingBoxProgram);
+        curvedGeometry->setBoundingBoxProgram(m_curvedFaceBoundingBoxProgram);
+
+        m_planarFaceIntersectionProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceIntersection");
+        m_curvedFaceIntersectionProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceIntersection");
+
+        //FaceBoundingBoxProgram
+
+        //faceGroup->setChildCount(1);
+        //faceGroup->setChild(0, faceInstance);
+
+        //m_faceAcceleration = m_context->createAcceleration("Sbvh","Bvh");
+        ////m_faceAcceleration = m_context->createAcceleration("MedianBvh","Bvh");
+        //faceGroup->setAcceleration( m_faceAcceleration );
+        //m_context["faceGroup"]->set(faceGroup);
+
+
+        //optixu::Geometry facesForTraversal = m_context->createGeometry();
+        //facesForTraversal->setPrimitiveCount(m_faceGeometry->getPrimitiveCount());
+        //optixu::Program faceForTraversalBBProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalBoundingBoxProgram");
+        //optixu::Program faceForTraversalIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalIntersection");
+
+        //facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
+        //facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
+
+        //optixu::GeometryGroup planarFaceGroup = m_context->createGeometryGroup();
+        //optixu::GeometryGroup curvedFaceGroup = m_context->createGeometryGroup();
+        //
+        //planarFaceGroup->setChildCount(1);
+        //curvedFaceGroup->setChildCount(1);
+
+        //optixu::GeometryInstance planarInstance = m_context->createGeometryInstance();
+        //optixu::GeometryInstance curvedInstance = m_context->createGeometryInstance();
+
+        //optixu::Material faceForTraversalMaterial = m_context->createMaterial();
+        //faceForTraversalMaterial->setClosestHitProgram(2, closestHit);
+        //faceForTraversalInstance->setMaterialCount(1);
+        //faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
+        //faceForTraversalInstance->setGeometry(facesForTraversal);
+
+        //ElementTraversalGroup->setChild(0, faceForTraversalInstance);
+        //ElementTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
+        //m_context["ElementTraversalGroup"]->set(ElementTraversalGroup);
+
+
     }
 
     void Model::CopyToOptiX(optixu::Context context)

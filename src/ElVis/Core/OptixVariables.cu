@@ -71,18 +71,14 @@ rtBuffer<float, 2> depth_buffer;
 // that are not meant to be rendered directly should not go into this group.
 rtDeclareVariable(rtObject, SurfaceGeometryGroup, , );
 
-// This deprecated group contains geometry information required to do point
-// location.
-//rtDeclareVariable(rtObject, PointLocationGroup, , );
-
 // This group contains all elemental faces.  Ray tracing into this group 
 // will return the closest element face.  2D elements do not belong in this 
 // group.  Currently used by isosurfaces and volume rendering to go from 
 // element to element, but they do use the PointLocation group to find the element
 // between faces.
 rtDeclareVariable(rtObject, ElementTraversalGroup, ,);
-//rtDeclareVariable(rtObject, PlanarFaceGroup, ,);
-//rtDeclareVariable(rtObject, CurvedFaceGroup, ,);
+rtDeclareVariable(rtObject, PlanarFaceGroup, ,);
+rtDeclareVariable(rtObject, CurvedFaceGroup, ,);
 
 // Currently commented out in the volume rendering.  May be my trial code.
 // Most likely, only one of ElementTraversalGroup and faceGroup need to remain.

@@ -720,7 +720,7 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
 }
 
 
-ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
+ELVIS_DEVICE void PlanarFaceIntersectionImpl(int primitiveId)
 {
     //ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
     int numVertices;
@@ -752,6 +752,16 @@ ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
     }
 }
 
+RT_PROGRAM void PlanarFaceIntersection(int planarFaceIdx)
+{
+  PlanarFaceIntersectionImpl(planarFaceIdx);
+}
+
+RT_PROGRAM void CurvedFaceIntersection(int curvedFaceIdx)
+{
+  NewtonFaceIntersection(curvedFaceIdx);
+}
+
 RT_PROGRAM void FaceIntersection(int primitiveId)
 {
     if( ray.ray_type <= 1 )
@@ -766,7 +776,7 @@ RT_PROGRAM void FaceIntersection(int primitiveId)
     const ElVis::FaceInfo& faceDef = FaceInfoBuffer[primitiveId];
     if( faceDef.Type == ElVis::ePlanar )
     {
-        PlanarFaceIntersection(primitiveId);
+        PlanarFaceIntersectionImpl(primitiveId);
     }
     else
     {
@@ -780,7 +790,7 @@ RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
     const ElVis::FaceInfo& faceDef = FaceInfoBuffer[primitiveId];
     if( faceDef.Type == ElVis::ePlanar )
     {
-        PlanarFaceIntersection(primitiveId);
+        PlanarFaceIntersectionImpl(primitiveId);
     }
     else
     {

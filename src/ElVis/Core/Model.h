@@ -248,6 +248,12 @@ namespace ElVis
 
             OptiXBuffer<ElVisFloat4> m_VertexBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> m_PlanarFaceNormalBuffer;
+
+            optixu::Program m_planarFaceBoundingBoxProgram;
+            optixu::Program m_planarFaceIntersectionProgram;
+
+            optixu::Program m_curvedFaceBoundingBoxProgram;
+            optixu::Program m_curvedFaceIntersectionProgram;
     };
 
 }
