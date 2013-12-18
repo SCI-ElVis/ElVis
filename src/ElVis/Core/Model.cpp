@@ -30,6 +30,8 @@
 #include "Util.hpp"
 #include <ElVis/Core/PtxManager.h>
 #include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+#include <limits>
 
 namespace ElVis
 {
@@ -212,26 +214,42 @@ namespace ElVis
         ++localFaceIdx;
       }
 
+      m_PlanarFaceToGlobalIdxMap.SetContext(context);
+      m_PlanarFaceToGlobalIdxMap.SetDimensions(std::max(m_numPlanarFaces,size_t(1)));
+      BOOST_AUTO(planarIdxMap, m_PlanarFaceToGlobalIdxMap.Map());
 
-      // Planar faces need the following:
-      //facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
-      //  facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
-      //  optixu::GeometryGroup ElementTraversalGroup = m_context->createGeometryGroup();
-      //  ElementTraversalGroup->setChildCount(1);
-
-      //  optixu::GeometryInstance faceForTraversalInstance = m_context->createGeometryInstance();
-      //  optixu::Material faceForTraversalMaterial = m_context->createMaterial();
-      //  faceForTraversalMaterial->setClosestHitProgram(2, closestHit);
-      //  faceForTraversalInstance->setMaterialCount(1);
-      //  faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
-      //  faceForTraversalInstance->setGeometry(facesForTraversal);
+      size_t planarIdx = 0;
+      size_t globalIdx = 0;
+      BOOST_FOREACH(const FaceInfo& faceInfo, m_faceInfo)
+      {
+        if( faceInfo.Type == ePlanar )
+        {
+          planarIdxMap[planarIdx] = globalIdx;
+          ++planarIdx;
+        }
+        ++globalIdx;
+      }
 
     }
     
     void Model::copyCurvedFaces(optixu::Context context)
     {
       m_CurvedFaceToGlobalIdxMap.SetContext(context);
-      m_CurvedFaceToGlobalIdxMap.SetDimensions(1);
+      m_CurvedFaceToGlobalIdxMap.SetDimensions(std::max(size_t(1),m_numCurvedFaces));
+      BOOST_AUTO(curvedIdxMap, m_CurvedFaceToGlobalIdxMap.Map());
+
+      size_t curvedIdx = 0;
+      size_t globalIdx = 0;
+      BOOST_FOREACH(const FaceInfo& faceInfo, m_faceInfo)
+      {
+        if( faceInfo.Type == eCurved )
+        {
+          curvedIdxMap[curvedIdx] = globalIdx;
+          ++curvedIdx;
+        }
+        ++globalIdx;
+      }
+
     }
 
     void Model::createFaceIntersectionGeometry(optixu::Context context)
@@ -246,6 +264,19 @@ namespace ElVis
         BOOST_AUTO(planarGeometryInstance, context->createGeometryInstance());
         BOOST_AUTO(curvedGeometryInstance, context->createGeometryInstance());
 
+        m_faceClosestHitProgram = PtxManager::LoadProgram(GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram1");
+        optixu::Material faceForTraversalMaterial = context->createMaterial();
+        faceForTraversalMaterial->setClosestHitProgram(2, m_faceClosestHitProgram);
+        
+        planarGeometryInstance->setMaterialCount(1);
+        planarGeometryInstance->setMaterial(0, faceForTraversalMaterial);
+
+        curvedGeometryInstance->setMaterialCount(1);
+        curvedGeometryInstance->setMaterial(0, faceForTraversalMaterial);
+
+        planarGeometryInstance->setGeometry(planarGeometry);
+        curvedGeometryInstance->setGeometry(curvedGeometry);
+
         planarGeometry->setPrimitiveCount(m_numPlanarFaces);
         curvedGeometry->setPrimitiveCount(m_numCurvedFaces);
 
@@ -258,52 +289,32 @@ namespace ElVis
         m_planarFaceIntersectionProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceIntersection");
         m_curvedFaceIntersectionProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceIntersection");
 
-        //FaceBoundingBoxProgram
+        planarGeometry->setIntersectionProgram(m_planarFaceIntersectionProgram);
+        curvedGeometry->setIntersectionProgram(m_curvedFaceIntersectionProgram);
 
-        //faceGroup->setChildCount(1);
-        //faceGroup->setChild(0, faceInstance);
+        planarFaceGroup->setChildCount(1);
+        curvedFaceGroup->setChildCount(1);
+        planarFaceGroup->setChild(0, planarGeometryInstance);
+        curvedFaceGroup->setChild(0, curvedGeometryInstance);
 
-        //m_faceAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-        ////m_faceAcceleration = m_context->createAcceleration("MedianBvh","Bvh");
-        //faceGroup->setAcceleration( m_faceAcceleration );
-        //m_context["faceGroup"]->set(faceGroup);
+        BOOST_AUTO(planarAcceleration, context->createAcceleration("Sbvh","Bvh"));
+        BOOST_AUTO(curvedAcceleration, context->createAcceleration("Sbvh","Bvh"));
 
+        planarFaceGroup->setAcceleration(planarAcceleration);
+        curvedFaceGroup->setAcceleration(curvedAcceleration);
 
-        //optixu::Geometry facesForTraversal = m_context->createGeometry();
-        //facesForTraversal->setPrimitiveCount(m_faceGeometry->getPrimitiveCount());
-        //optixu::Program faceForTraversalBBProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalBoundingBoxProgram");
-        //optixu::Program faceForTraversalIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalIntersection");
-
-        //facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
-        //facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
-
-        //optixu::GeometryGroup planarFaceGroup = m_context->createGeometryGroup();
-        //optixu::GeometryGroup curvedFaceGroup = m_context->createGeometryGroup();
-        //
-        //planarFaceGroup->setChildCount(1);
-        //curvedFaceGroup->setChildCount(1);
-
-        //optixu::GeometryInstance planarInstance = m_context->createGeometryInstance();
-        //optixu::GeometryInstance curvedInstance = m_context->createGeometryInstance();
-
-        //optixu::Material faceForTraversalMaterial = m_context->createMaterial();
-        //faceForTraversalMaterial->setClosestHitProgram(2, closestHit);
-        //faceForTraversalInstance->setMaterialCount(1);
-        //faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
-        //faceForTraversalInstance->setGeometry(facesForTraversal);
-
-        //ElementTraversalGroup->setChild(0, faceForTraversalInstance);
-        //ElementTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
-        //m_context["ElementTraversalGroup"]->set(ElementTraversalGroup);
-
-
+        context["PlanarFaceGroup"]->set(planarFaceGroup);
+        context["CurvedFaceGroup"]->set(curvedFaceGroup);
+        context["EnableNewIntersections"]->setInt(0);
     }
 
     void Model::CopyToOptiX(optixu::Context context)
     {
       copyFaceDefsToOptiX(context);
       copyPlanarFaces(context);
+      copyCurvedFaces(context);
       CopyFieldInfoToOptiX(context);
+      createFaceIntersectionGeometry(context);
       //copyCurvedFaces(context);
       // CopyPlanarFaces(context);
       // CopyCurvedFaces(context);

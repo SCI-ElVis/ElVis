@@ -40,8 +40,11 @@ __device__ VolumeRenderingPayload FindNextFaceIntersection(const ElVisFloat3& or
 
   // do linear faces first, since they are fast.  Intersections with linear 
   // faces may help weed out bad curved matches.
-  //rtTrace(PlanarFaceGroup, ray, payload);
-  //rtTrace(CurvedFaceGroup, ray, payload);
+  if( EnableNewIntersections == 1 )
+  {
+    rtTrace(PlanarFaceGroup, ray, payload);
+    //rtTrace(CurvedFaceGroup, ray, payload);
+  }
 
   // TODO - remove when the new interface is ready.
   rtTrace(ElementTraversalGroup, ray, payload);

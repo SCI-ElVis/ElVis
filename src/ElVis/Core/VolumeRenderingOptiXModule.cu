@@ -798,6 +798,16 @@ RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
     }
 }
 
+RT_PROGRAM void ElementTraversalFaceClosestHitProgram1()
+{
+    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);
+    volumePayload.FoundIntersection = 1;
+    volumePayload.IntersectionT = closest_t;
+    volumePayload.FaceId = intersectedFaceId;
+    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
+    //    volumePayload.IntersectionT, volumePayload.FaceId);
+}
+
 RT_PROGRAM void ElementTraversalFaceClosestHitProgram()
 {
     //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);

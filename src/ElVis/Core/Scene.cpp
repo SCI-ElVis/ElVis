@@ -320,7 +320,15 @@ namespace ElVis
         ElementTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
         m_context["ElementTraversalGroup"]->set(ElementTraversalGroup);
 
-
+        //BOOST_AUTO(context, m_context);
+        //context["EnableNewIntersections"]->setInt(0);
+        //BOOST_AUTO(planarFaceGroup, context->createGeometryGroup());
+        //planarFaceGroup->setChildCount(1);
+        //planarFaceGroup->setChild(0, faceForTraversalInstance);
+        //planarFaceGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
+        ////BOOST_AUTO(curvedFaceGroup, context->createGeometryGroup());
+        //context["PlanarFaceGroup"]->set(planarFaceGroup);
+        ////context["CurvedFaceGroup"]->set(curvedFaceGroup);
     }
 
     void Scene::SynchronizeWithOptiXIfNeeded()

@@ -254,6 +254,8 @@ namespace ElVis
 
             optixu::Program m_curvedFaceBoundingBoxProgram;
             optixu::Program m_curvedFaceIntersectionProgram;
+
+            optixu::Program m_faceClosestHitProgram;
     };
 
 }
