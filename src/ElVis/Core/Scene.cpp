@@ -71,8 +71,7 @@ namespace ElVis
         m_faceGeometry(),
 //        m_curvedFaceGeometry(0),
 //        m_planarFaceGeometry(0),
-        m_faceAcceleration(),
-        m_facesEnabledBuffer()
+        m_faceAcceleration()
     {
         m_optixTraceIndex.SetX(0);
         m_optixTraceIndex.SetY(0);
@@ -276,16 +275,7 @@ namespace ElVis
         faceInstance->setMaterial(0, faceMaterial);
         faceInstance->setGeometry(m_faceGeometry);
 
-        m_facesEnabledBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, m_faceGeometry->getPrimitiveCount());
-        unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
-        for(unsigned int i = 0; i < m_faceGeometry->getPrimitiveCount(); ++i)
-        {
-            //data[i] = static_cast<unsigned char>(0);
-            data[i] = 0;
-        }
-        m_facesEnabledBuffer->unmap();
-        m_context["FaceEnabled"]->set(m_facesEnabledBuffer);
-
+        
 
         optixu::GeometryGroup faceGroup = m_context->createGeometryGroup();
 

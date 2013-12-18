@@ -170,7 +170,7 @@ namespace ElVis
         // Somehow sharing the acceleration structure didnt' work.  Revisit if performance indicates.
         //m_group->setAcceleration( view->GetScene()->GetFaceAcceleration() );
         m_group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );
-        m_facesEnabledBuffer = view->GetScene()->GetFacesEnabledBuffer();
+        m_facesEnabledBuffer = view->GetScene()->GetModel()->GetFacesEnabledBuffer();
 
         std::vector<int> temp(m_faceIds.begin(), m_faceIds.end());
         SetFaces(temp, true);

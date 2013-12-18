@@ -131,6 +131,15 @@ namespace ElVis
 
       m_numPlanarFaces = std::count_if(m_faceInfo.begin(), m_faceInfo.end(), isPlanarFace);
       m_numCurvedFaces = std::count_if(m_faceInfo.begin(), m_faceInfo.end(), isCurvedFace);
+
+      m_facesEnabledBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, m_faceInfo.size());
+      unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
+      for(unsigned int i = 0; i < m_faceInfo.size(); ++i)
+      {
+          data[i] = 0;
+      }
+      m_facesEnabledBuffer->unmap();
+      context["FaceEnabled"]->set(m_facesEnabledBuffer);
     }
 
     void Model::copyPlanarFaceVerticesToOptiX(optixu::Context context)

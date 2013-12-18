@@ -134,8 +134,6 @@ namespace ElVis
             ELVIS_EXPORT optixu::Geometry GetFaceGeometry() const { return m_faceGeometry; }
             ELVIS_EXPORT optixu::Acceleration GetFaceAcceleration() const { return m_faceAcceleration; }
 
-            ELVIS_EXPORT optixu::Buffer GetFacesEnabledBuffer() { return m_facesEnabledBuffer; }
-
             boost::signal<void (const ColorMapInfo&)> OnColorMapAdded;
             boost::signal< void (boost::shared_ptr<Model>) > OnModelChanged;
             boost::signal< void (const Scene&)> OnSceneInitialized;
@@ -236,7 +234,6 @@ namespace ElVis
             OptiXBuffer<FaceInfo> m_faceIdBuffer;
             optixu::Geometry m_faceGeometry;
             optixu::Acceleration m_faceAcceleration;
-            optixu::Buffer m_facesEnabledBuffer;
     };
 }
 

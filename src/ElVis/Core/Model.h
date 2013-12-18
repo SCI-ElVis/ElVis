@@ -112,6 +112,8 @@ namespace ElVis
 
             ELVIS_EXPORT void CopyFieldInfoToOptiX(optixu::Context context);
 
+            ELVIS_EXPORT optixu::Buffer GetFacesEnabledBuffer() { return m_facesEnabledBuffer; }
+
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
             void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }
@@ -256,6 +258,8 @@ namespace ElVis
             optixu::Program m_curvedFaceIntersectionProgram;
 
             optixu::Program m_faceClosestHitProgram;
+
+            optixu::Buffer m_facesEnabledBuffer;
     };
 
 }
