@@ -35,6 +35,27 @@
 #include <ElVis/Core/ReferencePointParameter.h>
 #include <ElVis/Core/typedefs.cu>
 
+ELVIS_DEVICE ElVisError GetNumberOfVerticesForPlanarFace(int faceId, int& result)
+{
+    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[faceId];
+    if( info.Type == ElVis::eTriangle ) 
+    {
+      result = 3;
+    }
+    else
+    {
+      result = 4;
+    }
+
+    return eNoError;
+}
+
+ELVIS_DEVICE ElVisError GetPlanarFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
+{
+    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[faceId];
+    result = VertexBuffer[info.vertexIdx[vertexId]];
+    return eNoError;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Begin Interface
@@ -84,11 +105,6 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                const PointType& referencePoint,
                                                                ResultType& result);
 
-/// \brief Returns the number of vertices associated with the given face.
-ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result);
-
-ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result);
-
 /// \brief Returns true if the reference point is valid for this face, false otherwise.
 ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& point, bool& result);
 
@@ -127,7 +143,6 @@ ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int el
 // 
 // The methods and code below are not part of the interface.
 ///////////////////////////////////////////////////////////////////////////////
-
 
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& referencePoint)

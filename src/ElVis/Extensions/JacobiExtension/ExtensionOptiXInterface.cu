@@ -42,10 +42,10 @@ ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPo
     //ElVisFloat4 v2 = VertexBuffer[4*faceId+2];
     //ElVisFloat4 v3 = VertexBuffer[4*faceId+3];
     ElVisFloat4 v0, v1, v2, v3;
-    GetFaceVertex(faceId, 0, v0);
-    GetFaceVertex(faceId, 1, v1);
-    GetFaceVertex(faceId, 2, v2);
-    GetFaceVertex(faceId, 3, v3);
+    GetPlanarFaceVertex(faceId, 0, v0);
+    GetPlanarFaceVertex(faceId, 1, v1);
+    GetPlanarFaceVertex(faceId, 2, v2);
+    GetPlanarFaceVertex(faceId, 3, v3);
 
     ElVisFloat r = refPoint.x;
     ElVisFloat s = refPoint.y;
@@ -126,27 +126,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
     return returnVal;
 }
 
-ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
-{
-    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[faceId];
-    if( info.Type == ElVis::eTriangle ) 
-    {
-      result = 3;
-    }
-    else
-    {
-      result = 4;
-    }
 
-    return eNoError;
-}
-
-ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
-{
-    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[faceId];
-    result = VertexBuffer[info.vertexIdx[vertexId]];
-    return eNoError;
-}
 
 ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint&, bool& result)
 {
@@ -165,10 +145,10 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
     //ElVisFloat4 v2 = VertexBuffer[4*faceId+2];
     //ElVisFloat4 v3 = VertexBuffer[4*faceId+3];
     ElVisFloat4 v0, v1, v2, v3;
-    GetFaceVertex(faceId, 0, v0);
-    GetFaceVertex(faceId, 1, v1);
-    GetFaceVertex(faceId, 2, v2);
-    GetFaceVertex(faceId, 3, v3);
+    GetPlanarFaceVertex(faceId, 0, v0);
+    GetPlanarFaceVertex(faceId, 1, v1);
+    GetPlanarFaceVertex(faceId, 2, v2);
+    GetPlanarFaceVertex(faceId, 3, v3);
 
     const T& r = p.x;
     const T& s = p.y;

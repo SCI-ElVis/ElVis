@@ -705,7 +705,7 @@ ELVIS_DEVICE void PlanarFaceIntersectionImpl(int primitiveId)
 {
     //ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
     int numVertices;
-    GetNumberOfVerticesForFace(primitiveId, numVertices);
+    GetNumberOfVerticesForPlanarFace(primitiveId, numVertices);
 
     ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
     ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
@@ -719,27 +719,47 @@ ELVIS_DEVICE void PlanarFaceIntersectionImpl(int primitiveId)
     //             primitiveId, tmin, tmax);
 
     ElVisFloat4 v0, v1, v2;
-    GetFaceVertex(primitiveId, 0, v0);
-    GetFaceVertex(primitiveId, 1, v1);
-    GetFaceVertex(primitiveId, 2, v2);
+    GetPlanarFaceVertex(primitiveId, 0, v0);
+    GetPlanarFaceVertex(primitiveId, 1, v1);
+    GetPlanarFaceVertex(primitiveId, 2, v2);
 
     TriangleIntersection(primitiveId, MakeFloat3(v0), MakeFloat3(v1), MakeFloat3(v2));
 
     if( numVertices == 4 )
     {
         ElVisFloat4 v3;
-        GetFaceVertex(primitiveId, 3, v3);
+        GetPlanarFaceVertex(primitiveId, 3, v3);
         TriangleIntersection(primitiveId,  MakeFloat3(v2),  MakeFloat3(v0),  MakeFloat3(v3));
     }
 }
 
 RT_PROGRAM void PlanarFaceIntersection(int planarFaceIdx)
 {
+  if( ray.ray_type <= 1 )
+  {
+    uint globalIdx = PlanarFaceToGlobalIdxMap[planarFaceIdx];
+    if( !FaceEnabled[globalIdx] )
+    {
+      ELVIS_PRINTF("PlanarFaceIntersection: Face %d is not enabled.\n", planarFaceIdx);
+      return;
+    }
+  }
+
   PlanarFaceIntersectionImpl(planarFaceIdx);
 }
 
 RT_PROGRAM void CurvedFaceIntersection(int curvedFaceIdx)
 {
+  if( ray.ray_type <= 1 )
+  {
+    uint globalIdx = CurvedFaceToGlobalIdxMap[curvedFaceIdx];
+    if( !FaceEnabled[globalIdx] )
+    {
+      ELVIS_PRINTF("CurvedFaceIntersection: Face %d is not enabled.\n", curvedFaceIdx);
+      return;
+    }
+  }
+
   NewtonFaceIntersection(curvedFaceIdx);
 }
 
