@@ -71,7 +71,7 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
 
   VolumeRenderingPayload payload = FindNextFaceIntersection(origin, rayDirection);
   
-  if( payload.FoundIntersection == 0 )
+  if( !payload.FoundIntersection )
   {
     //ELVIS_PRINTF("Did not find element intersection.\n");
     return false;

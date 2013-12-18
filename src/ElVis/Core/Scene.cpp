@@ -297,38 +297,6 @@ namespace ElVis
         //m_faceAcceleration = m_context->createAcceleration("MedianBvh","Bvh");
         faceGroup->setAcceleration( m_faceAcceleration );
         m_context["faceGroup"]->set(faceGroup);
-
-
-        optixu::Geometry facesForTraversal = m_context->createGeometry();
-        facesForTraversal->setPrimitiveCount(m_faceGeometry->getPrimitiveCount());
-        optixu::Program faceForTraversalBBProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalBoundingBoxProgram");
-        optixu::Program faceForTraversalIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalIntersection");
-
-        facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
-        facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
-        optixu::GeometryGroup ElementTraversalGroup = m_context->createGeometryGroup();
-        ElementTraversalGroup->setChildCount(1);
-
-        optixu::GeometryInstance faceForTraversalInstance = m_context->createGeometryInstance();
-        optixu::Material faceForTraversalMaterial = m_context->createMaterial();
-        faceForTraversalMaterial->setClosestHitProgram(2, closestHit);
-        faceForTraversalInstance->setMaterialCount(1);
-        faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
-        faceForTraversalInstance->setGeometry(facesForTraversal);
-
-        ElementTraversalGroup->setChild(0, faceForTraversalInstance);
-        ElementTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
-        m_context["ElementTraversalGroup"]->set(ElementTraversalGroup);
-
-        //BOOST_AUTO(context, m_context);
-        //context["EnableNewIntersections"]->setInt(0);
-        //BOOST_AUTO(planarFaceGroup, context->createGeometryGroup());
-        //planarFaceGroup->setChildCount(1);
-        //planarFaceGroup->setChild(0, faceForTraversalInstance);
-        //planarFaceGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
-        ////BOOST_AUTO(curvedFaceGroup, context->createGeometryGroup());
-        //context["PlanarFaceGroup"]->set(planarFaceGroup);
-        ////context["CurvedFaceGroup"]->set(curvedFaceGroup);
     }
 
     void Scene::SynchronizeWithOptiXIfNeeded()

@@ -34,20 +34,13 @@ __device__ VolumeRenderingPayload FindNextFaceIntersection(const ElVisFloat3& or
 {
   VolumeRenderingPayload payload;
   payload.Initialize();
-  payload.FoundIntersection = 0;
 
   optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
 
   // do linear faces first, since they are fast.  Intersections with linear 
   // faces may help weed out bad curved matches.
-  if( EnableNewIntersections == 1 )
-  {
-    rtTrace(PlanarFaceGroup, ray, payload);
-    //rtTrace(CurvedFaceGroup, ray, payload);
-  }
-
-  // TODO - remove when the new interface is ready.
-  rtTrace(ElementTraversalGroup, ray, payload);
+  rtTrace(PlanarFaceGroup, ray, payload);
+  rtTrace(CurvedFaceGroup, ray, payload);
 
   return payload;
 }

@@ -76,10 +76,8 @@ rtDeclareVariable(rtObject, SurfaceGeometryGroup, , );
 // group.  Currently used by isosurfaces and volume rendering to go from 
 // element to element, but they do use the PointLocation group to find the element
 // between faces.
-rtDeclareVariable(rtObject, ElementTraversalGroup, ,);
 rtDeclareVariable(rtObject, PlanarFaceGroup, ,);
-//rtDeclareVariable(rtObject, CurvedFaceGroup, ,);
-rtDeclareVariable(int, EnableNewIntersections, , );
+rtDeclareVariable(rtObject, CurvedFaceGroup, ,);
 
 // Currently commented out in the volume rendering.  May be my trial code.
 // Most likely, only one of ElementTraversalGroup and faceGroup need to remain.
@@ -148,6 +146,8 @@ rtBuffer<ElVis::PlanarFaceInfo, 1> PlanarFaceInfoBuffer;
 rtBuffer<uint, 1> PlanarFaceToGlobalIdxMap;
 rtBuffer<uint, 1> CurvedFaceToGlobalIdxMap;
 rtBuffer<ElVisFloat4> PlanarFaceNormalBuffer;
+
+rtBuffer<unsigned char, 1> FaceEnabled;
 
 #endif
 

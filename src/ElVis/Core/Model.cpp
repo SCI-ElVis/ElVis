@@ -264,7 +264,7 @@ namespace ElVis
         BOOST_AUTO(planarGeometryInstance, context->createGeometryInstance());
         BOOST_AUTO(curvedGeometryInstance, context->createGeometryInstance());
 
-        m_faceClosestHitProgram = PtxManager::LoadProgram(GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram1");
+        m_faceClosestHitProgram = PtxManager::LoadProgram(GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
         optixu::Material faceForTraversalMaterial = context->createMaterial();
         faceForTraversalMaterial->setClosestHitProgram(2, m_faceClosestHitProgram);
         
@@ -305,7 +305,6 @@ namespace ElVis
 
         context["PlanarFaceGroup"]->set(planarFaceGroup);
         context["CurvedFaceGroup"]->set(curvedFaceGroup);
-        context["EnableNewIntersections"]->setInt(0);
     }
 
     void Model::CopyToOptiX(optixu::Context context)

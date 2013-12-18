@@ -88,17 +88,6 @@ __device__ void GenerateTransferFunction(ElVis::TransferFunction& transferFuncti
     transferFunction.NumDensityBreakpoints() = DensityBreakpoints.size();
 }
 
-RT_PROGRAM void ElementByElementVolumeTraversalInit()
-{
-
-}
-
-RT_PROGRAM void ElementByElementVolumeTraversal()
-{
-
-}
-
-
 
 template<typename F, typename FPrime>
 ELVIS_DEVICE int ContainsRoot(const F& f, const FPrime& fprime, const IntervalPoint& initialGuess)
@@ -559,14 +548,6 @@ struct EvaluateFaceJacobianFunctor
     ElVisFloat3 Direction;
 };
 
-rtBuffer<unsigned char, 1> FaceEnabled;
-
-// This buffer belongs to Geometry objects and maps the local indices to the global face indices.
-rtBuffer<int, 1> FaceMapping;
-
-
-
-
 ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
 {
 
@@ -784,34 +765,10 @@ RT_PROGRAM void FaceIntersection(int primitiveId)
     }
 }
 
-RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
-{
-    //ELVIS_PRINTF("FaceForTraversalIntersection: Testing %d\n", primitiveId);
-    const ElVis::FaceInfo& faceDef = FaceInfoBuffer[primitiveId];
-    if( faceDef.Type == ElVis::ePlanar )
-    {
-        PlanarFaceIntersectionImpl(primitiveId);
-    }
-    else
-    {
-        NewtonFaceIntersection(primitiveId);
-    }
-}
-
-RT_PROGRAM void ElementTraversalFaceClosestHitProgram1()
-{
-    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);
-    volumePayload.FoundIntersection = 1;
-    volumePayload.IntersectionT = closest_t;
-    volumePayload.FaceId = intersectedFaceId;
-    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
-    //    volumePayload.IntersectionT, volumePayload.FaceId);
-}
-
 RT_PROGRAM void ElementTraversalFaceClosestHitProgram()
 {
     //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);
-    volumePayload.FoundIntersection = 1;
+    volumePayload.FoundIntersection = true;
     volumePayload.IntersectionT = closest_t;
     volumePayload.FaceId = intersectedFaceId;
     //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
@@ -837,19 +794,6 @@ RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])
         aabb->m_min = make_float3(100000.0f, 100000.0f, 100000.0f);
         aabb->m_max = make_float3(100000.1f, 100000.1f, 100000.1f);
     }
-}
-
-RT_PROGRAM void FaceForTraversalBoundingBoxProgram(int primitiveId, float result[6])
-{
-    optix::Aabb* aabb = (optix::Aabb*)result;
-
-    ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
-    ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
-
-    //rtPrintf("FaceForTraversalBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
-    //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
-    aabb->m_min = make_float3(p0.x, p0.y, p0.z);
-    aabb->m_max = make_float3(p1.x, p1.y, p1.z);
 }
 
 struct RiemannIntegration
@@ -939,11 +883,6 @@ struct RiemannIntegration
     return false;
   }
 };
-
-__device__ bool UdpateVolumeRenderingForElement(const Segment& seg, const ElVisFloat3& origin)
-{
-  return false;
-}
 
 RT_PROGRAM void PerformVolumeRendering()
 {

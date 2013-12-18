@@ -39,7 +39,7 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
 {
     ElementFinderPayload findElementPayload;
     findElementPayload.Initialize(p);
-    if( payload_v.FoundIntersection == 0 )
+    if( !payload_v.FoundIntersection )
     {
         ELVIS_PRINTF("FindElementFromFace: Did not find element intersection.\n");
         return findElementPayload;
@@ -47,8 +47,6 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
     else
     {
         ELVIS_PRINTF("FindElementFromFace: Found element intersection.\n");
-        findElementPayload.elementId = 0;
-        findElementPayload.elementType = 0;
     }
 
     ElVisFloat3 faceNormal;
@@ -110,7 +108,7 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
         payload_v.IntersectionT, payload_v.FaceId);
 
     ElementFinderPayload findElementPayload = findElementFromFace(p, direction, payload_v);
-    if( payload_v.FoundIntersection == 1 && findElementPayload.elementId == -1 )
+    if( payload_v.FoundIntersection && findElementPayload.elementId == -1 )
     {
         payload_v.Initialize();
         direction = MakeFloat3(-direction.x, -direction.y, -direction.z);
