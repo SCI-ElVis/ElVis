@@ -41,7 +41,6 @@ namespace ElVis
     FaceObject::FaceObject(boost::shared_ptr<Scene> m) :
         Object(),
         m_group(0),
-        m_oldApproachInstance(0),
         m_curvedFaceInstance(0),
         m_planarFaceInstance(0),
         m_transform(0),
@@ -144,36 +143,20 @@ namespace ElVis
 
         group = context->createGeometryGroup();
 
-        m_oldApproachInstance = context->createGeometryInstance();
         m_curvedFaceInstance = context->createGeometryInstance();
         m_planarFaceInstance = context->createGeometryInstance();
 
-        optixu::Geometry oldApproachGeometry = view->GetScene()->GetFaceGeometry();
         optixu::Geometry curvedGeometry = model->GetPlanarFaceGeometry();
         optixu::Geometry planarGeometry = model->GetCurvedFaceGeometry();
 
-        m_oldApproachInstance->setGeometry(oldApproachGeometry);
         m_planarFaceInstance->setGeometry(planarGeometry);
         m_curvedFaceInstance->setGeometry(curvedGeometry);
 
         m_group = group;
 
-        //group->setChildCount(1);
-        //group->setChild(0, m_oldApproachInstance);
-
         group->setChildCount(2);
         group->setChild(0, m_planarFaceInstance);
         group->setChild(1, m_curvedFaceInstance);
-
-//        group->setChild(1, m_planarFaceInstance);
-
-//        m_curvedDeviceFlags = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, curvedGeometry->getPrimitiveCount());
-//        m_planarDeviceFlags = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, planarGeometry->getPrimitiveCount());
-//        m_curvedFaceInstance["FaceEnabled"]->set(m_curvedDeviceFlags);
-//        m_planarFaceInstance["FaceEnabled"]->set(m_planarDeviceFlags);
-
-//        m_planarFaceFlags = std::vector<unsigned char>(planarGeometry->getPrimitiveCount(), 1);
-//        m_curvedFaceFlags = std::vector<unsigned char>(curvedGeometry->getPrimitiveCount(), 1);
 
         // Somehow sharing the acceleration structure didnt' work.  Revisit if performance indicates.
         m_group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );

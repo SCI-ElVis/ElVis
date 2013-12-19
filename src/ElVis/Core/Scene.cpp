@@ -68,7 +68,6 @@ namespace ElVis
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
         m_faceIdBuffer("FaceInfoBuffer"),
-        m_faceGeometry(),
 //        m_curvedFaceGeometry(0),
 //        m_planarFaceGeometry(0),
         m_faceAcceleration()
@@ -207,7 +206,6 @@ namespace ElVis
 
                     // Version 1.0 interface.
                     Get3DModelInformation();
-                    InitializeFaces();
 
                     // Version 2.0 Interface.
                     GetModel()->CopyToOptiX(m_context);
@@ -254,17 +252,6 @@ namespace ElVis
         //    ++childIndex;
         //}
         //m_context["PointLocationGroup"]->set(volumeGroup);
-    }
-
-    void Scene::InitializeFaces()
-    {
-        optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
-        m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
-        m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
-        m_faceGeometry = m_context->createGeometry();
-        m_faceGeometry->setPrimitiveCount(GetModel()->GetNumberOfFaces());
-        m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
-        m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
     }
 
     void Scene::SynchronizeWithOptiXIfNeeded()
