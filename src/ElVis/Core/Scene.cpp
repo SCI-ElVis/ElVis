@@ -199,13 +199,8 @@ namespace ElVis
                 {
 
                     GetModel()->CalculateExtents();
-                    std::cout << "Min Extent: " << GetModel()->MinExtent() << std::endl;
-                    std::cout << "Max Extent: " << GetModel()->MaxExtent() << std::endl;
                     SetFloat(m_context["VolumeMinExtent"], GetModel()->MinExtent());
                     SetFloat(m_context["VolumeMaxExtent"], GetModel()->MaxExtent());
-
-                    // Version 1.0 interface.
-                    Get3DModelInformation();
 
                     // Version 2.0 Interface.
                     GetModel()->CopyToOptiX(m_context);
@@ -229,29 +224,6 @@ namespace ElVis
             std::cout << e.getErrorString().c_str() << std::endl;
         }
         return m_context;
-    }
-
-    void Scene::Get3DModelInformation()
-    {
-        ////if( GetModel()->GetModelDimension() != 3 ) return;
-
-        //std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(shared_from_this(), m_context);
-        //optixu::Group volumeGroup = m_context->createGroup();
-        //volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
-
-        //// No acceleration provides better performance since there are only a couple of nodes and the
-        //// bounding box of each overlap each other.
-        //optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("NoAccel","NoAccel");
-        ////optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-
-        //volumeGroup->setAcceleration( m_elementGroupAcceleration );
-        //int childIndex = 0;
-        //for(std::vector<optixu::GeometryGroup>::iterator iter = elements.begin(); iter != elements.end(); ++iter)
-        //{
-        //    volumeGroup->setChild(childIndex, *iter);
-        //    ++childIndex;
-        //}
-        //m_context["PointLocationGroup"]->set(volumeGroup);
     }
 
     void Scene::SynchronizeWithOptiXIfNeeded()

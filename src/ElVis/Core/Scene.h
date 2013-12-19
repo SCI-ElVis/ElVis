@@ -144,8 +144,6 @@ namespace ElVis
             Scene(const Scene& rhs);
             Scene& operator=(const Scene& rhs);
 
-            void Get3DModelInformation();
-
             template<typename Archive>
             void do_serialize(Archive& ar, const unsigned int version, 
                 typename boost::enable_if<typename Archive::is_saving>::type* p = 0)

@@ -126,13 +126,15 @@ namespace ElVis
             /// The method listed below must be reimplemnted by each extension to provide
             /// the customized behavior required for ElVis.
 
-            /// \brief Returns the number of scalar field supported by the model.
+            /// \brief Returns the number of scalar fields supported by the model.
             ///
             /// Simulations often generate multiple fields (e.g., pressure, temperature) in a
             /// single simulations.  This method returns how many fields the model has that
             /// can be visualized.
             virtual int DoGetNumFields() const = 0;
 
+            /// \brief Returns the dimension of the model.
+            /// \return 2 for two-dimensional models, and 3 for three-dimensional models.
             virtual int DoGetModelDimension() const = 0;
 
             /// \brief Returns information about the requested field.
@@ -146,23 +148,25 @@ namespace ElVis
             /// the field.
             ///
             /// FieldInfo::Id - An unique identifier for the field.  This can be different
-            /// than the index parameter.  This id can be used to uniquely identify the field
+            /// than the index parameter.  This id is used to uniquely identify the field
             /// in the extension.
             virtual FieldInfo DoGetFieldInfo(unsigned int index) const = 0;
 
             /// \brief Returns the number of boundary surfaces in the model.
+            /// \return The number of boundary surfaces in the model. 
             ///
-            /// Some simulations are specifically interested in the behavior around certain
-            /// surfaces.  It is convenient to be able to access these surfaces directly in
-            /// ElVis.  If the model supports boundary surfaces, this method indicates how
-            /// many surfaces there are.
+            /// A boundary surface is a collection of element faces.  A typical 
+            /// use case is to specify a boundary surface that represents some 
+            /// geometry of interest (e.g., wing surface) so it can be easily 
+            /// selected and visualized.
             ELVIS_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const = 0;
 
 
-            /// \brief Returns the name of the given boundary surface and the element faces associated with it.
-            /// \param surfaceIndex The id of the requested surface, in the range [0, DoGetNumberOfBoundarySurfaces()).
+            /// \brief Obtains the specified boundary surface.  
+            /// \param surfaceIndex The boundary surface in the range [0, DoGetNumberOfBoundarySurfaces())
             /// \param name Output parameter that will return the surface's name.
             /// \param faceIds Output parameter that returns the ids of each face that belongs to this surface.
+            ///        Each entry is in the range [0, DoGetNumberOfFaces())
             ELVIS_EXPORT virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds) = 0;
 
             /// \brief Calculates the axis-aligned bounding box of the model.
@@ -173,6 +177,8 @@ namespace ElVis
             /// \brief Returns the number of elements in the model.
             virtual unsigned int DoGetNumberOfElements() const = 0;
 
+            /// \brief Returns the prefix assigned to the extension's ptx files.  
+            /// Must be the name of the extension as specified in the extensions CMakeLists.txt file.
             virtual const std::string& DoGetPTXPrefix() const = 0;
 
             ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context) = 0;
@@ -198,8 +204,6 @@ namespace ElVis
 
             /// \brief Returns the given face definition.
             ELVIS_EXPORT virtual FaceInfo DoGetFaceDefinition(size_t globalFaceId) const = 0;
-            //ELVIS_EXPORT virtual size_t DoGetNumberOfPlanarFaces() const = 0;
-            //ELVIS_EXPORT virtual size_t DoGetNumberOfCurvedFaces() const = 0;
 
             /// \brief Returns the number of vertices associated with the linear
             /// faces.

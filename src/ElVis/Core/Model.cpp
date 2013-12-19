@@ -322,18 +322,6 @@ namespace ElVis
       copyCurvedFaces(context);
       CopyFieldInfoToOptiX(context);
       createFaceIntersectionGeometry(context);
-      //copyCurvedFaces(context);
-      // CopyPlanarFaces(context);
-      // CopyCurvedFaces(context);
-      // CopyFaceAdjacency(context);
-      // CopyFields(context);
-
-      
-      //copyPlanarFaceVerticesToOptiX(context);
-      //createLinearFaceGeometry(context);
-      // Populate custom faces.
-
-      // Populate fields.
     }
 
 
