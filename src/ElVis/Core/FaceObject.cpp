@@ -144,7 +144,6 @@ namespace ElVis
 
         group = context->createGeometryGroup();
 
-        group->setChildCount(1);
         m_oldApproachInstance = context->createGeometryInstance();
         m_curvedFaceInstance = context->createGeometryInstance();
         m_planarFaceInstance = context->createGeometryInstance();
@@ -159,8 +158,13 @@ namespace ElVis
 
         m_group = group;
 
+        //group->setChildCount(1);
+        //group->setChild(0, m_oldApproachInstance);
 
-        group->setChild(0, m_oldApproachInstance);
+        group->setChildCount(2);
+        group->setChild(0, m_planarFaceInstance);
+        group->setChild(1, m_curvedFaceInstance);
+
 //        group->setChild(1, m_planarFaceInstance);
 
 //        m_curvedDeviceFlags = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, curvedGeometry->getPrimitiveCount());
