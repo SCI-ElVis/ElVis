@@ -262,8 +262,7 @@ namespace ElVis
         m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
         m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
         m_faceGeometry = m_context->createGeometry();
-        m_faceGeometry->setPrimitiveCount(0);
-        GetModel()->GetFaceGeometry(shared_from_this(), m_context, m_faceGeometry);
+        m_faceGeometry->setPrimitiveCount(GetModel()->GetNumberOfFaces());
         m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
         m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
     }

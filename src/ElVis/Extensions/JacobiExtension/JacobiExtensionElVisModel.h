@@ -64,7 +64,6 @@ namespace ElVis
             JACOBI_EXTENSION_EXPORT boost::shared_ptr<FiniteElementVolume> Volume() const { return m_volume; }
 
         protected:
-            virtual void DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces );
             virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
             virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
 

@@ -90,11 +90,6 @@ namespace ElVis
         return m_center;
     }
 
-    void Model::GetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces)
-    {
-        return DoGetFaceGeometry(scene, context, faces);
-    }
-
     int Model::GetNumberOfBoundarySurfaces() const
     {
         return DoGetNumberOfBoundarySurfaces();

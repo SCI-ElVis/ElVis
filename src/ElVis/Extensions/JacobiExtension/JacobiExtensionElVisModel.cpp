@@ -172,12 +172,6 @@ namespace ElVis
             return false;
         }
 
-        void JacobiExtensionModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, 
-          optixu::Context context, optixu::Geometry& faceGeometry)
-        {
-            faceGeometry->setPrimitiveCount(m_faces.size());
-        }
-
         void JacobiExtensionModel::DoCopyFieldInfoToOptiX(optixu::Context context)
         {
   
