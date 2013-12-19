@@ -114,6 +114,8 @@ namespace ElVis
 
             ELVIS_EXPORT optixu::Buffer GetFacesEnabledBuffer() { return m_facesEnabledBuffer; }
 
+            ELVIS_EXPORT const std::vector<FaceInfo>& GetFaceInfo() const { return m_faceInfo; }
+
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
             void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }

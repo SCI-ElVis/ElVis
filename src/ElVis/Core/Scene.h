@@ -132,8 +132,6 @@ namespace ElVis
 //            ELVIS_EXPORT optixu::Geometry GetCurvedFaceGeometry() const { return m_curvedFaceGeometry; }
 //            ELVIS_EXPORT optixu::Geometry GetPlanarFaceGeometry() const { return m_planarFaceGeometry; }
             ELVIS_EXPORT optixu::Geometry GetFaceGeometry() const { return m_faceGeometry; }
-            ELVIS_EXPORT optixu::Acceleration GetFaceAcceleration() const { return m_faceAcceleration; }
-
             boost::signal<void (const ColorMapInfo&)> OnColorMapAdded;
             boost::signal< void (boost::shared_ptr<Model>) > OnModelChanged;
             boost::signal< void (const Scene&)> OnSceneInitialized;
