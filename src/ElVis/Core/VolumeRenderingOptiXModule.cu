@@ -795,25 +795,17 @@ RT_PROGRAM void ElementTraversalFaceClosestHitProgram()
     //    volumePayload.IntersectionT, volumePayload.FaceId);
 }
 
-RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])
+RT_PROGRAM void FaceBoundingBoxProgram(int globalFaceIdx, float result[6])
 {
     optix::Aabb* aabb = (optix::Aabb*)result;
 
-    if( FaceEnabled[primitiveId] )
-    {
-        ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
-        ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
+    ElVisFloat3 p0 = FaceInfoBuffer[globalFaceIdx].MinExtent;
+    ElVisFloat3 p1 = FaceInfoBuffer[globalFaceIdx].MaxExtent;
 
-        //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
-        //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
-        aabb->m_min = make_float3(p0.x, p0.y, p0.z);
-        aabb->m_max = make_float3(p1.x, p1.y, p1.z);
-    }
-    else
-    {
-        aabb->m_min = make_float3(100000.0f, 100000.0f, 100000.0f);
-        aabb->m_max = make_float3(100000.1f, 100000.1f, 100000.1f);
-    }
+    //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
+    //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
+    aabb->m_min = make_float3(p0.x, p0.y, p0.z);
+    aabb->m_max = make_float3(p1.x, p1.y, p1.z);
 }
 
 struct RiemannIntegration
