@@ -102,15 +102,15 @@ namespace ElVis
             ELVIS_EXPORT virtual WorldPoint GetPlanarFaceVertex(size_t vertexIdx) const;
 
             /// \brief Returns the number of vertices associated with a single linear face.
-            ELVIS_EXPORT virtual size_t GetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
+            ELVIS_EXPORT virtual size_t GetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const;
 
             /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
-            ELVIS_EXPORT virtual size_t GetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
+            ELVIS_EXPORT virtual size_t GetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId);
 
             /// \brief Returns the normal for the given face.
-            ELVIS_EXPORT WorldVector GetPlanarFaceNormal(size_t localFaceId) const;
+            ELVIS_EXPORT WorldVector GetPlanarFaceNormal(size_t localFaceIdx) const;
 
-            ELVIS_EXPORT void CopyFieldInfoToOptiX(optixu::Context context);
+            ELVIS_EXPORT void CopyExtensionSpecificDataToOptiX(optixu::Context context);
 
             ELVIS_EXPORT optixu::Buffer GetFacesEnabledBuffer() { return m_facesEnabledBuffer; }
 
@@ -216,16 +216,23 @@ namespace ElVis
             ELVIS_EXPORT virtual WorldPoint DoGetPlanarFaceVertex(size_t vertexIdx) const = 0;
 
             /// \brief Returns the number of vertices associated with a single linear face.
-            ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const = 0;
+            /// \param localFaceIdx - The index of the planar face in the range [0, numPlanarFaces)
+            ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const = 0;
 
             /// \brief Returns the vertex id in the range [0, GetNumberOfPlanarFaceVertices)
-            ELVIS_EXPORT virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId) = 0;
+            /// \param localFaceIdx - The index of the planar face in the range [0, numPlanarFaces)
+            /// \param vertexId - The face vertex in the range [0, DoGetNumberOfVerticesForPlanarFace)
+            ELVIS_EXPORT virtual size_t DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId) = 0;
 
-            ELVIS_EXPORT virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceId) const = 0;
+            /// \brief Returns the normal for the given face.
+            ELVIS_EXPORT virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceIdx) const = 0;
 
-            /// \brief Copies field information to OptiX.  ElVis has no requirement on the format 
-            /// of this data.
-            ELVIS_EXPORT virtual void DoCopyFieldInfoToOptiX(optixu::Context context) = 0;
+            /// \brief Copies any data required by the extension to OptiX.
+            /// 
+            /// This method is responsible for copying any data needed by the extension
+            /// to OptiX.  Field information and curved faces are generally copied 
+            /// here.
+            ELVIS_EXPORT virtual void DoCopyExtensionSpecificDataToOptiX(optixu::Context context) = 0;
 
         private:
             Model& operator=(const Model& rhs);
@@ -233,7 +240,6 @@ namespace ElVis
 
             void copyFaceDefsToOptiX(optixu::Context context);
             void copyPlanarFaceVerticesToOptiX(optixu::Context context);
-            void createLinearFaceGeometry(optixu::Context context);
             void copyPlanarFaces(optixu::Context context);
             void copyCurvedFaces(optixu::Context context);
             void copyPlanarNormalsToOptiX(optixu::Context context);

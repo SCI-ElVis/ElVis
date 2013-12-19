@@ -172,7 +172,7 @@ namespace ElVis
             return false;
         }
 
-        void JacobiExtensionModel::DoCopyFieldInfoToOptiX(optixu::Context context)
+        void JacobiExtensionModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
         {
   
             CopyFieldsForElementType<Hexahedron>(m_volume, context, "Hex");
@@ -254,9 +254,9 @@ namespace ElVis
           return m_vertices[vertexIdx];
         }
 
-        size_t JacobiExtensionModel::DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const
+        size_t JacobiExtensionModel::DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const
         {
-          if( m_faces[globalFaceId].planarInfo.Type == eTriangle )
+          if( m_faces[localFaceIdx].planarInfo.Type == eTriangle )
           {
             return 3;
           }
@@ -266,9 +266,9 @@ namespace ElVis
           }
         }
 
-        size_t JacobiExtensionModel::DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
+        size_t JacobiExtensionModel::DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId)
         {
-          return m_faces[globalFaceId].planarInfo.vertexIdx[vertexId];
+          return m_faces[localFaceIdx].planarInfo.vertexIdx[vertexId];
         }
 
         WorldVector JacobiExtensionModel::DoGetPlanarFaceNormal(size_t localFaceId) const

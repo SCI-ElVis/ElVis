@@ -105,9 +105,9 @@ namespace ElVis
         return DoGet2DPrimaryGeometry(scene, context);
     }
 
-    WorldVector Model::GetPlanarFaceNormal(size_t localFaceId) const
+    WorldVector Model::GetPlanarFaceNormal(size_t localFaceIdx) const
     {
-      return DoGetPlanarFaceNormal(localFaceId);
+      return DoGetPlanarFaceNormal(localFaceIdx);
     }
 
     void Model::copyFaceDefsToOptiX(optixu::Context context)
@@ -157,9 +157,6 @@ namespace ElVis
       }
     }
 
-    void Model::createLinearFaceGeometry(optixu::Context context)
-    {
-    }
 
     void Model::copyPlanarNormalsToOptiX(optixu::Context context)
     {
@@ -196,7 +193,7 @@ namespace ElVis
         if( faceDef.Type != ePlanar ) continue;
 
         PlanarFaceInfo info;
-        BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(globalFaceIdx));
+        BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(localFaceIdx));
         if( numVertices == 3 )
         {
           info.Type = eTriangle;
@@ -208,7 +205,7 @@ namespace ElVis
 
         for(size_t vertexIdx = 0; vertexIdx < numVertices; ++vertexIdx)
         {
-          info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(globalFaceIdx, vertexIdx);
+          info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(localFaceIdx, vertexIdx);
         }
         if( info.Type == eTriangle )
         {
@@ -320,7 +317,7 @@ namespace ElVis
       copyFaceDefsToOptiX(context);
       copyPlanarFaces(context);
       copyCurvedFaces(context);
-      CopyFieldInfoToOptiX(context);
+      CopyExtensionSpecificDataToOptiX(context);
       createFaceIntersectionGeometry(context);
     }
 
@@ -360,19 +357,19 @@ namespace ElVis
     }
 
     /// \brief Returns the number of vertices associated with a single linear face.
-    size_t Model::GetNumberOfVerticesForPlanarFace(size_t globalFaceId) const
+    size_t Model::GetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const
     {
-      return DoGetNumberOfVerticesForPlanarFace(globalFaceId);
+      return DoGetNumberOfVerticesForPlanarFace(localFaceIdx);
     }
 
     /// \brief Returns the vertex id in the range [0, DoGetNumberOfPlanarFaceVertices)
-    size_t Model::GetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
+    size_t Model::GetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId)
     {
-      return DoGetPlanarFaceVertexIndex(globalFaceId, vertexId);
+      return DoGetPlanarFaceVertexIndex(localFaceIdx, vertexId);
     }
 
-    void Model::CopyFieldInfoToOptiX(optixu::Context context)
+    void Model::CopyExtensionSpecificDataToOptiX(optixu::Context context)
     {
-      DoCopyFieldInfoToOptiX(context);
+      DoCopyExtensionSpecificDataToOptiX(context);
     }
 }

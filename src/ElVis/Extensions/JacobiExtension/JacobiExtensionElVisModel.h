@@ -76,7 +76,7 @@ namespace ElVis
 
             virtual int DoGetNumFields() const;
             virtual FieldInfo DoGetFieldInfo(unsigned int index) const;
-            virtual void DoCopyFieldInfoToOptiX(optixu::Context context);
+            virtual void DoCopyExtensionSpecificDataToOptiX(optixu::Context context);
 
         private:
             JacobiExtensionModel(const JacobiExtensionModel& rhs);
@@ -92,11 +92,11 @@ namespace ElVis
 
             virtual WorldPoint DoGetPlanarFaceVertex(size_t vertexIdx) const;
 
-            virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
+            virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const;
 
-            virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
+            virtual size_t DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId);
 
-            virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceId) const;
+            virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceIdx) const;
 
             template<typename T>
             int NumCoefficientsForElementType(unsigned int alignment) const 
