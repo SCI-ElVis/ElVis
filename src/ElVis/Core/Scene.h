@@ -96,7 +96,7 @@ namespace ElVis
             ELVIS_EXPORT ~Scene();
 
             ELVIS_EXPORT void AddLight(boost::shared_ptr<Light> value) { m_allLights.push_back(value); }
-            ELVIS_EXPORT const std::list<boost::shared_ptr<Light>>& GetLights() const { return m_allLights; }
+            ELVIS_EXPORT const std::list<boost::shared_ptr<Light> >& GetLights() const { return m_allLights; }
 
             ELVIS_EXPORT const Color& AmbientLightColor() const { return m_ambientLightColor; }
             ELVIS_EXPORT void SetAmbientLightColor(const Color& value) ;
@@ -202,7 +202,7 @@ namespace ElVis
                 do_serialize(ar, version);
             }
 
-            std::list<boost::shared_ptr<Light>> m_allLights;
+            std::list<boost::shared_ptr<Light> > m_allLights;
             Color m_ambientLightColor;
             boost::shared_ptr<Model> m_model;
             optixu::Context m_context;

@@ -151,7 +151,7 @@ namespace ElVis
                 std::list<boost::shared_ptr<DirectionalLight> > allDirectionalLights;
                 std::list<boost::shared_ptr<PointLight> > allPointLights;
                 std::cout << "Total Lights: " << m_allLights.size() << std::endl;
-                for(std::list<boost::shared_ptr<Light>>::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
+                for(std::list<boost::shared_ptr<Light> >::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
                 {
                     BOOST_AUTO(asDirectional, boost::shared_dynamic_cast<DirectionalLight>(*iter));
                     BOOST_AUTO(asPointLight, boost::shared_dynamic_cast<PointLight>(*iter));
