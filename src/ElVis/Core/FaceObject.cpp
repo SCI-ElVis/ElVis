@@ -41,6 +41,7 @@ namespace ElVis
     FaceObject::FaceObject(boost::shared_ptr<Scene> m) :
         Object(),
         m_group(0),
+        m_oldApproachInstance(0),
         m_curvedFaceInstance(0),
         m_planarFaceInstance(0),
         m_transform(0),
@@ -139,22 +140,27 @@ namespace ElVis
             return;
         }
 
+        BOOST_AUTO(model, view->GetScene()->GetModel());
+
         group = context->createGeometryGroup();
 
         group->setChildCount(1);
+        m_oldApproachInstance = context->createGeometryInstance();
         m_curvedFaceInstance = context->createGeometryInstance();
-//        m_planarFaceInstance = context->createGeometryInstance();
+        m_planarFaceInstance = context->createGeometryInstance();
 
-        optixu::Geometry curvedGeometry = view->GetScene()->GetFaceGeometry();
-//        optixu::Geometry planarGeometry = view->GetScene()->GetPlanarFaceGeometry();
+        optixu::Geometry oldApproachGeometry = view->GetScene()->GetFaceGeometry();
+        optixu::Geometry curvedGeometry = model->GetPlanarFaceGeometry();
+        optixu::Geometry planarGeometry = model->GetCurvedFaceGeometry();
 
+        m_oldApproachInstance->setGeometry(oldApproachGeometry);
+        m_planarFaceInstance->setGeometry(planarGeometry);
         m_curvedFaceInstance->setGeometry(curvedGeometry);
-//        m_planarFaceInstance->setGeometry(planarGeometry);
 
         m_group = group;
 
 
-        group->setChild(0, m_curvedFaceInstance);
+        group->setChild(0, m_oldApproachInstance);
 //        group->setChild(1, m_planarFaceInstance);
 
 //        m_curvedDeviceFlags = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, curvedGeometry->getPrimitiveCount());

@@ -116,6 +116,9 @@ namespace ElVis
 
             ELVIS_EXPORT const std::vector<FaceInfo>& GetFaceInfo() const { return m_faceInfo; }
 
+            ELVIS_EXPORT optixu::Geometry GetPlanarFaceGeometry() const { return m_planarFaceGeometry; }
+            ELVIS_EXPORT optixu::Geometry GetCurvedFaceGeometry() const { return m_curvedFaceGeometry; }
+
         protected:
             void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
             void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }

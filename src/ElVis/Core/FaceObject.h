@@ -71,6 +71,7 @@ namespace ElVis
             void SetupSubscriptions();
 
             optixu::GeometryGroup m_group;
+            optixu::GeometryInstance m_oldApproachInstance;
             optixu::GeometryInstance m_curvedFaceInstance;
             optixu::GeometryInstance m_planarFaceInstance;
             optixu::Transform m_transform;
