@@ -68,12 +68,14 @@ ELVIS_DEVICE ElVisError GetPlanarFaceVertex(int faceId, int vertexId, ElVisFloat
 
 
 /// \brief Converts a point from world space to the given element's reference space.
-/// \param elementId The element's id.
+/// \param elementId The element's id.  The id is a global id in the range [0, Model::GetNumberOfElements())
 /// \param elementType The element's type.
 /// \param wp The world point to be converted.
-/// \param referenceType Describes the meaning of result.  If eReferencePointIsInvalid then
-///        result will only be used for output. If eReferencePointIsInitialGuess, then result is
-///        a guess for the actual location of the reference point.
+/// \param referenceType Describes the result parameter.
+///                      if referenceType == eReferencePointIsInvalid then the result parameter is invalid on input,
+///                                          and contains the conversion result on output.
+///                      if referenceType == eReferencePointIsInitialGuess, then the result parameter is an initial guess on input,
+///                                          and contains the conversion result on output.
 /// \param result On input, it can be an initial guess.  On output, the actual reference point corresponding to wp.
 /// \returns eNoError if a valid reference point is found
 ///          ePointOutsideElement if the world point does not fall inside this element
@@ -106,6 +108,10 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                ResultType& result);
 
 /// \brief Returns true if the reference point is valid for this face, false otherwise.
+/// \param faceId The global face index to test.
+/// \param point A reference space point found during ray-face intersection.
+/// \param result true if point is a valid reference point for the given face, 
+///               false otherwise.
 ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& point, bool& result);
 
 /// \brief Evaluates the Jacobian of the given face's mapping function.

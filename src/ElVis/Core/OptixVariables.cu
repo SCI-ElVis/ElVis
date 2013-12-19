@@ -117,7 +117,7 @@ rtDeclareVariable(float, far, , );
 rtDeclareVariable(int, DepthBits, , );
 
 
-rtDeclareVariable(int, intersectedFaceId, attribute IntersectedFaceId, );
+rtDeclareVariable(int, intersectedFaceGlobalIdx, attribute IntersectedFaceId, );
 rtDeclareVariable(ElVisFloat2, faceIntersectionReferencePoint, attribute FaceIntersectionReferencePoint, );
 rtDeclareVariable(bool, faceIntersectionReferencePointIsValid, attribute FaceIntersectionReferencePointIsValid, );
 

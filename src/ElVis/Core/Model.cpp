@@ -272,7 +272,7 @@ namespace ElVis
         BOOST_AUTO(planarGeometryInstance, context->createGeometryInstance());
         BOOST_AUTO(curvedGeometryInstance, context->createGeometryInstance());
 
-        m_faceClosestHitProgram = PtxManager::LoadProgram(GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
+        m_faceClosestHitProgram = PtxManager::LoadProgram(GetPTXPrefix(), "FaceClosestHitProgram");
         optixu::Material faceForTraversalMaterial = context->createMaterial();
         faceForTraversalMaterial->setClosestHitProgram(2, m_faceClosestHitProgram);
         
@@ -288,8 +288,8 @@ namespace ElVis
         m_planarFaceGeometry->setPrimitiveCount(m_numPlanarFaces);
         m_curvedFaceGeometry->setPrimitiveCount(m_numCurvedFaces);
 
-        m_planarFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceForTraversalBoundingBoxProgram");
-        m_curvedFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceForTraversalBoundingBoxProgram");
+        m_planarFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceBoundingBoxProgram");
+        m_curvedFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceBoundingBoxProgram");
 
         m_planarFaceGeometry->setBoundingBoxProgram(m_planarFaceBoundingBoxProgram);
         m_curvedFaceGeometry->setBoundingBoxProgram(m_curvedFaceBoundingBoxProgram);

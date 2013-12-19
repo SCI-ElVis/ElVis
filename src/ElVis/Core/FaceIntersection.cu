@@ -45,7 +45,7 @@ __device__ VolumeRenderingPayload FindNextFaceIntersection(const ElVisFloat3& or
   return payload;
 }
 
-__device__ void FaceForTraversalBoundingBoxProgramDetail(int globalFaceIdx, float result[6])
+__device__ void FaceBoundingBox(int globalFaceIdx, float result[6])
 {
     optix::Aabb* aabb = (optix::Aabb*)result;
 
@@ -58,14 +58,14 @@ __device__ void FaceForTraversalBoundingBoxProgramDetail(int globalFaceIdx, floa
     aabb->m_max = make_float3(p1.x, p1.y, p1.z);
 }
 
-RT_PROGRAM void PlanarFaceForTraversalBoundingBoxProgram(int primitiveId, float result[6])
+RT_PROGRAM void PlanarFaceBoundingBoxProgram(int primitiveId, float result[6])
 {
-  FaceForTraversalBoundingBoxProgramDetail(PlanarFaceToGlobalIdxMap[primitiveId], result);
+  FaceBoundingBox(PlanarFaceToGlobalIdxMap[primitiveId], result);
 }
 
-RT_PROGRAM void CurvedFaceForTraversalBoundingBoxProgram(int primitiveId, float result[6])
+RT_PROGRAM void CurvedFaceBoundingBoxProgram(int primitiveId, float result[6])
 {
-  FaceForTraversalBoundingBoxProgramDetail(CurvedFaceToGlobalIdxMap[primitiveId], result);
+  FaceBoundingBox(CurvedFaceToGlobalIdxMap[primitiveId], result);
 }
 
 #endif

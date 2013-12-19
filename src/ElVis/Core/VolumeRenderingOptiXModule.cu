@@ -618,7 +618,7 @@ ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
 //            ELVIS_PRINTF("Found intersection (%2.15f, %2.15f, %2.15f)\n", r, s, t);
             if( rtPotentialIntersection(t) )
             {
-                intersectedFaceId = primitiveId;
+                intersectedFaceGlobalIdx = primitiveId;
                 faceIntersectionReferencePoint.x = r;
                 faceIntersectionReferencePoint.y = s;
                 faceIntersectionReferencePointIsValid = true;
@@ -689,7 +689,7 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
                 if(  rtPotentialIntersection( t ) )
                 {
                     //ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", primitiveId, t);
-                    intersectedFaceId = primitiveId;
+                    intersectedFaceGlobalIdx = primitiveId;
                     faceIntersectionReferencePoint.x = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePoint.y = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePointIsValid = false;
@@ -785,27 +785,14 @@ RT_PROGRAM void FaceIntersection(int primitiveId)
     }
 }
 
-RT_PROGRAM void ElementTraversalFaceClosestHitProgram()
+RT_PROGRAM void FaceClosestHitProgram()
 {
-    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceId);
+    //ELVIS_PRINTF("FaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceGlobalIdx);
     volumePayload.FoundIntersection = true;
     volumePayload.IntersectionT = closest_t;
-    volumePayload.FaceId = intersectedFaceId;
-    //ELVIS_PRINTF("ElementTraversalFaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
+    volumePayload.FaceId = intersectedFaceGlobalIdx;
+    //ELVIS_PRINTF("FaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
     //    volumePayload.IntersectionT, volumePayload.FaceId);
-}
-
-RT_PROGRAM void FaceBoundingBoxProgram(int globalFaceIdx, float result[6])
-{
-    optix::Aabb* aabb = (optix::Aabb*)result;
-
-    ElVisFloat3 p0 = FaceInfoBuffer[globalFaceIdx].MinExtent;
-    ElVisFloat3 p1 = FaceInfoBuffer[globalFaceIdx].MaxExtent;
-
-    //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
-    //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
-    aabb->m_min = make_float3(p0.x, p0.y, p0.z);
-    aabb->m_max = make_float3(p1.x, p1.y, p1.z);
 }
 
 struct RiemannIntegration
