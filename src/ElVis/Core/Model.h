@@ -262,6 +262,11 @@ namespace ElVis
             optixu::Program m_faceClosestHitProgram;
 
             optixu::Buffer m_facesEnabledBuffer;
+            optixu::Geometry m_planarFaceGeometry;
+            optixu::Geometry m_curvedFaceGeometry; 
+
+            optixu::Buffer m_planarFacesEnabledBuffer;
+            optixu::Buffer m_curvedFacesEnabledBuffer;
     };
 
 }

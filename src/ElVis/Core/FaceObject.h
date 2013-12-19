@@ -68,7 +68,6 @@ namespace ElVis
             FaceObject& operator=(const FaceObject& rhs);
             ELVIS_EXPORT FaceObject(const FaceObject& rhs);
 
-            void CopyDataToOptiX();
             void SetupSubscriptions();
 
             optixu::GeometryGroup m_group;

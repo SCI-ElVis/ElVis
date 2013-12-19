@@ -54,7 +54,11 @@ namespace ElVis
         m_planarFaceBoundingBoxProgram(),
         m_planarFaceIntersectionProgram(),
         m_curvedFaceBoundingBoxProgram(),
-        m_curvedFaceIntersectionProgram()
+        m_curvedFaceIntersectionProgram(),
+        m_planarFaceGeometry(),
+        m_curvedFaceGeometry(),
+        m_planarFacesEnabledBuffer(),
+        m_curvedFacesEnabledBuffer()
     {
     }
 
@@ -267,8 +271,8 @@ namespace ElVis
         BOOST_AUTO(planarFaceGroup, context->createGeometryGroup());
         BOOST_AUTO(curvedFaceGroup, context->createGeometryGroup());
 
-        BOOST_AUTO(planarGeometry, context->createGeometry());
-        BOOST_AUTO(curvedGeometry, context->createGeometry());
+        m_planarFaceGeometry = context->createGeometry();
+        m_curvedFaceGeometry = context->createGeometry();
 
         BOOST_AUTO(planarGeometryInstance, context->createGeometryInstance());
         BOOST_AUTO(curvedGeometryInstance, context->createGeometryInstance());
@@ -283,23 +287,23 @@ namespace ElVis
         curvedGeometryInstance->setMaterialCount(1);
         curvedGeometryInstance->setMaterial(0, faceForTraversalMaterial);
 
-        planarGeometryInstance->setGeometry(planarGeometry);
-        curvedGeometryInstance->setGeometry(curvedGeometry);
+        planarGeometryInstance->setGeometry(m_planarFaceGeometry);
+        curvedGeometryInstance->setGeometry(m_curvedFaceGeometry);
 
-        planarGeometry->setPrimitiveCount(m_numPlanarFaces);
-        curvedGeometry->setPrimitiveCount(m_numCurvedFaces);
+        m_planarFaceGeometry->setPrimitiveCount(m_numPlanarFaces);
+        m_curvedFaceGeometry->setPrimitiveCount(m_numCurvedFaces);
 
         m_planarFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceForTraversalBoundingBoxProgram");
         m_curvedFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceForTraversalBoundingBoxProgram");
 
-        planarGeometry->setBoundingBoxProgram(m_planarFaceBoundingBoxProgram);
-        curvedGeometry->setBoundingBoxProgram(m_curvedFaceBoundingBoxProgram);
+        m_planarFaceGeometry->setBoundingBoxProgram(m_planarFaceBoundingBoxProgram);
+        m_curvedFaceGeometry->setBoundingBoxProgram(m_curvedFaceBoundingBoxProgram);
 
         m_planarFaceIntersectionProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceIntersection");
         m_curvedFaceIntersectionProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceIntersection");
 
-        planarGeometry->setIntersectionProgram(m_planarFaceIntersectionProgram);
-        curvedGeometry->setIntersectionProgram(m_curvedFaceIntersectionProgram);
+        m_planarFaceGeometry->setIntersectionProgram(m_planarFaceIntersectionProgram);
+        m_curvedFaceGeometry->setIntersectionProgram(m_curvedFaceIntersectionProgram);
 
         planarFaceGroup->setChildCount(1);
         curvedFaceGroup->setChildCount(1);

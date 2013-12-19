@@ -266,27 +266,6 @@ namespace ElVis
         GetModel()->GetFaceGeometry(shared_from_this(), m_context, m_faceGeometry);
         m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
         m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
-
-
-        optixu::GeometryInstance faceInstance = m_context->createGeometryInstance();
-        optixu::Material faceMaterial = m_context->createMaterial();
-        faceMaterial->setClosestHitProgram(2, closestHit);
-        faceInstance->setMaterialCount(1);
-        faceInstance->setMaterial(0, faceMaterial);
-        faceInstance->setGeometry(m_faceGeometry);
-
-        
-
-        optixu::GeometryGroup faceGroup = m_context->createGeometryGroup();
-
-
-        faceGroup->setChildCount(1);
-        faceGroup->setChild(0, faceInstance);
-
-        m_faceAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-        //m_faceAcceleration = m_context->createAcceleration("MedianBvh","Bvh");
-        faceGroup->setAcceleration( m_faceAcceleration );
-        m_context["faceGroup"]->set(faceGroup);
     }
 
     void Scene::SynchronizeWithOptiXIfNeeded()

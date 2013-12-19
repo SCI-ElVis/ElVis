@@ -165,31 +165,12 @@ namespace ElVis
 //        m_planarFaceFlags = std::vector<unsigned char>(planarGeometry->getPrimitiveCount(), 1);
 //        m_curvedFaceFlags = std::vector<unsigned char>(curvedGeometry->getPrimitiveCount(), 1);
 
-        CopyDataToOptiX();
-
         // Somehow sharing the acceleration structure didnt' work.  Revisit if performance indicates.
         m_group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );
         m_facesEnabledBuffer = view->GetScene()->GetModel()->GetFacesEnabledBuffer();
 
         std::vector<int> temp(m_faceIds.begin(), m_faceIds.end());
         SetFaces(temp, true);
-    }
-
-    void FaceObject::CopyDataToOptiX()
-    {
-//        if( m_curvedFaceInstance && m_curvedFaceFlags.size() > 0 )
-//        {
-//            unsigned char* data = static_cast<unsigned char*>(m_curvedDeviceFlags->map());
-//            std::copy(m_curvedFaceFlags.begin(), m_curvedFaceFlags.end(), data);
-//            m_curvedDeviceFlags->unmap();
-//        }
-
-//        if( m_planarFaceInstance && m_planarFaceFlags.size() > 0)
-//        {
-//            unsigned char* data = static_cast<unsigned char*>(m_planarDeviceFlags->map());
-//            std::copy(m_planarFaceFlags.begin(), m_planarFaceFlags.end(), data);
-//            m_planarDeviceFlags->unmap();
-//        }
     }
 
     void FaceObject::SetFaces(const std::vector<int>& ids, bool flag)
