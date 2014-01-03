@@ -778,7 +778,7 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const *typeData, PX_REAL const *xn
   //PXErrorReturn( PXType2nbf(type, &nbf   ) );
   //PXErrorReturn( PXType2Interpolation(type, &order) );
   nbf = (int) typeData->nbf;
-  order = (enum PXE_SolutionOrder) typeData->order;
+  order = (enum PXE_SolutionOrder) typeData->qorder;
     
   /* Initialize Newton Iteration */
   ConvergedFlag = PXE_False;
@@ -792,11 +792,11 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const *typeData, PX_REAL const *xn
 
   /* Initialize xref to centroid */
   //PXErrorReturn( PXElementCentroidReference( Shape, xref ) );
-  if(initialGuessProvided == 0){
-    xref[0] = typeData->centroidCoord[0];
-    xref[1] = typeData->centroidCoord[1];
-    xref[2] = typeData->centroidCoord[2];
-  }
+//  if(initialGuessProvided == 0){
+//    xref[0] = typeData->centroidCoord[0];
+//    xref[1] = typeData->centroidCoord[1];
+//    xref[2] = typeData->centroidCoord[2];
+//  }
      
   /* Starting Newton iteration */
   for ( iter = 0; iter < maxIter; iter++) {

@@ -94,18 +94,18 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
   if(egrpData->cutCellFlag == (char) 1){
     LinearSimplexGlob2Ref(3, localCoord, xglobal, xref);
   }else{
-    PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, PXE_False, PXE_False));
+    PXError(PXGlob2RefFromCoordinates2(&(egrpData->elemData), localCoord, xglobal, xref, PXE_False, PXE_False));
   }
 
-  int nbfQ = (int) egrpData->typeData.nbf;
-  enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->typeData.order;
-  int qorder = (int) egrpData->typeData.qorder;
+  int nbfQ = (int) egrpData->elemData.nbf;
+  enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->elemData.order;
+  int qorder = (int) egrpData->elemData.qorder;
   PXGradientsElem_Solution<PX_REAL>(orderQ, qorder, xref, gphi );
-  PXError(PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) egrpData->typeData.type, nbfQ, localCoord, xref, NULL, NULL, iJac, gphi, PXE_False));
+  PXError(PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) egrpData->elemData.type, nbfQ, localCoord, xref, NULL, NULL, iJac, gphi, PXE_False));
 
-  enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->orderData.order;
-  int porder = (int) egrpData->orderData.porder;
-  int nbf = (int) egrpData->orderData.nbf;
+  enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->solData.order;
+  int porder = (int) egrpData->solData.porder;
+  int nbf = (int) egrpData->solData.nbf;
   int index = fieldId;
   if(fieldId < 0){
     //may need different parameters for plotting attachments
@@ -250,15 +250,15 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const * egrpData, PX_SolutionO
   if(egrpData->cutCellFlag == (char) 1){
       PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
       //for cut elements, localCoord contains shadow coordinates
-      //PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, PXE_False));
+      //PXError(PXGlob2RefFromCoordinates2(&(egrpData->elemData), localCoord, xglobal, xref, PXE_False));
       //shadow element assumed to be PXE_UniformTetQ1
       LinearSimplexGlob2Ref(3, localCoord, xglobal, xref);
   }
 
   /* set up basis parameters */
-  enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->orderData.order;
-  int nbf = (int) egrpData->orderData.nbf;
-  int porder = (int) egrpData->orderData.porder;
+  enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->solData.order;
+  int nbf = (int) egrpData->solData.nbf;
+  int porder = (int) egrpData->solData.porder;
   if(fieldId < 0){
       //may need different parameters for plotting attachments
       order = (enum PXE_SolutionOrder) attachData->order;
@@ -283,12 +283,12 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const * egrpData, PX_SolutionO
           //geometric jacobian
           PX_REAL gphi[DIM3D*MAX_NBF];
           PX_REAL J;
-          enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->typeData.order;
-          int qorder = (int) egrpData->typeData.qorder;
+          enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->elemData.order;
+          int qorder = (int) egrpData->elemData.qorder;
           PXGradientsElem<PX_REAL>(orderQ, qorder, xref, gphi);
-          int nbfQ = (int) egrpData->typeData.nbf;
+          int nbfQ = (int) egrpData->elemData.nbf;
 
-          PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) egrpData->typeData.type, nbfQ, localCoord, xref, NULL, &J, NULL, gphi, PXE_True);
+          PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) egrpData->elemData.type, nbfQ, localCoord, xref, NULL, &J, NULL, gphi, PXE_True);
           result = J;
       }else{
           PX_REAL state[FLOW_RANK] = {0.0};

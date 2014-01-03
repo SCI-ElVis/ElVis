@@ -441,7 +441,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
   ElVisFloat b = seg.End;
 
   ElVisFloat3 rayDirection = seg.RayDirection;
-  ElVisFloat d = (b-a);
+  //ElVisFloat d = (b-a);
 
   ElVisFloat bestDepth = depth_buffer[launch_index];
   ELVIS_PRINTF("FindIsosurfaceInSegment: Best Depth %2.10f and a %2.10f\n", bestDepth, a);

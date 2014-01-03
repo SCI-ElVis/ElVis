@@ -174,7 +174,6 @@ namespace ElVis
 
         void JacobiExtensionModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
         {
-  
             CopyFieldsForElementType<Hexahedron>(m_volume, context, "Hex");
             CopyFieldsForElementType<Prism>(m_volume, context, "Prism");
         }

@@ -256,9 +256,7 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
 {
   DT x;
   DT x2;
-  DT x3;
-  DT x4;
-  DT x5;
+
   
   x = xref[0];
 
@@ -284,8 +282,8 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
 #endif
 #if GEOM_USE_P3
   case 3:
-    x2=x*x;
-    x3=x2*x;
+    DT x2=x*x;
+    DT x3=x2*x;
     phi[0] =  1.0 - 5.5*x +  9.0*x2 -  4.5*x3;
     phi[1] =        9.0*x - 22.5*x2 + 13.5*x3;
     phi[2] =      - 4.5*x + 18.0*x2 - 13.5*x3;
@@ -294,9 +292,9 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
 #endif
 #if GEOM_USE_P4
   case 4:
-    x2=x*x;
-    x3=x2*x;
-    x4=x3*x;
+    DT x2=x*x;
+    DT x3=x2*x;
+    DT x4=x3*x;
     phi[0] = ( 3.0 - 25.0*x +  70.0*x2 -  80.0*x3 +  32.0*x4 )*ONETHIRD;
     phi[1] = (       48.0*x - 208.0*x2 + 288.0*x3 - 128.0*x4 )*ONETHIRD;
     phi[2] = (     - 36.0*x + 228.0*x2 - 384.0*x3 + 192.0*x4 )*ONETHIRD;
@@ -306,10 +304,10 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
 #endif
 #if GEOM_USE_P5
   case 5:
-    x2=x*x;
-    x3=x2*x;
-    x4=x3*x;
-    x5=x4*x;
+    DT x2=x*x;
+    DT x3=x2*x;
+    DT x4=x3*x;
+    DT x5=x4*x;
     phi[0] = ( 24.0 - 274.0*x + 1125.0*x2 -  2125.0*x3 +  1875.0*x4 -  625.0*x5 ) * ONETWENTYFOURTH;
     phi[1] = (        600.0*x - 3850.0*x2 +  8875.0*x3 -  8750.0*x4 + 3125.0*x5 ) * ONETWENTYFOURTH;
     phi[2] = (      - 600.0*x + 5350.0*x2 - 14750.0*x3 + 16250.0*x4 - 6250.0*x5 ) * ONETWENTYFOURTH;
@@ -330,7 +328,7 @@ template <typename DT> ELVIS_DEVICE int
 PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
   DT x;
-  DT xx, xxx, xxxx, xxxxx;
+  DT xx;
   
   x = xref[0];
 
@@ -356,8 +354,8 @@ PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTR
 #endif
 #if GEOM_USE_P3
   case 3:
-    xx = x*x;
-    xxx = xx*x;
+    DT xx = x*x;
+    DT xxx = xx*x;
     phi[0] = ( 3.0 - 19.0*x + 32.0*xx - 16.0*xxx)*ONETHIRD;
     phi[1] = (       24.0*x - 56.0*xx + 32.0*xxx)*ONETHIRD;
     phi[2] = (     -  8.0*x + 40.0*xx - 32.0*xxx)*ONETHIRD;
@@ -366,9 +364,9 @@ PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTR
 #endif
 #if GEOM_USE_P4
   case 4:
-    xx = x*x;
-    xxx = xx*x;
-    xxxx = xxx*x;
+    DT xx = x*x;
+    DT xxx = xx*x;
+    DT xxxx = xxx*x;
     
     phi[ 0] = 1.0 - 11.0*x + 34.0*xx - 40.0*xxx + 16.0*xxxx;
     phi[ 1] =  4.0*x*( 2.0+SQUAREROOT2-4.0*x )*(1.0-3.0*x+2.0*xx );
@@ -379,10 +377,10 @@ PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTR
 #endif
 #if GEOM_USE_P5
   case 5:
-    xx = x*x;
-    xxx = xx*x;
-    xxxx = xxx*x;
-    xxxxx = xxxx*x;
+    DT xx = x*x;
+    DT xxx = xx*x;
+    DT xxxx = xxx*x;
+    DT xxxxx = xxxx*x;
 
     
     phi[ 0] = 1.0 - 17.0*x + 83.2*xx - 169.6*xxx + 153.6*xxxx - 51.2*xxxxx;
@@ -483,9 +481,9 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
   DT     x,         y;
   DT    xx,    xy,    yy;
-  DT   xxx,   xxy,   xyy,   yyy;
-  DT  xxxx,  xxxy,  xxyy,  xyyy,  yyyy;
-  DT xxxxx, xxxxy, xxxyy, xxyyy, xyyyy, yyyyy;
+  //DT   xxx,   xxy,   xyy,   yyy;
+  //DT  xxxx,  xxxy,  xxyy,  xyyy,  yyyy;
+  //DT xxxxx, xxxxy, xxxyy, xxyyy, xyyyy;
 
   x = xref[0];
   y = xref[1];
@@ -552,7 +550,7 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     xxxy=xxx*y;
     xxyy=xxy*y;
     xyyy=xyy*y;
-    yyyy=yyy*y;
+    DT yyyy=yyy*y;
 
     phi[0] = 1.0-25.0*ONETHIRD*x-25.0*ONETHIRD*y+70.0*ONETHIRD*xx+140.0*ONETHIRD*xy+70.0*ONETHIRD*yy-
       80.0*ONETHIRD*xxx-80.0*xxy-80.0*xyy-80.0*ONETHIRD*yyy+32.0*ONETHIRD*xxxx+
@@ -595,7 +593,7 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     xxxyy=xxxy*y;
     xxyyy=xxyy*y;
     xyyyy=xyyy*y;
-    yyyyy=yyyy*y;
+    DT yyyyy=yyyy*y;
 
     phi[0]  = 1.0-137.0/12.0*x-137.0/12.0*y+375.0/8.0*xx+375.0*0.25*xy+375.0/8.0*yy-
                  2125.0/24.0*xxx-2125.0/8.0*xxy-2125.0/8.0*xyy-2125.0/24.0*yyy+
@@ -1282,7 +1280,6 @@ template <typename DT> ELVIS_DEVICE int
 PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   DT x;
-  DT xx, xxx, xxxx;
 
   x = xref[0];
 
@@ -1307,7 +1304,7 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
 #endif
 #if GEOM_USE_P3
   case 3:
-    xx = x*x;
+    DT xx = x*x;
     gphi[0] = -5.5 + 18.0*x - 13.5*xx;
     gphi[1] =  9.0 - 45.0*x + 40.5*xx;
     gphi[2] = -4.5 + 36.0*x - 40.5*xx;
@@ -1316,8 +1313,8 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
 #endif
 #if GEOM_USE_P4
   case 4:
-    xx = x*x;
-    xxx = xx*x;
+    DT xx = x*x;
+    DT xxx = xx*x;
     gphi[0] = ( - 25.0 + 140.0*x - 240.0*xx + 128.0*xxx )*ONETHIRD;
     gphi[1] = (   48.0 - 416.0*x + 864.0*xx - 512.0*xxx )*ONETHIRD;
     gphi[2] = ( - 36.0 + 456.0*x -1152.0*xx + 768.0*xxx )*ONETHIRD;
@@ -1327,9 +1324,9 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
 #endif
 #if GEOM_USE_P5
   case 5:
-    xx = x*x;
-    xxx = xx*x;
-    xxxx = xxx*x;
+    DT xx = x*x;
+    DT xxx = xx*x;
+    DT xxxx = xxx*x;
     gphi[0] = ( - 274.0 + 2250.0*x -  6375.0*xx +  7500.0*xxx - 3125.0*xxxx ) * ONETWENTYFOURTH;
     gphi[1] = (   600.0 - 7700.0*x + 26625.0*xx - 35000.0*xxx +15625.0*xxxx ) * ONETWENTYFOURTH;
     gphi[2] = ( - 600.0 +10700.0*x - 44250.0*xx + 65000.0*xxx -31250.0*xxxx ) * ONETWENTYFOURTH;
@@ -1349,7 +1346,7 @@ template <typename DT> ELVIS_DEVICE int
 PXGradientsSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   DT x;
-  DT xx, xxx, xxxx;
+  //DT xx, xxx, xxxx;
   
   x = xref[0];
 

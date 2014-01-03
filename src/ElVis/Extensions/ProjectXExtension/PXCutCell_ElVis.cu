@@ -219,7 +219,6 @@ PXQuadPatchRef2Glob(DT const * const quadNode[6], const DT* xRef, DT* xGlob)
   phi[4] = 4*(Y-XY-Ysq);
   phi[5] = 4*(X-Xsq-XY);
   
-  DT temp;
   
   for(d = 0; d < dim; d++){
     xGlob[d] = 0;
@@ -605,9 +604,7 @@ PXCountQuadraticRootsbySolve(DT* coeff,
   const DT& b = coeff[1];
   const DT& c = coeff[0];
   
-   DT delta;
    DT temp;
-   DT x1,x2;
 
   count = 0;
   boundary = -1;
@@ -1149,7 +1146,7 @@ PXCountQuarticRoots(DT coeff[5], bool& rootExist, int *pNumRoot)
   DT& b = coeff[3];
   DT& a = coeff[4];
 
-   DT W1, W2, W3;
+   DT W1, W3; //W2
    DT d1, d2, d3;
    DT A, B;
    DT T1, T2;
@@ -1205,7 +1202,7 @@ PXCountQuarticRoots(DT coeff[5], bool& rootExist, int *pNumRoot)
 
   /*Compute all the invariants and Bezout matrix components*/
   W1 = a*d-b*c;
-  W2 = b*e-c*d;
+  //W2 = b*e-c*d;
   W3 = a*e-b*d;
   
   d2 = b*b-a*c;
@@ -3248,7 +3245,6 @@ PXIntersectTetEdgeQuadraticFacePredicate(DT const * const lineNode[2],
   int compareDim; //the dimension to compare
    DT compareDimDiff;
    DT temp;
-  int ierr;
   
   /*if conicS's are not provided, compute them based on the quad and the given segment, without
     the knowledge of the adjacent background faces, see Method 2 of report on Apr. 6*/

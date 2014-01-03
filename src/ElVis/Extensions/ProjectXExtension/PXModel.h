@@ -58,6 +58,7 @@ extern "C"{
 #include <boost/utility.hpp>
 #include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/Float.h>
+#include "PXPlanarFace.h"
 
 namespace ElVis
 {
@@ -73,22 +74,40 @@ namespace ElVis
     void LoadVolume(const std::string& filePath);
 
   protected:
-    virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context);
-    virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
-    virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context);
-    virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
-    virtual int DoGetModelDimension() const { return 3; }
-    virtual const std::string& DoGetPTXPrefix() const;	    
+    virtual int DoGetNumFields() const;
+
+    virtual int DoGetModelDimension() const;
+
+    virtual FieldInfo DoGetFieldInfo(unsigned int index) const;
+
+    ELVIS_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const;
+
+    ELVIS_EXPORT virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds);
+
+    ELVIS_EXPORT virtual void DoCalculateExtents(WorldPoint& min, WorldPoint& max);
 
     virtual unsigned int DoGetNumberOfElements() const;
 
-    virtual void DoCalculateExtents(WorldPoint& min, WorldPoint& max);
+    virtual const std::string& DoGetPTXPrefix() const;
 
-    virtual int DoGetNumFields() const;
-    virtual FieldInfo DoGetFieldInfo(unsigned int index) const;
+    ELVIS_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
+    ELVIS_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
 
-    virtual int DoGetNumberOfBoundarySurfaces() const;
-    virtual void DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds);
+    ELVIS_EXPORT virtual size_t DoGetNumberOfFaces() const;
+
+    ELVIS_EXPORT virtual FaceInfo DoGetFaceDefinition(size_t globalFaceId) const;
+
+    ELVIS_EXPORT virtual size_t DoGetNumberOfPlanarFaceVertices() const;
+
+    ELVIS_EXPORT virtual WorldPoint DoGetPlanarFaceVertex(size_t vertexIdx) const;
+
+    ELVIS_EXPORT virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const;
+
+    ELVIS_EXPORT virtual size_t DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId);
+
+    ELVIS_EXPORT virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceIdx) const ;
+
+    ELVIS_EXPORT virtual void DoCopyExtensionSpecificDataToOptiX(optixu::Context context);
 
   private:
     static const std::string PXSimplexPtxFileName;
@@ -98,12 +117,13 @@ namespace ElVis
 
     PXModel& operator=(const PXModel& rhs);
 
+    std::vector<PXPlanarFace> m_PlanarFaces;
+    std::vector<uint> m_egrp2GlobalElemIndex;
 
+    ElVis::OptiXBuffer<ElVisFloat3> m_coordinateBuffer; //for coordinates of elements of computational mesh
 
     ElVis::OptiXBuffer<ElVisFloat> m_solutionBuffer; //for State_0 GRE values (solution)
-    ElVis::OptiXBuffer<ElVisFloat> m_coordinateBuffer; //for coordinates of elements of computational mesh
-    ElVis::OptiXBuffer<ElVisFloat> m_boundingBoxBuffer; //for coordinates of bounding boxes of the elements in computational mesh
-    ElVis::OptiXBuffer<PX_EgrpData> m_egrpDataBuffer; //data about each element group
+
     ElVis::OptiXBuffer<unsigned int> m_globalElemToEgrpElemBuffer; //mapping from global element number to (egrp,elem)
 
     ElVis::OptiXBuffer<PX_SolutionOrderData> m_attachDataBuffer; //solutionorder info about a single attachment (for now, distance function)

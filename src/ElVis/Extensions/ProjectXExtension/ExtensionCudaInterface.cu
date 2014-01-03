@@ -94,9 +94,9 @@ __device__ unsigned int* PXSimplexGlobalElemToCutCellBuffer;
 
 //  int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
 //  //int nbfQ;
-//  int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+//  int nbf = (int) PXSimplexEgrpDataBuffer[egrp].solData.nbf;
 
-//  int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
+//  int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].elemData.nbf;
 //  int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
 //  ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
 
@@ -110,7 +110,7 @@ __device__ unsigned int* PXSimplexGlobalElemToCutCellBuffer;
 //  if(egrpData->cutCellFlag != (char) 1){
 //    PX_REAL xref[3] = {initialGuess.x, initialGuess.y, initialGuess.z};
 //    PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
-//    PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, (enum PXE_Boolean) initialGuessProvided, PXE_False));
+//    PXError(PXGlob2RefFromCoordinates2(&(egrpData->elemData), localCoord, xglobal, xref, (enum PXE_Boolean) initialGuessProvided, PXE_False));
 //    //ElVisFloat3 refPoint = MakeFloat3(xref[0],xref[1],xref[2]);
 //    initialGuess.x = xref[0];
 //    initialGuess.y = xref[1];
@@ -138,7 +138,7 @@ __device__ ElVisFloat3 EvaluateNormalCuda(unsigned int elementId, unsigned int e
   int egrp = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId];
   int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
 
-  int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
+  int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].elemData.nbf;
   int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
   ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
 
@@ -150,7 +150,7 @@ __device__ ElVisFloat3 EvaluateNormalCuda(unsigned int elementId, unsigned int e
 
   int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
   //int nbfQ;
-  int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+  int nbf = (int) PXSimplexEgrpDataBuffer[egrp].solData.nbf;
   ElVisFloat* localSolution = &PXSimplexSolutionBuffer[StateRank*solnIndexStart + elem*StateRank*nbf];
   PX_SolutionOrderData *attachData = NULL;
   if(fieldId < 0){
@@ -180,9 +180,9 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceCuda(int elementId, int elem
     int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
 
     //int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
-    //int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+    //int nbf = (int) PXSimplexEgrpDataBuffer[egrp].solData.nbf;
 
-    int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
+    int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].elemData.nbf;
     int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
     ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
 
@@ -197,7 +197,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceCuda(int elementId, int elem
     {
         PX_REAL xref[3] = {result.x, result.y, result.z};
         PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
-        PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, (enum PXE_Boolean) initialGuessProvided, PXE_False));
+        PXError(PXGlob2RefFromCoordinates2(&(egrpData->elemData), localCoord, xglobal, xref, (enum PXE_Boolean) initialGuessProvided, PXE_False));
         //ElVisFloat3 refPoint = MakeFloat3(xref[0],xref[1],xref[2]);
         result.x = xref[0];
         result.y = xref[1];
@@ -218,9 +218,9 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointCuda(int elementId, int
     int elem = PXSimplexGlobalElemToEgrpElemBuffer[2*elementId+1];
 
     int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
-    int nbf = (int) PXSimplexEgrpDataBuffer[egrp].orderData.nbf;
+    int nbf = (int) PXSimplexEgrpDataBuffer[egrp].solData.nbf;
 
-    int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].typeData.nbf;
+    int nbfQ = (int) PXSimplexEgrpDataBuffer[egrp].elemData.nbf;
     int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
     ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[Dim*geomIndexStart + elem*Dim*nbfQ];
 

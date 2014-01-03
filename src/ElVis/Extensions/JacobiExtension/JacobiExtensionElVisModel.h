@@ -36,6 +36,8 @@
 #include <ElVis/Core/Model.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
+#include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/Util.hpp>
 
 #include <optixu/optixpp.h>
 #include <ElVis/Core/ElementId.h>
