@@ -45,11 +45,11 @@ extern "C"{
 
 
 typedef struct{
-  unsigned short type; //PXE_ElementType
-  unsigned short order; //PXE_SolutionOrder
-  unsigned short nbf;
-  unsigned char qorder; //polynomial order
-  unsigned char shape; //PXE_Shape
+  enum PXE_ElementType type; //PXE_ElementType
+  enum PXE_SolutionOrder order; //PXE_SolutionOrder
+  int nbf;
+  int qorder; //polynomial order
+  enum PXE_Shape shape; //PXE_Shape
   //PX_REAL centroidCoord[DIM3D]; //coordinates of element centroid
   
 } PX_ElementTypeData;
@@ -57,14 +57,14 @@ typedef struct{
 typedef struct{
   unsigned char orientation;
   unsigned char side; //0: LEFT, 1: RIGHT.  If side is 1, computed normal must be flipped
-  unsigned char shape; //PXE_Shape  
+  enum PXE_Shape shape; //PXE_Shape
 } PX_FaceData;
 
 
 typedef struct{
-  unsigned short order; //PXE_SolutionOrder
-  unsigned short porder;
-  unsigned short nbf;
+  enum PXE_SolutionOrder order; //PXE_SolutionOrder
+  int porder;
+  int nbf;
 } PX_SolutionOrderData;
 
 
@@ -140,15 +140,13 @@ void PrintPatchGroup(PX_PatchGroup *patchGroup, PX_REAL *backgroundCoordBase, PX
   GEN_PRINTF("patchGroup length = %d, nPatch = %d\n",patchGroup->length, patchGroup->nPatch);
   GEN_PRINTF("patchGroup threeDId = %d\n",patchGroup->threeDId);
 
-  int threeDId = patchGroup->threeDId;
-
   for(i=0; i<DIM3D*BACK_NBF; i++){
-    GEN_PRINTF("bgElem[%d] = %.8E, ",i,backgroundCoordBase[threeDId*BACK_NBF*DIM3D+i]);
+    GEN_PRINTF("bgElem[%d] = %.8E, ",i,backgroundCoordBase[patchGroup->threeDId*BACK_NBF*DIM3D+i]);
   }
   GEN_PRINTF("\n");
 
   for(i=0; i<DIM3D; i++){
-    GEN_PRINTF("known[%d] = %.8E, ",i,knownPointBase[threeDId*DIM3D+i]);
+    GEN_PRINTF("known[%d] = %.8E, ",i,knownPointBase[patchGroup->threeDId*DIM3D+i]);
   }
   GEN_PRINTF("knownType = %d\n",patchGroup->knownPointFlag);
   

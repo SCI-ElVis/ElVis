@@ -57,11 +57,11 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
 
     ElVisFloat d = dot(faceNormal, vectorToPointOnFace);
 
-    ELVIS_PRINTF("FindElementFromFace: Face Id %d, Normal (%f, %f, %f), point on face (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", payload_v.FaceId,
-                 faceNormal.x, faceNormal.y, faceNormal.z,
-                 pointOnFace.x, pointOnFace.y, pointOnFace.z,
-                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
-    ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceInfoBuffer.size());
+//    ELVIS_PRINTF("FindElementFromFace: Face Id %d, Normal (%f, %f, %f), point on face (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", payload_v.FaceId,
+//                 faceNormal.x, faceNormal.y, faceNormal.z,
+//                 pointOnFace.x, pointOnFace.y, pointOnFace.z,
+//                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
+//    ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceInfoBuffer.size());
      
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
 //                 FaceInfoBuffer[faceId].CommonElements[0].Id,
@@ -141,7 +141,7 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
     //ELVIS_PRINTF("FindElementFromFace: ReferenceIntersectionPoint = (%f, %f, %f).\n", findElementPayload.ReferenceIntersectionPoint.x, findElementPayload.ReferenceIntersectionPoint.y, findElementPayload.ReferenceIntersectionPoint.z);
 
 
-    return findElementPayload;
+    //return findElementPayload;
 
 
 //    ElVisFloat3 faceNormal;

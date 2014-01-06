@@ -39,7 +39,6 @@
 ELVIS_DEVICE int 
 PXFaceVertex(enum PXE_ElementType type, int lface, int *CornerNodeOnFace, int *nCornerNodeOnFace)
 {
-  int ierr;
 
   /****************************************************************************************/
   /*                      Get the number of corner nodes on the face                      */
@@ -305,7 +304,7 @@ PXSolveCubic(PX_REAL * RESTRICT A, PX_REAL * RESTRICT xsol, int * RESTRICT nsol)
   PX_REAL b0, b1, b2;
   PX_REAL t0, t1, t2;
   PX_REAL Q, R, D, S, T;
-  PX_REAL rcr_a3, rpsd, rmsd, smq, theta; //rcr = reciprocal cube root
+  PX_REAL rcr_a3, smq, theta; //rcr = reciprocal cube root
   PX_REAL eps;
 
   eps = 10*MEPS;
@@ -388,7 +387,7 @@ ELVIS_DEVICE int
 PXRootsPoly(PX_REAL * RESTRICT pA, int n, int fixflag, int approxflag,
 		PX_REAL * RESTRICT xsol, int * RESTRICT nsol)
 {
-  int ierr, k, isol;
+  int k, isol;
   int converged, inewton, maxnewton;
   PX_REAL AA, eps, tol;
   PX_REAL R, R_U, X, XX;
@@ -971,7 +970,7 @@ PXCountSignChange(DT const* sturmSeq, int const& n, int &numSignChange)
 ELVIS_DEVICE  int
 PXRescaleCoefficients(PX_REAL *coeff, int const& n)
 {
-  int j, k;
+  int k;
   
   //convert to PX_REAL
   PX_REAL maxcoeff = 0;
@@ -3412,7 +3411,6 @@ PXCountSegmentPatchesIntersect(PX_REAL *patchCoordinates, int const* patchFace, 
   PX_REAL *ptempLineNode[2];
   /* PX_MeshElement *allElement = meshsurf->Element; */
   /* PX_MeshElement *Element; */
-  int ierr;
 
   //intersection variables, not really used here
   int nIntersectPerPatch;

@@ -943,7 +943,7 @@ PXShapeLagrange3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     phi[17] = 125.0*ONESIXTH*y*x*x+125.0*0.25*y*y*x-25.0*ONESIXTH*y*x+3125.0/12.0*y*y*y*x*x-625.0*0.25*y*y*x*x-625.0/12.0*y*y*y*x;
     phi[18] = -3125.0/24.0*y*y*y*y*x-25.0*0.25*y-1375.0/24.0*z*y*y+1525.0/24.0*y*y-5125.0/24.0*y*y*y+6875.0/24.0*y*y*y*y-3125.0/24.0*y*y*y*y*y-3125.0/24.0*z*y*y*y*y+625.0*0.25*z*y*y*y+25.0*0.25*z*y-1375.0/24.0*y*y*x+25.0*0.25*y*x+625.0*0.25*y*y*y*x;
     phi[19] = 3125.0/24.0*y*y*y*y*x+1375.0/24.0*y*y*x-25.0*0.25*y*x-625.0*0.25*y*y*y*x;
-    phi[20] = y-125.0/12.0*y*y+875.0/24.0*y*y*y-625.0/12.0*y*y*y*y+625.0/24.0*y*y*y*y*y;
+    phi[20] = y-125.0/12.0*y*y+875.0/24.0*y*y*y-625.0/12.0*y*y*y*y+625.0/24.0*y*y*y*y*y;PXShapeElem_Solution
     phi[21] = 3125.0*ONESIXTH*z*y*x*x*x+3125.0*ONESIXTH*z*y*y*y*x+8875.0/12.0*z*y*x+25.0*z+3125.0*ONESIXTH*z*z*z*z*y+3125.0*0.25*z*z*z*y*y-4375.0/12.0*z*x*x*x-4375.0*0.25*z*z*y*y-4375.0*0.25*z*z*x*x-4375.0/12.0*z*y*y*y-4375.0*0.25*z*z*z*y-1925.0/12.0*z*y+8875.0/12.0*z*z*y+3125.0/24.0*z*x*x*x*x+3125.0/24.0*z*y*y*y*y+3125.0*ONESIXTH*z*z*x*x*x+8875.0/24.0*z*x*x+3125.0*ONESIXTH*z*z*y*y*y+8875.0/24.0*z*y*y+3125.0*ONESIXTH*z*z*z*z*x-4375.0*0.25*z*z*z*x+3125.0*0.25*z*y*y*x*x+1562.5*z*z*y*x*x+3125.0*0.25*z*z*z*x*x-4375.0*0.25*z*y*x*x+1562.5*z*z*y*y*x+8875.0/12.0*z*z*x-2187.5*z*z*y*x-4375.0*0.25*z*y*y*x-1925.0/12.0*z*x-1925.0/12.0*z*z+8875.0/24.0*z*z*z-4375.0/12.0*z*z*z*z+3125.0/24.0*z*z*z*z*z+1562.5*z*z*z*y*x;
     phi[22] = -5875.0*ONESIXTH*z*y*x-1562.5*z*y*x*x*x-1562.5*z*y*y*x*x-3125.0*z*z*y*x*x-1562.5*z*z*y*y*x-1562.5*z*z*z*y*x+2500.0*z*y*x*x+2500.0*z*z*y*x-3125.0*ONESIXTH*z*y*y*y*x-5875.0*ONESIXTH*z*z*x+1250.0*z*y*y*x+250.0*z*x+2500.0*z*z*x*x-1562.5*z*z*x*x*x-3125.0*ONESIXTH*z*x*x*x*x-1562.5*z*z*z*x*x-3125.0*ONESIXTH*z*z*z*z*x+1250.0*z*x*x*x+1250.0*z*z*z*x-5875.0*ONESIXTH*z*x*x;
     phi[23] = 1125.0*0.25*z*y*x+1562.5*z*y*x*x*x+3125.0*0.25*z*y*y*x*x+1562.5*z*z*y*x*x-6875.0*0.25*z*y*x*x-312.5*z*z*y*x+1125.0*0.25*z*z*x-625.0*0.25*z*y*y*x-125.0*z*x-6875.0*0.25*z*z*x*x+1562.5*z*z*x*x*x+3125.0*0.25*z*x*x*x*x+3125.0*0.25*z*z*z*x*x-1562.5*z*x*x*x-625.0*0.25*z*z*z*x+3625.0*0.25*z*x*x;
@@ -3145,7 +3145,7 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
   /*   ( PXShapeHexSpectralLagrange3d<DT>(porder, xref, phi) ); */
   /*   return PX_NO_ERROR; */
   default:
-    //ELVIS_PRINTF("Unknown order = %d\n", order);
+    ELVIS_PRINTF("Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -3558,11 +3558,11 @@ PXMatrixDetInverse3(DT const * RESTRICT jac, DT * RESTRICT J, DT * RESTRICT ijac
   DT JJ, JJ1;
   
   JJ = jac[0]*jac[4]*jac[8]
-    +jac[1]*jac[5]*jac[6]
-    +jac[2]*jac[3]*jac[7]
-    -jac[6]*jac[4]*jac[2]
-    -jac[7]*jac[5]*jac[0]
-    -jac[8]*jac[3]*jac[1];
+      +jac[1]*jac[5]*jac[6]
+      +jac[2]*jac[3]*jac[7]
+      -jac[6]*jac[4]*jac[2]
+      -jac[7]*jac[5]*jac[0]
+      -jac[8]*jac[3]*jac[1];
 
   if (J != NULL)
     *J = JJ;
@@ -3724,14 +3724,14 @@ LinearSimplexGlob2Ref(int Dim, ElVisFloat const * RESTRICT vertices, PX_REAL con
     /* matrix-vec product: iJac*(xglobal - x0) */
     //j=0;
     xref[0] = iJac[0*3 + 0]*(xglobal[0] - x0[0]) + 
-      iJac[0*3 + 1]*(xglobal[1] - x0[1]) +
-      iJac[0*3 + 2]*(xglobal[2] - x0[2]);
+              iJac[0*3 + 1]*(xglobal[1] - x0[1]) +
+              iJac[0*3 + 2]*(xglobal[2] - x0[2]);
     xref[1] = iJac[1*3 + 0]*(xglobal[0] - x0[0]) + 
-      iJac[1*3 + 1]*(xglobal[1] - x0[1]) +
-      iJac[1*3 + 2]*(xglobal[2] - x0[2]);
+              iJac[1*3 + 1]*(xglobal[1] - x0[1]) +
+              iJac[1*3 + 2]*(xglobal[2] - x0[2]);
     xref[2] = iJac[2*3 + 0]*(xglobal[0] - x0[0]) + 
-      iJac[2*3 + 1]*(xglobal[1] - x0[1]) +
-      iJac[2*3 + 2]*(xglobal[2] - x0[2]);
+              iJac[2*3 + 1]*(xglobal[1] - x0[1]) +
+              iJac[2*3 + 2]*(xglobal[2] - x0[2]);
     return PX_NO_ERROR;
   default:
     //printf("Dim = %d not supported in ProjectX\n", Dim);
@@ -3739,10 +3739,6 @@ LinearSimplexGlob2Ref(int Dim, ElVisFloat const * RESTRICT vertices, PX_REAL con
   }
 }
 
-
-/* #if( PX_UNIT_TEST==1 ) */
-/* #include "PXShape_cutest.c" */
-/* #endif */
 
 
 #endif //PXSHAPE_ELVIS_C

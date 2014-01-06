@@ -120,30 +120,29 @@ namespace ElVis
     std::vector<PXPlanarFace> m_PlanarFaces;
     std::vector<uint> m_egrp2GlobalElemIndex;
 
-    ElVis::OptiXBuffer<ElVisFloat3> m_coordinateBuffer; //for coordinates of elements of computational mesh
-
+    ElVis::OptiXBuffer<ElVisFloat> m_coordinateBuffer; //for coordinates of elements of computational mesh
     ElVis::OptiXBuffer<ElVisFloat> m_solutionBuffer; //for State_0 GRE values (solution)
 
-    ElVis::OptiXBuffer<unsigned int> m_globalElemToEgrpElemBuffer; //mapping from global element number to (egrp,elem)
+    //ElVis::OptiXBuffer<unsigned int> m_globalElemToEgrpElemBuffer; //mapping from global element number to (egrp,elem)
 
-    ElVis::OptiXBuffer<PX_SolutionOrderData> m_attachDataBuffer; //solutionorder info about a single attachment (for now, distance function)
-    ElVis::OptiXBuffer<ElVisFloat> m_attachmentBuffer; //values from a single attachment (for now, distance function)
+    //ElVis::OptiXBuffer<PX_SolutionOrderData> m_attachDataBuffer; //solutionorder info about a single attachment (for now, distance function)
+    //ElVis::OptiXBuffer<ElVisFloat> m_attachmentBuffer; //values from a single attachment (for now, distance function)
 
-    ElVis::OptiXBuffer<ElVisFloat> m_shadowCoordinateBuffer; //coordinates of shadow elements for cut cells; NOTHING stored for non-cut elem!
-    ElVis::OptiXBuffer<unsigned int> m_egrpToShadowIndexBuffer; //maps from egrp to appropriate position in m_shadowCoordinateBuffer
+    //ElVis::OptiXBuffer<ElVisFloat> m_shadowCoordinateBuffer; //coordinates of shadow elements for cut cells; NOTHING stored for non-cut elem!
+    //ElVis::OptiXBuffer<unsigned int> m_egrpToShadowIndexBuffer; //maps from egrp to appropriate position in m_shadowCoordinateBuffer
     //DO NOT access if this egrp has no cut elements!
     //for some egrp w/cut elements, ShadowCoordinateBuffer[egrpToShadowIndex[egrp]] will be the first coord of the first element in egrp
 
-    ElVis::OptiXBuffer<ElVisFloat> m_patchCoordinateBuffer; //must index using the patch indexes from PX_PatchGroup
+    //ElVis::OptiXBuffer<ElVisFloat> m_patchCoordinateBuffer; //must index using the patch indexes from PX_PatchGroup
 
-    ElVis::OptiXBuffer<PX_REAL> m_knownPointBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
-    ElVis::OptiXBuffer<PX_REAL> m_backgroundCoordinateBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
+    //ElVis::OptiXBuffer<PX_REAL> m_knownPointBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
+    //ElVis::OptiXBuffer<PX_REAL> m_backgroundCoordinateBuffer; //indexed by threeDId; this is a field in PX_PatchGroup
 
-    ElVis::OptiXBuffer<char> m_cutCellBuffer; //data about cut cells, indexed by a global cut cell number
-    ElVis::OptiXBuffer<unsigned int> m_globalElemToCutCellBuffer; //mapping from global element number to  global cut cell number
+    //ElVis::OptiXBuffer<char> m_cutCellBuffer; //data about cut cells, indexed by a global cut cell number
+    //ElVis::OptiXBuffer<unsigned int> m_globalElemToCutCellBuffer; //mapping from global element number to  global cut cell number
 
-    ElVis::OptiXBuffer<ElVisFloat> m_faceCoordinateBuffer; //for coordinates of element faces of computational mesh
-    ElVis::OptiXBuffer<PX_FaceData> m_faceDataBuffer; //for coordinates of element faces of computational mesh
+    //ElVis::OptiXBuffer<ElVisFloat> m_faceCoordinateBuffer; //for coordinates of element faces of computational mesh
+    //ElVis::OptiXBuffer<PX_FaceData> m_faceDataBuffer; //for coordinates of element faces of computational mesh
 
     PX_All *m_pxa;
     unsigned int m_numFieldsToPlot;

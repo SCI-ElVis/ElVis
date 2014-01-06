@@ -383,35 +383,30 @@ namespace ElVis
   void PXModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
   {
     PX_Grid *pg = m_pxa->pg;
+    const int Dim = pg->Dim;
+    context["Dim"]->setInt(Dim);
 
-    m_coordinateBuffer.SetContext(context);
-    m_coordinateBuffer.SetDimensions(pg->nNode);
-
-    BOOST_AUTO(coordinateData, m_coordinateBuffer.Map());
-
-    for( int n = 0; n < pg->nNode; n++ )
-    {
-      coordinateData[n].x = m_pxa->pg->coordinate[n][0];
-      coordinateData[n].y = m_pxa->pg->coordinate[n][1];
-      coordinateData[n].z = m_pxa->pg->coordinate[n][2];
-    }
 
     PX_AttachmentGlobRealElem *State = NULL;
     int currentIndex = 0;
     PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL, &State, NULL ) );
 
     int StateRank = State->StateRank;
+    context["StateRank"]->setInt(StateRank);
 
     int nbfS = 0, nbfQ = 0;
     int nSolnCoeffTotal = 0;
+    int nGeomCoeffTotal = 0;
     for(int egrp = 0; egrp<pg->nElementGroup; egrp++){
 //        nElemTotal += pg->ElementGroup[egrp].nElement; //total # elements
 
         PXOrder2nbf(State->order[egrp], &nbfS);
-//        PXType2nbf(pg->ElementGroup[egrp].type, &nbfQ);
+        PXType2nbf(pg->ElementGroup[egrp].type, &nbfQ);
+
+        printf("nbfS=%d, nbfQ=%d\n", nbfS, nbfQ);
 
         nSolnCoeffTotal += nbfS*StateRank*pg->ElementGroup[egrp].nElement;
-//        nGeomCoeffTotal += nbfQ*pg->ElementGroup[egrp].nElement;
+        nGeomCoeffTotal += nbfQ*Dim*pg->ElementGroup[egrp].nElement;
         // nAttachCoeffTotal += nbfA*pg->ElementGroup[egrp].nElement;
 
 //        if(pg->ElementGroup[egrp].type == PXE_TetCut){
@@ -425,6 +420,10 @@ namespace ElVis
     egrp2GlobalElemIndex.SetDimensions(pg->nElementGroup+1);
     BOOST_AUTO(egrp2GlobalElemIndexMap, egrp2GlobalElemIndex.map());
 
+    m_coordinateBuffer.SetContext(context);
+    m_coordinateBuffer.SetDimensions(nGeomCoeffTotal);
+    BOOST_AUTO(coordinateData, m_coordinateBuffer.Map());
+
     m_solutionBuffer.SetContext(context);
     m_solutionBuffer.SetDimensions(nSolnCoeffTotal);
     BOOST_AUTO(solution, m_solutionBuffer.map());
@@ -434,8 +433,8 @@ namespace ElVis
     egrpDataBuffer.SetDimensions(pg->nElementGroup);
     BOOST_AUTO(egrpDataBufferMap, egrpDataBuffer.map());
 
-    int S = 0, qorder=0, porder=0;
-    enum PXE_BasisShape elemBasisShape;
+    int S = 0, G = 0, qorder=0, porder=0;
+    enum PXE_Shape elemShape;
     enum PXE_SolutionOrder orderQ;
     for(int egrp = 0; egrp<pg->nElementGroup; egrp++){
         PXE_ElementType elemType = pg->ElementGroup[egrp].type;
@@ -443,40 +442,47 @@ namespace ElVis
         PXError( PXType2nbf(elemType, &nbfQ) );
         PXError( PXType2Interpolation(elemType, &orderQ));
         PXError( PXType2qorder(elemType, &qorder));
-        PXError( PXGetTypeBasisShape(elemType, &elemBasisShape) );
+        PXError( PXType2Shape(elemType, &elemShape) );
+        printf("elemType = %d, elemShape = %d\n", elemType, elemShape);
 
         PXError( PXOrder2nbf(State->order[egrp], &nbfS) );
         PXError( PXOrder2porder(State->order[egrp], &porder));
 
         egrp2GlobalElemIndexMap[egrp] = m_egrp2GlobalElemIndex[egrp];
 
+        egrpDataBufferMap[egrp].cutCellFlag = 0;
+
         egrpDataBufferMap[egrp].elemData.type = elemType;
         egrpDataBufferMap[egrp].elemData.nbf = nbfQ;
         egrpDataBufferMap[egrp].elemData.order = orderQ;
         egrpDataBufferMap[egrp].elemData.qorder = qorder;
-        egrpDataBufferMap[egrp].elemData.shape = elemBasisShape;
+        egrpDataBufferMap[egrp].elemData.shape = elemShape;
 
         egrpDataBufferMap[egrp].solData.nbf = nbfS;
         egrpDataBufferMap[egrp].solData.order = State->order[egrp];
         egrpDataBufferMap[egrp].solData.porder = porder;
 
         egrpDataBufferMap[egrp].egrpSolnCoeffStartIndex = S;
+        egrpDataBufferMap[egrp].egrpGeomCoeffStartIndex = G;
 
         int solnRank = StateRank*nbfS;
 
         //PXError(PXOrder2nbf(QnDistance->order[egrp],&nbfA));
-        for(int j=0; j<solnRank; j++)
-          std::cout << egrp << " " << S << " " << pg->ElementGroup[egrp].nElement*StateRank << " " << nbfS << " " << State->value[egrp][0][j] << std::endl;
+        //for(int j=0; j<solnRank; j++)
+        //  std::cout << egrp << " " << S << " " << pg->ElementGroup[egrp].nElement*StateRank << " " << nbfS << " " << State->value[egrp][0][j] << std::endl;
 
         for(int elem=0; elem<pg->ElementGroup[egrp].nElement; elem++){
-            //globalToLocalPtr[2*elem+0] = (unsigned int) egrp;
-            //globalToLocalPtr[2*elem+1] = (unsigned int) elem;
 
             // fill solution array for this element
             for(int j=0; j<solnRank; j++){
               solution[S++] = State->value[egrp][elem][j];
             }
-            printf("egrp=%d, elem=%d, result=%f\n", egrp, elem, State->value[egrp][elem][0]);
+
+            for(int i=0; i<nbfQ; i++)
+              for( int d = 0; d < Dim; d++ )
+                coordinateData[G++] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][d];
+
+            //G += Dim*nbfQ;
 
             // fill in attachment values
             //for(j=0; j<QnDistance->StateRank*nbfA; j++){
@@ -489,6 +495,7 @@ namespace ElVis
     egrp2GlobalElemIndexMap[egrp+1] = egrp2GlobalElemIndexMap[egrp] + pg->ElementGroup[egrp].nElement;
 
     std::cout << "nSolnCoeffTotal = " << nSolnCoeffTotal << " : S = " << S << std::endl;
+    std::cout << "nGeomCoeffTotal = " << nGeomCoeffTotal << " : G = " << G << std::endl;
   }
 
   const std::string PXModel::PXSimplexPtxFileName("PXSimplex.cu.ptx_generated_ElVis.cu.ptx");
@@ -506,19 +513,19 @@ namespace ElVis
   PXModel::PXModel(const std::string& modelPath) :
     Model(modelPath),
     m_solutionBuffer(prefix + "SolutionBuffer"),
-    m_coordinateBuffer(prefix + "CoordinateBuffer"),
-    m_globalElemToEgrpElemBuffer(prefix + "GlobalElemToEgrpElemBuffer"),
-    m_attachDataBuffer(prefix + "AttachDataBuffer"),
-    m_attachmentBuffer(prefix + "AttachmentBuffer"),
-    m_shadowCoordinateBuffer(prefix + "ShadowCoordinateBuffer"),
-    m_egrpToShadowIndexBuffer(prefix + "EgrpToShadowIndexBuffer"),
-    m_patchCoordinateBuffer(prefix + "PatchCoordinateBuffer"),
-    m_knownPointBuffer(prefix + "KnownPointBuffer"),
-    m_backgroundCoordinateBuffer(prefix + "BackgroundCoordinateBuffer"),
-    m_cutCellBuffer(prefix + "CutCellBuffer"),
-    m_globalElemToCutCellBuffer(prefix + "GlobalElemToCutCellBuffer"),
-    m_faceCoordinateBuffer(prefix + "FaceCoordinateBuffer"),
-    m_faceDataBuffer(prefix + "FaceDataBuffer")
+    m_coordinateBuffer(prefix + "CoordinateBuffer")
+    //m_globalElemToEgrpElemBuffer(prefix + "GlobalElemToEgrpElemBuffer"),
+    //m_attachDataBuffer(prefix + "AttachDataBuffer"),
+    //m_attachmentBuffer(prefix + "AttachmentBuffer"),
+    //m_shadowCoordinateBuffer(prefix + "ShadowCoordinateBuffer"),
+    //m_egrpToShadowIndexBuffer(prefix + "EgrpToShadowIndexBuffer"),
+    //m_patchCoordinateBuffer(prefix + "PatchCoordinateBuffer"),
+    //m_knownPointBuffer(prefix + "KnownPointBuffer"),
+    //m_backgroundCoordinateBuffer(prefix + "BackgroundCoordinateBuffer"),
+    //m_cutCellBuffer(prefix + "CutCellBuffer"),
+    //m_globalElemToCutCellBuffer(prefix + "GlobalElemToCutCellBuffer"),
+    //m_faceCoordinateBuffer(prefix + "FaceCoordinateBuffer"),
+    //m_faceDataBuffer(prefix + "FaceDataBuffer")
   {
     m_pxa = NULL;
     m_cutCellFlag = 0;
@@ -692,6 +699,7 @@ namespace ElVis
         PXFaceNormal(pg, fgrp, face, xface, nvec, NULL);
 
         WorldVector normal(nvec[0], nvec[1], nvec[2]);
+        normal /= normal.Magnitude();
 
         //printf("elem0=%d, elem1=%d\n", info.CommonElements[0].Id, info.CommonElements[1].Id);
 
