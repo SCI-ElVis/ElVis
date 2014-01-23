@@ -29,6 +29,22 @@
 #ifndef ELVIS_OPTIX_VARIABLES_CU
 #define ELVIS_OPTIX_VARIABLES_CU
 
+template<typename TagType>
+struct Index
+{
+    __device__ Index(int v) : Value(v) {}
+    __device__ operator int() const {return Value;}
+    int Value;
+};
+
+struct PlanarFaceTag;
+struct CurvedFaceTag;
+struct GlobalFaceTag;
+
+typedef Index<PlanarFaceTag> PlanarFaceIdx;
+typedef Index<CurvedFaceTag> CurvedFaceIdx;
+typedef Index<GlobalFaceTag> GlobalFaceIdx;
+
 #include <optix_cuda.h>
 #include <optix_math.h>
 #include <optixu/optixu_matrix.h>
@@ -139,6 +155,10 @@ rtBuffer<ElVisFloat4> VertexBuffer;
 // Indexing is by global face index.
 rtBuffer<ElVis::FaceInfo, 1> FaceInfoBuffer;
 
+// Buffer indicating which faces are enabled for viewing and which are not.
+// Indexins is by global face index.
+rtBuffer<unsigned char, 1> FaceEnabled;
+
 // Information about each planar face. 
 // Indexing is by local planar face index.
 rtBuffer<ElVis::PlanarFaceInfo, 1> PlanarFaceInfoBuffer;
@@ -147,7 +167,26 @@ rtBuffer<uint, 1> PlanarFaceToGlobalIdxMap;
 rtBuffer<uint, 1> CurvedFaceToGlobalIdxMap;
 rtBuffer<ElVisFloat4> PlanarFaceNormalBuffer;
 
-rtBuffer<unsigned char, 1> FaceEnabled;
+__device__ GlobalFaceIdx ConvertToGlobalFaceIdx(const PlanarFaceIdx& planarIdx)
+{
+    return GlobalFaceIdx(PlanarFaceToGlobalIdxMap[planarIdx.Value]);
+}
+
+__device__ GlobalFaceIdx ConvertToGlobalFaceIdx(const CurvedFaceIdx& curvedIdx)
+{
+    return GlobalFaceIdx(CurvedFaceToGlobalIdxMap[curvedIdx.Value]);
+}
+
+__device__ unsigned char GetFaceEnabled(const GlobalFaceIdx& idx)
+{
+    return FaceEnabled[idx.Value];
+}
+
+__device__ const ElVis::FaceInfo& GetFaceInfo(const GlobalFaceIdx& globalFaceIdx)
+{
+    return FaceInfoBuffer[globalFaceIdx.Value];
+}
+
 
 #endif
 

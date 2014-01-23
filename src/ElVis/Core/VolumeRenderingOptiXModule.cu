@@ -651,7 +651,7 @@ ELVIS_DEVICE bool IsCounterClockwise(const ElVisFloat3& v0, const ElVisFloat3& v
 
 }
 
-ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, const ElVisFloat3& b, const ElVisFloat3& c )
+ELVIS_DEVICE void TriangleIntersection(GlobalFaceIdx primitiveId, const ElVisFloat3& a, const ElVisFloat3& b, const ElVisFloat3& c )
 {
     //ELVIS_PRINTF("TriangleIntersection (%f, %f, %f), (%f, %f, %f), (%f, %f, %f).\n", a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
     ElVisFloat3 v0 = a;
@@ -689,7 +689,7 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
                 if(  rtPotentialIntersection( t ) )
                 {
                     //ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", primitiveId, t);
-                    intersectedFaceGlobalIdx = primitiveId;
+                    intersectedFaceGlobalIdx = primitiveId.Value;
                     faceIntersectionReferencePoint.x = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePoint.y = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePointIsValid = false;
@@ -701,14 +701,15 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
 }
 
 
-ELVIS_DEVICE void PlanarFaceIntersectionImpl(int primitiveId)
+ELVIS_DEVICE void PlanarFaceIntersectionImpl(PlanarFaceIdx planarFaceIdx)
 {
     //ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
     int numVertices;
-    GetNumberOfVerticesForPlanarFace(primitiveId, numVertices);
+    GetNumberOfVerticesForPlanarFace(planarFaceIdx, numVertices);
 
-    ElVisFloat3 p0 = FaceInfoBuffer[primitiveId].MinExtent;
-    ElVisFloat3 p1 = FaceInfoBuffer[primitiveId].MaxExtent;
+    GlobalFaceIdx globalFaceIdx = ConvertToGlobalFaceIdx(planarFaceIdx);
+    ElVisFloat3 p0 = GetFaceInfo(globalFaceIdx).MinExtent;
+    ElVisFloat3 p1 = GetFaceInfo(globalFaceIdx).MaxExtent;
 
     ElVisFloat tmin, tmax;
     FindBoxEntranceAndExit(ray.origin, ray.direction, p0, p1, ray.tmin, ray.tmax, tmin, tmax);
@@ -719,28 +720,29 @@ ELVIS_DEVICE void PlanarFaceIntersectionImpl(int primitiveId)
     //             primitiveId, tmin, tmax);
 
     ElVisFloat4 v0, v1, v2;
-    GetPlanarFaceVertex(primitiveId, 0, v0);
-    GetPlanarFaceVertex(primitiveId, 1, v1);
-    GetPlanarFaceVertex(primitiveId, 2, v2);
+    GetPlanarFaceVertex(planarFaceIdx, 0, v0);
+    GetPlanarFaceVertex(planarFaceIdx, 1, v1);
+    GetPlanarFaceVertex(planarFaceIdx, 2, v2);
 
-    TriangleIntersection(primitiveId, MakeFloat3(v0), MakeFloat3(v1), MakeFloat3(v2));
+    TriangleIntersection(globalFaceIdx, MakeFloat3(v0), MakeFloat3(v1), MakeFloat3(v2));
 
     if( numVertices == 4 )
     {
         ElVisFloat4 v3;
-        GetPlanarFaceVertex(primitiveId, 3, v3);
-        TriangleIntersection(primitiveId,  MakeFloat3(v2),  MakeFloat3(v0),  MakeFloat3(v3));
+        GetPlanarFaceVertex(planarFaceIdx, 3, v3);
+        TriangleIntersection(globalFaceIdx,  MakeFloat3(v2),  MakeFloat3(v0),  MakeFloat3(v3));
     }
 }
 
-RT_PROGRAM void PlanarFaceIntersection(int planarFaceIdx)
+RT_PROGRAM void PlanarFaceIntersection(int idx)
 {
+  PlanarFaceIdx planarFaceIdx(idx);
   if( ray.ray_type <= 1 )
   {
-    uint globalIdx = PlanarFaceToGlobalIdxMap[planarFaceIdx];
-    if( !FaceEnabled[globalIdx] )
+    GlobalFaceIdx globalIdx = ConvertToGlobalFaceIdx(planarFaceIdx);
+    if( !GetFaceEnabled(globalIdx) )
     {
-      ELVIS_PRINTF("PlanarFaceIntersection: Face %d is not enabled.\n", planarFaceIdx);
+      ELVIS_PRINTF("PlanarFaceIntersection: Face %d is not enabled.\n", planarFaceIdx.Value);
       return;
     }
   }

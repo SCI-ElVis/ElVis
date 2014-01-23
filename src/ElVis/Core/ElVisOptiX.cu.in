@@ -35,9 +35,9 @@
 #include <ElVis/Core/ReferencePointParameter.h>
 #include <ElVis/Core/typedefs.cu>
 
-ELVIS_DEVICE ElVisError GetNumberOfVerticesForPlanarFace(int faceId, int& result)
+ELVIS_DEVICE ElVisError GetNumberOfVerticesForPlanarFace(PlanarFaceIdx planarFaceIdx, int& result)
 {
-    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[faceId];
+    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[planarFaceIdx.Value];
     if( info.Type == ElVis::eTriangle ) 
     {
       result = 3;
@@ -50,9 +50,9 @@ ELVIS_DEVICE ElVisError GetNumberOfVerticesForPlanarFace(int faceId, int& result
     return eNoError;
 }
 
-ELVIS_DEVICE ElVisError GetPlanarFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
+ELVIS_DEVICE ElVisError GetPlanarFaceVertex(PlanarFaceIdx planarFaceIdx, int vertexId , ElVisFloat4& result)
 {
-    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[faceId];
+    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[planarFaceIdx.Value];
     result = VertexBuffer[info.vertexIdx[vertexId]];
     return eNoError;
 }
