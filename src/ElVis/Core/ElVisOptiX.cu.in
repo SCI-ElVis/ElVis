@@ -112,13 +112,13 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
 /// \param point A reference space point found during ray-face intersection.
 /// \param result true if point is a valid reference point for the given face, 
 ///               false otherwise.
-ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& point, bool& result);
+ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceReferencePoint& point, bool& result);
 
 /// \brief Evaluates the Jacobian of the given face's mapping function.
 /// \param faceId The face.
 /// \param p The point on the face at which the Jacobian is to be evaluated.
 template<typename T>
-ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoint& p,
+ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceReferencePoint& p,
                                              T& dx_dr, T& dx_ds,
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds);
@@ -126,16 +126,16 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
 /// \brief Get the world space normal vector for the given point on a face.  This version is called when
 ///        we know the world space location of the point on the face, but do not know the reference coordinate.
 ///        This only occurs for planar faces.
-ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, int faceId, ElVisFloat3& result);
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result);
 
 /// \brief Get the world space normal vector for the given point on a face.
 /// \param pointOnFace The point in world space coordinates.
 /// \param refPoint The point in the face's reference coordinates.
-ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, int faceId,
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, GlobalFaceIdx faceId,
                                       ElVisFloat3& result);
 
 // Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
-ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
+ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result);
 
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient);

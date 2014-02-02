@@ -57,11 +57,11 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
 
     ElVisFloat d = dot(faceNormal, vectorToPointOnFace);
 
-    ELVIS_PRINTF("FindElementFromFace: Face Id %d, Normal (%f, %f, %f), point on face (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", payload_v.FaceId,
-                 faceNormal.x, faceNormal.y, faceNormal.z,
-                 pointOnFace.x, pointOnFace.y, pointOnFace.z,
-                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
-    ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceInfoBuffer.size());
+    //ELVIS_PRINTF("FindElementFromFace: Face Id %d, Normal (%f, %f, %f), point on face (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", payload_v.FaceId,
+    //             faceNormal.x, faceNormal.y, faceNormal.z,
+    //             pointOnFace.x, pointOnFace.y, pointOnFace.z,
+    //             vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
+    //ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceInfoBuffer.size());
      
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
 //                 FaceInfoBuffer[faceId].CommonElements[0].Id,
@@ -73,22 +73,22 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
     if( d >= 0 )
     {
         
-        id = FaceInfoBuffer[payload_v.FaceId].CommonElements[0];
+        id = GetFaceInfo(payload_v.FaceId).CommonElements[0];
     }
     else
     {
-        id = FaceInfoBuffer[payload_v.FaceId].CommonElements[1];
+        id = GetFaceInfo(payload_v.FaceId).CommonElements[1];
     }
     
     findElementPayload.elementId = id.Id;
     findElementPayload.elementType = id.Type;
     //findElementPayload.IntersectionPoint = pointOnFace;
-    ELVIS_PRINTF("FindElementFromFace: Element Id %d and Type %d\n", id.Id, id.Type);
-    ELVIS_PRINTF("FindElementFromFace: Inside id %d and tpye %d, outside id %d and type %d\n", 
-        FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Id,
-        FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Type,
-        FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Id,
-        FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Type);
+    //ELVIS_PRINTF("FindElementFromFace: Element Id %d and Type %d\n", id.Id, id.Type);
+    //ELVIS_PRINTF("FindElementFromFace: Inside id %d and tpye %d, outside id %d and type %d\n", 
+    //    FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Id,
+    //    FaceInfoBuffer[payload_v.FaceId].CommonElements[0].Type,
+    //    FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Id,
+    //    FaceInfoBuffer[payload_v.FaceId].CommonElements[1].Type);
     return findElementPayload;
 }
 
@@ -104,8 +104,8 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
 
     VolumeRenderingPayload payload_v = FindNextFaceIntersection(p, direction);
    
-    ELVIS_PRINTF("FindElementFromFace: First 1 Found %d T %f id %d\n", payload_v.FoundIntersection,
-        payload_v.IntersectionT, payload_v.FaceId);
+    //ELVIS_PRINTF("FindElementFromFace: First 1 Found %d T %f id %d\n", payload_v.FoundIntersection,
+    //    payload_v.IntersectionT, payload_v.FaceId);
 
     ElementFinderPayload findElementPayload = findElementFromFace(p, direction, payload_v);
     if( payload_v.FoundIntersection && findElementPayload.elementId == -1 )
@@ -113,8 +113,8 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
         payload_v.Initialize();
         direction = MakeFloat3(-direction.x, -direction.y, -direction.z);
         payload_v = FindNextFaceIntersection(p, direction);
-        ELVIS_PRINTF("FindElementFromFace Try 2: Found %d T %f id %d\n", payload_v.FoundIntersection,
-            payload_v.IntersectionT, payload_v.FaceId);
+        //ELVIS_PRINTF("FindElementFromFace Try 2: Found %d T %f id %d\n", payload_v.FoundIntersection,
+        //    payload_v.IntersectionT, payload_v.FaceId);
         findElementPayload = findElementFromFace(p, direction, payload_v);
     }
 
@@ -189,57 +189,57 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
 
 // In this version, we don't know the reference space coordinates for the face intersection, so
 // we rely on the simulation package to do the calculation for us.
-__device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& faceNormal)
+__device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVisFloat3& pointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& faceNormal)
 {
-    GetFaceNormal(pointOnFace, faceId, faceNormal);
+    GetFaceNormal(pointOnFace, globalFaceIdx, faceNormal);
     ElVisFloat3 vectorToPointOnFace = testPoint - pointOnFace;
 
     ElVisFloat d = dot(faceNormal, vectorToPointOnFace);
 
-//    ELVIS_PRINTF("FindElement: Face Id %d, Normal (%f, %f, %f), test point (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", faceId,
+//    ELVIS_PRINTF("FindElement: Face Id %d, Normal (%f, %f, %f), test point (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", globalFaceIdx,
 //                 faceNormal.x, faceNormal.y, faceNormal.z,
 //                 testPoint.x, testPoint.y, testPoint.z,
 //                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
-//                 FaceInfoBuffer[faceId].CommonElements[0].Id,
-//                 FaceInfoBuffer[faceId].CommonElements[0].Type,
-//                 FaceInfoBuffer[faceId].CommonElements[1].Id,
-//                 FaceInfoBuffer[faceId].CommonElements[1].Type);
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[0].Id,
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[0].Type,
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[1].Id,
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[1].Type);
     // The test point is "inside" the element if d >= 0
     if( d >= 0 )
     {
-        return FaceInfoBuffer[faceId].CommonElements[0];
+        return GetFaceInfo(globalFaceIdx).CommonElements[0];
     }
     else
     {
-        return FaceInfoBuffer[faceId].CommonElements[1];
+        return GetFaceInfo(globalFaceIdx).CommonElements[1];
     }
 }
 
-__device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVisFloat3& pointOnFace, const ElVisFloat2& referencePointOnFace, int faceId, ElVisFloat3& faceNormal)
+__device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVisFloat3& pointOnFace, const ElVisFloat2& referencePointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& faceNormal)
 {
-    GetFaceNormal(referencePointOnFace, pointOnFace, faceId, faceNormal);
+    GetFaceNormal(referencePointOnFace, pointOnFace, globalFaceIdx, faceNormal);
     ElVisFloat3 vectorToPointOnFace = testPoint - pointOnFace;
 
     ElVisFloat d = dot(faceNormal, vectorToPointOnFace);
 
-//    ELVIS_PRINTF("FindElement: Face Id %d, Normal (%f, %f, %f), test point (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", faceId,
+//    ELVIS_PRINTF("FindElement: Face Id %d, Normal (%f, %f, %f), test point (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", globalFaceIdx,
 //                 faceNormal.x, faceNormal.y, faceNormal.z,
 //                 testPoint.x, testPoint.y, testPoint.z,
 //                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
-//                 FaceInfoBuffer[faceId].CommonElements[0].Id,
-//                 FaceInfoBuffer[faceId].CommonElements[0].Type,
-//                 FaceInfoBuffer[faceId].CommonElements[1].Id,
-//                 FaceInfoBuffer[faceId].CommonElements[1].Type);
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[0].Id,
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[0].Type,
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[1].Id,
+//                 FaceInfoBuffer[globalFaceIdx].CommonElements[1].Type);
     // The test point is "inside" the element if d >= 0
     if( d >= 0 )
     {
-        return FaceInfoBuffer[faceId].CommonElements[0];
+        return GetFaceInfo(globalFaceIdx).CommonElements[0];
     }
     else
     {
-        return FaceInfoBuffer[faceId].CommonElements[1];
+        return GetFaceInfo(globalFaceIdx).CommonElements[1];
     }
 }
 
