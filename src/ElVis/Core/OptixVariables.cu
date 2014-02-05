@@ -199,17 +199,17 @@ __device__ const ElVis::FaceInfo& GetFaceInfo(GlobalFaceIdx globalFaceIdx)
     return FaceInfoBuffer[globalFaceIdx.Value];
 }
 
-template<> template<>
-Index<PlanarFaceTag>::Index(const Index<GlobalFaceTag>& rhs) :
-  Value(GlobalFaceToPlanarFaceIdxMap[rhs.Value])
-{
-}
-
-template<> template<>
-Index<CurvedFaceTag>::Index(const Index<GlobalFaceTag>& rhs) :
-  Value(GlobalFaceToCurvedFaceIdxMap[rhs.Value])
-{
-}
+//template<> template<>
+//Index<PlanarFaceTag>::Index(const Index<GlobalFaceTag>& rhs) :
+//  Value(GlobalFaceToPlanarFaceIdxMap[rhs.Value])
+//{
+//}
+//
+//template<> template<>
+//Index<CurvedFaceTag>::Index(const Index<GlobalFaceTag>& rhs) :
+//  Value(GlobalFaceToCurvedFaceIdxMap[rhs.Value])
+//{
+//}
 
 template<> template<>
 Index<GlobalFaceTag>::Index(const Index<PlanarFaceTag>& rhs) :
