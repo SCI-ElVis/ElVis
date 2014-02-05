@@ -88,17 +88,6 @@ __device__ void GenerateTransferFunction(ElVis::TransferFunction& transferFuncti
     transferFunction.NumDensityBreakpoints() = DensityBreakpoints.size();
 }
 
-RT_PROGRAM void ElementByElementVolumeTraversalInit()
-{
-
-}
-
-RT_PROGRAM void ElementByElementVolumeTraversal()
-{
-
-}
-
-
 
 template<typename F, typename FPrime>
 ELVIS_DEVICE int ContainsRoot(const F& f, const FPrime& fprime, const IntervalPoint& initialGuess)
@@ -522,7 +511,7 @@ struct EvaluateFaceFunctor
         return result;
     }
 
-    int FaceId;
+    GlobalFaceIdx FaceId;
     ElVisFloat3 Origin;
     ElVisFloat3 Direction;
 };
@@ -554,26 +543,19 @@ struct EvaluateFaceJacobianFunctor
         result[8] = -Direction.z;
     }
 
-    int FaceId;
+    GlobalFaceIdx FaceId;
     ElVisFloat3 Origin;
     ElVisFloat3 Direction;
 };
 
-rtBuffer<unsigned char, 1> FaceEnabled;
-
-// This buffer belongs to Geometry objects and maps the local indices to the global face indices.
-rtBuffer<int, 1> FaceMapping;
-
-
-
-
-ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
+ELVIS_DEVICE void NewtonFaceIntersection(const CurvedFaceIdx& curvedFaceIdx)
 {
 
     // Step 1 - Bound t with bounding box intersection tests.  Note that it is possible
     // to reject this face immediately if a better intersection has already been found.
-    ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+    GlobalFaceIdx globalFaceIdx = ConvertToGlobalFaceIdx(curvedFaceIdx);
+    ElVisFloat3 p0 = GetFaceInfo(globalFaceIdx).MinExtent;
+    ElVisFloat3 p1 = GetFaceInfo(globalFaceIdx).MaxExtent;
 
 //    ELVIS_PRINTF("NewtonFaceIntersection: Primitive %d, min (%f, %f, %f) - max (%f, %f, %f)\n",
 //                 primitiveId, p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
@@ -601,12 +583,12 @@ ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
 //    ELVIS_PRINTF("V3 (%f, %f, %f)\n", v3.x, v3.y, v3.z);
 
     EvaluateFaceFunctor f;
-    f.FaceId = primitiveId;
+    f.FaceId = globalFaceIdx;
     f.Origin = MakeFloat3(ray.origin);
     f.Direction = MakeFloat3(ray.direction);
 
     EvaluateFaceJacobianFunctor fprime;
-    fprime.FaceId = primitiveId;
+    fprime.FaceId = globalFaceIdx;
     fprime.Origin = MakeFloat3(ray.origin);
     fprime.Direction = MakeFloat3(ray.direction);
 
@@ -630,14 +612,14 @@ ELVIS_DEVICE void NewtonFaceIntersection(int primitiveId)
         p.x = r;
         p.y = s;
 
-        IsValidFaceCoordinate(primitiveId, p, coordIsValid);
+        IsValidFaceCoordinate(globalFaceIdx, p, coordIsValid);
         if( coordIsValid && initialGuess.z.Contains(t) )
         {
 
 //            ELVIS_PRINTF("Found intersection (%2.15f, %2.15f, %2.15f)\n", r, s, t);
             if( rtPotentialIntersection(t) )
             {
-                intersectedFaceId = primitiveId;
+                intersectedFaceGlobalIdx = globalFaceIdx;
                 faceIntersectionReferencePoint.x = r;
                 faceIntersectionReferencePoint.y = s;
                 faceIntersectionReferencePointIsValid = true;
@@ -670,9 +652,9 @@ ELVIS_DEVICE bool IsCounterClockwise(const ElVisFloat3& v0, const ElVisFloat3& v
 
 }
 
-ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, const ElVisFloat3& b, const ElVisFloat3& c )
+ELVIS_DEVICE void TriangleIntersection(GlobalFaceIdx globalFaceIdx, const ElVisFloat3& a, const ElVisFloat3& b, const ElVisFloat3& c )
 {
-    ELVIS_PRINTF("TriangleIntersection (%f, %f, %f), (%f, %f, %f), (%f, %f, %f).\n", a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+    //ELVIS_PRINTF("TriangleIntersection (%f, %f, %f), (%f, %f, %f), (%f, %f, %f).\n", a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
     ElVisFloat3 v0 = a;
     ElVisFloat3 v1 = b;
     ElVisFloat3 v2 = c;
@@ -707,7 +689,8 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
             {
                 if(  rtPotentialIntersection( t ) )
                 {
-                    intersectedFaceId = primitiveId;
+                    //ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", primitiveId, t);
+                    intersectedFaceGlobalIdx = globalFaceIdx;
                     faceIntersectionReferencePoint.x = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePoint.y = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePointIsValid = false;
@@ -719,110 +702,77 @@ ELVIS_DEVICE void TriangleIntersection(int primitiveId, const ElVisFloat3& a, co
 }
 
 
-
-ELVIS_DEVICE void PlanarFaceIntersection(int primitiveId)
+ELVIS_DEVICE void PlanarFaceIntersectionImpl(PlanarFaceIdx planarFaceIdx)
 {
-
-    ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
+    //ELVIS_PRINTF("Planar Face Intersection: Primitve %d\n", primitiveId);
     int numVertices;
-    GetNumberOfVerticesForFace(primitiveId, numVertices);
+    GetNumberOfVerticesForPlanarFace(planarFaceIdx, numVertices);
 
-    ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
+    GlobalFaceIdx globalFaceIdx = ConvertToGlobalFaceIdx(planarFaceIdx);
+    ElVisFloat3 p0 = GetFaceInfo(globalFaceIdx).MinExtent;
+    ElVisFloat3 p1 = GetFaceInfo(globalFaceIdx).MaxExtent;
 
     ElVisFloat tmin, tmax;
     FindBoxEntranceAndExit(ray.origin, ray.direction, p0, p1, ray.tmin, ray.tmax, tmin, tmax);
 
-    ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
-                 p0.x, p0.y, p0.z,
-                 p1.x, p1.y, p1.z,
-                 primitiveId, tmin, tmax);
+    //ELVIS_PRINTF("PlanarFaceIntersection: Found intersection with bounding box (%2.15f, %2.15f, %2.15f) - (%2.15f, %2.15f, %2.15f) for face %d at %f, %f\n",
+    //             p0.x, p0.y, p0.z,
+    //             p1.x, p1.y, p1.z,
+    //             primitiveId, tmin, tmax);
 
     ElVisFloat4 v0, v1, v2;
-    GetFaceVertex(primitiveId, 0, v0);
-    GetFaceVertex(primitiveId, 1, v1);
-    GetFaceVertex(primitiveId, 2, v2);
+    GetPlanarFaceVertex(planarFaceIdx, 0, v0);
+    GetPlanarFaceVertex(planarFaceIdx, 1, v1);
+    GetPlanarFaceVertex(planarFaceIdx, 2, v2);
 
-    TriangleIntersection(primitiveId, MakeFloat3(v0), MakeFloat3(v1), MakeFloat3(v2));
+    TriangleIntersection(globalFaceIdx, MakeFloat3(v0), MakeFloat3(v1), MakeFloat3(v2));
 
     if( numVertices == 4 )
     {
         ElVisFloat4 v3;
-        GetFaceVertex(primitiveId, 3, v3);
-        TriangleIntersection(primitiveId,  MakeFloat3(v2),  MakeFloat3(v0),  MakeFloat3(v3));
+        GetPlanarFaceVertex(planarFaceIdx, 3, v3);
+        TriangleIntersection(globalFaceIdx,  MakeFloat3(v2),  MakeFloat3(v0),  MakeFloat3(v3));
     }
 }
 
-RT_PROGRAM void FaceIntersection(int primitiveId)
+RT_PROGRAM void PlanarFaceIntersection(int idx)
 {
-    if( ray.ray_type <= 1 )
+  PlanarFaceIdx planarFaceIdx(idx);
+  if( ray.ray_type <= 1 )
+  {
+    if( !GetFaceEnabled(planarFaceIdx) )
     {
-        if( !FaceEnabled[primitiveId] )
-        {
-            ELVIS_PRINTF("FaceIntersection: Face %d is not enabled.\n", primitiveId);
-            return;
-        }
+      ELVIS_PRINTF("PlanarFaceIntersection: Face %d is not enabled.\n", planarFaceIdx.Value);
+      return;
     }
+  }
 
-    const ElVis::FaceDef& faceDef = FaceIdBuffer[primitiveId];
-    if( faceDef.Type == ElVis::ePlanar )
-    {
-        PlanarFaceIntersection(primitiveId);
-    }
-    else
-    {
-        NewtonFaceIntersection(primitiveId);
-    }
+  PlanarFaceIntersectionImpl(planarFaceIdx);
 }
 
-RT_PROGRAM void FaceForTraversalIntersection(int primitiveId)
+RT_PROGRAM void CurvedFaceIntersection(int idx)
 {
-    const ElVis::FaceDef& faceDef = FaceIdBuffer[primitiveId];
-    if( faceDef.Type == ElVis::ePlanar )
+  CurvedFaceIdx curvedFaceIdx(idx);
+  if( ray.ray_type <= 1 )
+  {
+    if( !GetFaceEnabled(curvedFaceIdx) )
     {
-        PlanarFaceIntersection(primitiveId);
+      ELVIS_PRINTF("CurvedFaceIntersection: Face %d is not enabled.\n", curvedFaceIdx.Value);
+      return;
     }
-    else
-    {
-        NewtonFaceIntersection(primitiveId);
-    }
+  }
+
+  NewtonFaceIntersection(curvedFaceIdx);
 }
 
-RT_PROGRAM void ElementTraversalFaceClosestHitProgram()
+RT_PROGRAM void FaceClosestHitProgram()
 {
-    volumePayload.FoundIntersection = 1;
+    //ELVIS_PRINTF("FaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceGlobalIdx);
+    volumePayload.FoundIntersection = true;
     volumePayload.IntersectionT = closest_t;
-    volumePayload.FaceId = intersectedFaceId;
-}
-
-RT_PROGRAM void FaceBoundingBoxProgram(int primitiveId, float result[6])
-{
-    optix::Aabb* aabb = (optix::Aabb*)result;
-
-    if( FaceEnabled[primitiveId] )
-    {
-        ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-        ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
-
-        aabb->m_min = make_float3(p0.x, p0.y, p0.z);
-        aabb->m_max = make_float3(p1.x, p1.y, p1.z);
-    }
-    else
-    {
-        aabb->m_min = make_float3(100000.0f, 100000.0f, 100000.0f);
-        aabb->m_max = make_float3(100000.1f, 100000.1f, 100000.1f);
-    }
-}
-
-RT_PROGRAM void FaceForTraversalBoundingBoxProgram(int primitiveId, float result[6])
-{
-    optix::Aabb* aabb = (optix::Aabb*)result;
-
-    ElVisFloat3 p0 = FaceMinExtentBuffer[primitiveId];
-    ElVisFloat3 p1 = FaceMaxExtentBuffer[primitiveId];
-
-    aabb->m_min = make_float3(p0.x, p0.y, p0.z);
-    aabb->m_max = make_float3(p1.x, p1.y, p1.z);
+    volumePayload.FaceId = intersectedFaceGlobalIdx;
+    //ELVIS_PRINTF("FaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
+    //    volumePayload.IntersectionT, volumePayload.FaceId);
 }
 
 struct RiemannIntegration
@@ -913,11 +863,6 @@ struct RiemannIntegration
   }
 };
 
-__device__ bool UdpateVolumeRenderingForElement(const Segment& seg, const ElVisFloat3& origin)
-{
-  return false;
-}
-
 RT_PROGRAM void PerformVolumeRendering()
 {
   RiemannIntegration integrator;
@@ -928,7 +873,7 @@ RT_PROGRAM void PerformVolumeRendering()
     ElVisFloat3 finalColor = integrator.accumulatedColor +
       expf(-integrator.accumulatedDensity)*BGColor;
     raw_color_buffer[launch_index] = finalColor;
-	  color_buffer[launch_index] = ConvertToColor(finalColor);
+      color_buffer[launch_index] = ConvertToColor(finalColor);
   }
 }
 

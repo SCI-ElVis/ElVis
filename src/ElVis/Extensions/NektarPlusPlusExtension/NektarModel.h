@@ -42,7 +42,7 @@
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/OptiXBuffer.hpp>
-#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/FaceInfo.h>
 #include <ElVis/Core/Util.hpp>
 
 #include <ElVis/Extensions/NektarPlusPlusExtension/Declspec.h>
@@ -111,15 +111,13 @@ namespace ElVis
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT Nektar::SpatialDomains::MeshGraphSharedPtr GetMesh() const { return m_graph; }
                 //NEKTAR_PLUS_PLUS_EXTENSION_EXPORT Nektar::MultiRegions::ExpListSharedPtr GetExpansion() const { return m_globalExpansion; }
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT int GetNumberOfFaces() const;
-
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT LibUtilities::SessionReaderSharedPtr GetSession() const;
 
             protected:
-                virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(Scene* scene, optixu::Context context);
+                virtual std::vector<optixu::GeometryGroup> DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
 
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces);
-                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faces);
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual std::vector<optixu::GeometryInstance> DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context);
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual optixu::Material DoGet2DPrimaryGeometryMaterial(SceneView* view);
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetNumberOfBoundarySurfaces() const;
@@ -136,6 +134,20 @@ namespace ElVis
 
                 NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual int DoGetModelDimension() const;
 
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual void DoInitializeOptiX(boost::shared_ptr<Scene> scene, optixu::Context context) {}
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfFaces() const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual FaceInfo DoGetFaceDefinition(size_t globalFaceId) const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfPlanarFaceVertices() const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual WorldPoint DoGetPlanarFaceVertex(size_t vertexIdx) const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const;
+
+                NEKTAR_PLUS_PLUS_EXTENSION_EXPORT virtual size_t DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId);
+
             private:
                 NektarModel(const NektarModel& rhs);
 
@@ -145,14 +157,21 @@ namespace ElVis
 
                 NektarModel& operator=(NektarModel& rhs);
 
-                virtual void DoMapInteropBufferForCuda();
-                virtual void DoUnMapInteropBufferForCuda();
-
                 void SetupOptixCoefficientBuffers(optixu::Context context);
                 void SetupOptixVertexBuffers(optixu::Context context);
 
                 template<typename FaceContainer>
-                void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceDef* faceDefs, ElVisFloat4* normalBuffer)
+                void CreateLocalToGlobalIdxMap(const FaceContainer& faces, std::vector<int>& idxMap)
+                {
+                  typedef typename FaceContainer::const_iterator Iterator;
+                  for(Iterator iter = faces.begin(); iter != faces.end(); ++iter)
+                  {
+                    idxMap.push_back((*iter).second->GetGlobalID());
+                  }
+                }
+
+                template<typename FaceContainer>
+                void AddFaces(const FaceContainer& faces, ElVisFloat3* minBuffer, ElVisFloat3* maxBuffer, ElVisFloat4* faceVertexBuffer, FaceInfo*, ElVisFloat4* normalBuffer)
                 {
                     int faceIndex = 0;
                     typedef typename FaceContainer::const_iterator Iterator;
@@ -199,21 +218,20 @@ namespace ElVis
                             maxExtent.SetZ(maxExtent.z() + .0001);
                         }
 
-                        minBuffer[faceIndex] = MakeFloat3(minExtent);
-                        maxBuffer[faceIndex] = MakeFloat3(maxExtent);
-
-                        faceDefs[faceIndex].Type = ePlanar;
-
                         Nektar::SpatialDomains::MeshGraph3DSharedPtr castPtr = boost::dynamic_pointer_cast<Nektar::SpatialDomains::MeshGraph3D>(m_graph);
                         if( castPtr )
                         {
                             Nektar::SpatialDomains::ElementFaceVectorSharedPtr elements = castPtr->GetElementsFromFace(geom);
                             assert(elements->size() <= 2 );
-                            for(int elementId = 0; elementId < elements->size(); ++elementId)
-                            {
-                                faceDefs[faceIndex].CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
-                                faceDefs[faceIndex].CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
-                            }
+                            //faceDefs[faceIndex].CommonElements[0].Id = -1;
+                            //faceDefs[faceIndex].CommonElements[0].Type = -1;
+                            //faceDefs[faceIndex].CommonElements[1].Id = -1;
+                            //faceDefs[faceIndex].CommonElements[1].Type = -1;
+                            //for(int elementId = 0; elementId < elements->size(); ++elementId)
+                            //{
+                            //    faceDefs[faceIndex].CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
+                            //    faceDefs[faceIndex].CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
+                            //}
                         }
                         
                         // TODO - Normal.
@@ -388,6 +406,7 @@ namespace ElVis
 
                 // Initialization methods.
                 void LoadFields(const boost::filesystem::path& fieldFile);
+                void SetupFaces();
 
                 void SetupSumPrefixNumberOfFieldCoefficients(optixu::Context context);
                 void SetupCoefficientOffsetBuffer(optixu::Context context);
@@ -423,7 +442,7 @@ namespace ElVis
                 ElVis::OptiXBuffer<uint4> m_deviceHexVertexFaceIndex;
                 ElVis::OptiXBuffer<uint3> m_deviceNumberOfModes;
 
-                ElVis::OptiXBuffer<ElVisFloat4> FaceVertexBuffer;
+                ElVis::OptiXBuffer<ElVisFloat4> PlanarFaceVertexBuffer;
                 ElVis::OptiXBuffer<ElVisFloat4> FaceNormalBuffer;
 
                 ElVis::OptiXBuffer<uint> m_deviceTriangleVertexIndexMap;
@@ -441,6 +460,8 @@ namespace ElVis
                 ElVis::OptiXBuffer<uint> m_QuadCoeffMappingDir0;
                 ElVis::OptiXBuffer<uint> m_QuadCoeffMappingDir1;
 
+                std::vector<int> m_triLocalToGlobalIdxMap;
+                std::vector<int> m_quadLocalToGlobalIdxMap;
         };
     }
 

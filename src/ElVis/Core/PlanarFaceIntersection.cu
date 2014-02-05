@@ -26,33 +26,20 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVIS_VOLUME_RENDERING_PAYLOAD_CU
-#define ELVIS_VOLUME_RENDERING_PAYLOAD_CU
+#ifndef ELVIS_CORE_PLANAR_FACE_INTERSECTION_CU
+#define ELVIS_CORE_PLANAR_FACE_INTERSECTION_CU
 
-#include <optix_cuda.h>
-#include <optix_math.h>
-#include <ElVis/Core/util.cu>
-#include <ElVis/Core/Float.cu>
-#include <ElVis/Core/OptixVariables.cu>
+// A planar face is defined by 3 or 4 vertices.
 
-struct VolumeRenderingPayload
+// planar face needs a bounding box and intersection program.
+
+// A local id to global id map
+
+RT_PROGRAM void PlanarFaceIntersection(int primitiveId)
 {
-    ELVIS_DEVICE void Initialize()
-    {
-        FoundIntersection = false;
-        ElementId = 0;
-        ElementTypeId = 0;
-        IntersectionT = MAKE_FLOAT(-1.0);
-        FaceId.Value = -1;
-    }
+  // primitiveId is the local index for a planar face.
+}
 
-    bool FoundIntersection;
-    unsigned int ElementId;
-    unsigned int ElementTypeId;
-    ElVisFloat IntersectionT;
-    GlobalFaceIdx FaceId;
-};
 
-rtDeclareVariable(VolumeRenderingPayload, volumePayload, rtPayload, );
 
-#endif //ELVIS_VOLUME_RENDERING_PAYLOAD_CU
+#endif

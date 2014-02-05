@@ -58,7 +58,7 @@
 #include <ElVis/Core/ColorMapperModule.h>
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
 
-
+#include <boost/make_shared.hpp>
 
 
 int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath)
@@ -68,7 +68,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     glutInitWindowSize(100, 100);
     glutCreateWindow("fake");
 
-    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
     boost::shared_ptr<ElVis::Cylinder> cylinder(new ElVis::Cylinder());
@@ -76,10 +76,10 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
 
     cylinder->GetTransformationMatrix()[0] = .10001f;
     cylinder->GetTransformationMatrix()[5] = .10001f;
-    cylinder->GetTransformationMatrix()[10] = .4f;
+    cylinder->GetTransformationMatrix()[10] = .41f;
    
     
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -106,17 +106,9 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     triangle2->SetP2(ElVis::WorldPoint(0, 1, 0));
     triangle2->SetP1(ElVis::WorldPoint(0, 1, 18));
   
-    ElVis::Cylinder* cylinderToMap = new ElVis::Cylinder();
-    cylinderToMap->GetTransformationMatrix()[11] = 0;
-
-    cylinderToMap->GetTransformationMatrix()[0] = .1f;
-    cylinderToMap->GetTransformationMatrix()[5] = .1f;
-    cylinderToMap->GetTransformationMatrix()[10] = 20.0f;
-
     boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(new ElVis::PrimaryRayModule());
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t1Sampler(new ElVis::SampleVolumeSamplerObject(triangle1));
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t2Sampler(new ElVis::SampleVolumeSamplerObject(triangle2));
-    //boost::shared_ptr<ElVis::SurfaceObject> cylinderSurface(new ElVis::SurfaceObject(cylinder));
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> cylinderSurface(new ElVis::SampleVolumeSamplerObject(cylinder));
     primaryRayModule->AddObject(t1Sampler);
     primaryRayModule->AddObject(t2Sampler);
@@ -182,6 +174,8 @@ int GenericCLIInterface(int argc, char** argv,
                         boost::shared_ptr<ElVis::ColorMap> colorMap,
                         unsigned int width, unsigned int height, const std::string& outFilePath, const ElVis::Camera& c)
 {
+  try
+  {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
     glutInitWindowSize(100, 100);
@@ -194,6 +188,7 @@ int GenericCLIInterface(int argc, char** argv,
     const char* contourModuleEnabledLabel = "ContourModuleEnabled";
     const char* meshModuleEnabledLabel = "MeshModuleEnabled";
     const char* boundarySurfacesLabel = "BoundarySurfaces";
+    const char* renderFacesLabel = "RenderFaces";
 
     // Volume Rendering labels
     const char* integrationTypeLabel = "IntegrationType";
@@ -219,6 +214,7 @@ int GenericCLIInterface(int argc, char** argv,
     std::vector<double> breakpoints;
     std::vector<double> colors;
     std::vector<int> boundarySurfaces;
+    std::vector<int> faces;
     std::vector<double> isovalues;
     bool isosurfaceModuleEnabled = false;
     bool volumeRenderingModuleEnabled = false;
@@ -232,6 +228,7 @@ int GenericCLIInterface(int argc, char** argv,
     desc.add_options()
         (isovaluesLabel, boost::program_options::value<std::vector<double> >(&isovalues)->multitoken(), "Isovalues")
         (boundarySurfacesLabel, boost::program_options::value<std::vector<int> >(&boundarySurfaces)->multitoken(), "Boundary Surfaces")
+        (renderFacesLabel, boost::program_options::value<std::vector<int> >(&faces)->multitoken(), "Faces")
         (isosurfaceModuleEnabledLabel, boost::program_options::value<bool>(&isosurfaceModuleEnabled), "Isosurface Module Enabled")
         (volumeRenderingModuleEnabledLabel, boost::program_options::value<bool>(&volumeRenderingModuleEnabled), "Volume Rendering Module Enabled")
         (contourModuleEnabledLabel, boost::program_options::value<bool>(&contourModuleEnabled), "Contour Module Enabled")
@@ -284,7 +281,28 @@ int GenericCLIInterface(int argc, char** argv,
     system("nvidia-smi");
     #endif
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    bool trace = false;
+    if( vm.count(traceLabel) == 1 )
+    {
+        trace = vm[traceLabel].as<int>();
+    }
+
+    int tracex = -1;
+    int tracey = -1;
+    if( vm.count(traceXLabel) == 1)
+    {
+        tracex = vm[traceXLabel].as<int>();
+    }
+
+    if( vm.count(traceYLabel) == 1)
+    {
+        tracey = vm[traceYLabel].as<int>();
+    }
+
+    scene->SetEnableOptixTrace(trace);
+    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
+
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -374,6 +392,16 @@ int GenericCLIInterface(int argc, char** argv,
         }
     }
 
+    if( faces.size() > 0 )
+    {
+        boost::shared_ptr<ElVis::FaceObject> faceObject(new ElVis::FaceObject(scene));
+        boost::shared_ptr<ElVis::SampleFaceObject> obj(new ElVis::SampleFaceObject(faceObject));
+        primaryRayModule->AddObject(obj);
+        for(int i = 0; i < faces.size(); ++i)
+        {
+            obj->EnableFace(faces[i]);
+        }
+    }
     if( volumeRenderingModuleEnabled )
     {
         if( vm.count(integrationTypeLabel) == 0 )
@@ -474,7 +502,15 @@ int GenericCLIInterface(int argc, char** argv,
         #endif
 
     }
-
+  }
+  catch(std::exception& e)
+  {
+    std::cout << e.what() << std::endl;
+  }
+  catch(...)
+  {
+    std::cout << "Unknown exception." << std::endl;
+  }
 
     return 0;
 }

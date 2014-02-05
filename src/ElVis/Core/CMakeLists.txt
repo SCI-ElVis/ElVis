@@ -123,7 +123,7 @@ SET(ELVIS_HEADERS
     ElementId.h
     ElVisConfig.h
     ElVisConfig.cpp.in
-    FaceDef.h
+    FaceInfo.h
     FaceObject.h
     ${CMAKE_BINARY_DIR}/ElVis/Core/Float.h
     Float.h.in
@@ -243,7 +243,7 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/DiffuseLighting.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversal.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
-    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/FaceIntersection.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FieldEvaluator.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FindElement.cu
     ${CMAKE_BINARY_DIR}/ElVis/Core/Float.cu
@@ -258,6 +258,7 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/matrix.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/OptixVariables.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/OuterIntegralAdaptiveTrapezoidal.cu
+    ${CMAKE_SOURCE_DIR}/ElVis/Core/PlanarFaceIntersection.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/Plane.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/PrimaryRayGenerator.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/PrimaryRayModule.cu
@@ -293,7 +294,7 @@ SOURCE_GROUP("Modules" FILES ${ModuleFiles})
 SOURCE_GROUP("Primary Ray Objects" FILES ${PrimaryRayObjectFiles})
 SOURCE_GROUP("Objects" FILES ${ObjectFiles})
 SOURCE_GROUP("Core" FILES ${ELVIS_SOURCES} ${ELVIS_HEADERS})
-ADD_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${PrimaryRayObjectFiles} ${ObjectFiles} ${ELVIS_MATH_HEADERS} ${ELVIS_SOURCES} ${ModuleFiles} ${ELVIS_CUDA_HEADERS})
+ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR} ${ELVIS_HEADERS} ${PrimaryRayObjectFiles} ${ObjectFiles} ${ELVIS_MATH_HEADERS} ${ELVIS_SOURCES} ${ModuleFiles} ${ELVIS_CUDA_HEADERS})
 
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 
@@ -330,7 +331,6 @@ INSTALL(FILES ${ELVIS_HEADERS} ${ELVIS_CUDA_HEADERS}
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
-    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
     DESTINATION ${ELVIS_INCLUDE_DIR}/ElVis/Core)
 
 INSTALL(FILES ${ELVIS_MATH_HEADERS}

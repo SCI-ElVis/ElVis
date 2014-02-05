@@ -65,7 +65,7 @@ namespace ElVis
 
             m_group = context->createGroup();
             m_group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
-            context["PrimaryRayGeometry"]->set( m_group );
+            context["SurfaceGeometryGroup"]->set( m_group );
 
             m_program = view->AddRayGenerationProgram("GeneratePrimaryRays");
             context->setMissProgram(0, PtxManager::LoadProgram(context, view->GetPTXPrefix(), "PrimaryRayMissed"));

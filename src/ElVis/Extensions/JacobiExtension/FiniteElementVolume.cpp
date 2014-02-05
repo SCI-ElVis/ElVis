@@ -79,7 +79,7 @@ namespace ElVis
         }
 
         //XERCES_CPP_NAMESPACE_USE
-        //FiniteElementVolume::FiniteElementVolume(DOMElement* volumeElement, Scene* theScene) :
+        //FiniteElementVolume::FiniteElementVolume(DOMElement* volumeElement, boost::shared_ptr<Scene> theScene) :
         //  Object(volumeElement, theScene),
         //  m_minValue(-numeric_limits<double>::max()),
         //  m_maxValue(numeric_limits<double>::max()),
@@ -122,7 +122,7 @@ namespace ElVis
         //class CreateFiniteElementVolume
         //{
         //  public:
-        //      Object* operator()(DOMElement* sphereElement, Scene* scene)
+        //      Object* operator()(DOMElement* sphereElement, boost::shared_ptr<Scene> scene)
         //      {
         //          return new FiniteElementVolume(sphereElement, scene);
         //      }

@@ -32,20 +32,21 @@
 #include <ElVis/Extensions/JacobiExtension/OptiXHexahedron.cu>
 #include <ElVis/Extensions/JacobiExtension/OptiXPrism.cu>
 
-rtBuffer<ElVisFloat4> FaceVertexBuffer;
-rtBuffer<ElVisFloat4> FaceNormalBuffer;
-
-
-
 
 // Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
-ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
+ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx globalFaceIdx, const FaceReferencePoint& refPoint,
                                WorldPoint& result)
 {
-    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    //ElVisFloat4 v0 = VertexBuffer[4*faceId];
+    //ElVisFloat4 v1 = VertexBuffer[4*faceId+1];
+    //ElVisFloat4 v2 = VertexBuffer[4*faceId+2];
+    //ElVisFloat4 v3 = VertexBuffer[4*faceId+3];
+    PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+    ElVisFloat4 v0, v1, v2, v3;
+    GetPlanarFaceVertex(planarFaceIdx, 0, v0);
+    GetPlanarFaceVertex(planarFaceIdx, 1, v1);
+    GetPlanarFaceVertex(planarFaceIdx, 2, v2);
+    GetPlanarFaceVertex(planarFaceIdx, 3, v3);
 
     ElVisFloat r = refPoint.x;
     ElVisFloat s = refPoint.y;
@@ -126,45 +127,30 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
     return returnVal;
 }
 
-ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
-{
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
 
-    if( v2 == v3 )
-    {
-        result = 3;
-    }
-    else
-    {
-        result = 4;
-    }
 
-    return eNoError;
-}
-
-ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
-{
-    result = FaceVertexBuffer[4*faceId+vertexId];
-    return eNoError;
-}
-
-ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint&, bool& result)
+ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceReferencePoint&, bool& result)
 {
     result = true;
     return eNoError;
 }
 
 template<typename T>
-ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoint& p,
+ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx globalFaceIdx, const FaceReferencePoint& p,
                                              T& dx_dr, T& dx_ds,
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds)
 {
-    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    //ElVisFloat4 v0 = VertexBuffer[4*faceId];
+    //ElVisFloat4 v1 = VertexBuffer[4*faceId+1];
+    //ElVisFloat4 v2 = VertexBuffer[4*faceId+2];
+    //ElVisFloat4 v3 = VertexBuffer[4*faceId+3];
+    PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+    ElVisFloat4 v0, v1, v2, v3;
+    GetPlanarFaceVertex(planarFaceIdx, 0, v0);
+    GetPlanarFaceVertex(planarFaceIdx, 1, v1);
+    GetPlanarFaceVertex(planarFaceIdx, 2, v2);
+    GetPlanarFaceVertex(planarFaceIdx, 3, v3);
 
     const T& r = p.x;
     const T& s = p.y;
@@ -223,13 +209,21 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
 }
 
 
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& result)
+ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& result)
 {
-    result = MakeFloat3(FaceNormalBuffer[faceId]);
-    return eNoError;
+    PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+    if( planarFaceIdx.Value > 0 )
+    {
+      result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
+      return eNoError;
+    }
+    else
+    {
+      return eInvalidFaceId;
+    }
 }
 
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, int faceId, ElVisFloat3& result)
+ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& result)
 {
     result.x = MAKE_FLOAT(0.0);
     result.y = MAKE_FLOAT(0.0);

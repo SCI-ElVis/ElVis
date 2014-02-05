@@ -90,7 +90,7 @@ namespace ElVis
             ,m_deviceHexPlaneBuffer("HexPlaneBuffer")
             ,m_deviceHexVertexFaceIndex("Hexvertex_face_index")
             ,m_deviceNumberOfModes("NumberOfModes")
-            ,FaceVertexBuffer("FaceVertexBuffer")
+            ,PlanarFaceVertexBuffer("PlanarFaceVertexBuffer")
             ,FaceNormalBuffer("FaceNormalBuffer")
             ,m_deviceTriangleVertexIndexMap("TriangleVertexIndices")
             ,m_TriangleModes("TriangleModes")
@@ -105,6 +105,8 @@ namespace ElVis
             ,m_QuadCoeffMappingDir0("QuadCoeffMappingDir0")
             ,m_QuadCoeffMappingDir1("QuadCoeffMappingDir1")
             ,m_deviceQuadVertexIndexMap("QuadVertexIndices")
+            ,m_triLocalToGlobalIdxMap()
+            ,m_quadLocalToGlobalIdxMap()
         {
             boost::filesystem::path geometryFile(modelPrefix + ".xml");
             boost::filesystem::path fieldFile(modelPrefix + ".fld");
@@ -236,7 +238,7 @@ namespace ElVis
             {
                     m_globalExpansions[j]->ExtractDataToCoeffs(m_fieldDefinitions[i],
                                                 fieldData[i],
-							       m_fieldDefinitions[i]->m_fields[j], m_globalExpansions[j]->UpdateCoeffs());
+                     m_fieldDefinitions[i]->m_fields[j], m_globalExpansions[j]->UpdateCoeffs());
                 }
                 m_globalExpansions[j]->BwdTrans(
                     m_globalExpansions[j]->GetCoeffs(),
@@ -290,7 +292,13 @@ namespace ElVis
             LoadFields(fieldFile);
         }
 
-        std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
+        void NektarModel::SetupFaces()
+        {
+          CreateLocalToGlobalIdxMap(m_graph->GetAllTriGeoms(), m_triLocalToGlobalIdxMap);
+          CreateLocalToGlobalIdxMap(m_graph->GetAllQuadGeoms(), m_quadLocalToGlobalIdxMap);
+        }
+
+        std::vector<optixu::GeometryGroup> NektarModel::DoGetPointLocationGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
         {
            
             try
@@ -505,43 +513,24 @@ namespace ElVis
         }
         
 
-        int NektarModel::GetNumberOfFaces() const 
-        {
-            int numFaces = 0;
-            if( m_graph )
-            {
-                numFaces += m_graph->GetAllTriGeoms().size();
-                numFaces += m_graph->GetAllQuadGeoms().size();
-            }
-            return numFaces;
-        }
-
-        void NektarModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)
+        void NektarModel::DoGetFaceGeometry(boost::shared_ptr<Scene> scene, optixu::Context context, optixu::Geometry& faceGeometry)
         {
             int numFaces = 0;
             numFaces += m_graph->GetAllTriGeoms().size();
             numFaces += m_graph->GetAllQuadGeoms().size();
 
-
-            scene->GetFaceMinExtentBuffer().SetDimensions(numFaces);
-            scene->GetFaceMaxExtentBuffer().SetDimensions(numFaces);
-
-            BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
-            BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
-            FaceVertexBuffer.SetContext(context);
-            FaceVertexBuffer.SetDimensions(numFaces*4);
+            PlanarFaceVertexBuffer.SetContext(context);
+            PlanarFaceVertexBuffer.SetDimensions(numFaces*4);
             FaceNormalBuffer.SetContext(context);
             FaceNormalBuffer.SetDimensions(numFaces);
 
-            scene->GetFaceIdBuffer().SetDimensions(numFaces);
-            BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
-            BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
+            BOOST_AUTO(faceVertexBuffer, PlanarFaceVertexBuffer.Map());
             BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
 
-            AddFaces(m_graph->GetAllTriGeoms(), minBuffer.get(), maxBuffer.get(), faceVertexBuffer.get(), faceDefs.get(), normalBuffer.get());
+            AddFaces(m_graph->GetAllTriGeoms(), 0, 0, faceVertexBuffer.get(), 0/* faceDefs.get()*/, normalBuffer.get());
 
             int offset = m_graph->GetAllTriGeoms().size();
-            AddFaces(m_graph->GetAllQuadGeoms(), minBuffer.get()+offset, maxBuffer.get()+offset, faceVertexBuffer.get()+offset, faceDefs.get()+offset, normalBuffer.get()+offset);
+            AddFaces(m_graph->GetAllQuadGeoms(), 0, 0, faceVertexBuffer.get()+offset, /*faceDefs.get()+offset*/ 0, normalBuffer.get()+offset);
 
             faceGeometry->setPrimitiveCount(numFaces);
             //curvedFaces->setPrimitiveCount(faces.size());
@@ -559,6 +548,136 @@ namespace ElVis
             {
                 faceIds.push_back(i);
             }
+        }
+
+        size_t NektarModel::DoGetNumberOfFaces() const
+        {
+            int numFaces = 0;
+            if( m_graph )
+            {
+                numFaces += m_graph->GetAllTriGeoms().size();
+                numFaces += m_graph->GetAllQuadGeoms().size();
+            }
+            return numFaces;
+        }
+
+        namespace
+        {
+          void setupFaceAdjacency(Nektar::SpatialDomains::MeshGraphSharedPtr m_graph,
+            boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> face,
+            FaceInfo& result)
+          {
+            boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> geom = boost::dynamic_pointer_cast<Nektar::SpatialDomains::Geometry2D>( face );
+
+            Nektar::SpatialDomains::MeshGraph3DSharedPtr castPtr = boost::dynamic_pointer_cast<Nektar::SpatialDomains::MeshGraph3D>(m_graph);
+            if( castPtr )
+            {
+              Nektar::SpatialDomains::ElementFaceVectorSharedPtr elements = castPtr->GetElementsFromFace(geom);
+              assert(elements->size() <= 2 );
+              result.CommonElements[0].Id = -1;
+              result.CommonElements[0].Type = -1;
+              result.CommonElements[1].Id = -1;
+              result.CommonElements[1].Type = -1;
+              for(int elementId = 0; elementId < elements->size(); ++elementId)
+              {
+                  result.CommonElements[elementId].Id = (*elements)[elementId]->m_Element->GetGlobalID();
+                  result.CommonElements[elementId].Type = (*elements)[elementId]->m_Element->GetGeomShapeType();
+              }
+            }
+          }
+
+          void calculateBoundingBox(boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> face,
+            FaceInfo& result)
+          {
+            WorldPoint minExtent(std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max(), std::numeric_limits<ElVisFloat>::max());
+            WorldPoint maxExtent(-std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max(), -std::numeric_limits<ElVisFloat>::max());
+
+            boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> geom = boost::dynamic_pointer_cast<Nektar::SpatialDomains::Geometry2D>( face );
+
+            for(int i = 0; i < geom->GetNumVerts(); ++i)
+            {
+              Nektar::SpatialDomains::VertexComponentSharedPtr rawVertex = geom->GetVertex(i);
+              WorldPoint v(rawVertex->x(), rawVertex->y(), rawVertex->z());
+              minExtent = CalcMin(minExtent, v);
+              maxExtent = CalcMax(maxExtent, v);
+            }
+
+            // There is no proof that OptiX can't handle degenerate boxes,
+            // but just in case...
+            if( minExtent.x() == maxExtent.x() )
+            {
+              minExtent.SetX(minExtent.x() - .0001);
+              maxExtent.SetX(maxExtent.x() + .0001);
+            }
+
+            if( minExtent.y() == maxExtent.y() )
+            {
+              minExtent.SetY(minExtent.y() - .0001);
+              maxExtent.SetY(maxExtent.y() + .0001);
+            }
+
+            if( minExtent.z() == maxExtent.z() )
+            {
+              minExtent.SetZ(minExtent.z() - .0001);
+              maxExtent.SetZ(maxExtent.z() + .0001);
+            }
+
+            result.MinExtent = MakeFloat3(minExtent);
+            result.MaxExtent = MakeFloat3(maxExtent);
+          }
+        }
+
+        FaceInfo NektarModel::DoGetFaceDefinition(size_t globalFaceId) const
+        {
+          boost::shared_ptr<Nektar::SpatialDomains::Geometry2D> face;
+          BOOST_AUTO(foundTri, m_graph->GetAllTriGeoms().find(globalFaceId));
+          if( foundTri != m_graph->GetAllTriGeoms().end() )
+          {
+            face = (*foundTri).second;
+          }
+          else
+          {
+            BOOST_AUTO(foundQuad, m_graph->GetAllQuadGeoms().find(globalFaceId));
+            if( foundQuad != m_graph->GetAllQuadGeoms().end() )
+            {
+              face = (*foundQuad).second;
+            }
+          }
+
+          if( !face )
+          {
+            std::string msg = "Unable to find Nektar++ face with global id " +
+              boost::lexical_cast<std::string>(globalFaceId);
+            throw new std::runtime_error(msg.c_str());
+          }
+
+          FaceInfo result;
+
+          // TODO - Update to detect curved faces.
+          result.Type = ePlanar;
+          calculateBoundingBox(face, result);
+          setupFaceAdjacency(m_graph, face, result);
+          return result;
+        }
+
+        size_t NektarModel::DoGetNumberOfPlanarFaceVertices() const
+        {
+          return 0;
+        }
+
+        WorldPoint NektarModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
+        {
+          return WorldPoint();
+        }
+
+        size_t NektarModel::DoGetNumberOfVerticesForPlanarFace(size_t globalFaceId) const
+        {
+          return 0;
+        }
+
+        size_t NektarModel::DoGetPlanarFaceVertexIndex(size_t globalFaceId, size_t vertexId)
+        {
+          return 0;
         }
 
         namespace detail
@@ -587,6 +706,8 @@ namespace ElVis
                 ++idx;
             }
 
+
+
             void CopyTriangleCoefficients(Nektar::SpatialDomains::TriGeomSharedPtr tri,
               ElVisFloat*& coeffs0, ElVisFloat*& coeffs1)
             {
@@ -603,7 +724,7 @@ namespace ElVis
 
         }
 
-        std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
+        std::vector<optixu::GeometryInstance> NektarModel::DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
         {
             std::vector<optixu::GeometryInstance> result;
             if( m_graph->GetMeshDimension() != 2 )
@@ -911,16 +1032,6 @@ namespace ElVis
             result.Id = index;
             result.Shortcut = "";
             return result;
-        }
-
-        void NektarModel::DoMapInteropBufferForCuda()
-        {
-
-        }
-
-        void NektarModel::DoUnMapInteropBufferForCuda()
-        {
-
         }
 
         int NektarModel::DoGetModelDimension() const

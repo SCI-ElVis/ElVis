@@ -9,20 +9,6 @@ namespace ElVis
         return result;
     }
 
-    const std::string& GetCubinPath()
-    {
-        #ifdef _MSC_VER
-            #ifdef NDEBUG
-                static const std::string result("@ELVIS_CUBIN_DIR@/Release");
-            #else
-                static const std::string result("@ELVIS_CUBIN_DIR@/Debug");
-            #endif
-        #else
-            static const std::string result("@ELVIS_CUBIN_DIR@");
-        #endif
-        return result;
-    }
-
     const std::string& GetColorMapPath()
     {
         static const std::string result("@ELVIS_COLOR_MAP_DIR@");

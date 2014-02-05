@@ -42,6 +42,7 @@
 #include <ElVis/Core/LightingModule.h>
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
 #include <ElVis/Core/ElVisConfig.h>
+#include <boost/make_shared.hpp>
 
 int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath)
 {
@@ -53,10 +54,10 @@ int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> m
     ElVis::Camera c;
     c.SetParameters(ElVis::WorldPoint(.5, .5, 1.2), ElVis::WorldPoint(.5, .5, 0), ElVis::WorldVector(0, 1, 0));
 
-    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);

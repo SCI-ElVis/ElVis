@@ -65,7 +65,7 @@ struct CutSurfaceScalarValuePayload
     ElVisFloat3 IntersectionPoint;
     float IntersectionT;
     ElVisFloat3 Normal;
-	ElVisFloat3 Color;
+    ElVisFloat3 Color;
     ElVisFloat scalarValue;
     int ReferencePointSet;
 };
@@ -75,6 +75,10 @@ struct CutSurfaceScalarValuePayload
 ///        in FineElement.cu
 struct ElementFinderPayload
 {
+    ELVIS_DEVICE ElementFinderPayload() 
+    {
+    }
+
     /// This method takes the place of a constructor, as constructors in payload objects
     /// are not support by OptiX 2.5 and earlier.
     ELVIS_DEVICE void Initialize(const ElVisFloat3& p)
@@ -86,6 +90,24 @@ struct ElementFinderPayload
         ReferenceIntersectionPoint = MakeFloat3(ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX);
     }
 
+    ELVIS_DEVICE ElementFinderPayload(const ElementFinderPayload& rhs) :
+        IntersectionPoint(rhs.IntersectionPoint),
+        elementId(rhs.elementId),
+        elementType(rhs.elementType),
+        ReferencePointType(rhs.ReferencePointType),
+        ReferenceIntersectionPoint(rhs.ReferenceIntersectionPoint)
+    {
+    }
+
+    ELVIS_DEVICE ElementFinderPayload& operator=(const ElementFinderPayload& rhs)
+    {
+        IntersectionPoint = MakeFloat3(rhs.IntersectionPoint.x, rhs.IntersectionPoint.y, rhs.IntersectionPoint.z);
+        elementId = rhs.elementId;
+        elementType = rhs.elementType;
+        ReferencePointType = rhs.ReferencePointType;
+        ReferenceIntersectionPoint = MakeFloat3(rhs.ReferenceIntersectionPoint.x, rhs.ReferenceIntersectionPoint.y, rhs.ReferenceIntersectionPoint.z);
+        return *this;
+    }
     /// \brief The point for which the enclosing element is sought.
     ElVisFloat3 IntersectionPoint;
 

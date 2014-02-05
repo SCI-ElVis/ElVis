@@ -55,7 +55,7 @@ RT_PROGRAM void GeneratePrimaryRays()
   ELVIS_PRINTF("Origin (%2.15f, %2.15f, %2.15f), Direction (%2.15f, %2.15f, %2.15f)\n",
     ray.origin.x, ray.origin.y, ray.origin.z,
     ray.direction.x, ray.direction.y, ray.direction.z);
-  rtTrace(PrimaryRayGeometry, ray, payload);   
+  rtTrace(SurfaceGeometryGroup, ray, payload);   
 
 
   ELVIS_PRINTF("GeneratePrimaryRays: Normal (%f, %f, %f)\n", payload.Normal.x, payload.Normal.y, payload.Normal.z);

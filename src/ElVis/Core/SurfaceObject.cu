@@ -45,8 +45,8 @@ RT_PROGRAM void SurfaceObjectClosestHit()
     ElVisFloat3 color = MakeFloat3(MAKE_FLOAT(1.0), MAKE_FLOAT(1.0), MAKE_FLOAT(1.0));
     payload.result = color;
     payload.Normal = normal;
-	payload.Color = color;
-	payload.IntersectionPoint = MakeFloat3(ray.origin) + closest_t * MakeFloat3(ray.direction);
+    payload.Color = color;
+    payload.IntersectionPoint = MakeFloat3(ray.origin) + closest_t * MakeFloat3(ray.direction);
     payload.IntersectionT = closest_t;
 
 }

@@ -137,7 +137,7 @@ namespace ElVis
 
         void ElementFaceRenderingDockWidget::HandleSceneInitialized(const Scene& s)
         {
-            m_elementId->setMaximum(m_appData->GetScene()->GetFaceGeometry()->getPrimitiveCount());
+            m_elementId->setMaximum(m_appData->GetScene()->GetModel()->GetNumberOfFaces());
         }
 
         void ElementFaceRenderingDockWidget::HandleAddButtonPressed()

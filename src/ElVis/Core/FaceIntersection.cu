@@ -26,25 +26,46 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVIS_CORE_FACEDEF_H
-#define ELVIS_CORE_FACEDEF_H
+#ifndef ELVIS_CORE_FACE_INTERSECTION_CU
+#define ELVIS_CORE_FACE_INTERSECTION_CU
 
-#include <ElVis/Core/ElementId.h>
-#include <ElVis/Core/Float.h>
-
-namespace ElVis
+__device__ VolumeRenderingPayload FindNextFaceIntersection(const ElVisFloat3& origin, 
+           const ElVisFloat3& rayDirection)
 {
-    enum FaceType
-    {
-        eCurved,
-        ePlanar
-    };
+  VolumeRenderingPayload payload;
+  payload.Initialize();
 
-    struct FaceDef
-    {
-        ElementId CommonElements[2];
-        FaceType Type;
-    };
+  optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
+
+  // do linear faces first, since they are fast.  Intersections with linear 
+  // faces may help weed out bad curved matches.
+  rtTrace(PlanarFaceGroup, ray, payload);
+  rtTrace(CurvedFaceGroup, ray, payload);
+
+  return payload;
+}
+
+__device__ void FaceBoundingBox(int globalFaceIdx, float result[6])
+{
+    optix::Aabb* aabb = (optix::Aabb*)result;
+
+    ElVisFloat3 p0 = FaceInfoBuffer[globalFaceIdx].MinExtent;
+    ElVisFloat3 p1 = FaceInfoBuffer[globalFaceIdx].MaxExtent;
+
+    //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
+    //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
+    aabb->m_min = make_float3(p0.x, p0.y, p0.z);
+    aabb->m_max = make_float3(p1.x, p1.y, p1.z);
+}
+
+RT_PROGRAM void PlanarFaceBoundingBoxProgram(int primitiveId, float result[6])
+{
+  FaceBoundingBox(PlanarFaceToGlobalIdxMap[primitiveId], result);
+}
+
+RT_PROGRAM void CurvedFaceBoundingBoxProgram(int primitiveId, float result[6])
+{
+  FaceBoundingBox(CurvedFaceToGlobalIdxMap[primitiveId], result);
 }
 
 #endif

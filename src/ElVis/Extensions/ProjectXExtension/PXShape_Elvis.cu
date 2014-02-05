@@ -470,9 +470,9 @@ PXShapeHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
   }
 #endif
 
-  if (porder >= 6){
-    return -1;
-  }
+  //if (porder >= 6){
+  return -1;
+ // }
 } // PXShapeHierarch2d
 
 
@@ -801,8 +801,8 @@ PXShapeHierarch3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
   }
 #endif
 
-  if (porder >= 6)
-    return -1;  
+  //if (porder >= 6)
+  return -1;
 } // PXShapeHierarch3d
 
 
@@ -812,7 +812,7 @@ template <typename DT> ELVIS_DEVICE int
 PXShapeLagrange3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
   DT x, y, z;
-  DT MapleGenVar1, x3, x4, y3, y4, z3, z4;
+  //DT MapleGenVar1, x3, x4, y3, y4, z3, z4;
 
   x = xref[0];
   y = xref[1];
@@ -917,14 +917,14 @@ PXShapeLagrange3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 #endif
 #if GEOM_USE_P5
   case 5:
-    x4 = x*x*x*x;
-    x3 = x*x*x;
-    y4 = y*y*y*y;
-    y3 = y*y*y;
-    z4 = z*z*z*z;
-    z3 = z*z*z;
+    DT x4 = x*x*x*x;
+    DT x3 = x*x*x;
+    DT y4 = y*y*y*y;
+    DT y3 = y*y*y;
+    DT z4 = z*z*z*z;
+    DT z3 = z*z*z;
     
-    MapleGenVar1 = 1.0-3125.0*ONESIXTH*z*y*x*x*x-137.0/12.0*x-137.0/12.0*y-3125.0*ONESIXTH*z*y*y*y*x-2125.0*0.25*z*y*x+1875.0*0.25*y*y*x*x-137.0/12.0*z-3125.0/24.0*z*z*z*z*y-3125.0/12.0*z*z*z*y*y+375.0/8.0*x*x+312.5*y*y*y*x+312.5*z*x*x*x+1875.0*0.25*z*z*y*y+1875.0*0.25*z*z*x*x+312.5*z*y*y*y+312.5*z*z*z*y+375.0*0.25*z*y-2125.0/8.0*z*z*y-2125.0/24.0*x*x*x-3125.0/24.0*z*x*x*x*x-3125.0/12.0*y*y*x*x*x-3125.0/24.0*z*y*y*y*y-2125.0/8.0*y*y*x-3125.0/12.0*z*z*x*x*x-2125.0/8.0*y*x*x-2125.0/8.0*z*x*x-3125.0/12.0*z*z*y*y*y;
+    DT MapleGenVar1 = 1.0-3125.0*ONESIXTH*z*y*x*x*x-137.0/12.0*x-137.0/12.0*y-3125.0*ONESIXTH*z*y*y*y*x-2125.0*0.25*z*y*x+1875.0*0.25*y*y*x*x-137.0/12.0*z-3125.0/24.0*z*z*z*z*y-3125.0/12.0*z*z*z*y*y+375.0/8.0*x*x+312.5*y*y*y*x+312.5*z*x*x*x+1875.0*0.25*z*z*y*y+1875.0*0.25*z*z*x*x+312.5*z*y*y*y+312.5*z*z*z*y+375.0*0.25*z*y-2125.0/8.0*z*z*y-2125.0/24.0*x*x*x-3125.0/24.0*z*x*x*x*x-3125.0/12.0*y*y*x*x*x-3125.0/24.0*z*y*y*y*y-2125.0/8.0*y*y*x-3125.0/12.0*z*z*x*x*x-2125.0/8.0*y*x*x-2125.0/8.0*z*x*x-3125.0/12.0*z*z*y*y*y;
     phi[0] = -2125.0/8.0*z*y*y-3125.0/24.0*z*z*z*z*x+312.5*z*z*z*x-3125.0*0.25*z*y*y*x*x-3125.0*0.25*z*z*y*x*x-3125.0/12.0*z*z*z*x*x+937.5*z*y*x*x-3125.0*0.25*z*z*y*y*x+MapleGenVar1-2125.0/8.0*z*z*x+312.5*y*x*x*x-3125.0/24.0*y*x*x*x*x+937.5*z*z*y*x+937.5*z*y*y*x+375.0*0.25*z*x-3125.0/12.0*y*y*y*x*x+375.0/8.0*z*z+375.0/8.0*y*y-2125.0/24.0*z*z*z-2125.0/24.0*y*y*y+625.0/8.0*z*z*z*z+625.0/8.0*y*y*y*y-625.0/24.0*z*z*z*z*z-625.0/24.0*y*y*y*y*y-625.0/24.0*x*x*x*x*x-3125.0*ONESIXTH*z*z*z*y*x+375.0*0.25*y*x+625.0/8.0*x*x*x*x-3125.0/24.0*y*y*y*y*x;
     phi[1] = 1562.5*z*y*x*x*x+25.0*x+3125.0*ONESIXTH*z*y*y*y*x+8875.0/12.0*z*y*x-4375.0*0.25*y*y*x*x-1925.0/12.0*x*x-4375.0/12.0*y*y*y*x-4375.0*0.25*z*x*x*x-4375.0*0.25*z*z*x*x+8875.0/24.0*x*x*x+3125.0*ONESIXTH*z*x*x*x*x+3125.0*0.25*y*y*x*x*x+8875.0/24.0*y*y*x+3125.0*0.25*z*z*x*x*x+8875.0/12.0*y*x*x+8875.0/12.0*z*x*x+3125.0/24.0*z*z*z*z*x-4375.0/12.0*z*z*z*x+1562.5*z*y*y*x*x+1562.5*z*z*y*x*x+3125.0*ONESIXTH*z*z*z*x*x-2187.5*z*y*x*x+3125.0*0.25*z*z*y*y*x+8875.0/24.0*z*z*x-4375.0*0.25*y*x*x*x+3125.0*ONESIXTH*y*x*x*x*x-4375.0*0.25*z*z*y*x-4375.0*0.25*z*y*y*x-1925.0/12.0*z*x+3125.0*ONESIXTH*y*y*y*x*x+3125.0/24.0*x*x*x*x*x+3125.0*ONESIXTH*z*z*z*y*x-1925.0/12.0*y*x-4375.0/12.0*x*x*x*x+3125.0/24.0*y*y*y*y*x;
     phi[2] = -1562.5*z*y*x*x*x-25.0*x-250.0*z*y*x+3125.0*0.25*y*y*x*x+2675.0/12.0*x*x+625.0/12.0*y*y*y*x+5625.0*0.25*z*x*x*x+3125.0*0.25*z*z*x*x-7375.0/12.0*x*x*x-3125.0*0.25*z*x*x*x*x-3125.0*0.25*y*y*x*x*x-125.0*y*y*x-3125.0*0.25*z*z*x*x*x-8875.0/12.0*y*x*x-8875.0/12.0*z*x*x+625.0/12.0*z*z*z*x-3125.0*0.25*z*y*y*x*x-3125.0*0.25*z*z*y*x*x-3125.0/12.0*z*z*z*x*x+1562.5*z*y*x*x-125.0*z*z*x+5625.0*0.25*y*x*x*x-3125.0*0.25*y*x*x*x*x+625.0*0.25*z*z*y*x+625.0*0.25*z*y*y*x+1175.0/12.0*z*x-3125.0/12.0*y*y*y*x*x-3125.0/12.0*x*x*x*x*x+1175.0/12.0*y*x+8125.0/12.0*x*x*x*x;
@@ -996,7 +996,7 @@ template <typename DT> ELVIS_DEVICE int
 PXShapeLagrange3d_Solution(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
   DT x, y, z;
-  DT MapleGenVar1, x3, x4, y3, y4, z3, z4;
+  //DT MapleGenVar1, x3, x4, y3, y4, z3, z4;
 
   x = xref[0];
   y = xref[1];
@@ -1101,14 +1101,14 @@ PXShapeLagrange3d_Solution(const int porder, const DT * RESTRICT xref, DT * REST
 #endif
 #if SOLN_USE_P5
   case 5:
-    x4 = x*x*x*x;
-    x3 = x*x*x;
-    y4 = y*y*y*y;
-    y3 = y*y*y;
-    z4 = z*z*z*z;
-    z3 = z*z*z;
+    DT x4 = x*x*x*x;
+    DT x3 = x*x*x;
+    DT y4 = y*y*y*y;
+    DT y3 = y*y*y;
+    DT z4 = z*z*z*z;
+    DT z3 = z*z*z;
     
-    MapleGenVar1 = 1.0-3125.0*ONESIXTH*z*y*x*x*x-137.0/12.0*x-137.0/12.0*y-3125.0*ONESIXTH*z*y*y*y*x-2125.0*0.25*z*y*x+1875.0*0.25*y*y*x*x-137.0/12.0*z-3125.0/24.0*z*z*z*z*y-3125.0/12.0*z*z*z*y*y+375.0/8.0*x*x+312.5*y*y*y*x+312.5*z*x*x*x+1875.0*0.25*z*z*y*y+1875.0*0.25*z*z*x*x+312.5*z*y*y*y+312.5*z*z*z*y+375.0*0.25*z*y-2125.0/8.0*z*z*y-2125.0/24.0*x*x*x-3125.0/24.0*z*x*x*x*x-3125.0/12.0*y*y*x*x*x-3125.0/24.0*z*y*y*y*y-2125.0/8.0*y*y*x-3125.0/12.0*z*z*x*x*x-2125.0/8.0*y*x*x-2125.0/8.0*z*x*x-3125.0/12.0*z*z*y*y*y;
+    DT MapleGenVar1 = 1.0-3125.0*ONESIXTH*z*y*x*x*x-137.0/12.0*x-137.0/12.0*y-3125.0*ONESIXTH*z*y*y*y*x-2125.0*0.25*z*y*x+1875.0*0.25*y*y*x*x-137.0/12.0*z-3125.0/24.0*z*z*z*z*y-3125.0/12.0*z*z*z*y*y+375.0/8.0*x*x+312.5*y*y*y*x+312.5*z*x*x*x+1875.0*0.25*z*z*y*y+1875.0*0.25*z*z*x*x+312.5*z*y*y*y+312.5*z*z*z*y+375.0*0.25*z*y-2125.0/8.0*z*z*y-2125.0/24.0*x*x*x-3125.0/24.0*z*x*x*x*x-3125.0/12.0*y*y*x*x*x-3125.0/24.0*z*y*y*y*y-2125.0/8.0*y*y*x-3125.0/12.0*z*z*x*x*x-2125.0/8.0*y*x*x-2125.0/8.0*z*x*x-3125.0/12.0*z*z*y*y*y;
     phi[0] = -2125.0/8.0*z*y*y-3125.0/24.0*z*z*z*z*x+312.5*z*z*z*x-3125.0*0.25*z*y*y*x*x-3125.0*0.25*z*z*y*x*x-3125.0/12.0*z*z*z*x*x+937.5*z*y*x*x-3125.0*0.25*z*z*y*y*x+MapleGenVar1-2125.0/8.0*z*z*x+312.5*y*x*x*x-3125.0/24.0*y*x*x*x*x+937.5*z*z*y*x+937.5*z*y*y*x+375.0*0.25*z*x-3125.0/12.0*y*y*y*x*x+375.0/8.0*z*z+375.0/8.0*y*y-2125.0/24.0*z*z*z-2125.0/24.0*y*y*y+625.0/8.0*z*z*z*z+625.0/8.0*y*y*y*y-625.0/24.0*z*z*z*z*z-625.0/24.0*y*y*y*y*y-625.0/24.0*x*x*x*x*x-3125.0*ONESIXTH*z*z*z*y*x+375.0*0.25*y*x+625.0/8.0*x*x*x*x-3125.0/24.0*y*y*y*y*x;
     phi[1] = 1562.5*z*y*x*x*x+25.0*x+3125.0*ONESIXTH*z*y*y*y*x+8875.0/12.0*z*y*x-4375.0*0.25*y*y*x*x-1925.0/12.0*x*x-4375.0/12.0*y*y*y*x-4375.0*0.25*z*x*x*x-4375.0*0.25*z*z*x*x+8875.0/24.0*x*x*x+3125.0*ONESIXTH*z*x*x*x*x+3125.0*0.25*y*y*x*x*x+8875.0/24.0*y*y*x+3125.0*0.25*z*z*x*x*x+8875.0/12.0*y*x*x+8875.0/12.0*z*x*x+3125.0/24.0*z*z*z*z*x-4375.0/12.0*z*z*z*x+1562.5*z*y*y*x*x+1562.5*z*z*y*x*x+3125.0*ONESIXTH*z*z*z*x*x-2187.5*z*y*x*x+3125.0*0.25*z*z*y*y*x+8875.0/24.0*z*z*x-4375.0*0.25*y*x*x*x+3125.0*ONESIXTH*y*x*x*x*x-4375.0*0.25*z*z*y*x-4375.0*0.25*z*y*y*x-1925.0/12.0*z*x+3125.0*ONESIXTH*y*y*y*x*x+3125.0/24.0*x*x*x*x*x+3125.0*ONESIXTH*z*z*z*y*x-1925.0/12.0*y*x-4375.0/12.0*x*x*x*x+3125.0/24.0*y*y*y*y*x;
     phi[2] = -1562.5*z*y*x*x*x-25.0*x-250.0*z*y*x+3125.0*0.25*y*y*x*x+2675.0/12.0*x*x+625.0/12.0*y*y*y*x+5625.0*0.25*z*x*x*x+3125.0*0.25*z*z*x*x-7375.0/12.0*x*x*x-3125.0*0.25*z*x*x*x*x-3125.0*0.25*y*y*x*x*x-125.0*y*y*x-3125.0*0.25*z*z*x*x*x-8875.0/12.0*y*x*x-8875.0/12.0*z*x*x+625.0/12.0*z*z*z*x-3125.0*0.25*z*y*y*x*x-3125.0*0.25*z*z*y*x*x-3125.0/12.0*z*z*z*x*x+1562.5*z*y*x*x-125.0*z*z*x+5625.0*0.25*y*x*x*x-3125.0*0.25*y*x*x*x*x+625.0*0.25*z*z*y*x+625.0*0.25*z*y*y*x+1175.0/12.0*z*x-3125.0/12.0*y*y*y*x*x-3125.0/12.0*x*x*x*x*x+1175.0/12.0*y*x+8125.0/12.0*x*x*x*x;
@@ -1179,7 +1179,6 @@ PXShapeLagrange3d_Solution(const int porder, const DT * RESTRICT xref, DT * REST
 template <typename DT> ELVIS_DEVICE int
 PXShapeHexUniformLagrange3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
-  int ierr;
   int i,j,k,l;
   DT phi_i[6]; // 1d uniform lagrange basis functions
   DT phi_j[6]; // 1d uniform lagrange basis functions
@@ -1208,7 +1207,6 @@ PXShapeHexUniformLagrange3d(const int porder, const DT * RESTRICT xref, DT * RES
 template <typename DT> ELVIS_DEVICE int
 PXShapeHexSpectralLagrange3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
-  int ierr;
   int i,j,k,l;
   DT phi_i[6]; // 1d spectral lagrange basis functions
   DT phi_j[6]; // 1d spectral lagrange basis functions
@@ -3046,7 +3044,6 @@ PXGradientsHexSpectralLagrange3d(const int porder, const DT * RESTRICT xref, DT 
 template <typename DT> ELVIS_DEVICE int
 PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, DT * RESTRICT phi)
 {
-  int ierr;      // error code
   //int porder;    // polynomial interpolation order
 
   if ( unlikely(order==PXE_OrderDummy) ){
@@ -3105,7 +3102,6 @@ PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
 template <typename DT> ELVIS_DEVICE int
 PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, DT * RESTRICT phi)
 {
-  int ierr;      // error code
   //int porder;    // polynomial interpolation order
 
   if ( unlikely(order==PXE_OrderDummy) ){
@@ -3164,7 +3160,6 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
 template <typename DT> ELVIS_DEVICE int
 PXShapeFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, DT * RESTRICT phi)
 {
-  int ierr;      // error code
   //int porder;    // polynomial interpolation order
 
   if ( unlikely(order==PXE_OrderDummy) ){
@@ -3354,7 +3349,6 @@ PXShapeFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
 template <typename DT> ELVIS_DEVICE int
 PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, DT * RESTRICT gphi)
 {
-  int ierr;      // error code
   //int porder;    // polynomial interpolation order
 
   /* get porder */
@@ -3408,7 +3402,6 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
 template <typename DT> ELVIS_DEVICE int
 PXGradientsElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, DT * RESTRICT gphi)
 {
-  int ierr;      // error code
   //int porder;    // polynomial interpolation order
 
   /* get porder */
@@ -3463,7 +3456,6 @@ PXGradientsElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RE
 template <typename DT> ELVIS_DEVICE int
 PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, DT * RESTRICT gphi)
 {
-  int ierr;      // error code
   //int porder;    // polynomial interpolation order
 
   /* get porder */
@@ -3598,9 +3590,7 @@ PXMatrixDetInverse3(DT const * RESTRICT jac, DT * RESTRICT J, DT * RESTRICT ijac
 template <typename DT> ELVIS_DEVICE int 
 PXPhysicalGradientsGivenGradients(enum PXE_SolutionOrder order, int nbf, DT const * RESTRICT iJac, DT const * RESTRICT gphi, DT * RESTRICT phix)
 {
-  int d;  // Dimension
   const int Dim = DIM3D;
-  int di, dj; // dimension
   int k;  // number of basis functions
    DT const * RESTRICT gphix;
    DT const * RESTRICT gphiy;
@@ -3691,7 +3681,6 @@ LinearSimplexGlob2Ref(int Dim, ElVisFloat const * RESTRICT vertices, PX_REAL con
   //PX_REAL J;         // Jacobian Determinant
   PX_REAL iJac[9];   // Inverse of Jacobian
   ElVisFloat const * x0;       // Coordinates on Node0
-  int ierr;
 
   /* Set x0 to node 0 */
   x0 = vertices;

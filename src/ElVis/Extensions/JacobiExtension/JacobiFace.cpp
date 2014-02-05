@@ -26,33 +26,52 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVIS_VOLUME_RENDERING_PAYLOAD_CU
-#define ELVIS_VOLUME_RENDERING_PAYLOAD_CU
+#include <ElVis/Extensions/JacobiExtension/JacobiFace.h>
 
-#include <optix_cuda.h>
-#include <optix_math.h>
-#include <ElVis/Core/util.cu>
-#include <ElVis/Core/Float.cu>
-#include <ElVis/Core/OptixVariables.cu>
-
-struct VolumeRenderingPayload
+namespace ElVis
 {
-    ELVIS_DEVICE void Initialize()
+    namespace JacobiExtension
     {
-        FoundIntersection = false;
-        ElementId = 0;
-        ElementTypeId = 0;
-        IntersectionT = MAKE_FLOAT(-1.0);
-        FaceId.Value = -1;
+        bool closePointEqual(const WorldPoint& lhs, const WorldPoint& rhs)
+        {
+          return !closePointLessThan(lhs, rhs) &&
+            !closePointLessThan(rhs, lhs);
+        }
+
+        WorldPoint JacobiFaceKey::MinExtent() const
+        {
+            return CalcMin(p[0], CalcMin(p[1], CalcMin(p[2], p[3])));
+        }
+
+        WorldPoint JacobiFaceKey::MaxExtent() const
+        {
+            return CalcMax(p[0], CalcMax(p[1], CalcMax(p[2], p[3])));
+        }
+
+        int JacobiFaceKey::NumVertices() const
+        {
+          if( !closePointLessThan(sorted[2], sorted[3]) &&
+              !closePointLessThan(sorted[3], sorted[2]) )
+          {
+            return 3;
+          }
+          return 4;
+        }
+
+        bool operator<(const JacobiFaceKey& lhs, const JacobiFaceKey& rhs)
+        {
+            if( lhs.NumVertices() != rhs.NumVertices() )
+            {
+                return lhs.NumVertices() < rhs.NumVertices();
+            }
+
+            for(int i = 0; i < 4; ++i)
+            {
+                if( closePointLessThan(lhs.sorted[i], rhs.sorted[i]) ) return true;
+                if( closePointLessThan(rhs.sorted[i], lhs.sorted[i]) ) return false;
+            }
+            return false;
+
+        }
     }
-
-    bool FoundIntersection;
-    unsigned int ElementId;
-    unsigned int ElementTypeId;
-    ElVisFloat IntersectionT;
-    GlobalFaceIdx FaceId;
-};
-
-rtDeclareVariable(VolumeRenderingPayload, volumePayload, rtPayload, );
-
-#endif //ELVIS_VOLUME_RENDERING_PAYLOAD_CU
+}

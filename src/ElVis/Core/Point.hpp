@@ -90,7 +90,11 @@ namespace ElVis
                 }
             }
 
-            Point(const Point<DataType, dim, space>& rhs)
+            Point(const Point<DataType, dim, space>& rhs) :
+              OnPointChanged(),
+              OnXChanged(),
+              OnYChanged(),
+              OnZChanged()
             {
                 for(unsigned int i = 0; i < dim::Value; ++i)
                 {

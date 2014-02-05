@@ -67,14 +67,10 @@ namespace ElVis
         m_faceIntersectionProgram(),
 //        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
-        m_faceIdBuffer("FaceIdBuffer"),
-        m_faceMinExtentBuffer("FaceMinExtentBuffer"),
-        m_faceMaxExtentBuffer("FaceMaxExtentBuffer"),
-        m_faceGeometry(),
+        m_faceIdBuffer("FaceInfoBuffer"),
 //        m_curvedFaceGeometry(0),
 //        m_planarFaceGeometry(0),
-        m_faceAcceleration(),
-        m_facesEnabledBuffer()
+        m_faceAcceleration()
     {
         m_optixTraceIndex.SetX(0);
         m_optixTraceIndex.SetY(0);
@@ -152,13 +148,13 @@ namespace ElVis
                 // same scene.
                 m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
 
-                std::list<DirectionalLight*> allDirectionalLights;
-                std::list<PointLight*> allPointLights;
+                std::list<boost::shared_ptr<DirectionalLight> > allDirectionalLights;
+                std::list<boost::shared_ptr<PointLight> > allPointLights;
                 std::cout << "Total Lights: " << m_allLights.size() << std::endl;
-                for(std::list<Light*>::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
+                for(std::list<boost::shared_ptr<Light> >::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
                 {
-                    DirectionalLight* asDirectional = dynamic_cast<DirectionalLight*>(*iter);
-                    PointLight* asPointLight = dynamic_cast<PointLight*>(*iter);
+                    BOOST_AUTO(asDirectional, boost::shared_dynamic_cast<DirectionalLight>(*iter));
+                    BOOST_AUTO(asPointLight, boost::shared_dynamic_cast<PointLight>(*iter));
 
                     if( asDirectional )
                     {
@@ -183,7 +179,7 @@ namespace ElVis
                 float* colorData = static_cast<float*>(lightColorBuffer->map());
 
                 int i = 0;
-                for(std::list<PointLight*>::const_iterator iter = allPointLights.begin(); iter != allPointLights.end(); ++iter)
+                for(std::list<boost::shared_ptr<PointLight> >::const_iterator iter = allPointLights.begin(); iter != allPointLights.end(); ++iter)
                 {
                     positionData[i] = static_cast<float>((*iter)->Position().x());
                     positionData[i+1] = static_cast<float>((*iter)->Position().y());
@@ -203,19 +199,11 @@ namespace ElVis
                 {
 
                     GetModel()->CalculateExtents();
-                    std::cout << "Min Extent: " << GetModel()->MinExtent() << std::endl;
-                    std::cout << "Max Extent: " << GetModel()->MaxExtent() << std::endl;
-
-                    Get3DModelInformation();
-
-                    //////////////////////////////////////////
-                    // Module min/max
-                    /////////////////////////////////////////
-                    GetModel()->CalculateExtents();
                     SetFloat(m_context["VolumeMinExtent"], GetModel()->MinExtent());
                     SetFloat(m_context["VolumeMaxExtent"], GetModel()->MaxExtent());
 
-                    InitializeFaces();
+                    // Version 2.0 Interface.
+                    GetModel()->CopyToOptiX(m_context);
                 }
 
                 m_context->setStackSize(m_optixStackSize);
@@ -236,111 +224,6 @@ namespace ElVis
             std::cout << e.getErrorString().c_str() << std::endl;
         }
         return m_context;
-    }
-
-    void Scene::Get3DModelInformation()
-    {
-        //if( GetModel()->GetModelDimension() != 3 ) return;
-
-        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context);
-        optixu::Group volumeGroup = m_context->createGroup();
-        volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
-
-        // No acceleration provides better performance since there are only a couple of nodes and the
-        // bounding box of each overlap each other.
-        optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("NoAccel","NoAccel");
-        //optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-
-        volumeGroup->setAcceleration( m_elementGroupAcceleration );
-        int childIndex = 0;
-        for(std::vector<optixu::GeometryGroup>::iterator iter = elements.begin(); iter != elements.end(); ++iter)
-        {
-            volumeGroup->setChild(childIndex, *iter);
-            ++childIndex;
-        }
-        m_context["PointLocationGroup"]->set(volumeGroup);
-    }
-
-    void Scene::InitializeFaces()
-    {
-        optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
-
-        m_faceIdBuffer.SetContext(m_context);
-        m_faceIdBuffer.SetDimensions(1);
-
-        m_faceMinExtentBuffer.SetContext(m_context);
-        m_faceMinExtentBuffer.SetDimensions(1);
-
-        m_faceMaxExtentBuffer.SetContext(m_context);
-        m_faceMaxExtentBuffer.SetDimensions(1);
-
-        m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
-        m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
-        m_faceGeometry = m_context->createGeometry();
-        m_faceGeometry->setPrimitiveCount(0);
-        GetModel()->GetFaceGeometry(this, m_context, m_faceGeometry);
-        m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
-        m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
-
-
-        optixu::GeometryInstance faceInstance = m_context->createGeometryInstance();
-        optixu::Material faceMaterial = m_context->createMaterial();
-        faceMaterial->setClosestHitProgram(2, closestHit);
-        faceInstance->setMaterialCount(1);
-        faceInstance->setMaterial(0, faceMaterial);
-        faceInstance->setGeometry(m_faceGeometry);
-
-        m_facesEnabledBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, m_faceGeometry->getPrimitiveCount());
-        unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
-        for(unsigned int i = 0; i < m_faceGeometry->getPrimitiveCount(); ++i)
-        {
-            //data[i] = static_cast<unsigned char>(0);
-            data[i] = 0;
-        }
-        m_facesEnabledBuffer->unmap();
-        m_context["FaceEnabled"]->set(m_facesEnabledBuffer);
-
-
-        optixu::GeometryGroup faceGroup = m_context->createGeometryGroup();
-
-
-        faceGroup->setChildCount(1);
-        faceGroup->setChild(0, faceInstance);
-
-        m_faceAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-        //m_faceAcceleration = m_context->createAcceleration("MedianBvh","Bvh");
-        faceGroup->setAcceleration( m_faceAcceleration );
-        m_context["faceGroup"]->set(faceGroup);
-
-
-
-        // For isosurface/volume rendering
-        // Somehow, enabling this code screws up the face rendering with what looks like
-        // memory corruption or something else that causes random patterns.
-        optixu::Geometry facesForTraversal = m_context->createGeometry();
-//        optixu::Buffer tempBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, m_faceGeometry->getPrimitiveCount());
-//        facesForTraversal["FaceEnabled"]->set(tempBuffer);
-        facesForTraversal->setPrimitiveCount(m_faceGeometry->getPrimitiveCount());
-        optixu::Program faceForTraversalBBProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalBoundingBoxProgram");
-        optixu::Program faceForTraversalIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalIntersection");
-
-        facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
-        facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
-        optixu::GeometryGroup faceForTraversalGroup = m_context->createGeometryGroup();
-        faceForTraversalGroup->setChildCount(1);
-
-        optixu::GeometryInstance faceForTraversalInstance = m_context->createGeometryInstance();
-        optixu::Material faceForTraversalMaterial = m_context->createMaterial();
-        faceForTraversalMaterial->setClosestHitProgram(2, closestHit);
-        faceForTraversalInstance->setMaterialCount(1);
-        faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
-        faceForTraversalInstance->setGeometry(facesForTraversal);
-
-        faceForTraversalGroup->setChild(0, faceForTraversalInstance);
-        faceForTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
-        m_context["faceForTraversalGroup"]->set(faceForTraversalGroup);
-
-
     }
 
     void Scene::SynchronizeWithOptiXIfNeeded()

@@ -139,58 +139,31 @@ namespace ElVis
             return;
         }
 
+        BOOST_AUTO(model, view->GetScene()->GetModel());
+
         group = context->createGeometryGroup();
 
-        group->setChildCount(1);
         m_curvedFaceInstance = context->createGeometryInstance();
-//        m_planarFaceInstance = context->createGeometryInstance();
+        m_planarFaceInstance = context->createGeometryInstance();
 
-        optixu::Geometry curvedGeometry = view->GetScene()->GetFaceGeometry();
-//        optixu::Geometry planarGeometry = view->GetScene()->GetPlanarFaceGeometry();
+        optixu::Geometry curvedGeometry = model->GetPlanarFaceGeometry();
+        optixu::Geometry planarGeometry = model->GetCurvedFaceGeometry();
 
+        m_planarFaceInstance->setGeometry(planarGeometry);
         m_curvedFaceInstance->setGeometry(curvedGeometry);
-//        m_planarFaceInstance->setGeometry(planarGeometry);
 
         m_group = group;
 
-
-        group->setChild(0, m_curvedFaceInstance);
-//        group->setChild(1, m_planarFaceInstance);
-
-//        m_curvedDeviceFlags = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, curvedGeometry->getPrimitiveCount());
-//        m_planarDeviceFlags = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, planarGeometry->getPrimitiveCount());
-//        m_curvedFaceInstance["FaceEnabled"]->set(m_curvedDeviceFlags);
-//        m_planarFaceInstance["FaceEnabled"]->set(m_planarDeviceFlags);
-
-//        m_planarFaceFlags = std::vector<unsigned char>(planarGeometry->getPrimitiveCount(), 1);
-//        m_curvedFaceFlags = std::vector<unsigned char>(curvedGeometry->getPrimitiveCount(), 1);
-
-        CopyDataToOptiX();
+        group->setChildCount(2);
+        group->setChild(0, m_planarFaceInstance);
+        group->setChild(1, m_curvedFaceInstance);
 
         // Somehow sharing the acceleration structure didnt' work.  Revisit if performance indicates.
-        //m_group->setAcceleration( view->GetScene()->GetFaceAcceleration() );
         m_group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );
-        m_facesEnabledBuffer = view->GetScene()->GetFacesEnabledBuffer();
+        m_facesEnabledBuffer = view->GetScene()->GetModel()->GetFacesEnabledBuffer();
 
         std::vector<int> temp(m_faceIds.begin(), m_faceIds.end());
         SetFaces(temp, true);
-    }
-
-    void FaceObject::CopyDataToOptiX()
-    {
-//        if( m_curvedFaceInstance && m_curvedFaceFlags.size() > 0 )
-//        {
-//            unsigned char* data = static_cast<unsigned char*>(m_curvedDeviceFlags->map());
-//            std::copy(m_curvedFaceFlags.begin(), m_curvedFaceFlags.end(), data);
-//            m_curvedDeviceFlags->unmap();
-//        }
-
-//        if( m_planarFaceInstance && m_planarFaceFlags.size() > 0)
-//        {
-//            unsigned char* data = static_cast<unsigned char*>(m_planarDeviceFlags->map());
-//            std::copy(m_planarFaceFlags.begin(), m_planarFaceFlags.end(), data);
-//            m_planarDeviceFlags->unmap();
-//        }
     }
 
     void FaceObject::SetFaces(const std::vector<int>& ids, bool flag)

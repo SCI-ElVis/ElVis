@@ -58,6 +58,8 @@
 #include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/CutSurfaceContourModule.h>
 #include <ElVis/Core/SurfaceObject.h>
+#include <ElVis/Core/Cylinder.h>
+#include <ElVis/Core/SampleVolumeSamplerObject.h>
 
 #include <string>
 #include <boost/bind.hpp>

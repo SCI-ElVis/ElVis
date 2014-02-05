@@ -43,8 +43,10 @@
 #include <ElVis/Core/CutSurfaceMeshModule.h>
 #include <ElVis/Core/TwoDPrimaryElements.h>
 #include <ElVis/Core/TwoDPrimaryElementsPrimaryObject.h>
-
+#include <ElVis/Core/Cylinder.h>
+#include <ElVis/Core/SampleVolumeSamplerObject.h>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 //#define OFFSET -.1
 
@@ -65,7 +67,7 @@ namespace ElVis
         }
 
         ApplicationState::ApplicationState() :
-            m_scene(new ElVis::Scene()),
+            m_scene(boost::make_shared<ElVis::Scene>()),
             m_surfaceSceneView(new SceneView()),
             m_selectedObject(),
             m_selectedTransferFunction(),
@@ -276,14 +278,13 @@ namespace ElVis
             ambientColor.SetGreen(1.0-86.0/255.0);
             ambientColor.SetBlue(1.0-86.0/255.0);
             m_scene->SetAmbientLightColor(ambientColor);
+                                boost::shared_ptr<FaceObject> faceObject(new FaceObject(GetScene()));
+                    m_faceSampler.reset(new SampleFaceObject(faceObject));
+                    m_primaryRayModule->AddObject(m_faceSampler);
 
-            boost::shared_ptr<FaceObject> faceObject(new FaceObject(GetScene()));
-            m_faceSampler.reset(new SampleFaceObject(faceObject));
-            m_primaryRayModule->AddObject(m_faceSampler);
-
-            boost::shared_ptr<TwoDPrimaryElements> twoDObject(new TwoDPrimaryElements(GetScene()));
-            boost::shared_ptr<TwoDPrimaryElementsPrimaryObject> wrapper(new TwoDPrimaryElementsPrimaryObject(twoDObject));
-            m_primaryRayModule->AddObject(wrapper);
+                    boost::shared_ptr<TwoDPrimaryElements> twoDObject(new TwoDPrimaryElements(GetScene()));
+                    boost::shared_ptr<TwoDPrimaryElementsPrimaryObject> wrapper(new TwoDPrimaryElementsPrimaryObject(twoDObject));
+                    m_primaryRayModule->AddObject(wrapper);
 
         }
 
