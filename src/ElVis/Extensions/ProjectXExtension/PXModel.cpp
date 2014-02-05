@@ -403,7 +403,7 @@ namespace ElVis
         PXOrder2nbf(State->order[egrp], &nbfS);
         PXType2nbf(pg->ElementGroup[egrp].type, &nbfQ);
 
-        printf("nbfS=%d, nbfQ=%d\n", nbfS, nbfQ);
+        printf("egrp=%d, nbfS=%d, nbfQ=%d\n", egrp, nbfS, nbfQ);
 
         nSolnCoeffTotal += nbfS*StateRank*pg->ElementGroup[egrp].nElement;
         nGeomCoeffTotal += nbfQ*Dim*pg->ElementGroup[egrp].nElement;
@@ -443,7 +443,8 @@ namespace ElVis
         PXError( PXType2Interpolation(elemType, &orderQ));
         PXError( PXType2qorder(elemType, &qorder));
         PXError( PXType2Shape(elemType, &elemShape) );
-        printf("elemType = %d, elemShape = %d\n", elemType, elemShape);
+
+        printf("egrp=%d, elemType=%d, elemShape=%d, qorder=%d\n", egrp, elemType, elemShape, qorder);
 
         PXError( PXOrder2nbf(State->order[egrp], &nbfS) );
         PXError( PXOrder2porder(State->order[egrp], &porder));
@@ -481,8 +482,6 @@ namespace ElVis
             for(int i=0; i<nbfQ; i++)
               for( int d = 0; d < Dim; d++ )
                 coordinateData[G++] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][d];
-
-            //G += Dim*nbfQ;
 
             // fill in attachment values
             //for(j=0; j<QnDistance->StateRank*nbfA; j++){
@@ -572,8 +571,7 @@ namespace ElVis
 
     PX_AttachmentGlobRealElem *State = 0;
     int currentIndex = 0;
-    PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL,
-				      &State, NULL ) );
+    PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL, &State, NULL ) );
 
     //State can be null if the file was not found
     int StateRank = State->StateRank;
@@ -592,7 +590,7 @@ namespace ElVis
 
 
 
-    PX_REAL bBoxTemp[BBOX_SIZE];
+    ElVisFloat bBoxTemp[BBOX_SIZE];
     ElVisFloat bBoxTempElVis[BBOX_SIZE];
 
     int geomRank;
@@ -636,10 +634,12 @@ namespace ElVis
         PXType2qorder(elemType, &qorder);
         PXElemType2FaceType(elemType, 0, &FaceType );
 
-        FaceInfo info;
-        PlanarFaceInfo planarInfo;
+        PXType2Shape(elemType, &elemShape);
+        PXElemShape2FaceShape(elemShape, lface, &faceShape);
+        PXElementCentroidReference(faceShape, xface);
 
-        assert(nNodesOnFace <= 4); //Hardcoded for Planar...
+        FaceInfo info;
+        FaceNodeInfo planarInfo(nNodesOnFace);
 
         for( d = 0; d < Dim; d++)
         {
@@ -663,21 +663,23 @@ namespace ElVis
         }
 
         if( PXE_UniformTriangleQ1 <= FaceType && FaceType <= PXE_UniformTriangleQ5 ) planarInfo.Type = eTriangle;
-        if( (PXE_UniformQuadQ1  <= FaceType && FaceType <= PXE_UniformQuadQ5 ) ||
-            (PXE_SpectralQuadQ1 <= FaceType && FaceType <= PXE_SpectralQuadQ5)) planarInfo.Type = eQuad;
+        else if( (PXE_UniformQuadQ1  <= FaceType && FaceType <= PXE_UniformQuadQ5 ) ||
+                 (PXE_SpectralQuadQ1 <= FaceType && FaceType <= PXE_SpectralQuadQ5)) planarInfo.Type = eQuad;
+        else
+          printf("UNKNOWN FaceType=%d\n", FaceType);
 
         info.Type = qorder == 1 ? ePlanar : eCurved;
 
         //PXComputeFaceBoundingBox(pg, fgrp, face, PXE_Left, nodeCoord, phiQ, bBoxTemp);
 
         // reorder from PX bounding box ordering to ordering used on GPU
-        info.MinExtent.x = (ElVisFloat)bBoxTemp[2*0+0];
-        info.MinExtent.y = (ElVisFloat)bBoxTemp[2*1+0];
-        info.MinExtent.z = (ElVisFloat)bBoxTemp[2*2+0];
+        info.MinExtent.x = bBoxTemp[2*0+0];
+        info.MinExtent.y = bBoxTemp[2*1+0];
+        info.MinExtent.z = bBoxTemp[2*2+0];
 
-        info.MaxExtent.x = (ElVisFloat)bBoxTemp[2*0+1];
-        info.MaxExtent.y = (ElVisFloat)bBoxTemp[2*1+1];
-        info.MaxExtent.z = (ElVisFloat)bBoxTemp[2*2+1];
+        info.MaxExtent.x = bBoxTemp[2*0+1];
+        info.MaxExtent.y = bBoxTemp[2*1+1];
+        info.MaxExtent.z = bBoxTemp[2*2+1];
 
 
         info.CommonElements[0].Id = m_egrp2GlobalElemIndex[egrp] + elem;

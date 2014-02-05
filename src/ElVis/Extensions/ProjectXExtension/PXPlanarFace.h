@@ -36,10 +36,35 @@
 
 namespace ElVis
 {
+  struct FaceNodeInfo
+  {
+  private:
+    FaceNodeInfo() : nNode(0), vertexIdx(NULL) {}
+
+  public:
+    FaceNodeInfo(const int nNode) : nNode(nNode) { vertexIdx = new unsigned int[nNode]; }
+    FaceNodeInfo(const FaceNodeInfo& Info) : nNode(Info.nNode), vertexIdx(NULL)
+    {
+      vertexIdx = new unsigned int[nNode];
+      for(int i = 0; i < nNode; i++) vertexIdx[i] = Info.vertexIdx[i];
+    }
+    FaceNodeInfo& operator=(const FaceNodeInfo& Info)
+    {
+      nNode = Info.nNode;
+      vertexIdx = new unsigned int[nNode];
+      for(int i = 0; i < nNode; i++) vertexIdx[i] = Info.vertexIdx[i];
+      return *this;
+    }
+    ~FaceNodeInfo() { delete [] vertexIdx; }
+
+    int nNode;
+    TwoDElementType Type;
+    unsigned int *vertexIdx;
+  };
 
   struct PXPlanarFace
   {
-    explicit PXPlanarFace(const WorldVector& n, const FaceInfo& info, const PlanarFaceInfo& planarInfo) :
+    explicit PXPlanarFace(const WorldVector& n, const FaceInfo& info, const FaceNodeInfo& planarInfo) :
               normal(n),
               info(info),
               planarInfo(planarInfo)
@@ -63,7 +88,7 @@ namespace ElVis
 
     WorldVector normal;
     FaceInfo info;
-    PlanarFaceInfo planarInfo;
+    FaceNodeInfo planarInfo;
   };
 }
 

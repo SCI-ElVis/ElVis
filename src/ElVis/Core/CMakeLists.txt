@@ -243,7 +243,6 @@ SET(ELVIS_CUDA_HEADERS
     ${CMAKE_SOURCE_DIR}/ElVis/Core/DiffuseLighting.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElementTraversal.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
-    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FaceIntersection.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FieldEvaluator.cu
     ${CMAKE_SOURCE_DIR}/ElVis/Core/FindElement.cu
@@ -332,7 +331,6 @@ INSTALL(FILES ${ELVIS_HEADERS} ${ELVIS_CUDA_HEADERS}
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
     ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
-    ${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
     DESTINATION ${ELVIS_INCLUDE_DIR}/ElVis/Core)
 
 INSTALL(FILES ${ELVIS_MATH_HEADERS}

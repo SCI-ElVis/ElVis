@@ -48,6 +48,8 @@ namespace ElVis
         m_faceIdBuffer("FaceInfoBuffer"),
         m_PlanarFaceToGlobalIdxMap("PlanarFaceToGlobalIdxMap"),
         m_CurvedFaceToGlobalIdxMap("CurvedFaceToGlobalIdxMap"),
+        m_GlobalFaceToPlanarFaceIdxMap("GlobalFaceToPlanarFaceIdxMap"),
+        m_GlobalFaceToCurvedFaceIdxMap("GlobalFaceToCurvedFaceIdxMap"),
         m_PlanarFaceInfoBuffer("PlanarFaceInfoBuffer"),
         m_VertexBuffer("VertexBuffer"),
         m_PlanarFaceNormalBuffer("PlanarFaceNormalBuffer"),
@@ -110,6 +112,33 @@ namespace ElVis
       return DoGetPlanarFaceNormal(localFaceIdx);
     }
 
+    namespace
+    {
+      void setupGlobalToLocalMapping(optixu::Context context, 
+        OptiXBuffer<int>& buffer,
+        boost::shared_array<FaceInfo> faceInfoBuffer, size_t faceBufferSize,
+        FaceType type)
+      {
+        buffer.SetContext(context);
+        buffer.SetDimensions(faceBufferSize);
+        BOOST_AUTO(mappedBuffer, buffer.Map());
+
+        size_t localIdx = 0;
+        for(size_t i = 0; i < faceBufferSize; ++i)
+        {
+          if( faceInfoBuffer[i].Type == type )
+          {
+            mappedBuffer[i] = localIdx;
+            ++localIdx;
+          }
+          else
+          {
+            mappedBuffer[i] = -1;
+          }
+        }
+      }
+    }
+
     void Model::copyFaceDefsToOptiX(optixu::Context context)
     {      
       // Get information about faces and copy to OptiX.
@@ -128,6 +157,10 @@ namespace ElVis
         mappedFaceInfoBuffer[i] = faceDef;
       }
 
+      setupGlobalToLocalMapping(context, m_GlobalFaceToPlanarFaceIdxMap,
+        mappedFaceInfoBuffer, numFaces, ePlanar);
+      setupGlobalToLocalMapping(context, m_GlobalFaceToCurvedFaceIdxMap,
+        mappedFaceInfoBuffer, numFaces, eCurved);
       m_numPlanarFaces = std::count_if(m_faceInfo.begin(), m_faceInfo.end(), isPlanarFace);
       m_numCurvedFaces = std::count_if(m_faceInfo.begin(), m_faceInfo.end(), isCurvedFace);
 

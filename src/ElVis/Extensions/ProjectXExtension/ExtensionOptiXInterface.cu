@@ -77,7 +77,7 @@ rtBuffer<ElVisFloat> PXSimplexSolutionBuffer;
 
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint, WorldPoint& result)
 {
-  ELVIS_PRINTF("EvaluateFace: Didn't know this was called yet!\n");
+  ELVIS_PRINTF("MCG EvaluateFace: Didn't know this was called yet!\n");
 	return eConvergenceFailure;
 
 //    ElVisFloat r = refPoint.x;
@@ -167,7 +167,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPo
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& worldPoint,
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& referencePoint)
 {
-    ELVIS_PRINTF("ConvertWorldToReferenceSpaceOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+    ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
                  elementId, worldPoint.x, worldPoint.y, worldPoint.z);
 
     if( referenceType != ElVis::eReferencePointIsValid )
@@ -179,15 +179,14 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         int nbfQ = PXSimplexEgrpDataBuffer[egrp].elemData.nbf;
         int geomIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
 
-        ELVIS_PRINTF("ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
+        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
             Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
 
-        ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[geomIndexStart + Dim*elem*nbfQ];
+        ElVisFloat* localCoord = NULL; //&PXSimplexCoordinateBuffer[geomIndexStart + Dim*elem*nbfQ];
 
         PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
         PX_REAL xref[3] = {0,0,0};
-        //LinearSimplexGlob2Ref(Dim, localCoord, xglobal, xref);
-        PXGlob2RefFromCoordinates2(PXSimplexEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
+        //PXGlob2RefFromCoordinates2(PXSimplexEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
         referencePoint.x = xref[0];
         referencePoint.y = xref[1];
         referencePoint.z = xref[2];
@@ -213,7 +212,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                ResultType& result)
 {
 
-    ELVIS_PRINTF("SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
                  elementId, worldPoint.x, worldPoint.y, worldPoint.z);
 
     int egrp = 0;
@@ -234,7 +233,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
     int solnIndexStart = PXSimplexEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
     int nbf = PXSimplexEgrpDataBuffer[egrp].solData.nbf;
 
-    ELVIS_PRINTF("SampleScalarFieldAtReferencePointOptiX: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d, idx=%d\n", fieldId, SOLN_MAX_NBF, nbf, solnIndexStart + elem*StateRank*nbf);
+    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d, idx=%d\n", fieldId, SOLN_MAX_NBF, nbf, solnIndexStart + elem*StateRank*nbf);
 
     ElVisFloat* localSolution = &PXSimplexSolutionBuffer[solnIndexStart + elem*StateRank*nbf];
     PX_SolutionOrderData *attachData = NULL;
@@ -260,7 +259,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
     for(int j=0; j<nbf; j++)
         result += localSolution[j*StateRank + fieldId]*phi[j];
 */
-    ELVIS_PRINTF("SampleScalarFieldAtReferencePointOptiX: result=%f\n", result);
+    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: result=%f\n", result);
 
     return eNoError;
 
@@ -269,7 +268,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
 
 ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& p, bool& result)
 {
-  ELVIS_PRINTF("IsValidFaceCoordinate: Didn't know this was called yet!\n");
+  ELVIS_PRINTF("MCG IsValidFaceCoordinate: Didn't know this was called yet!\n");
     ElVisFloat r = p.x;
     ElVisFloat s = p.y;
     result = r >= MAKE_FLOAT(0.0) &&
@@ -286,7 +285,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
                                              T& dz_dr, T& dz_ds)
 {
 
-  ELVIS_PRINTF("EvaluateFaceJacobian: Didn't know this was called yet!\n");
+  ELVIS_PRINTF("MCG EvaluateFaceJacobian: Didn't know this was called yet!\n");
 	   dx_dr = 0.0; dx_ds = 0.0;
 	   dy_dr = 0.0; dy_ds = 0.0;
 	   dz_dr = 0.0; dz_ds = 0.0;
@@ -333,16 +332,19 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
 // This function assumes it will only be called for planar faces.
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& result)
 {
-    ELVIS_PRINTF("GetFaceNormal: Didn't know this was called yet!\n");
-    ELVIS_PRINTF("GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[faceId].x, PlanarFaceNormalBuffer[faceId].y, PlanarFaceNormalBuffer[faceId].z);
+    ELVIS_PRINTF("MCG GetFaceNormal: Didn't know this was called yet!\n");
+    ELVIS_PRINTF("MCG GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[faceId].x, PlanarFaceNormalBuffer[faceId].y, PlanarFaceNormalBuffer[faceId].z);
     result = MakeFloat3(PlanarFaceNormalBuffer[faceId]);
     return eNoError;
 }
 
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, int faceId, ElVisFloat3& result)
 {
-  ELVIS_PRINTF("GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
-	return eConvergenceFailure;
+  ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
+  result.x = 1;
+  result.y = 0;
+  result.z = 0;
+	return eNoError;
     //PX_REAL xface[2] = {referencePointOnFace.x, referencePointOnFace.y};
     //PX_REAL nvec[3];
 
@@ -376,7 +378,8 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, c
 
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
 {
-  gradient.x = 0;
+  ELVIS_PRINTF("MCG SampleReferenceGradientOptiX: CURVED ELEMENTS Didn't know this was called yet!\n");
+  gradient.x = 1;
   gradient.y = 0;
   gradient.z = 0;
 
@@ -385,6 +388,11 @@ ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementT
 
 ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
 {
+  ELVIS_PRINTF("MCG SampleGeometryMappingJacobianOptiX: CURVED ELEMENTS Didn't know this was called yet!\n");
+  J[0] = 1; J[1] = 0; J[2] = 0;
+  J[3] = 0; J[4] = 1; J[5] = 0;
+  J[6] = 0; J[7] = 0; J[8] = 1;
+
   return eNoError;
 }
 

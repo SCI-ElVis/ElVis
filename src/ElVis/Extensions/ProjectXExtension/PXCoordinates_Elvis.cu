@@ -763,6 +763,8 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
     return PX_NO_ERROR;
   }
 
+  //Treat things linearly temporaraly
+  LinearSimplexGlob2Ref(Dim, xnodes, xglobal, xref);
 
   //ALWAYS_PRINTF("ERROR!!!!!!!!  PXGlob2RefFromCoordinates2: Dim=%d, qorder=%d, Shape=%d\n", Dim, qorder, Shape);
   //return PX_NO_ERROR;

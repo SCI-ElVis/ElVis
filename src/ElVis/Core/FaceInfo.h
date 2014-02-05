@@ -32,6 +32,7 @@
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/Float.h>
 
 namespace ElVis
 {
@@ -54,20 +55,20 @@ namespace ElVis
         {
           if( MinExtent.x == MaxExtent.x )
           {
-            MinExtent.x = MinExtent.x - .0001;
-            MaxExtent.x = MaxExtent.x + .0001;
+            MinExtent.x = MinExtent.x - static_cast<ElVisFloat>(.0001);
+            MaxExtent.x = MaxExtent.x + static_cast<ElVisFloat>(.0001);
           }
 
           if( MinExtent.y == MaxExtent.y )
           {
-            MinExtent.y = MinExtent.y - .0001;
-            MaxExtent.y = MaxExtent.y + .0001;
+            MinExtent.y = MinExtent.y - static_cast<ElVisFloat>(.0001);
+            MaxExtent.y = MaxExtent.y + static_cast<ElVisFloat>(.0001);
           }
 
           if( MinExtent.z == MaxExtent.z )
           {
-            MinExtent.z = MinExtent.z - .0001;
-            MaxExtent.z = MaxExtent.z + .0001;
+            MinExtent.z = MinExtent.z - static_cast<ElVisFloat>(.0001);
+            MaxExtent.z = MaxExtent.z + static_cast<ElVisFloat>(.0001);
           }
         }
     };

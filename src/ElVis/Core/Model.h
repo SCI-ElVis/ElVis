@@ -244,6 +244,7 @@ namespace ElVis
             void copyCurvedFaces(optixu::Context context);
             void copyPlanarNormalsToOptiX(optixu::Context context);
             void createFaceIntersectionGeometry(optixu::Context context);
+
             std::string m_modelPath;
             boost::shared_ptr<Plugin> m_plugin;
             WorldPoint m_minExtent;
@@ -257,6 +258,8 @@ namespace ElVis
             OptiXBuffer<FaceInfo> m_faceIdBuffer;
             OptiXBuffer<uint> m_PlanarFaceToGlobalIdxMap;
             OptiXBuffer<uint> m_CurvedFaceToGlobalIdxMap;
+            OptiXBuffer<int> m_GlobalFaceToPlanarFaceIdxMap;
+            OptiXBuffer<int> m_GlobalFaceToCurvedFaceIdxMap;
 
             // Contains a PlanarFaceInfo object for each planar face in the model.
             // Indexing is by local planar face index.
