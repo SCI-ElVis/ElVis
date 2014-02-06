@@ -791,9 +791,9 @@ struct RiemannIntegration
     ELVIS_PRINTF("RiemannIntegration\n");
     optix::size_t2 screen = color_buffer.size();
 
-    //uint2 pixel;
-    //pixel.x = launch_index.x;
-    //pixel.y = launch_index.y;
+    uint2 pixel;
+    pixel.x = launch_index.x;
+    pixel.y = launch_index.y;
 
     int elementId = seg.ElementId;
     int elementTypeId = seg.ElementTypeId;

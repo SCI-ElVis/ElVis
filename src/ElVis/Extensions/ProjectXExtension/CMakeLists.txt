@@ -19,15 +19,15 @@ SET(ProjectX_PLUGIN_DIR ${ELVIS_PLUGIN_DIR}/ProjectXExtension)
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in
                ${CMAKE_BINARY_DIR}/ElVis/Extensions/ProjectXExtension/ProjectXExtensionPTXConfig.cpp
                @ONLY)
-               CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
                ${CMAKE_BINARY_DIR}/ElVis/Extensions/ProjectXExtension/ProjectXExtensionPTXConfig.h
                @ONLY)
-               CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
                ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu
                @ONLY)
-               CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
-               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu
-               @ONLY)
+#               CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
+#               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu
+#               @ONLY)
 
 #################################
 # PX Extension Source

@@ -99,12 +99,12 @@ __device__ bool ValidateSegment(const Segment& seg)
     return false;
   }
 
-  //int elementTypeId = seg.ElementTypeId;
+  int elementTypeId = seg.ElementTypeId;
 
   ElVisFloat a = seg.Start;
   ElVisFloat b = seg.End;
 
-  //ElVisFloat3 rayDirection = seg.RayDirection;
+  ElVisFloat3 rayDirection = seg.RayDirection;
   ElVisFloat d = (b-a);
 
   //ELVIS_PRINTF("ValidateSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);

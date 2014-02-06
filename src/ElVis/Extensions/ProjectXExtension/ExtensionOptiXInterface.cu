@@ -29,6 +29,7 @@
 #ifndef _PX_EXTENSION_OPTIX_INTERFACE_CU
 #define _PX_EXTENSION_OPTIX_INTERFACE_CU
 
+#include <ElVis/Core/VolumeRenderingPayload.cu>
 #include <Fundamentals/PX.h>
 #include <ElVis/Core/OptixVariables.cu>
 
@@ -75,7 +76,7 @@ rtBuffer<ElVisFloat> PXSimplexSolutionBuffer;
 
 
 
-ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint, WorldPoint& result)
+ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePoint& refPoint, WorldPoint& result)
 {
   ELVIS_PRINTF("MCG EvaluateFace: Didn't know this was called yet!\n");
 	return eConvergenceFailure;
@@ -182,11 +183,11 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
             Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
 
-        ElVisFloat* localCoord = NULL; //&PXSimplexCoordinateBuffer[geomIndexStart + Dim*elem*nbfQ];
+        ElVisFloat* localCoord = &PXSimplexCoordinateBuffer[geomIndexStart + Dim*elem*nbfQ];
 
         PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
         PX_REAL xref[3] = {0,0,0};
-        //PXGlob2RefFromCoordinates2(PXSimplexEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
+        PXGlob2RefFromCoordinates2(PXSimplexEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
         referencePoint.x = xref[0];
         referencePoint.y = xref[1];
         referencePoint.z = xref[2];
@@ -266,7 +267,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
 }
 
 
-ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& p, bool& result)
+ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceReferencePoint& p, bool& result)
 {
   ELVIS_PRINTF("MCG IsValidFaceCoordinate: Didn't know this was called yet!\n");
     ElVisFloat r = p.x;
@@ -279,7 +280,7 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoi
 }
 
 template<typename T>
-ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoint& p,
+ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceReferencePoint& p,
                                              T& dx_dr, T& dx_ds,
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds)
@@ -330,15 +331,24 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
 
 // This function calculates the normal at the given point on a face.
 // This function assumes it will only be called for planar faces.
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& result)
+ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& result)
 {
-    ELVIS_PRINTF("MCG GetFaceNormal: Didn't know this was called yet!\n");
-    ELVIS_PRINTF("MCG GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[faceId].x, PlanarFaceNormalBuffer[faceId].y, PlanarFaceNormalBuffer[faceId].z);
-    result = MakeFloat3(PlanarFaceNormalBuffer[faceId]);
+  PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+  ELVIS_PRINTF("MCG GetFaceNormal: Didn't know this was called yet!\n");
+  ELVIS_PRINTF("MCG GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[planarFaceIdx.Value].x, PlanarFaceNormalBuffer[planarFaceIdx.Value].y, PlanarFaceNormalBuffer[planarFaceIdx.Value].z);
+  if( planarFaceIdx.Value > 0 )
+  {
+    result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
     return eNoError;
+  }
+  else
+  {
+    return eInvalidFaceId;
+  }
 }
 
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, int faceId, ElVisFloat3& result)
+//ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result)
+ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result)
 {
   ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
   result.x = 1;
