@@ -148,26 +148,46 @@ rtBuffer<uint, 1> GlobalFaceToCurvedFaceIdxMap;
 rtBuffer<ElVisFloat4> PlanarFaceNormalBuffer;
 
 
-
-template<typename TagType>
-struct Index
-{
-    __device__ Index() {}
-    template<typename T>
-    __device__ Index(const Index<T>& rhs);
-
-    __device__ Index(int v) : Value(v) {}
-    //__device__ operator int() const {return Value;}
-    int Value;
-};
-
 struct PlanarFaceTag;
 struct CurvedFaceTag;
 struct GlobalFaceTag;
 
-typedef Index<PlanarFaceTag> PlanarFaceIdx;
-typedef Index<CurvedFaceTag> CurvedFaceIdx;
-typedef Index<GlobalFaceTag> GlobalFaceIdx;
+struct PlanarFaceIdx
+{
+  __device__ PlanarFaceIdx() {};
+
+  __device__ PlanarFaceIdx(int v) : Value(v) {}
+
+  int Value;
+};
+
+struct CurvedFaceIdx
+{
+  __device__ CurvedFaceIdx() {};
+
+  __device__ CurvedFaceIdx(int v) : Value(v) {}
+
+  int Value;
+};
+
+struct GlobalFaceIdx
+{
+  __device__ GlobalFaceIdx() {};
+
+  __device__ GlobalFaceIdx(const PlanarFaceIdx& rhs) :
+    Value(PlanarFaceToGlobalIdxMap[rhs.Value])
+  {
+  }
+
+  __device__ GlobalFaceIdx(const CurvedFaceIdx& rhs) :
+    Value(CurvedFaceToGlobalIdxMap[rhs.Value])
+  {
+  }
+
+  __device__ GlobalFaceIdx(int v) : Value(v) {}
+
+  int Value;
+};
 
 __device__ PlanarFaceIdx ConvertToPlanarFaceIdx(const GlobalFaceIdx& globalIdx)
 {
@@ -199,29 +219,7 @@ __device__ const ElVis::FaceInfo& GetFaceInfo(GlobalFaceIdx globalFaceIdx)
     return FaceInfoBuffer[globalFaceIdx.Value];
 }
 
-//template<> template<>
-//Index<PlanarFaceTag>::Index(const Index<GlobalFaceTag>& rhs) :
-//  Value(GlobalFaceToPlanarFaceIdxMap[rhs.Value])
-//{
-//}
-//
-//template<> template<>
-//Index<CurvedFaceTag>::Index(const Index<GlobalFaceTag>& rhs) :
-//  Value(GlobalFaceToCurvedFaceIdxMap[rhs.Value])
-//{
-//}
 
-template<> template<>
-Index<GlobalFaceTag>::Index(const Index<PlanarFaceTag>& rhs) :
-  Value(PlanarFaceToGlobalIdxMap[rhs.Value])
-{
-}
-
-template<> template<>
-Index<GlobalFaceTag>::Index(const Index<CurvedFaceTag>& rhs) :
-  Value(CurvedFaceToGlobalIdxMap[rhs.Value])
-{
-}
 
 rtDeclareVariable(GlobalFaceIdx, intersectedFaceGlobalIdx, attribute IntersectedFaceId, );
 rtDeclareVariable(ElVisFloat2, faceIntersectionReferencePoint, attribute FaceIntersectionReferencePoint, );
