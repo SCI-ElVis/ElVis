@@ -333,7 +333,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
 // This function assumes it will only be called for planar faces.
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& result)
 {
-  PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+  PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(globalFaceIdx);
   ELVIS_PRINTF("MCG GetFaceNormal: Didn't know this was called yet!\n");
   ELVIS_PRINTF("MCG GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[planarFaceIdx.Value].x, PlanarFaceNormalBuffer[planarFaceIdx.Value].y, PlanarFaceNormalBuffer[planarFaceIdx.Value].z);
   if( planarFaceIdx.Value > 0 )
