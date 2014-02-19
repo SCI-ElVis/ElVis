@@ -54,6 +54,7 @@ extern "C"{
 #include <Grid/PXMeshSize.h>
 #include <Reference/PXCoordinatesReference.h>
 #include <Grid/PXCoordinates.h>
+#include <Grid/PXNormal.h>
 
 #include <Grid/PXReadWriteGrid.h>
 }
@@ -126,132 +127,14 @@ namespace ElVis
 {
   const std::string PXModel::prefix = "PXSimplex";
 
-  unsigned int PXModel::DoGetNumberOfElements() const
-  {
-    PX_Grid *pg = m_pxa->pg;
-    int egrp;
-    int nElementTotal = 0;
-
-    for(egrp = 0; egrp<pg->nElementGroup; egrp++){
-      nElementTotal += pg->ElementGroup[egrp].nElement; //total # elements
-    }
-    return nElementTotal;
-  }
-  void PXModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
-  {
-    PX_Grid *pg = m_pxa->pg;
-    PX_REAL bBoxDomain[6], domainSize;
-    int d;
-
-    PXError(PXGetDomainBoundingBox(pg, pg->Dim, bBoxDomain, &domainSize));
-
-    for(d=0; d<pg->Dim; d++){
-      min.SetValue(d,bBoxDomain[2*d+0]);
-      max.SetValue(d, bBoxDomain[2*d+1]);
-    }
-  }
-
-
-  const std::string PXModel::PXSimplexPtxFileName("PXSimplex.cu.ptx_generated_ElVis.cu.ptx");
-  const std::string PXModel::PXSimplexIntersectionProgramName("PXSimplexContainsOriginByCheckingPoint");
-  const std::string PXModel::PXSimplexBoundingProgramName("PXSimplex_bounding");
-  const std::string PXModel::PXSimplexClosestHitProgramName("EvaluatePXSimplexScalarValueArrayVersion");
-
-  // const std::string PXModel::PrismPtxFileName("prism.cu.ptx");
-  // const std::string PXModel::PrismIntersectionProgramName("PrismContainsOriginByCheckingPoint");
-  // const std::string PXModel::PrismBoundingProgramName("PrismBounding");
-  // const std::string PXModel::PrismClosestHitProgramName("EvaluatePrismScalarValueArrayVersion");
-
-  const std::string& PXModel::DoGetPTXPrefix() const{
-    static std::string extensionName("ProjectXExtension");
-    return extensionName;
-  }
-
-  PXModel::PXModel(const std::string& modelPath) :
-    Model(modelPath),
-    m_solutionBuffer(prefix + "SolutionBuffer"),
-    m_coordinateBuffer(prefix + "CoordinateBuffer"),
-    m_boundingBoxBuffer(prefix + "BoundingBoxBuffer"),
-    m_egrpDataBuffer(prefix + "EgrpDataBuffer"),
-    m_globalElemToEgrpElemBuffer(prefix + "GlobalElemToEgrpElemBuffer"),
-    m_attachDataBuffer(prefix + "AttachDataBuffer"),
-    m_attachmentBuffer(prefix + "AttachmentBuffer"),
-    m_shadowCoordinateBuffer(prefix + "ShadowCoordinateBuffer"),
-    m_egrpToShadowIndexBuffer(prefix + "EgrpToShadowIndexBuffer"),
-    m_patchCoordinateBuffer(prefix + "PatchCoordinateBuffer"),
-    m_knownPointBuffer(prefix + "KnownPointBuffer"),
-    m_backgroundCoordinateBuffer(prefix + "BackgroundCoordinateBuffer"),
-    m_cutCellBuffer(prefix + "CutCellBuffer"),
-    m_globalElemToCutCellBuffer(prefix + "GlobalElemToCutCellBuffer"),
-    m_faceCoordinateBuffer(prefix + "FaceCoordinateBuffer"),
-    m_faceDataBuffer(prefix + "FaceDataBuffer")
-  {
-    m_pxa = NULL;
-    m_cutCellFlag = 0;
-  }
-
-  // PXModel::PXModel(const PXModel& rhs) :
-  // m_volume(rhs.m_volume),
-  // m_numberOfCopies(rhs.m_numberOfCopies),
-  // m_numberOfModes(rhs.m_numberOfModes)
-  // {
-  // }
-
-  PXModel::~PXModel()
-  {}
-
-  // void PXModel::writeCellVolumeForVTK(const char* fileName)
-  // {
-  //     // if( !m_volume ) return;
-  //     // m_volume->writeCellVolumeForVTK(fileName);
-  // }
-
-  void PXModel::LoadVolume(const std::string& filePath)
-  {
-    PXError(PXCreateAll(&m_pxa));
-    printf("m_pxa->nbf = %d\n",m_pxa->nbc);
-
-    PXError(PXSetDefaults( m_pxa) );
-
-    char *mypath = const_cast <char *>(filePath.c_str());
-    printf("Reading %s\n", mypath);
-    PXError(PXReadInputFile( m_pxa, mypath));
-    PXError(PXReadPxaFile( m_pxa, mypath, "PXParameters"));
-
-    PX_Grid *pg;
-    pg = m_pxa->pg;
-    printf("Dim = %d\n",pg->Dim);     
-
-    m_cutCellFlag = pg->CC3D != NULL;
-    FILE *fil;
-    if(m_cutCellFlag && pg->CC3D->CutCellFile != NULL){
-      fil = fopen(pg->CC3D->CutCellFile, "rb");
-      PXError(PXReadCutCell3d(pg->CC3D, fil));
-      fclose(fil);
-
-      fil = fopen(pg->CC3D->CutQuadFile, "rb");
-      PXError(PXReadGridQuadRule(pg, fil));
-      fclose(fil);
-    }
-
-
-    PX_AttachmentGlobRealElem *State = 0;
-    int currentIndex = 0;
-    PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL,
-				      &State, NULL ) );
-
-    //State can be null if the file was not found
-    int StateRank = State->StateRank;
-    printf("StateRank = %d\n", StateRank);
-    m_numFieldsToPlot = StateRank + 7;
-
-
-    printf("00000000000\n");
-  }
-
   int PXModel::DoGetNumFields() const
   {
     return m_numFieldsToPlot;
+  }
+
+  int PXModel::DoGetModelDimension() const
+  {
+    return m_pxa->pg->Dim;
   }
 
   FieldInfo PXModel::DoGetFieldInfo(unsigned int index) const
@@ -273,7 +156,7 @@ namespace ElVis
     PX_AttachmentGlobRealElem *State;
     int currentIndex = 0;
     PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL,
-				      &State, NULL ) );
+              &State, NULL ) );
     int StateRank = State->StateRank;
 
 
@@ -309,20 +192,20 @@ namespace ElVis
     case 5:
       result.Id = 5;
       if(StateRank >= 6){
-	if(StateRank == 7 || turbulenceModel == 1){
-	  result.Name = "rho nu-tilde";
-	  result.Shortcut = "n";
-	}else{
-	  result.Name = "dissipation";
-	  result.Shortcut = "d";
-	}
+        if(StateRank == 7 || turbulenceModel == 1){
+          result.Name = "rho nu-tilde";
+          result.Shortcut = "n";
+        }else{
+          result.Name = "dissipation";
+          result.Shortcut = "d";
+        }
       }
       return result;
     case 6:
       result.Id = 6;
       if(StateRank == 7){
-	result.Name = "dissipation";
-	result.Shortcut = "d";
+        result.Name = "dissipation";
+        result.Shortcut = "d";
       }
       return result;
     case 7:
@@ -348,8 +231,8 @@ namespace ElVis
     case 11:
       result.Id = -1;
       if(turbulenceModel == 1){
-	result.Name = "Distance";
-	result.Shortcut = "[";
+        result.Name = "Distance";
+        result.Shortcut = "[";
       }
       return result;
     default:
@@ -362,7 +245,476 @@ namespace ElVis
 
   }
 
+  int PXModel::DoGetNumberOfBoundarySurfaces() const
+  {
+    PX_Grid *pg = m_pxa->pg;
 
+    int fgrp;
+
+    //COUNTING boundary face groups
+    int numBoundaryFaceGroup = 0;
+    for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
+      if ( (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_BoundaryFG) || (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_EmbeddedBoundaryFG) ){
+        numBoundaryFaceGroup++; //number of boundary face groups
+      }
+    }
+    return numBoundaryFaceGroup;
+  }
+
+  void PXModel::DoGetBoundarySurface(int boundaryFaceGroupNum, std::string& name, std::vector<int>& boundaryFaceList)
+  {
+      name = std::string("Domain Surf") + boost::lexical_cast<std::string>(boundaryFaceGroupNum+1);
+
+      PX_Grid *pg = m_pxa->pg;
+      int *fgrp2GlobalFaceIndex = (int *)malloc((pg->nFaceGroup+1)*sizeof(int));
+
+      fgrp2GlobalFaceIndex[0] = 0;
+      for(int fgrp=1; fgrp<=pg->nFaceGroup; fgrp++){
+        fgrp2GlobalFaceIndex[fgrp] = fgrp2GlobalFaceIndex[fgrp-1] + pg->FaceGroup[fgrp-1].nFace;
+      }
+
+      ///identify which fgrp corresponds to our boundaryFaceGroup
+      int nfgrp, fgrpMatch;
+      PXError(PXbfgrp2fgrp(pg, boundaryFaceGroupNum, &nfgrp, &fgrpMatch));
+      //protect against a lazy assumption.  segfault might already occurred if nfgrp != 1
+      if(nfgrp != 1){
+        printf("FAIL, 1 boundary face group maps to multiple face groups!\n");
+        exit(1);
+      }
+
+      for(int face=0; face<pg->FaceGroup[fgrpMatch].nFace; face++){
+          boundaryFaceList.push_back(fgrp2GlobalFaceIndex[fgrpMatch] + face);
+      }
+
+      free(fgrp2GlobalFaceIndex);
+  }
+
+  void PXModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
+  {
+    PX_Grid *pg = m_pxa->pg;
+    PX_REAL bBoxDomain[6], domainSize;
+    int d;
+
+    PXError(PXGetDomainBoundingBox(pg, pg->Dim, bBoxDomain, &domainSize));
+
+    for(d=0; d<pg->Dim; d++){
+      min.SetValue(d, bBoxDomain[2*d+0]);
+      max.SetValue(d, bBoxDomain[2*d+1]);
+    }
+  }
+
+  unsigned int PXModel::DoGetNumberOfElements() const
+  {
+    PX_Grid *pg = m_pxa->pg;
+    int nElementTotal = 0;
+
+    for(int egrp = 0; egrp<pg->nElementGroup; egrp++)
+      nElementTotal += pg->ElementGroup[egrp].nElement; //total # elements
+
+    return nElementTotal;
+  }
+
+  const std::string& PXModel::DoGetPTXPrefix() const
+  {
+    static std::string extensionName("ProjectXExtension");
+    return extensionName;
+  }
+
+  std::vector<optixu::GeometryInstance> PXModel::DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
+  {
+    return std::vector<optixu::GeometryInstance>();
+  }
+
+  optixu::Material PXModel::DoGet2DPrimaryGeometryMaterial(SceneView* view)
+  {
+    return optixu::Material();
+  }
+
+  size_t PXModel::DoGetNumberOfFaces() const
+  {
+    return m_PlanarFaces.size();
+  }
+
+  FaceInfo PXModel::DoGetFaceDefinition(size_t globalFaceId) const
+  {
+    return m_PlanarFaces[globalFaceId].info;
+  }
+
+  size_t PXModel::DoGetNumberOfPlanarFaceVertices() const
+  {
+    return m_pxa->pg->nNode; //m_vertices.size();
+  }
+
+  size_t PXModel::DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const
+  {
+    if( m_PlanarFaces[localFaceIdx].planarInfo.Type == eTriangle )
+    {
+      return 3;
+    }
+    else if( m_PlanarFaces[localFaceIdx].planarInfo.Type == eQuad )
+    {
+      return 4;
+    }
+    else
+      assert(0); //Really should throw an error here instead
+
+    return -1; //Just so compiler will not complain
+  }
+
+  WorldPoint PXModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
+  {
+    //return m_vertices[vertexIdx];
+    WorldPoint FaceNode( m_pxa->pg->coordinate[vertexIdx][0],
+                         m_pxa->pg->coordinate[vertexIdx][1],
+                         m_pxa->pg->coordinate[vertexIdx][2] );
+    return FaceNode;
+  }
+
+  size_t PXModel::DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId)
+  {
+    return m_PlanarFaces[localFaceIdx].planarInfo.vertexIdx[vertexId];
+  }
+
+  WorldVector PXModel::DoGetPlanarFaceNormal(size_t localFaceId) const
+  {
+    return m_PlanarFaces[localFaceId].normal;
+  }
+
+  void PXModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
+  {
+    PX_Grid *pg = m_pxa->pg;
+    const int Dim = pg->Dim;
+    context["Dim"]->setInt(Dim);
+
+
+    PX_AttachmentGlobRealElem *State = NULL;
+    int currentIndex = 0;
+    PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL, &State, NULL ) );
+
+    int StateRank = State->StateRank;
+    context["StateRank"]->setInt(StateRank);
+
+    int nbfS = 0, nbfQ = 0;
+    int nSolnCoeffTotal = 0;
+    int nGeomCoeffTotal = 0;
+    for(int egrp = 0; egrp<pg->nElementGroup; egrp++){
+//        nElemTotal += pg->ElementGroup[egrp].nElement; //total # elements
+
+        PXOrder2nbf(State->order[egrp], &nbfS);
+        PXType2nbf(pg->ElementGroup[egrp].type, &nbfQ);
+
+        printf("egrp=%d, nbfS=%d, nbfQ=%d\n", egrp, nbfS, nbfQ);
+
+        nSolnCoeffTotal += nbfS*StateRank*pg->ElementGroup[egrp].nElement;
+        nGeomCoeffTotal += nbfQ*Dim*pg->ElementGroup[egrp].nElement;
+        // nAttachCoeffTotal += nbfA*pg->ElementGroup[egrp].nElement;
+
+//        if(pg->ElementGroup[egrp].type == PXE_TetCut){
+//            nCutCellTotal += pg->ElementGroup[egrp].nElement;
+//        }
+    }
+
+
+    ElVis::OptiXBuffer<int> egrp2GlobalElemIndex("egrp2GlobalElemIndex");
+    egrp2GlobalElemIndex.SetContext(context);
+    egrp2GlobalElemIndex.SetDimensions(pg->nElementGroup+1);
+    BOOST_AUTO(egrp2GlobalElemIndexMap, egrp2GlobalElemIndex.map());
+
+    m_coordinateBuffer.SetContext(context);
+    m_coordinateBuffer.SetDimensions(nGeomCoeffTotal);
+    BOOST_AUTO(coordinateData, m_coordinateBuffer.Map());
+
+    m_solutionBuffer.SetContext(context);
+    m_solutionBuffer.SetDimensions(nSolnCoeffTotal);
+    BOOST_AUTO(solution, m_solutionBuffer.map());
+
+    ElVis::OptiXBuffer<PX_EgrpData> egrpDataBuffer(prefix + "EgrpDataBuffer"); //data about each element group
+    egrpDataBuffer.SetContext(context);
+    egrpDataBuffer.SetDimensions(pg->nElementGroup);
+    BOOST_AUTO(egrpDataBufferMap, egrpDataBuffer.map());
+
+    int S = 0, G = 0, qorder=0, porder=0;
+    enum PXE_Shape elemShape;
+    enum PXE_SolutionOrder orderQ;
+    for(int egrp = 0; egrp<pg->nElementGroup; egrp++){
+        PXE_ElementType elemType = pg->ElementGroup[egrp].type;
+
+        PXError( PXType2nbf(elemType, &nbfQ) );
+        PXError( PXType2Interpolation(elemType, &orderQ));
+        PXError( PXType2qorder(elemType, &qorder));
+        PXError( PXType2Shape(elemType, &elemShape) );
+
+        printf("egrp=%d, elemType=%d, elemShape=%d, qorder=%d\n", egrp, elemType, elemShape, qorder);
+
+        PXError( PXOrder2nbf(State->order[egrp], &nbfS) );
+        PXError( PXOrder2porder(State->order[egrp], &porder));
+
+        egrp2GlobalElemIndexMap[egrp] = m_egrp2GlobalElemIndex[egrp];
+
+        egrpDataBufferMap[egrp].cutCellFlag = 0;
+
+        egrpDataBufferMap[egrp].elemData.type = elemType;
+        egrpDataBufferMap[egrp].elemData.nbf = nbfQ;
+        egrpDataBufferMap[egrp].elemData.order = orderQ;
+        egrpDataBufferMap[egrp].elemData.qorder = qorder;
+        egrpDataBufferMap[egrp].elemData.shape = elemShape;
+
+        egrpDataBufferMap[egrp].solData.nbf = nbfS;
+        egrpDataBufferMap[egrp].solData.order = State->order[egrp];
+        egrpDataBufferMap[egrp].solData.porder = porder;
+
+        egrpDataBufferMap[egrp].egrpSolnCoeffStartIndex = S;
+        egrpDataBufferMap[egrp].egrpGeomCoeffStartIndex = G;
+
+        int solnRank = StateRank*nbfS;
+
+        //PXError(PXOrder2nbf(QnDistance->order[egrp],&nbfA));
+        //for(int j=0; j<solnRank; j++)
+        //  std::cout << egrp << " " << S << " " << pg->ElementGroup[egrp].nElement*StateRank << " " << nbfS << " " << State->value[egrp][0][j] << std::endl;
+
+        for(int elem=0; elem<pg->ElementGroup[egrp].nElement; elem++){
+
+            // fill solution array for this element
+            for(int j=0; j<solnRank; j++){
+              solution[S++] = State->value[egrp][elem][j];
+            }
+
+            for(int i=0; i<nbfQ; i++)
+              for( int d = 0; d < Dim; d++ )
+                coordinateData[G++] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][d];
+
+            // fill in attachment values
+            //for(j=0; j<QnDistance->StateRank*nbfA; j++){
+            //    attachmentPtr[j] = QnDistance->value[egrp][elem][j];
+            //}
+        }
+    }
+
+    int egrp = pg->nElementGroup-1;
+    egrp2GlobalElemIndexMap[egrp+1] = egrp2GlobalElemIndexMap[egrp] + pg->ElementGroup[egrp].nElement;
+
+    std::cout << "nSolnCoeffTotal = " << nSolnCoeffTotal << " : S = " << S << std::endl;
+    std::cout << "nGeomCoeffTotal = " << nGeomCoeffTotal << " : G = " << G << std::endl;
+  }
+
+  const std::string PXModel::PXSimplexPtxFileName("PXSimplex.cu.ptx_generated_ElVis.cu.ptx");
+  const std::string PXModel::PXSimplexIntersectionProgramName("PXSimplexContainsOriginByCheckingPoint");
+  const std::string PXModel::PXSimplexBoundingProgramName("PXSimplex_bounding");
+  const std::string PXModel::PXSimplexClosestHitProgramName("EvaluatePXSimplexScalarValueArrayVersion");
+
+  // const std::string PXModel::PrismPtxFileName("prism.cu.ptx");
+  // const std::string PXModel::PrismIntersectionProgramName("PrismContainsOriginByCheckingPoint");
+  // const std::string PXModel::PrismBoundingProgramName("PrismBounding");
+  // const std::string PXModel::PrismClosestHitProgramName("EvaluatePrismScalarValueArrayVersion");
+
+
+
+  PXModel::PXModel(const std::string& modelPath) :
+    Model(modelPath),
+    m_solutionBuffer(prefix + "SolutionBuffer"),
+    m_coordinateBuffer(prefix + "CoordinateBuffer")
+    //m_globalElemToEgrpElemBuffer(prefix + "GlobalElemToEgrpElemBuffer"),
+    //m_attachDataBuffer(prefix + "AttachDataBuffer"),
+    //m_attachmentBuffer(prefix + "AttachmentBuffer"),
+    //m_shadowCoordinateBuffer(prefix + "ShadowCoordinateBuffer"),
+    //m_egrpToShadowIndexBuffer(prefix + "EgrpToShadowIndexBuffer"),
+    //m_patchCoordinateBuffer(prefix + "PatchCoordinateBuffer"),
+    //m_knownPointBuffer(prefix + "KnownPointBuffer"),
+    //m_backgroundCoordinateBuffer(prefix + "BackgroundCoordinateBuffer"),
+    //m_cutCellBuffer(prefix + "CutCellBuffer"),
+    //m_globalElemToCutCellBuffer(prefix + "GlobalElemToCutCellBuffer"),
+    //m_faceCoordinateBuffer(prefix + "FaceCoordinateBuffer"),
+    //m_faceDataBuffer(prefix + "FaceDataBuffer")
+  {
+    m_pxa = NULL;
+    m_cutCellFlag = 0;
+  }
+
+  // PXModel::PXModel(const PXModel& rhs) :
+  // m_volume(rhs.m_volume),
+  // m_numberOfCopies(rhs.m_numberOfCopies),
+  // m_numberOfModes(rhs.m_numberOfModes)
+  // {
+  // }
+
+  PXModel::~PXModel()
+  {}
+
+  void PXModel::LoadVolume(const std::string& filePath)
+  {
+    PXError(PXCreateAll(&m_pxa));
+    printf("m_pxa->nbf = %d\n",m_pxa->nbc);
+
+    PXError(PXSetDefaults( m_pxa) );
+
+    char *mypath = const_cast <char *>(filePath.c_str());
+    printf("Reading %s\n", mypath);
+    PXError(PXReadInputFile( m_pxa, mypath));
+    PXError(PXReadPxaFile( m_pxa, mypath, "PXParameters"));
+
+    PX_Grid *pg;
+    pg = m_pxa->pg;
+    printf("Dim = %d\n",pg->Dim);     
+
+    m_cutCellFlag = pg->CC3D != NULL;
+    FILE *fil;
+    if(m_cutCellFlag && pg->CC3D->CutCellFile != NULL){
+      fil = fopen(pg->CC3D->CutCellFile, "rb");
+      PXError(PXReadCutCell3d(pg->CC3D, fil));
+      fclose(fil);
+
+      fil = fopen(pg->CC3D->CutQuadFile, "rb");
+      PXError(PXReadGridQuadRule(pg, fil));
+      fclose(fil);
+    }
+
+
+    PX_AttachmentGlobRealElem *State = 0;
+    int currentIndex = 0;
+    PXError( PXRetrieveTimeStepState( m_pxa, currentIndex, -1, NULL, &State, NULL ) );
+
+    //State can be null if the file was not found
+    int StateRank = State->StateRank;
+    printf("StateRank = %d\n", StateRank);
+    m_numFieldsToPlot = StateRank ; //+ 7;
+
+
+    printf("00000000000\n");
+
+    //egrp2GlobalElemIndex array
+    m_egrp2GlobalElemIndex.resize(pg->nElementGroup);
+    m_egrp2GlobalElemIndex[0] = 0;
+    for(int egrp=1; egrp<pg->nElementGroup; egrp++){
+      m_egrp2GlobalElemIndex[egrp] = m_egrp2GlobalElemIndex[egrp-1] + pg->ElementGroup[egrp-1].nElement;
+    }
+
+
+
+    ElVisFloat bBoxTemp[BBOX_SIZE];
+    ElVisFloat bBoxTempElVis[BBOX_SIZE];
+
+    int geomRank;
+    int fgrp, face;
+    int egrp, elem, lface;
+    int egrpR, elemR;
+    int i;
+    int qorder;
+    int nbfQ, nbfQFace;
+    int nFaceTotal = 0;
+
+    int d;
+    int Dim = pg->Dim;
+
+    int orientation;
+    enum PXE_Shape elemShape, faceShape;
+    enum PXE_ElementType FaceType, elemType, elemTypeR, baseFaceType, localFaceType;
+    //int maxnbfQ;
+
+    //PX_REAL *nodeCoord;
+    //nodeCoord = (PX_REAL*) malloc(maxnbfQ*(Dim+1)*sizeof(PX_REAL));
+    //PX_REAL *phiQ = nodeCoord + maxnbfQ*Dim;
+
+
+    int nodesOnFace[36];
+    int nNodesOnFace;
+    PX_REAL nvec[3] = {0,0,0};
+    PX_REAL xface[2] = {0,0};
+
+    for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
+      for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){
+        // for now, ALWAYS use LEFT face
+        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        elem = pg->FaceGroup[fgrp].FaceL[face].Element;
+        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+        elemType = pg->ElementGroup[egrp].type;
+
+        //for curved faces
+        PXNodesOnFace(elemType, lface, nodesOnFace, &nNodesOnFace);
+        //PXType2nbf(FaceType, &nbfQFace);
+        PXType2qorder(elemType, &qorder);
+        PXElemType2FaceType(elemType, 0, &FaceType );
+
+        PXType2Shape(elemType, &elemShape);
+        PXElemShape2FaceShape(elemShape, lface, &faceShape);
+        PXElementCentroidReference(faceShape, xface);
+
+        FaceInfo info;
+        FaceNodeInfo planarInfo(nNodesOnFace);
+
+        for( d = 0; d < Dim; d++)
+        {
+          bBoxTemp[2*d+0] =  std::numeric_limits<double>::max();
+          bBoxTemp[2*d+1] = -std::numeric_limits<double>::max();
+        }
+
+        for(i=0; i < nNodesOnFace; i++){
+          WorldPoint FaceNode( pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][0],
+                               pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][1],
+                               pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][2] );
+
+
+          planarInfo.vertexIdx[i] = pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]];
+
+          for( d = 0; d < Dim; d++)
+          {
+            bBoxTemp[2*d+0] = MIN(bBoxTemp[2*d+0], FaceNode[d]);
+            bBoxTemp[2*d+1] = MAX(bBoxTemp[2*d+1], FaceNode[d]);
+          }
+        }
+
+        if( PXE_UniformTriangleQ1 <= FaceType && FaceType <= PXE_UniformTriangleQ5 ) planarInfo.Type = eTriangle;
+        else if( (PXE_UniformQuadQ1  <= FaceType && FaceType <= PXE_UniformQuadQ5 ) ||
+                 (PXE_SpectralQuadQ1 <= FaceType && FaceType <= PXE_SpectralQuadQ5)) planarInfo.Type = eQuad;
+        else
+          printf("UNKNOWN FaceType=%d\n", FaceType);
+
+        info.Type = qorder == 1 ? ePlanar : eCurved;
+
+        //PXComputeFaceBoundingBox(pg, fgrp, face, PXE_Left, nodeCoord, phiQ, bBoxTemp);
+
+        // reorder from PX bounding box ordering to ordering used on GPU
+        info.MinExtent.x = bBoxTemp[2*0+0];
+        info.MinExtent.y = bBoxTemp[2*1+0];
+        info.MinExtent.z = bBoxTemp[2*2+0];
+
+        info.MaxExtent.x = bBoxTemp[2*0+1];
+        info.MaxExtent.y = bBoxTemp[2*1+1];
+        info.MaxExtent.z = bBoxTemp[2*2+1];
+
+
+        info.CommonElements[0].Id = m_egrp2GlobalElemIndex[egrp] + elem;
+        info.CommonElements[0].Type = (int) elemType;
+        if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) )
+        {
+          egrpR = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+          elemR = pg->FaceGroup[fgrp].FaceR[face].Element;
+          elemTypeR = pg->ElementGroup[egrpR].type;
+
+          info.CommonElements[1].Id = m_egrp2GlobalElemIndex[egrpR] + elemR;
+          info.CommonElements[1].Type = (int) elemTypeR;
+
+        }else{
+          info.CommonElements[1].Id = -1;
+          info.CommonElements[1].Type = -1;
+        }
+
+        PXFaceNormal(pg, fgrp, face, xface, nvec, NULL);
+
+        WorldVector normal(nvec[0], nvec[1], nvec[2]);
+        normal /= normal.Magnitude();
+
+        //printf("elem0=%d, elem1=%d\n", info.CommonElements[0].Id, info.CommonElements[1].Id);
+
+        m_PlanarFaces.push_back( PXPlanarFace(normal, info, planarInfo ) );
+
+
+      }
+    }
+
+  }
+
+
+/*
   std::vector<optixu::GeometryGroup> PXModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
   {
       try
@@ -402,7 +754,7 @@ namespace ElVis
 
           printf("Dim=%d, StateRank=%d\n",Dim,StateRank);
 
-          /* Get physical constants */
+          // Get physical constants
           PX_Parameter *Parameter = m_pxa->Parameter;
           if(Parameter == NULL){
               printf("Parameter is NULL :( wtf?\n");
@@ -429,14 +781,14 @@ namespace ElVis
 
 
 
-          /* declare global constants for device (OptiX) */
+          // declare global constants for device (OptiX)
           context["Dim"]->setInt(Dim);
           context["StateRank"]->setInt(StateRank);
           context["SpecificHeatRatio"]->setUserData(sizeof(SpecificHeatRatio),&SpecificHeatRatio);
           context["GasConstant"]->setUserData(sizeof(GasConstant), &GasConstant);
 
 
-          /* declare global constants for device (CUDA) */
+          // declare global constants for device (CUDA)
 //          std::string stateRankName = "StateRank";
 //          CudaGlobalVariable<int> stateRankVariable((stateRankName), (module));
 //          stateRankVariable.WriteToDevice(StateRank);
@@ -453,23 +805,22 @@ namespace ElVis
 //          CudaGlobalVariable<PX_REAL> GasConstantVariable((GasConstantName), (module));
 //          GasConstantVariable.WriteToDevice(GasConstant);
 
-          /* set up attachment visualization */
+          // set up attachment visualization
           char distanceName[] = "QnDistanceFunction";
           int ierr;
           PX_AttachmentGlobRealElem *QnDistance = NULL;
           ierr = PXAttachSearch( pg, "QnDistanceFunction", NULL, (void**)&QnDistance);
           if(ierr == PX_SEARCH_NOT_FOUND){
-              /* distance function doesn't exist; create a dummy one
-      and set it to all 0s */
+              // distance function doesn't exist; create a dummy one and set it to all 0s
               enum PXE_BasisShape BasisShape;
               enum PXE_BasisNodeDistribution NodeDistribution;
               enum PXE_SolutionOrder *attachOrder = (enum PXE_SolutionOrder*) malloc(pg->nElementGroup*sizeof(int));
               for(egrp = 0; egrp<pg->nElementGroup; egrp++){
-                  /* get basis shape */
+                  // get basis shape
                   PXError( PXGetTypeBasisShape(pg->ElementGroup[egrp].type, &BasisShape) );
-                  /* get node distribution */
+                  // get node distribution
                   PXError( PXGetTypeBasisNodeDistribution( pg->ElementGroup[egrp].type, &NodeDistribution) );
-                  /* get enumerated order */
+                  // get enumerated order
                   PXError( PXEnumeratedOrder(2, Dim, PXE_Lagrange, NodeDistribution, BasisShape, &(attachOrder[egrp]) ) );
               }
 
@@ -478,8 +829,8 @@ namespace ElVis
 
               free(attachOrder);
           }
-          /* enforce that solutionorder of ALL egrp in attachment are the same */
-          /* enforce that StateRank of attachemnt is 1 */
+          // enforce that solutionorder of ALL egrp in attachment are the same
+          // enforce that StateRank of attachemnt is 1
           enum PXE_SolutionOrder attachBaseOrder = QnDistance->order[0];
           if(QnDistance->StateRank != 1){
               printf("ERROR: distance function attachment staterank is %d != 1\n",QnDistance->StateRank);
@@ -493,7 +844,7 @@ namespace ElVis
           }
 
 
-          /* gather some grid info */
+          // gather some grid info
           for(egrp = 0; egrp<pg->nElementGroup; egrp++){
               nElemTotal += pg->ElementGroup[egrp].nElement; //total # elements
 
@@ -549,7 +900,7 @@ namespace ElVis
 
 
 
-          /* convert to buffers... */
+          // convert to buffers...
           m_solutionBuffer.SetContext(context);
           m_solutionBuffer.SetDimensions(nSolnCoeffTotal*StateRank);
           BOOST_AUTO(solution, m_solutionBuffer.map());
@@ -580,7 +931,7 @@ namespace ElVis
           m_globalElemToEgrpElemBuffer.SetDimensions(2*nElemTotal);
           BOOST_AUTO(globalElemToEgrpElem, m_globalElemToEgrpElemBuffer.map());
 
-          /* Cut Cell magic */
+          // Cut Cell magic
           if(m_cutCellFlag == 1){
               PX_Mesh *meshSurf = pg->CC3D->meshsurf;
               PX_Mesh *meshBack = pg->CC3D->meshback;
@@ -589,7 +940,7 @@ namespace ElVis
               int const* egrpelem2ThreeD;
               ptrdiff_t lengthCheck;
 
-              /* assert that all elements in meshsurf are Q2 tets */
+              // assert that all elements in meshsurf are Q2 tets
               enum PXE_ElementType truthSurfType = PXE_UniformTriangleQ2;
               int nCorrect=0, nCorrect2=0, nCorrect3=0;
               for(elem=0; elem<meshSurf->nElement; elem++){
@@ -602,7 +953,7 @@ namespace ElVis
                   throw e;
               }
 
-              /* assert that all shadow types are Q1 Tet */
+              // assert that all shadow types are Q1 Tet
               enum PXE_ElementType truthShadowType = PXE_UniformTetQ1;
               int nThreeDTotal = 0;
               int kThreeD;
@@ -625,7 +976,7 @@ namespace ElVis
                           //every element
                           ThreeD = Intersect->ThreeD + kThreeD;
 
-                          /*Test for each component threeD separately, if this is merged*/
+                          //Test for each component threeD separately, if this is merged
                           nCompThreeD = ThreeD->nCompThreeD;
                           threeDList = ThreeD->threeDList;
 
@@ -665,7 +1016,7 @@ namespace ElVis
 
               puts("Assertions passed.");
 
-              /* Load surface mesh coordinates (quadratic patches) */
+              //Load surface mesh coordinates (quadratic patches)
               m_patchCoordinateBuffer.SetContext(context);
               m_patchCoordinateBuffer.SetDimensions(meshSurf->nElement*PATCH_NBF*Dim);
               BOOST_AUTO(patchCoordinate, m_patchCoordinateBuffer.map());
@@ -719,10 +1070,8 @@ namespace ElVis
 
               puts("ShadowCoordinateBuffer complete.");
 
-              /* Compute size of cutcell buffer */
-              /* size (in bytes): nCutCellTotal*sizeof(PX_CutCellElVis) +
-      nThreeDTotal*sizeof(PX_PatchGroup) +
-      nPatchIndexesTotal*sizeof(int) */
+              // Compute size of cutcell buffer
+              // size (in bytes): nCutCellTotal*sizeof(PX_CutCellElVis) + nThreeDTotal*sizeof(PX_PatchGroup) + nPatchIndexesTotal*sizeof(int)
               nThreeDTotal = 0;
               int nPatchIndexesTotal = 0;
               int nLinkedTwoD;
@@ -741,7 +1090,7 @@ namespace ElVis
                           //every element
                           ThreeD = Intersect->ThreeD + kThreeD;
 
-                          /*Test for each component threeD separately, if this is merged*/
+                          //Test for each component threeD separately, if this is merged
                           nCompThreeD = ThreeD->nCompThreeD;
                           threeDList = ThreeD->threeDList;
 
@@ -757,7 +1106,7 @@ namespace ElVis
                                   jTwoD = linkedTwoD[kTwoD];
                                   TwoD = allTwoD + jTwoD;
 
-                                  /*If it is on patch face*/
+                                  //If it is on patch face
                                   if(TwoD->TypeOnPatch == PXE_3D_2DPatchFace){
                                       nPatchIndexesTotal += 1;
                                   }
@@ -809,7 +1158,7 @@ namespace ElVis
                           //every element
                           ThreeD = Intersect->ThreeD + kThreeD;
 
-                          /*Test for each component threeD separately, if this is merged*/
+                          //Test for each component threeD separately, if this is merged
                           nCompThreeD = ThreeD->nCompThreeD;
                           threeDList = ThreeD->threeDList;
 
@@ -842,7 +1191,7 @@ namespace ElVis
 
                               patchGroup->knownPointFlag = (unsigned char) ThreeD->KnownPointType;
 
-                              /* Build list of quadratic patches tied to this ThreeD */
+                              // Build list of quadratic patches tied to this ThreeD
                               nLinkedTwoD = ThreeD->nLinkedTwoD;
                               linkedTwoD = ThreeD->linkedTwoD;
                               // set up patchlist for this patchgroup
@@ -852,7 +1201,7 @@ namespace ElVis
                                   jTwoD = linkedTwoD[kTwoD];
                                   TwoD = allTwoD + jTwoD;
 
-                                  /*If it is on patch face*/
+                                  //If it is on patch face
                                   if(TwoD->TypeOnPatch == PXE_3D_2DPatchFace){
                                       //fill patchList entry
                                       patchList[nPatch] = TwoD->patchFace;
@@ -918,7 +1267,7 @@ namespace ElVis
               lengthCheck = (char *)cutCell - (char *)CutCellBase.get();
               printf("CutCell length check: %ld\n",lengthCheck - (ptrdiff_t)(nCutCellTotal*sizeof(PX_CutCellElVis) + nThreeDTotal*sizeof(PX_PatchGroup) + nPatchIndexesTotal*sizeof(int)));
 
-              /* Check that GlobalElemToCutCellBuffer is set up correctly */
+              // Check that GlobalElemToCutCellBuffer is set up correctly
               cutCellSizePtr = cutCellSizeBase;
               globalToCutPtr = GlobalElemToCutCell.get();
               //cutCell = (PX_CutCellElVis *)CutCellBase;
@@ -990,14 +1339,14 @@ namespace ElVis
           //egrpData[0].orderData.order = (unsigned int) State->order[0];
 
           for(egrp=0; egrp<pg->nElementGroup; egrp++){
-              /* fill in attachment data */
+              // fill in attachment data
               PXError(PXOrder2nbf(QnDistance->order[egrp], &nbf));
               PXError(PXOrder2porder(QnDistance->order[egrp], &porder));
               attachData[egrp].order = (unsigned short) QnDistance->order[egrp];
               attachData[egrp].nbf = (unsigned short) nbf;
               attachData[egrp].porder = (unsigned char) porder;
 
-              /* fill in egrp data */
+              // fill in egrp data
               egrpData[egrp].typeData.type = pg->ElementGroup[egrp].type;
               PXError(PXType2Interpolation(pg->ElementGroup[egrp].type, &orderQ));
               PXError(PXType2nbf(pg->ElementGroup[egrp].type, &nbfQ));
@@ -1053,17 +1402,17 @@ namespace ElVis
                   globalToLocalPtr[2*elem+0] = (unsigned int) egrp;
                   globalToLocalPtr[2*elem+1] = (unsigned int) elem;
 
-                  /* fill coordinates for this element */
+                  // fill coordinates for this element
                   for(i=0; i<nbfQ; i++){
                       coordPtr[i*Dim +0] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][0];
                       coordPtr[i*Dim +1] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][1];
                       coordPtr[i*Dim +2] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][2];
                   }
 
-                  /* fill bounding box for this element */
+                  // fill bounding box for this element
 
                   PXError(PXComputeElementBoundingBox(pg, egrp, elem, bBoxTemp));
-                  /* reorder from PX bounding box ordering to ordering used on GPU */
+                  // reorder from PX bounding box ordering to ordering used on GPU
                   for(d=0; d<Dim; d++){
                       bBoxPtr[d] = (ElVisFloat)bBoxTemp[2*d];
                       bBoxPtr[Dim+d] = (ElVisFloat)bBoxTemp[2*d+1];
@@ -1072,12 +1421,12 @@ namespace ElVis
                   if(qorder != 1 || cutCellFlag == (char)1)
                       PadBoundingBox(Dim, 0.1, bBoxPtr);
 
-                  /* fill solution array for this element */
+                  // fill solution array for this element
                   for(j=0; j<solnRank; j++){
                       solutionPtr[j] = State->value[egrp][elem][j];
                   }
 
-                  /* fill in attachment values */
+                  // fill in attachment values
                   for(j=0; j<QnDistance->StateRank*nbfA; j++){
                       attachmentPtr[j] = QnDistance->value[egrp][elem][j];
                   }
@@ -1110,9 +1459,9 @@ namespace ElVis
           throw;
       }
   }
+*/
 
-
-
+/*
   void PXModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faces)
   {
       PX_Grid *pg = m_pxa->pg;
@@ -1221,34 +1570,34 @@ namespace ElVis
       bBoxMaxPtr = reinterpret_cast<ElVisFloat*>(maxBuffer.get());
       for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
           for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){
-              /* for now, ALWAYS use LEFT face */
+              // for now, ALWAYS use LEFT face
               egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
               elem = pg->FaceGroup[fgrp].FaceL[face].Element;
               lface = pg->FaceGroup[fgrp].FaceL[face].Face;
               elemType = pg->ElementGroup[egrp].type;
-/*
-              if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) ){
-                  egrpR = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
-                  elemR = pg->FaceGroup[fgrp].FaceR[face].Element;
-                  //lfaceR = pg->FaceGroup[fgrp].FaceR[face].Face;
-                  elemTypeR = pg->ElementGroup[egrpR].type;
-              }else{
-                  egrpR = egrp;
-                  elemR = elem;
-                  //lfaceR = lface;
-                  elemTypeR = elemType;
-              }
-*/
+
+//              if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) ){
+//                  egrpR = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+//                  elemR = pg->FaceGroup[fgrp].FaceR[face].Element;
+//                  //lfaceR = pg->FaceGroup[fgrp].FaceR[face].Face;
+//                  elemTypeR = pg->ElementGroup[egrpR].type;
+//              }else{
+//                  egrpR = egrp;
+//                  elemR = elem;
+//                  //lfaceR = lface;
+//                  elemTypeR = elemType;
+//              }
+
 	      //for curved faces
               PXNodesOnFace(elemType, lface, nodesOnFace, &nNodesOnFace);
               if(nNodesOnFace != nbfQFace)
                   puts("FAIL!!!!!!!!!!");
 
-	      /* to force linear faces */
+	      // to force linear faces
 	      //PXVertexNodesOnFace(elemType, lface, nodesOnFace, nNodesOnFace);
 
               PXType2nbf(elemType, &nbfQ);
-              /* fill coordinates for this element */
+              // fill coordinates for this element
               for(i=0; i<nbfQ; i++){
                   nodeCoord[i*Dim +0] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][0];
                   nodeCoord[i*Dim +1] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][1];
@@ -1263,7 +1612,7 @@ namespace ElVis
               }
 
               PXComputeFaceBoundingBox(pg, fgrp, face, PXE_Left, nodeCoord, phiQ, bBoxTemp);
-              /* reorder from PX bounding box ordering to ordering used on GPU */
+              // reorder from PX bounding box ordering to ordering used on GPU
               for(d=0; d<Dim; d++){
                   bBoxTempElVis[d] = (ElVisFloat)bBoxTemp[2*d];
                   bBoxTempElVis[Dim+d] = (ElVisFloat)bBoxTemp[2*d+1];
@@ -1288,7 +1637,7 @@ namespace ElVis
 	      //force linear faces
 	      //faceCoordPtr += Dim*nNodesOnFace;
 
-              /* set up face data */
+              // set up face data
               PXError( PXFaceOrientation(pg, egrp, elem, lface, &orientation) );
               PXError(PXType2Shape(elemType, &elemShape));
               PXError(PXElemShape2FaceShape(elemShape, lface, &faceShape));
@@ -1382,58 +1731,9 @@ namespace ElVis
       printf("nbfQFace = %d\n",nbfQFace);
       printf("porderFace = %d\n",porderFace);
   }
+  */
 
-  int PXModel::DoGetNumberOfBoundarySurfaces() const
-  {
-      PX_Grid *pg = m_pxa->pg;
 
-       int fgrp;
 
-       //COUNTING boundary face groups
-       int numBoundaryFaceGroup = 0;
-       for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
-         if ( (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_BoundaryFG) || (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_EmbeddedBoundaryFG) ){
-           numBoundaryFaceGroup++; //number of boundary face groups
-         }
-       }
-      return numBoundaryFaceGroup;
-  }
-
-  void PXModel::DoGetBoundarySurface(int boundaryFaceGroupNum, std::string& name, std::vector<int>& boundaryFaceList)
-  {
-      name = std::string("Domain Surf") + boost::lexical_cast<std::string>(boundaryFaceGroupNum+1);
-
-      PX_Grid *pg = m_pxa->pg;
-      int *fgrp2GlobalFaceIndex = (int *)malloc((pg->nFaceGroup+1)*sizeof(int));
-
-      fgrp2GlobalFaceIndex[0] = 0;
-      for(int fgrp=1; fgrp<=pg->nFaceGroup; fgrp++){
-        fgrp2GlobalFaceIndex[fgrp] = fgrp2GlobalFaceIndex[fgrp-1] + pg->FaceGroup[fgrp-1].nFace;
-      }
-
-      ///identify which fgrp corresponds to our boundaryFaceGroup
-      int nfgrp, fgrpMatch;
-      PXError(PXbfgrp2fgrp(pg, boundaryFaceGroupNum, &nfgrp, &fgrpMatch));
-      //protect against a lazy assumption.  segfault might already occurred if nfgrp != 1
-      if(nfgrp != 1){
-        printf("FAIL, 1 boundary face group maps to multiple face groups!\n");
-        exit(1);
-      }
-
-      for(int face=0; face<pg->FaceGroup[fgrpMatch].nFace; face++){
-          boundaryFaceList.push_back(fgrp2GlobalFaceIndex[fgrpMatch] + face);
-      }
-
-      free(fgrp2GlobalFaceIndex);
-  }
-
-  std::vector<optixu::GeometryInstance> PXModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
-  {
-      return std::vector<optixu::GeometryInstance>();
-  }
-  optixu::Material PXModel::DoGet2DPrimaryGeometryMaterial(SceneView* view)
-  {
-      return optixu::Material();
-  }
 }
 

@@ -723,148 +723,130 @@ PXElementCentroidReference( enum PXE_Shape Shape, PX_REAL * RESTRICT xref )
 /******************************************************************/
 //   FUNCTION Definition: PXGlob2RefFromCoordinates
 ELVIS_DEVICE int
-PXGlob2RefFromCoordinates2(PX_ElementTypeData const *typeData, PX_REAL const *xnodes, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref, enum PXE_Boolean initialGuessProvided, enum PXE_Boolean CoordinateVerbosity)
+PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref, enum PXE_Boolean initialGuessProvided, enum PXE_Boolean CoordinateVerbosity)
 {
-  int ierr = PX_NO_ERROR;              // error code
-  int d;
-  const int Dim = DIM3D;
-  int node;              // index over the nodes of an element
+  //int ierr = PX_NO_ERROR;              // error code
+  //int d;
+  //int node;              // index over the nodes of an element
   int qorder;            // polynomial order of the element
-  int nbf;               // number of basis function in the element
-  int iter;              // current interation of the newton solve
-  int nLimitedIter = 5;  // number of interations we limit the update in the newton solve
-  int maxIter = 200;
-  PX_REAL Residual;     // Residual of Newton Solve
-  PX_REAL lim = 1.0;    // limit on the newton update - so the first step doesn't take us way out of the reference element
+  //int nbf;               // number of basis function in the element
+  //int iter;              // current interation of the newton solve
+  //int nLimitedIter = 5;  // number of interations we limit the update in the newton solve
+  //const int maxIter = 200;
+  //PX_REAL Residual;     // Residual of Newton Solve
+  //PX_REAL lim = 1.0;    // limit on the newton update - so the first step doesn't take us way out of the reference element
   //PX_REAL Jac[9];       // Transformation Jacobian
-  PX_REAL iJac[9];      // Inverse of Jacobian
-  PX_REAL RHS[3];       // right hand side vector for Newton Solve
-  PX_REAL dxref[3];     // Update in xref for Newton Solve
+  //PX_REAL iJac[9];      // Inverse of Jacobian
+  //PX_REAL RHS[3];       // right hand side vector for Newton Solve
+  //PX_REAL dxref[3];     // Update in xref for Newton Solve
   //PX_REAL *phi = NULL;  // Basis Functions
   //PX_REAL *gphi = NULL; // Derivative of Basis Functions wrt reference coordinates
   //PX_REAL phi[MAX_NBF];
   //PX_REAL gphi[Dim*MAX_NBF];
   //PX_REAL phi[MAX_NBF];
-  PX_REAL gphi[Dim*MAX_NBF];
-  PX_REAL *phi = &(gphi[0]);
-  enum PXE_Boolean ConvergedFlag; // flag indicating if the newton solve has converged
+  //PX_REAL gphi[DIM3D*MAX_NBF];
+  //PX_REAL *phi = gphi;
+  //enum PXE_Boolean ConvergedFlag; // flag indicating if the newton solve has converged
   enum PXE_Shape Shape;           // shape of the basis in this element
-  enum PXE_SolutionOrder order;   // interpolation order of a given element type
+  //enum PXE_SolutionOrder order;   // interpolation order of a given element type
   
-  /* get Dim, qorder, shape */
-  //PXErrorReturn( PXType2Dim   (type, &Dim   ) );
-  //PXErrorReturn( PXType2qorder(type, &qorder) );
-  //PXErrorReturn( PXType2Shape (type, &Shape ) );
-  qorder = (int) typeData->qorder;
-  Shape = (enum PXE_Shape) typeData->shape;
+  /* get qorder, shape */
+  qorder = elemData.qorder;
+  Shape = elemData.shape;
 
-  /* Go from Ref -> Global */
+  /*----------------------------------------------------------------------------------------*/
+  /*                             Evaluate Based on linear Element                           */
+  /*----------------------------------------------------------------------------------------*/
   if ((qorder ==  1) && ( (Shape == PXE_Shape_Edge) || (Shape == PXE_Shape_Triangle) || (Shape == PXE_Shape_Tet))) {
-    /*----------------------------------------------------------------------------------------*/
-    /*                             Evaluate Based on linear Element                           */
-    /*----------------------------------------------------------------------------------------*/
-
-    /* call glob2ref on linear simplex element */
-    //PXErrorReturn( LinearSimplexGlob2Ref(Dim, xnodes, xglobal, xref) );
-    ( LinearSimplexGlob2Ref(Dim, xnodes, xglobal, xref) );
+    ELVIS_PRINTF("PXGlob2RefFromCoordinates2: Linear Element\n");
+    LinearSimplexGlob2Ref(Dim, xnodes, xglobal, xref);
     return PX_NO_ERROR;
   }
 
+  //Treat things linearly temporaraly
+  LinearSimplexGlob2Ref(Dim, xnodes, xglobal, xref);
+
+  //ALWAYS_PRINTF("ERROR!!!!!!!!  PXGlob2RefFromCoordinates2: Dim=%d, qorder=%d, Shape=%d\n", Dim, qorder, Shape);
+  //return PX_NO_ERROR;
   /*----------------------------------------------------------------------------------------*/
   /*                         The Hard Way - A Higher Order Element                          */
   /*----------------------------------------------------------------------------------------*/
 
-  /* Get type and order */
-  //PXErrorReturn( PXType2nbf(type, &nbf   ) );
-  //PXErrorReturn( PXType2Interpolation(type, &order) );
-  nbf = (int) typeData->nbf;
-  order = (enum PXE_SolutionOrder) typeData->order;
-    
-  /* Initialize Newton Iteration */
+  /*
+  // Get type and order
+  nbf = elemData.nbf;
+  order = elemData.order;
+
+  // Initialize Newton Iteration
   ConvergedFlag = PXE_False;
   Residual = 1.0;
   iter = 0;
-  
-  /* Allocate memory */
+
+  // Allocate memory
   //PXErrorReturn( PXAllocate(     nbf, sizeof(PX_REAL), (void **) &phi  ) );
   //PXErrorReturn( PXAllocate( Dim*nbf, sizeof(PX_REAL), (void **) &gphi ) );
-  
 
-  /* Initialize xref to centroid */
-  //PXErrorReturn( PXElementCentroidReference( Shape, xref ) );
-  if(initialGuessProvided == 0){
-    xref[0] = typeData->centroidCoord[0];
-    xref[1] = typeData->centroidCoord[1];
-    xref[2] = typeData->centroidCoord[2];
-  }
-     
-  /* Starting Newton iteration */
+
+  // Initialize xref to centroid
+  PXElementCentroidReference( Shape, xref );
+
+
+  // Starting Newton iteration
   for ( iter = 0; iter < maxIter; iter++) {
-    /* Get Shape functions and gradients */
-    ( PXGradientsElem(order, qorder, xref, gphi ) );
- 
-    /* ref 2 glob for current xref */
+    // Get Shape functions and gradients
+    PXGradientsElem(order, qorder, xref, gphi );
+
+    // ref 2 glob for current xref
     //( PXRef2GlobFromCoordinatesGivenShape2(nbf, Dim, xnodes, xg, phi) );
 
-    /* Jacobian element for current xref */
-    ierr = PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) typeData->type, nbf, xnodes, xref, NULL, NULL, iJac, gphi, CoordinateVerbosity);
-    /* if (ierr == PX_NO_ERROR){ */
-    /*   /\* perfect *\/ */
-    /* } */
-    /* else if(ierr==PX_NON_PHYSICAL){ */
-    /*   ConvergedFlag=PXE_False; */
-    /*   break; */
-    /* } */
-    /* else{ */
-    /*   return PXError(ierr); */
-    /* } */
+    // Jacobian element for current xref
+    ierr = PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>(elemData.type, nbf, xnodes, xref, NULL, NULL, iJac, gphi, CoordinateVerbosity);
+
     if(ierr != PX_NO_ERROR)
       break;
 
-    /* NOTE: phi (size nbf) will OVERWRITE the first nbf elements
-       of gphi */
-    ( PXShapeElem(order, qorder, xref, phi ) );
-      
-    /* Initialize RHS and Jacobian  */
-    /* for (d=0; d<Dim; d++)  */
-    /*   RHS[d] = xglobal[d]; */
-    RHS[0] = xglobal[0];
-    RHS[1] = xglobal[1];
-    RHS[2] = xglobal[2];
-  
-    /* Evaluate RHS */
+    // NOTE: phi (size nbf) will OVERWRITE the first nbf elements of gphi
+    PXShapeElem(order, qorder, xref, phi );
+
+    // Initialize RHS and Jacobian
+    for (d=0; d<Dim; d++)
+      RHS[d] = xglobal[d];
+    //RHS[0] = xglobal[0];
+    //RHS[1] = xglobal[1];
+    //RHS[2] = xglobal[2];
+
+    // Evaluate RHS
     for (node=0; node<nbf; node++){
-      /* NOTE: we are actually accessing phi here! 
-         The data is just stored in gphi array!! */
-      /* for (d=0; d<Dim; d++) */
-      /* 	RHS[d] -= xnodes[Dim*node+d]*phi[node]; */
-      RHS[0] -= xnodes[Dim*node+0]*phi[node];
-      RHS[1] -= xnodes[Dim*node+1]*phi[node];
-      RHS[2] -= xnodes[Dim*node+2]*phi[node];
+      // NOTE: we are actually accessing phi here!
+      // The data is just stored in gphi array!!
+      for (d=0; d<Dim; d++)
+      	RHS[d] -= xnodes[Dim*node+d]*phi[node];
+      //RHS[0] -= xnodes[Dim*node+0]*phi[node];
+      //RHS[1] -= xnodes[Dim*node+1]*phi[node];
+      //RHS[2] -= xnodes[Dim*node+2]*phi[node];
     }
 
-    /* find the residual */
-    //( PXNorm(RHS, NULL, Dim, 1, &Residual) );
+    // find the residual
     Residual = 0.0;
-    /* for(d=0; d<Dim; d++) */
-    /*   Residual += RHS[d]*RHS[d]; */
-    Residual += RHS[0]*RHS[0] + RHS[1]*RHS[1] + RHS[2]*RHS[2];
+    for(d=0; d<Dim; d++)
+      Residual += RHS[d]*RHS[d];
+    //Residual += RHS[0]*RHS[0] + RHS[1]*RHS[1] + RHS[2]*RHS[2];
     Residual = sqrt(Residual);
-    
-    /* Check Residual Tolerance */
+
+    // Check Residual Tolerance
     if ( ( Residual < 1.0E-10) && (iter>nLimitedIter) ) {
       ConvergedFlag = PXE_True;
       break;
     }
 
-    /* Compute State */
+    // Compute State
     //( PXMat_Vec_Mult_Set( iJac, RHS, dxref, Dim, Dim ) );
     dxref[0] = iJac[0*Dim+0]*RHS[0] + iJac[0*Dim+1]*RHS[1] + iJac[0*Dim+2]*RHS[2];
     dxref[1] = iJac[1*Dim+0]*RHS[0] + iJac[1*Dim+1]*RHS[1] + iJac[1*Dim+2]*RHS[2];
     dxref[2] = iJac[2*Dim+0]*RHS[0] + iJac[2*Dim+1]*RHS[1] + iJac[2*Dim+2]*RHS[2];
-    
 
-    /* limiting - for the first iteration we don't want to take the full step */
+
+    // limiting - for the first iteration we don't want to take the full step
     if (iter<nLimitedIter){
       //Residual = 1.0;
       lim = 0.1;
@@ -873,10 +855,10 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const *typeData, PX_REAL const *xn
       lim = 1.0;
     }
 
-    /* Update State */
+    // Update State
     for (d=0; d<Dim; d++)
       xref[d] += lim*dxref[d];
-    
+
   }// for iter
 
   //we may have broken out of while loop b/c ierr != PX_NO_ERROR
@@ -888,25 +870,19 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const *typeData, PX_REAL const *xn
     PXErrorReturn(ierr);
   }
 
-  /* Release Memory */
+  // Release Memory
   //PXRelease ( phi );
   //PXRelease ( gphi );
 
 
-  /* Check Convergence */
+  // Check Convergence
   if (ConvergedFlag == PXE_False) {
     if (CoordinateVerbosity==PXE_True){
       ALWAYS_PRINTF("ERROR: Unable to Converge PXGlob2Ref\n");
-      /* printf("       xglobal = ["); */
-      /* for (d=0; d<Dim; d++){ */
-      /* 	printf(" %22.15e",xglobal[d]); */
-      /* } */
-      /* printf("]\n"); */
-      
     }
     return PX_NOT_CONVERGED;
   }
-
+*/
   return PX_NO_ERROR;
 }
 

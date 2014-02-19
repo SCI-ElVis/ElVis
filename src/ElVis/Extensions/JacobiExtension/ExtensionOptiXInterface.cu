@@ -41,7 +41,8 @@ ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx globalFaceIdx, const FaceRefe
     //ElVisFloat4 v1 = VertexBuffer[4*faceId+1];
     //ElVisFloat4 v2 = VertexBuffer[4*faceId+2];
     //ElVisFloat4 v3 = VertexBuffer[4*faceId+3];
-    PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+    PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(globalFaceIdx);
+    if( planarFaceIdx.Value < 0 ) return eInvalidFaceId;
     ElVisFloat4 v0, v1, v2, v3;
     GetPlanarFaceVertex(planarFaceIdx, 0, v0);
     GetPlanarFaceVertex(planarFaceIdx, 1, v1);
@@ -145,7 +146,9 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx globalFaceIdx, const 
     //ElVisFloat4 v1 = VertexBuffer[4*faceId+1];
     //ElVisFloat4 v2 = VertexBuffer[4*faceId+2];
     //ElVisFloat4 v3 = VertexBuffer[4*faceId+3];
-    PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+    PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(globalFaceIdx);
+    if( planarFaceIdx.Value < 0 ) return eInvalidFaceId;
+
     ElVisFloat4 v0, v1, v2, v3;
     GetPlanarFaceVertex(planarFaceIdx, 0, v0);
     GetPlanarFaceVertex(planarFaceIdx, 1, v1);
@@ -211,7 +214,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx globalFaceIdx, const 
 
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& result)
 {
-    PlanarFaceIdx planarFaceIdx = globalFaceIdx;
+    PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(globalFaceIdx);
     if( planarFaceIdx.Value > 0 )
     {
       result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
