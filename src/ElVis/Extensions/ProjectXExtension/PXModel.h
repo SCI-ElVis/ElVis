@@ -120,9 +120,6 @@ namespace ElVis
     std::vector<PXPlanarFace> m_PlanarFaces;
     std::vector<uint> m_egrp2GlobalElemIndex;
 
-    ElVis::OptiXBuffer<ElVisFloat> m_coordinateBuffer; //for coordinates of elements of computational mesh
-    ElVis::OptiXBuffer<ElVisFloat> m_solutionBuffer; //for State_0 GRE values (solution)
-
     //ElVis::OptiXBuffer<unsigned int> m_globalElemToEgrpElemBuffer; //mapping from global element number to (egrp,elem)
 
     //ElVis::OptiXBuffer<PX_SolutionOrderData> m_attachDataBuffer; //solutionorder info about a single attachment (for now, distance function)

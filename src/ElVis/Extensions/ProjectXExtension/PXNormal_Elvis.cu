@@ -83,7 +83,7 @@ PXCrossProduct(PX_REAL const *u, PX_REAL const *v, PX_REAL *w)
 /******************************************************************/
 //   FUNCTION Definition: PXFaceNormalGivenGradients
 ELVIS_DEVICE int 
-PXFaceNormalReferenceGivenGradients( int Dim, int nnode, PX_REAL const *gphi,
+PXFaceNormalReferenceGivenGradients( int nnode, PX_REAL const *gphi,
 					 PX_REAL const *xnodes, PX_REAL const *xface, PX_REAL *nvec)
 {
   /* 
@@ -111,15 +111,15 @@ PXFaceNormalReferenceGivenGradients( int Dim, int nnode, PX_REAL const *gphi,
   PX_REAL x_u[6] = {0., 0., 0., 0., 0., 0.}; // tangent vectors
 
   /* Compute tangent vectors */
-  for ( t = 0; t < DIM3D-1; t++)
+  for ( t = 0; t < Dim-1; t++)
     for ( k = 0; k < nnode; k++)
-      for ( d = 0; d < DIM3D; d++)
-        x_u[t*DIM3D+d] += xnodes[k*DIM3D+d]*gphi[t*nnode+k];
+      for ( d = 0; d < Dim; d++)
+        x_u[t*Dim+d] += xnodes[k*Dim+d]*gphi[t*nnode+k];
   
   /* Compute normal */
 
     /* Compute normal as cross product */
-  PXCrossProduct( x_u, x_u+DIM3D, nvec);
+  PXCrossProduct( x_u, x_u+Dim, nvec);
 
   return PX_NO_ERROR;
 }
@@ -128,7 +128,7 @@ PXFaceNormalReferenceGivenGradients( int Dim, int nnode, PX_REAL const *gphi,
 /******************************************************************/
 //   FUNCTION Definition: PXOutwardNormal
 ELVIS_DEVICE int
-PXOutwardNormal( enum PXE_SolutionOrder orderQ, int qorder, int nbfQ, PX_FaceData const *faceData, PX_REAL const * xnodes,
+PXOutwardNormal( enum PXE_SolutionOrder orderQ, int qorder, int nbfQ, PX_FaceTypeData const *faceData, PX_REAL const * xnodes,
 		 PX_REAL const *xface, PX_REAL *nvec)
 {
 /*
@@ -157,16 +157,15 @@ PXOutwardNormal( enum PXE_SolutionOrder orderQ, int qorder, int nbfQ, PX_FaceDat
 
   
   /* correct for orientation */
-  PXErrorDebug( PXFaceRef2ElemFaceRef<PX_REAL>( (enum PXE_Shape) faceData->shape, (int) faceData->orientation, xface, xfacelocal) );
+  PXErrorDebug( PXFaceRef2ElemFaceRef<PX_REAL>( faceData->shape, faceData->orientation, xface, xfacelocal) );
 
   /* Get gradients */
   ( PXGradientsFace<PX_REAL>( orderQ, qorder, xfacelocal, gphi) );
 
-  PXFaceNormalReferenceGivenGradients( DIM3D, nbfQ, gphi,
-						     xnodes, xfacelocal, nvec);
+  PXFaceNormalReferenceGivenGradients( nbfQ, gphi, xnodes, xfacelocal, nvec);
 
   if(faceData->side == 1){
-    for (d=0; d<DIM3D; d++)
+    for (d=0; d<Dim; d++)
       nvec[d] = -nvec[d];
   }
 

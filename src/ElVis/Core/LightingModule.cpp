@@ -51,7 +51,7 @@ namespace ElVis
         boost::timer timer;
         context->launch(m_program.Index, view->GetWidth(), view->GetHeight());
         double elapsed = timer.elapsed();
-        printf("Render time for lighting: %e\n", elapsed);
+        //printf("Render time for lighting: %e\n", elapsed);
     }
 
     void LightingModule::DoSetup(SceneView* view)

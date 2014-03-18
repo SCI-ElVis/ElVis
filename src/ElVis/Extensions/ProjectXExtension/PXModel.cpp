@@ -63,7 +63,7 @@ extern "C"{
 
 //   #include <LEDA/numbers/real.h>
 //   #include <LEDA/core/array.h>
-//   #include <LEDA/numbers/polynomial.h> 
+//   #include <LEDA/numbers/polynomial.h>
 //   #include <LEDA/numbers/isolating.h>
 //   #include <LEDA/numbers/rational.h>
 
@@ -125,7 +125,7 @@ std::string GetVolumeFileFilter()
 
 namespace ElVis
 {
-  const std::string PXModel::prefix = "PXSimplex";
+  const std::string PXModel::prefix = "PX";
 
   int PXModel::DoGetNumFields() const
   {
@@ -332,7 +332,13 @@ namespace ElVis
 
   size_t PXModel::DoGetNumberOfFaces() const
   {
-    return m_PlanarFaces.size();
+    PX_Grid *pg = m_pxa->pg;
+    int nFaceTotal = 0;
+
+    for(int fgrp = 0; fgrp<pg->nFaceGroup; fgrp++)
+      nFaceTotal += pg->FaceGroup[fgrp].nFace; //total # faces
+
+    return nFaceTotal;
   }
 
   FaceInfo PXModel::DoGetFaceDefinition(size_t globalFaceId) const
@@ -342,7 +348,7 @@ namespace ElVis
 
   size_t PXModel::DoGetNumberOfPlanarFaceVertices() const
   {
-    return m_pxa->pg->nNode; //m_vertices.size();
+    return m_pxa->pg->nNode;
   }
 
   size_t PXModel::DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const
@@ -363,7 +369,6 @@ namespace ElVis
 
   WorldPoint PXModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
   {
-    //return m_vertices[vertexIdx];
     WorldPoint FaceNode( m_pxa->pg->coordinate[vertexIdx][0],
                          m_pxa->pg->coordinate[vertexIdx][1],
                          m_pxa->pg->coordinate[vertexIdx][2] );
@@ -415,29 +420,34 @@ namespace ElVis
     }
 
 
+
     ElVis::OptiXBuffer<int> egrp2GlobalElemIndex("egrp2GlobalElemIndex");
     egrp2GlobalElemIndex.SetContext(context);
     egrp2GlobalElemIndex.SetDimensions(pg->nElementGroup+1);
     BOOST_AUTO(egrp2GlobalElemIndexMap, egrp2GlobalElemIndex.map());
 
-    m_coordinateBuffer.SetContext(context);
-    m_coordinateBuffer.SetDimensions(nGeomCoeffTotal);
-    BOOST_AUTO(coordinateData, m_coordinateBuffer.Map());
+    ElVis::OptiXBuffer<ElVisFloat> solutionBuffer(prefix + "SolutionBuffer");
+    solutionBuffer.SetContext(context);
+    solutionBuffer.SetDimensions(nSolnCoeffTotal);
+    BOOST_AUTO(solution, solutionBuffer.map());
 
-    m_solutionBuffer.SetContext(context);
-    m_solutionBuffer.SetDimensions(nSolnCoeffTotal);
-    BOOST_AUTO(solution, m_solutionBuffer.map());
+    ElVis::OptiXBuffer<ElVisFloat> ElemCoordBuffer(prefix + "ElemCoordBuffer");
+    ElemCoordBuffer.SetContext(context);
+    ElemCoordBuffer.SetDimensions(nGeomCoeffTotal);
+    BOOST_AUTO(ElemCoord, ElemCoordBuffer.Map());
 
     ElVis::OptiXBuffer<PX_EgrpData> egrpDataBuffer(prefix + "EgrpDataBuffer"); //data about each element group
     egrpDataBuffer.SetContext(context);
     egrpDataBuffer.SetDimensions(pg->nElementGroup);
     BOOST_AUTO(egrpDataBufferMap, egrpDataBuffer.map());
 
+
     int S = 0, G = 0, qorder=0, porder=0;
     enum PXE_Shape elemShape;
     enum PXE_SolutionOrder orderQ;
+    PXE_ElementType elemType;
     for(int egrp = 0; egrp<pg->nElementGroup; egrp++){
-        PXE_ElementType elemType = pg->ElementGroup[egrp].type;
+        elemType = pg->ElementGroup[egrp].type;
 
         PXError( PXType2nbf(elemType, &nbfQ) );
         PXError( PXType2Interpolation(elemType, &orderQ));
@@ -481,7 +491,7 @@ namespace ElVis
 
             for(int i=0; i<nbfQ; i++)
               for( int d = 0; d < Dim; d++ )
-                coordinateData[G++] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][d];
+                ElemCoord[G++] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][i]][d];
 
             // fill in attachment values
             //for(j=0; j<QnDistance->StateRank*nbfA; j++){
@@ -493,8 +503,99 @@ namespace ElVis
     int egrp = pg->nElementGroup-1;
     egrp2GlobalElemIndexMap[egrp+1] = egrp2GlobalElemIndexMap[egrp] + pg->ElementGroup[egrp].nElement;
 
-    std::cout << "nSolnCoeffTotal = " << nSolnCoeffTotal << " : S = " << S << std::endl;
-    std::cout << "nGeomCoeffTotal = " << nGeomCoeffTotal << " : G = " << G << std::endl;
+    //std::cout << "nSolnCoeffTotal = " << nSolnCoeffTotal << " : S = " << S << std::endl;
+    //std::cout << "nGeomCoeffTotal = " << nGeomCoeffTotal << " : G = " << G << std::endl;
+
+
+//----- Face Data -------------------
+
+    int nodesOnFace[36];
+    int nNodesOnFace;
+
+    int lface, elem;
+    int nFaceCoordTotal = 0;
+    int nCurvedFace = 0;
+    for(int fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
+      for(int face=0; face<pg->FaceGroup[fgrp].nFace; face++){
+        // for now, ALWAYS use LEFT face
+        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+        elemType = pg->ElementGroup[egrp].type;
+
+        PXType2qorder(elemType, &qorder);
+        if( qorder == 1 ) continue; //Only want curved elements here
+
+        PXNodesOnFace(elemType, lface, nodesOnFace, &nNodesOnFace);
+
+        nFaceCoordTotal += nNodesOnFace*Dim;
+        nCurvedFace++;
+      }
+    }
+
+    ElVis::OptiXBuffer<PX_FaceTypeData> FaceDataBuffer(prefix + "FaceDataBuffer");
+    FaceDataBuffer.SetContext(context);
+    FaceDataBuffer.SetDimensions(nCurvedFace);
+    BOOST_AUTO(FaceData, FaceDataBuffer.map());
+
+    ElVis::OptiXBuffer<ElVisFloat> FaceCoordBuffer(prefix + "FaceCoordBuffer");
+    FaceCoordBuffer.SetContext(context);
+    FaceCoordBuffer.SetDimensions(nFaceCoordTotal);
+    BOOST_AUTO(FaceCoord, FaceCoordBuffer.Map());
+
+    int orientation, nbfQFace;
+    enum PXE_ElementType FaceType;
+    enum PXE_Shape faceShape;
+    G = 0;
+    nCurvedFace = 0;
+    for(int fgrp = 0; fgrp<pg->nFaceGroup; fgrp++){
+      for(int face=0; face<pg->FaceGroup[fgrp].nFace; face++){
+
+        // for now, ALWAYS use LEFT face
+        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        elem = pg->FaceGroup[fgrp].FaceL[face].Element;
+        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+        elemType = pg->ElementGroup[egrp].type;
+
+        //for curved faces
+        PXError( PXType2qorder(elemType, &qorder) );
+
+        //Only care about curved face
+        if( qorder == 1) continue;
+
+        PXError( PXNodesOnFace(elemType, lface, nodesOnFace, &nNodesOnFace) );
+        PXError( PXElemType2FaceType(elemType, 0, &FaceType ) );
+        PXError( PXType2nbf(FaceType, &nbfQFace) );
+
+        PXError( PXType2Interpolation(FaceType, &orderQ) );
+        PXError( PXType2Shape(elemType, &elemShape) );
+        PXError( PXElemShape2FaceShape(elemShape, lface, &faceShape) );
+        PXError( PXFaceOrientation(pg, egrp, elem, lface, &orientation) );
+
+        FaceData[nCurvedFace].nbf = nbfQFace;
+        FaceData[nCurvedFace].shape = faceShape;
+        FaceData[nCurvedFace].orientation = orientation;
+        FaceData[nCurvedFace].side = 0; //LEFT
+        FaceData[nCurvedFace].order = orderQ;
+        FaceData[nCurvedFace].qorder = qorder;
+        FaceData[nCurvedFace].idx = G;
+
+        if( nbfQFace != nNodesOnFace ) {
+          printf( "nbfQFace(%d) != nNodesOnFace(%d)\n", nbfQFace, nNodesOnFace);
+          assert(0);
+        }
+
+        for(int i = 0; i < nNodesOnFace; i++){
+          for(int d = 0; d < Dim; d++)
+            FaceCoord[G++] = pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][d];
+        }
+
+        nCurvedFace++;
+      }
+    }
+
+    std::cout << "nCurvedFace = " << nCurvedFace << std::endl;
+    context["nCurvedFace"]->setInt(nCurvedFace);
+
   }
 
   const std::string PXModel::PXSimplexPtxFileName("PXSimplex.cu.ptx_generated_ElVis.cu.ptx");
@@ -510,9 +611,9 @@ namespace ElVis
 
 
   PXModel::PXModel(const std::string& modelPath) :
-    Model(modelPath),
-    m_solutionBuffer(prefix + "SolutionBuffer"),
-    m_coordinateBuffer(prefix + "CoordinateBuffer")
+    Model(modelPath)
+    //m_solutionBuffer(prefix + "SolutionBuffer"),
+    //m_coordinateBuffer(prefix + "CoordinateBuffer")
     //m_globalElemToEgrpElemBuffer(prefix + "GlobalElemToEgrpElemBuffer"),
     //m_attachDataBuffer(prefix + "AttachDataBuffer"),
     //m_attachmentBuffer(prefix + "AttachmentBuffer"),
@@ -554,7 +655,7 @@ namespace ElVis
 
     PX_Grid *pg;
     pg = m_pxa->pg;
-    printf("Dim = %d\n",pg->Dim);     
+    printf("Dim = %d\n",pg->Dim);
 
     m_cutCellFlag = pg->CC3D != NULL;
     FILE *fil;
@@ -588,8 +689,6 @@ namespace ElVis
       m_egrp2GlobalElemIndex[egrp] = m_egrp2GlobalElemIndex[egrp-1] + pg->ElementGroup[egrp-1].nElement;
     }
 
-
-
     ElVisFloat bBoxTemp[BBOX_SIZE];
     ElVisFloat bBoxTempElVis[BBOX_SIZE];
 
@@ -619,6 +718,8 @@ namespace ElVis
     int nNodesOnFace;
     PX_REAL nvec[3] = {0,0,0};
     PX_REAL xface[2] = {0,0};
+    std::vector<int> CurvedNodeMap(pg->nNode,0);
+    int nCurvedNodes = 0;
 
     for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
       for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){
@@ -666,7 +767,10 @@ namespace ElVis
         else if( (PXE_UniformQuadQ1  <= FaceType && FaceType <= PXE_UniformQuadQ5 ) ||
                  (PXE_SpectralQuadQ1 <= FaceType && FaceType <= PXE_SpectralQuadQ5)) planarInfo.Type = eQuad;
         else
+        {
           printf("UNKNOWN FaceType=%d\n", FaceType);
+          assert(0);
+        }
 
         info.Type = qorder == 1 ? ePlanar : eCurved;
 
@@ -718,7 +822,7 @@ namespace ElVis
   std::vector<optixu::GeometryGroup> PXModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
   {
       try
-      {        
+      {
           std::vector<optixu::GeometryGroup> result;
           if( m_pxa == NULL ) return result;
 
@@ -1649,7 +1753,7 @@ namespace ElVis
               faceDefsPtr[face].CommonElements[0].Id = egrp2GlobalElemIndex[egrp] + elem;
               faceDefsPtr[face].CommonElements[0].Type = (int) elemType;
 
-   
+
 
               if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) ){
                   egrpR = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;

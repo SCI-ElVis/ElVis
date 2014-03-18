@@ -8,11 +8,11 @@ extern "C"{
 #define PX_DEBUG_MODE 0
 
 #define BBOX_SIZE 6 //number of doubles used to describe a bounding box
-#define MAX_NBF 10 //p=2 simplex, 3d
-#define MAX_NBF_FACE 6 //p=2 simplex, 2d
+#define MAX_NBF 20 //p=3 simplex, 3d
+#define MAX_NBF_FACE 10 //p=3 simplex, 2d
 
-#define SOLN_MAX_NBF 20 //p=2 simplex, 3d
-#define SOLN_MAX_NBF_FACE 10 //p=2 simplex, 2d
+#define SOLN_MAX_NBF 20 //p=3 simplex, 3d
+#define SOLN_MAX_NBF_FACE 10 //p=3 simplex, 2d
 
 #define DIM3D 3
 #define DIM4D 4
@@ -50,15 +50,18 @@ typedef struct{
   int nbf;
   int qorder; //polynomial order
   enum PXE_Shape shape; //PXE_Shape
-  //PX_REAL centroidCoord[DIM3D]; //coordinates of element centroid
-  
 } PX_ElementTypeData;
 
 typedef struct{
   unsigned char orientation;
   unsigned char side; //0: LEFT, 1: RIGHT.  If side is 1, computed normal must be flipped
+  unsigned int idx;
+  unsigned int nodesOnFace;
+  int nbf;
+  enum PXE_SolutionOrder order;
+  int qorder; //polynomial order
   enum PXE_Shape shape; //PXE_Shape
-} PX_FaceData;
+} PX_FaceTypeData;
 
 
 typedef struct{
@@ -73,12 +76,20 @@ typedef struct{
   unsigned int egrpGeomCoeffStartIndex; //index of element 0 in an array over coordinates
   unsigned int egrpSolnCoeffStartIndex; //index of element 0 in an array over solution
   char cutCellFlag; //flag for whether this egrp is for cut cells
-  //enum PXE_SolutionOrder order; //solution order of an egrp
-  //enum PXE_ElementType type; //element type of an egrp
 
   PX_ElementTypeData elemData; //element type of an egrp
   PX_SolutionOrderData solData; //element type of an egrp
 } PX_EgrpData;
+
+typedef struct{
+  unsigned int fgrpStartIndex; //global element number of element 0
+  unsigned int fgrpGeomCoeffStartIndex; //index of element 0 in an array over coordinates
+  unsigned int fgrpSolnCoeffStartIndex; //index of element 0 in an array over solution
+  char cutCellFlag; //flag for whether this fgrp is for cut cells
+
+  PX_FaceTypeData faceData; //element type of an fgrp
+  PX_SolutionOrderData solData; //element type of an fgrp
+} PX_FgrpData;
 
 
 typedef struct {

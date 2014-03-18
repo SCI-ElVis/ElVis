@@ -70,12 +70,13 @@ URL:    http://raphael.mit.edu
 #define PXCOORDINATES_ELVIS_C 
 
 #include <stdio.h>
+#include <Fundamentals/PX.h>
 
 /******************************************************************/
 //   FUNCTION Definition: PXRef2GlobFromCoordinates
 ELVIS_DEVICE int
-PXRef2GlobFromCoordinatesGivenShape2(int nbf, int globDim, PX_REAL const * RESTRICT nodeCoordinates, 
-				     PX_REAL * RESTRICT xglobal, PX_REAL const * RESTRICT phi)
+PXRef2GlobFromCoordinatesGivenShape2(int nbf, int globDim, PX_REAL const * nodeCoordinates,
+				     PX_REAL * xglobal, PX_REAL const * phi)
 {
   int node;
   PX_REAL temp1;
@@ -124,49 +125,42 @@ PXRef2GlobFromCoordinatesGivenShape2(int nbf, int globDim, PX_REAL const * RESTR
 
 /******************************************************************/
 //   FUNCTION Definition: PXJacobianElementFromCoordinatesGivenGradient
-template <typename DT> ELVIS_DEVICE int 
-PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nbf, DT const * RESTRICT nodeCoordinates, 
-					      DT const * RESTRICT xref, DT * RESTRICT JACT, 
-					      DT * RESTRICT pJ, DT * RESTRICT ijac, 
-					      DT const * RESTRICT gphi, enum PXE_Boolean CoordinateVerbosity){
-  //int ierr;
-  //int Dim;
-  //int nnode;
+ELVIS_DEVICE int
+PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type, int nbf, PX_REAL const *nodeCoordinates,
+                                               PX_REAL const *xref,
+                                               PX_REAL *pJ, PX_REAL *ijac,
+                                               PX_REAL const *gphi, enum PXE_Boolean const& CoordinateVerbosity)
+{
+  rtPrintf("###### Test test\n");
   int i,k;
-  //enum PXE_SolutionOrder order;
-  DT T[9];
-  DT J=0.0;
-  DT *jacT;
-  DT temp1;
-  DT temp2;
-  DT temp3;
-  DT temp4;
+  PX_REAL J=0.0;
+  PX_REAL temp1 = 0.0;
+  PX_REAL temp2 = 0.0;
+  PX_REAL temp3 = 0.0;
+  PX_REAL temp4 = 0.0;
 
-  DT const * RESTRICT gphix;
-  DT const * RESTRICT gphiy;
-  DT const * RESTRICT gphiz;
-  //DT *gphi = NULL; // gradient of basis functions 
+  PX_REAL const *gphix;
+  PX_REAL const *gphiy;
+  PX_REAL const *gphiz;
 
-  /* get the dimension */
-  //PXErrorReturn( PXType2Dim(type, &Dim) );
-  const int Dim = DIM3D;
+  PX_REAL jacT[9] = {0,0,0, 0,0,0, 0,0,0};
 
-  /* set up jacT in case JACT==NULL */
-  jacT = JACT;
-  if (jacT == NULL) jacT = T;
+  //MCG: So if this is uncommented, ElVis stops working....
+  //for(i = 0; i < 9; i++)
+  //  jacT[i] = 0;
+
   
   /* Get Jacobian Determinant and Inverse */
   switch (Dim) {
   case 1:
-    /* initialize jacT */
 
-    /* Evaluate Jacobian */
+    // Evaluate Jacobian
     temp1 = 0.0;
     for( k = 0; k < nbf; k++)
       temp1 += nodeCoordinates[k]*gphi[k];
 
-    jacT[0] = temp1;
     J = temp1;
+    jacT[0] = temp1;
     if ( fabs(J) > DBL_MIN ){
       ijac[0] = 1.0/jacT[0];
     }
@@ -190,8 +184,8 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nb
 /*       for( k = 0; k < nbf; k++) */
 /* 	for( i = 0; i < 2; i++) */
 /* 	  jacT[2*i+j] += ps[k][i]*gphi[j*nbf+k]; */
-    
-    /* unrolled: */
+
+    // unrolled:
     gphix = gphi;
     gphiy = gphi + nbf;
     temp1 = 0.0;
@@ -201,6 +195,7 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nb
     for( k = 0; k < nbf; k++){
       temp1 += nodeCoordinates[0]*gphix[k];
       temp2 += nodeCoordinates[0]*gphiy[k];
+
       temp3 += nodeCoordinates[1]*gphix[k];
       temp4 += nodeCoordinates[1]*gphiy[k];
       nodeCoordinates += 2;
@@ -210,28 +205,32 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nb
     jacT[2] = temp3;
     jacT[3] = temp4;
  
-    PXMatrixDetInverse2<DT>(jacT, &J, ijac);
+    PXMatrixDetInverse2<PX_REAL>(jacT, &J, ijac);
     break;
   case 3:
-    /* partially unrolled code, see case2 for details */
+    // partially unrolled code, see case2 for details
+
     gphix = gphi;
     gphiy = gphi + nbf;
     gphiz = gphi + 2*nbf;
-    /* initialize jacT */
-    for(i = 0; i < 9; i++)
-      jacT[i] = 0.0;
 
-    /* Evaluate Jacobian */
+    rtPrintf("###### HOW DID I GET HERE!?!?!?!?\n");
+
+    // initialize jacT
+    //for(i = 0; i < 9; i++)
+    //  jacT[i] = 0.0;
+
+    // Evaluate Jacobian
     for( k = 0; k < nbf; k++){
       for( i = 0; i < 3; i++){
-	jacT[3*i+0] += nodeCoordinates[i]*gphix[k];
-	jacT[3*i+1] += nodeCoordinates[i]*gphiy[k];
-	jacT[3*i+2] += nodeCoordinates[i]*gphiz[k];
+//        jacT[3*i+0] += nodeCoordinates[i]*gphix[k];
+//        jacT[3*i+1] += nodeCoordinates[i]*gphiy[k];
+//        jacT[3*i+2] += nodeCoordinates[i]*gphiz[k];
       }
       nodeCoordinates += 3;
     }
 
-    PXMatrixDetInverse3<DT>(jacT, &J, ijac);
+    PXMatrixDetInverse3<PX_REAL>(jacT, &J, ijac);
     break;
   default:
     //ELVIS_PRINTF("Dim = %d not supported in ProjectX\n", Dim);
@@ -242,10 +241,12 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nb
   if (pJ!=NULL)
     (*pJ) = J;
 
-  if (unlikely(J<=0.0)){
+//  if ( unlikely(J<=0.0) ){
 
-    if (CoordinateVerbosity==PXE_True){
-      ALWAYS_PRINTF("Negative Jacobian found: %.15e\n",J);
+//    if (CoordinateVerbosity==PXE_True){
+
+      //ALWAYS_PRINTF("Negative Jacobian found: %e\n",J);
+
       /* nodeCoordinates -= Dim*nbf; //reset to beginning of coordinates */
 
       /* printf("ERROR: jacobian = %22.15e < 0 \n",J); */
@@ -265,9 +266,9 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType type, int nb
       /* printf("  ];\n"); */
       /* printf("plot(ps(:,1),ps(:,2),'g^');\n"); */
 
-    }
-    return PX_NON_PHYSICAL;    
-  }
+//    }
+//    return PX_NON_PHYSICAL;
+//  }
 
 
 
@@ -719,60 +720,35 @@ PXElementCentroidReference( enum PXE_Shape Shape, PX_REAL * RESTRICT xref )
   return PX_NO_ERROR;
 }
 
-
 /******************************************************************/
 //   FUNCTION Definition: PXGlob2RefFromCoordinates
 ELVIS_DEVICE int
-PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref, enum PXE_Boolean initialGuessProvided, enum PXE_Boolean CoordinateVerbosity)
+PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref, enum PXE_Boolean initialGuessProvided, enum PXE_Boolean CoordinateVerbosity)
 {
-  //int ierr = PX_NO_ERROR;              // error code
-  //int d;
-  //int node;              // index over the nodes of an element
+  int ierr = PX_NO_ERROR;              // error code
+  int d;
+  int node;              // index over the nodes of an element
   int qorder;            // polynomial order of the element
-  //int nbf;               // number of basis function in the element
-  //int iter;              // current interation of the newton solve
-  //int nLimitedIter = 5;  // number of interations we limit the update in the newton solve
-  //const int maxIter = 200;
-  //PX_REAL Residual;     // Residual of Newton Solve
-  //PX_REAL lim = 1.0;    // limit on the newton update - so the first step doesn't take us way out of the reference element
-  //PX_REAL Jac[9];       // Transformation Jacobian
-  //PX_REAL iJac[9];      // Inverse of Jacobian
-  //PX_REAL RHS[3];       // right hand side vector for Newton Solve
-  //PX_REAL dxref[3];     // Update in xref for Newton Solve
-  //PX_REAL *phi = NULL;  // Basis Functions
-  //PX_REAL *gphi = NULL; // Derivative of Basis Functions wrt reference coordinates
-  //PX_REAL phi[MAX_NBF];
-  //PX_REAL gphi[Dim*MAX_NBF];
-  //PX_REAL phi[MAX_NBF];
-  //PX_REAL gphi[DIM3D*MAX_NBF];
-  //PX_REAL *phi = gphi;
-  //enum PXE_Boolean ConvergedFlag; // flag indicating if the newton solve has converged
+  int nbf;               // number of basis function in the element
+  int iter;              // current interation of the newton solve
+  int nLimitedIter = 5;  // number of interations we limit the update in the newton solve
+  const int maxIter = 200;
+  PX_REAL Residual;     // Residual of Newton Solve
+  PX_REAL lim = 1.0;    // limit on the newton update - so the first step doesn't take us way out of the reference element
+  PX_REAL Jac[9];       // Transformation Jacobian
+  PX_REAL iJac[9];      // Inverse of Jacobian
+  PX_REAL RHS[3];       // right hand side vector for Newton Solve
+  PX_REAL dxref[3];     // Update in xref for Newton Solve
+  PX_REAL phi[MAX_NBF];  // Basis Functions
+  PX_REAL gphi[DIM3D*MAX_NBF]; // Derivative of Basis Functions wrt reference coordinates
+  enum PXE_Boolean ConvergedFlag; // flag indicating if the newton solve has converged
   enum PXE_Shape Shape;           // shape of the basis in this element
-  //enum PXE_SolutionOrder order;   // interpolation order of a given element type
-  
-  /* get qorder, shape */
+  enum PXE_SolutionOrder order;   // interpolation order of a given element type
+
+  // get qorder, shape
   qorder = elemData.qorder;
   Shape = elemData.shape;
 
-  /*----------------------------------------------------------------------------------------*/
-  /*                             Evaluate Based on linear Element                           */
-  /*----------------------------------------------------------------------------------------*/
-  if ((qorder ==  1) && ( (Shape == PXE_Shape_Edge) || (Shape == PXE_Shape_Triangle) || (Shape == PXE_Shape_Tet))) {
-    ELVIS_PRINTF("PXGlob2RefFromCoordinates2: Linear Element\n");
-    LinearSimplexGlob2Ref(Dim, xnodes, xglobal, xref);
-    return PX_NO_ERROR;
-  }
-
-  //Treat things linearly temporaraly
-  LinearSimplexGlob2Ref(Dim, xnodes, xglobal, xref);
-
-  //ALWAYS_PRINTF("ERROR!!!!!!!!  PXGlob2RefFromCoordinates2: Dim=%d, qorder=%d, Shape=%d\n", Dim, qorder, Shape);
-  //return PX_NO_ERROR;
-  /*----------------------------------------------------------------------------------------*/
-  /*                         The Hard Way - A Higher Order Element                          */
-  /*----------------------------------------------------------------------------------------*/
-
-  /*
   // Get type and order
   nbf = elemData.nbf;
   order = elemData.order;
@@ -781,11 +757,6 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
   ConvergedFlag = PXE_False;
   Residual = 1.0;
   iter = 0;
-
-  // Allocate memory
-  //PXErrorReturn( PXAllocate(     nbf, sizeof(PX_REAL), (void **) &phi  ) );
-  //PXErrorReturn( PXAllocate( Dim*nbf, sizeof(PX_REAL), (void **) &gphi ) );
-
 
   // Initialize xref to centroid
   PXElementCentroidReference( Shape, xref );
@@ -800,8 +771,8 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
     //( PXRef2GlobFromCoordinatesGivenShape2(nbf, Dim, xnodes, xg, phi) );
 
     // Jacobian element for current xref
-    ierr = PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>(elemData.type, nbf, xnodes, xref, NULL, NULL, iJac, gphi, CoordinateVerbosity);
-
+    ierr = PXJacobianElementFromCoordinatesGivenGradient2(elemData.type, nbf, xnodes, xref, NULL, iJac, gphi, CoordinateVerbosity);
+/*
     if(ierr != PX_NO_ERROR)
       break;
 
@@ -820,7 +791,7 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
       // NOTE: we are actually accessing phi here!
       // The data is just stored in gphi array!!
       for (d=0; d<Dim; d++)
-      	RHS[d] -= xnodes[Dim*node+d]*phi[node];
+        RHS[d] -= xnodes[Dim*node+d]*phi[node];
       //RHS[0] -= xnodes[Dim*node+0]*phi[node];
       //RHS[1] -= xnodes[Dim*node+1]*phi[node];
       //RHS[2] -= xnodes[Dim*node+2]*phi[node];
@@ -841,9 +812,9 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
 
     // Compute State
     //( PXMat_Vec_Mult_Set( iJac, RHS, dxref, Dim, Dim ) );
-    dxref[0] = iJac[0*Dim+0]*RHS[0] + iJac[0*Dim+1]*RHS[1] + iJac[0*Dim+2]*RHS[2];
-    dxref[1] = iJac[1*Dim+0]*RHS[0] + iJac[1*Dim+1]*RHS[1] + iJac[1*Dim+2]*RHS[2];
-    dxref[2] = iJac[2*Dim+0]*RHS[0] + iJac[2*Dim+1]*RHS[1] + iJac[2*Dim+2]*RHS[2];
+    dxref[0] = iJac[0*DIM3D+0]*RHS[0] + iJac[0*DIM3D+1]*RHS[1] + iJac[0*DIM3D+2]*RHS[2];
+    dxref[1] = iJac[1*DIM3D+0]*RHS[0] + iJac[1*DIM3D+1]*RHS[1] + iJac[1*DIM3D+2]*RHS[2];
+    dxref[2] = iJac[2*DIM3D+0]*RHS[0] + iJac[2*DIM3D+1]*RHS[1] + iJac[2*DIM3D+2]*RHS[2];
 
 
     // limiting - for the first iteration we don't want to take the full step
@@ -858,7 +829,7 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
     // Update State
     for (d=0; d<Dim; d++)
       xref[d] += lim*dxref[d];
-
+*/
   }// for iter
 
   //we may have broken out of while loop b/c ierr != PX_NO_ERROR
@@ -870,20 +841,45 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
     PXErrorReturn(ierr);
   }
 
-  // Release Memory
-  //PXRelease ( phi );
-  //PXRelease ( gphi );
-
-
   // Check Convergence
   if (ConvergedFlag == PXE_False) {
     if (CoordinateVerbosity==PXE_True){
-      ALWAYS_PRINTF("ERROR: Unable to Converge PXGlob2Ref\n");
+      ALWAYS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref\n");
     }
     return PX_NOT_CONVERGED;
   }
-*/
+
   return PX_NO_ERROR;
+}
+
+/******************************************************************/
+//   FUNCTION Definition: PXGlob2RefFromCoordinates
+ELVIS_DEVICE int
+PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref, enum PXE_Boolean initialGuessProvided, enum PXE_Boolean CoordinateVerbosity)
+{
+  int qorder;            // polynomial order of the element
+  enum PXE_Shape Shape;           // shape of the basis in this element
+  
+  /* get qorder, shape */
+  qorder = elemData.qorder;
+  Shape = elemData.shape;
+
+  /*----------------------------------------------------------------------------------------*/
+  /*                             Evaluate Based on linear Element                           */
+  /*----------------------------------------------------------------------------------------*/
+  if ((qorder ==  1) && ( (Shape == PXE_Shape_Edge) || (Shape == PXE_Shape_Triangle) || (Shape == PXE_Shape_Tet))) {
+    ELVIS_PRINTF("MCG: PXGlob2RefFromCoordinates2: Linear Element\n");
+    return LinearSimplexGlob2Ref(xnodes, xglobal, xref);
+  }
+
+  //return LinearSimplexGlob2Ref(xnodes, xglobal, xref);
+  //ELVIS_PRINTF("PXGlob2RefFromCoordinates2: Dim=%d, qorder=%d, Shape=%d\n", Dim, qorder, Shape);
+  //return PX_NO_ERROR;
+  /*----------------------------------------------------------------------------------------*/
+  /*                         The Hard Way - A Higher Order Element                          */
+  /*----------------------------------------------------------------------------------------*/
+
+  return PXCurvedGlob2Ref(elemData, xnodes, xglobal, xref, initialGuessProvided, CoordinateVerbosity);
 }
 
 #endif //PXCOORDINATES_ELVIS_C 

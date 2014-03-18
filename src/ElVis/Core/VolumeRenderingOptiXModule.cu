@@ -386,6 +386,14 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
         result.y -= s_adjust;
         result.z -= t_adjust;
 
+        if( result.x > 1 ) result.x = 1;
+        if( result.y > 1 ) result.y = 1;
+        if( result.z > 1 ) result.z = 1;
+
+        if( result.x < 0 ) result.x = 0;
+        if( result.y < 0 ) result.y = 0;
+        if( result.z < 0 ) result.z = 0;
+
         // Trial 1 - The odds of this are so small that we probably shouldn't check.
         //ElVis::WorldPoint inversePoint = transformReferenceToWorld(result);
         //if( p.x == inversePoint.x &&
@@ -616,7 +624,7 @@ ELVIS_DEVICE void NewtonFaceIntersection(const CurvedFaceIdx& curvedFaceIdx)
         if( coordIsValid && initialGuess.z.Contains(t) )
         {
 
-//            ELVIS_PRINTF("Found intersection (%2.15f, %2.15f, %2.15f)\n", r, s, t);
+            ELVIS_PRINTF("Found intersection (%2.15f, %2.15f, %2.15f)\n", r, s, t);
             if( rtPotentialIntersection(t) )
             {
                 intersectedFaceGlobalIdx = globalFaceIdx;
@@ -628,12 +636,12 @@ ELVIS_DEVICE void NewtonFaceIntersection(const CurvedFaceIdx& curvedFaceIdx)
         }
         else
         {
-//            ELVIS_PRINTF("Intersection found, but out of range %2.15f.\n", t);
+            ELVIS_PRINTF("Intersection found, but out of range %2.15f.\n", t);
         }
     }
     else
     {
-//        ELVIS_PRINTF("No root in interval\n");
+        ELVIS_PRINTF("No root in interval\n");
     }
 }
 
@@ -791,9 +799,9 @@ struct RiemannIntegration
     ELVIS_PRINTF("RiemannIntegration\n");
     optix::size_t2 screen = color_buffer.size();
 
-    uint2 pixel;
-    pixel.x = launch_index.x;
-    pixel.y = launch_index.y;
+    //uint2 pixel;
+    //pixel.x = launch_index.x;
+    //pixel.y = launch_index.y;
 
     int elementId = seg.ElementId;
     int elementTypeId = seg.ElementTypeId;

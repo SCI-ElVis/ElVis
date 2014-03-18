@@ -488,6 +488,8 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
   x = xref[0];
   y = xref[1];
 
+  //ELVIS_PRINTF("MCG PXShapeLagrange2d: x=%f, y=%f\n", x, y);
+
   switch (porder) {
 #if GEOM_USE_P0    
   case 0:
@@ -681,8 +683,8 @@ PXShapeQuadSpectralLagrange2d(const int porder, const DT * RESTRICT xref, DT * R
 {
   int ierr;
   int i,j;
-  DT xi[2];
-  DT eta[2];
+  DT xi[1];
+  DT eta[1];
   DT phi_i[6]; // 1d spectral lagrange basis functions
   DT phi_j[6]; // 1d spectral lagrange basis functions
 
@@ -1219,8 +1221,8 @@ PXShapeHexSpectralLagrange3d(const int porder, const DT * RESTRICT xref, DT * RE
   for (k=0; k<(porder+1); k++){
     for (j=0; j<(porder+1); j++){
       for (i=0; i<(porder+1); i++){
-	phi[l] = phi_i[i]*phi_j[j]*phi_k[k];
-	l++;
+        phi[l] = phi_i[i]*phi_j[j]*phi_k[k];
+        l++;
       }
     }
   }
@@ -3370,6 +3372,7 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   /* case PXE_Hierarch3dP5: */
   /*     ( PXGradientsHierarch3d(porder, xref, gphi) ); */
   /*     return PX_NO_ERROR; */
+      /*
   case PXE_HexUniformLagrangeP0:
   case PXE_HexUniformLagrangeP1:
   case PXE_HexUniformLagrangeP2: 
@@ -3386,6 +3389,7 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_HexSpectralLagrangeP5:
     ( PXGradientsHexSpectralLagrange3d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
+    */
    default:
      //ELVIS_PRINTF("Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
@@ -3501,6 +3505,7 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   /* case PXE_HierarchP5:  */
   /*   ( PXGradientsHierarch2d(porder, xref, gphi) ); */
   /*   return PX_NO_ERROR; */
+    /*
   case PXE_QuadUniformLagrangeP0:
   case PXE_QuadUniformLagrangeP1:
   case PXE_QuadUniformLagrangeP2: 
@@ -3517,8 +3522,9 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_QuadSpectralLagrangeP5:
     ( PXGradientsQuadSpectralLagrange2d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
+    */
    default:
-     //ELVIS_PRINTF("Unknown order = %d\n", order);
+     rtPrintf("PXGradientsFace: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -3587,14 +3593,13 @@ PXMatrixDetInverse3(DT const * RESTRICT jac, DT * RESTRICT J, DT * RESTRICT ijac
 template <typename DT> ELVIS_DEVICE int 
 PXPhysicalGradientsGivenGradients(enum PXE_SolutionOrder order, int nbf, DT const * RESTRICT iJac, DT const * RESTRICT gphi, DT * RESTRICT phix)
 {
-  const int Dim = DIM3D;
   int k;  // number of basis functions
-   DT const * RESTRICT gphix;
-   DT const * RESTRICT gphiy;
-   DT const * RESTRICT gphiz;
-   DT * RESTRICT phixx;
-   DT * RESTRICT phixy;
-   DT * RESTRICT phixz;
+  DT const * RESTRICT gphix;
+  DT const * RESTRICT gphiy;
+  DT const * RESTRICT gphiz;
+  DT * RESTRICT phixx;
+  DT * RESTRICT phixy;
+  DT * RESTRICT phixz;
   /* Get Dimension */
   //PXOrder2Dim(order, &Dim);
 
@@ -3672,7 +3677,7 @@ PXPhysicalGradientsGivenGradients(enum PXE_SolutionOrder order, int nbf, DT cons
 /******************************************************************/
 //   FUNCTION Definition: LinearSimplexGlob2Ref
 ELVIS_DEVICE int
-LinearSimplexGlob2Ref(int Dim, ElVisFloat const * RESTRICT vertices, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref)
+LinearSimplexGlob2Ref(ElVisFloat const * RESTRICT vertices, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref)
 {
   PX_REAL Jac[9];    // Transformation Jacobian
   //PX_REAL J;         // Jacobian Determinant
@@ -3734,9 +3739,11 @@ LinearSimplexGlob2Ref(int Dim, ElVisFloat const * RESTRICT vertices, PX_REAL con
               iJac[2*3 + 2]*(xglobal[2] - x0[2]);
     return PX_NO_ERROR;
   default:
-    //printf("Dim = %d not supported in ProjectX\n", Dim);
+    ALWAYS_PRINTF("Dim = %d not supported in ProjectX\n", Dim);
     return PXErrorDebug(PX_BAD_INPUT);
   }
+
+  return PX_NO_ERROR;
 }
 
 

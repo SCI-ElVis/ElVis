@@ -3231,8 +3231,8 @@ PXIntersectTetEdgeQuadraticFacePredicate(DT const * const lineNode[2],
   ConicSection<DT> conicS2;
   int d;
   const int dim = DIM3D;
-   DT refIntersect[4]; //intersection point in ref coordinate, either on the edge or on its extension
-   DT globIntersect[3]; //intersection point in glob coordinate, either on the edge or on its extension
+  DT refIntersect[4]; //intersection point in ref coordinate, either on the edge or on its extension
+  DT globIntersect[3]; //intersection point in glob coordinate, either on the edge or on its extension
   enum PXE_RefElemIntersectType quadFaceBoundaryTypetemp[2];
   int quadFaceBoundaryIndextemp[2];
   int nIntersectTemp; //number of intersection points, inside and outside the patch

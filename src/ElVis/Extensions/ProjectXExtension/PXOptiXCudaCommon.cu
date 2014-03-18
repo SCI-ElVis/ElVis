@@ -84,6 +84,13 @@ ELVIS_DEVICE void PXErrorReport( const char *file, const int line, const char *c
 
 ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_SolutionOrderData const *attachData, ElVisFloat const * localSolution, ElVisFloat const * localCoord, int StateRank, int fieldId, const ElVisFloat3& worldPoint, ElVisFloat3& gradient){
 
+  gradient.x = 0;
+  gradient.y = 0;
+  gradient.z = 0;
+
+  return;
+
+#if 0
   //PXErrorReturn( PXJacobianElementGivenGradient2(pg->ElementGroup[egrp].type, Dim, nbfQ, ResElemData->nodeCoordinates, xref, NULL, &J, ijacp, gphiQStart+Dim*nbfQ*iquad) );
   PX_REAL xref[3];// = {0.25, 0.25, 0.25};
   PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
@@ -92,7 +99,7 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
   PX_REAL phix[DIM3D*SOLN_MAX_NBF];
 
   if(egrpData->cutCellFlag == (char) 1){
-    LinearSimplexGlob2Ref(3, localCoord, xglobal, xref);
+    LinearSimplexGlob2Ref(localCoord, xglobal, xref);
   }else{
     PXError(PXGlob2RefFromCoordinates2(egrpData->elemData, localCoord, xglobal, xref, PXE_False, PXE_False));
   }
@@ -101,7 +108,7 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
   enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->elemData.order;
   int qorder = (int) egrpData->elemData.qorder;
   PXGradientsElem_Solution<PX_REAL>(orderQ, qorder, xref, gphi );
-  PXError(PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) egrpData->elemData.type, nbfQ, localCoord, xref, NULL, NULL, iJac, gphi, PXE_False));
+  PXError(PXJacobianElementFromCoordinatesGivenGradient2(egrpData->elemData.type, nbfQ, localCoord, xref, NULL, NULL, iJac, gphi, PXE_False));
 
   enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->solData.order;
   int porder = (int) egrpData->solData.porder;
@@ -186,51 +193,51 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
 
     //M = vmag*ia;
 
-    /* done if physicality check fails */
+    // done if physicality check fails
     if(p>0.0 && state[0] > 0.0){ //if not, leave result as 0.0
       //c = sqrt(SpecificHeatRatio*p/state[0]);
       PX_REAL a_U[FLOW_RANK];
       PX_REAL result_U[FLOW_RANK] = {0.0};
       PX_REAL temp;
 
-      /* compute gradients */
+      // compute gradients
       switch(fieldId){
       case 7: //mach number
-	temp = 0.5*ia*SpecificHeatRatio*gmi*irho;
-	a_U[0] = temp*(v2-E);
-	a_U[1] = -temp*vel[0];
-	a_U[2] = -temp*vel[1];
-	a_U[3] = -temp*vel[2];
-	a_U[4] = temp;
+        temp = 0.5*ia*SpecificHeatRatio*gmi*irho;
+        a_U[0] = temp*(v2-E);
+        a_U[1] = -temp*vel[0];
+        a_U[2] = -temp*vel[1];
+        a_U[3] = -temp*vel[2];
+        a_U[4] = temp;
 
-	for(iState=0; iState < FLOW_RANK; iState++){
-	  result_U[iState] = -vmag*ia*ia*a_U[iState];
-	}
-	result_U[0] -= ia*vmag*irho;
-	result_U[1] += ia*irho*vel[0]/vmag;
-	result_U[2] += ia*irho*vel[1]/vmag;
-	result_U[3] += ia*irho*vel[2]/vmag;
+        for(iState=0; iState < FLOW_RANK; iState++){
+          result_U[iState] = -vmag*ia*ia*a_U[iState];
+        }
+        result_U[0] -= ia*vmag*irho;
+        result_U[1] += ia*irho*vel[0]/vmag;
+        result_U[2] += ia*irho*vel[1]/vmag;
+        result_U[3] += ia*irho*vel[2]/vmag;
 
-	//result = M;
-	break;
+        //result = M;
+        break;
       case 8: //magnitude of velocity
-	result_U[0] = -2*v2*irho;
-	result_U[1] = 2*vel[0]*irho;
-	result_U[2] = 2*vel[1]*irho;
-	result_U[3] = 2*vel[2]*irho;
-	result_U[4] = 0.0;
-	break;
+        result_U[0] = -2*v2*irho;
+        result_U[1] = 2*vel[0]*irho;
+        result_U[2] = 2*vel[1]*irho;
+        result_U[3] = 2*vel[2]*irho;
+        result_U[4] = 0.0;
+        break;
       case 9: //pressure 
-	//result = p;
-	result_U[0] = gmi*q;
-	result_U[1] = -gmi*vel[0];
-	result_U[2] = -gmi*vel[1];
-	result_U[3] = -gmi*vel[2];
-	result_U[4] = gmi;
-	break;
+        //result = p;
+        result_U[0] = gmi*q;
+        result_U[1] = -gmi*vel[0];
+        result_U[2] = -gmi*vel[1];
+        result_U[3] = -gmi*vel[2];
+        result_U[4] = gmi;
+        break;
       default:
-	//result = -10.0;
-	break;
+        //result = -10.0;
+        break;
       }
       /* fill in gradient */
       for(iState=0; iState<FLOW_RANK; iState++){
@@ -241,6 +248,7 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
     }
 
   }
+#endif
 
 }
 
@@ -249,7 +257,7 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOr
   PX_REAL phi[SOLN_MAX_NBF];
   for(int j = 0; j < SOLN_MAX_NBF; j++ ) phi[j] = 0;
 
-  ELVIS_PRINTF("EvaluateField: xref=%f, yref=%f, zref=%f\n", refPoint.x, refPoint.y, refPoint.z);
+  ELVIS_PRINTF("MCG: EvaluateField: xref=%f, yref=%f, zref=%f\n", refPoint.x, refPoint.y, refPoint.z);
 
 /*
   if(egrpData.cutCellFlag == (char) 1){
@@ -257,7 +265,7 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOr
       //for cut elements, localCoord contains shadow coordinates
       //PXError(PXGlob2RefFromCoordinates2(&(egrpData->elemData), localCoord, xglobal, xref, PXE_False));
       //shadow element assumed to be PXE_UniformTetQ1
-      LinearSimplexGlob2Ref(3, localCoord, xglobal, xref);
+      LinearSimplexGlob2Ref(localCoord, xglobal, xref);
   }
 */
   /* set up basis parameters */
@@ -276,7 +284,7 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOr
   /* evaluate basis */
   PXShapeElem_Solution<PX_REAL>(order, porder, xref, phi);
 
-  ELVIS_PRINTF("EvaluateField: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d\n", fieldId, SOLN_MAX_NBF, nbf);
+  ELVIS_PRINTF("MCG: EvaluateField: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d\n", fieldId, SOLN_MAX_NBF, nbf);
   ElVisFloat result = MAKE_FLOAT(0.0);
   for(int j=0; j<nbf; j++)
       result += localSolution[j*StateRank + fieldId]*phi[j];
@@ -299,7 +307,7 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOr
           PXGradientsElem<PX_REAL>(orderQ, qorder, xref, gphi);
           int nbfQ = egrpData.elemData.nbf;
 
-          PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>(egrpData.elemData.type, nbfQ, localCoord, xref, NULL, &J, NULL, gphi, PXE_True);
+          PXJacobianElementFromCoordinatesGivenGradient2(egrpData.elemData.type, nbfQ, localCoord, xref, NULL, &J, NULL, gphi, PXE_True);
           result = J;
       }else{
           PX_REAL state[FLOW_RANK] = {0.0};

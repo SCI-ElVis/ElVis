@@ -347,7 +347,7 @@ namespace ElVis
                     m_timings[module] = elapsed;
 
 
-                    printf("Module %s time = %e.\n", moduleName.c_str(), elapsed);
+                    //printf("Module %s time = %e.\n", moduleName.c_str(), elapsed);
                 }
             }
             result.Stop();

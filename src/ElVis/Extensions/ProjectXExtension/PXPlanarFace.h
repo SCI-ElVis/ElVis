@@ -90,6 +90,31 @@ namespace ElVis
     FaceInfo info;
     FaceNodeInfo planarInfo;
   };
+
+  struct PXCurvedFace
+  {
+    explicit PXCurvedFace(const FaceInfo& info, const FaceNodeInfo& curvedInfo) :
+              info(info),
+              curvedInfo(curvedInfo)
+    {
+    }
+
+    PXCurvedFace(const PXCurvedFace& rhs) :
+      info(rhs.info),
+      curvedInfo(rhs.curvedInfo)
+    {
+    }
+
+    PXCurvedFace& operator=(const PXCurvedFace& rhs)
+    {
+      info = rhs.info;
+      curvedInfo = rhs.curvedInfo;
+      return *this;
+    }
+
+    FaceInfo info;
+    FaceNodeInfo curvedInfo;
+  };
 }
 
 

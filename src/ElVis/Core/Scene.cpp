@@ -213,6 +213,7 @@ namespace ElVis
                 //m_context->setMissProgram( 0, PtxManager::LoadProgram(m_context, "ElVis.cu.ptx", "miss" ) );
                 //m_context["bg_color"]->setFloat( 1.0f, 1.0f, 1.0f );
 
+                m_optixDataDirty = true;
                 SynchronizeWithOptiXIfNeeded();
                 OnSceneInitialized(*this);
             }
@@ -231,15 +232,19 @@ namespace ElVis
         if( !m_context ) return;
         if( !m_optixDataDirty ) return;
 
+        std::cout << "PrintEnabled " << (m_context->getPrintEnabled() ? "true" : "false") << " m_enableOptiXTrace " << (m_enableOptiXTrace ? "true" : "false")<< std::endl;
         if( m_context->getPrintEnabled() != m_enableOptiXTrace )
         {
             m_context->setPrintEnabled(m_enableOptiXTrace);
         }
 
+        std::cout << "PrintBufferSize " << m_context->getPrintBufferSize() << " ElVis size " << m_optiXTraceBufferSize << std::endl;
         if( m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
         {
             m_context->setPrintBufferSize(m_optiXTraceBufferSize);
         }
+
+        std::cout << "Exceptions " << (m_context->getExceptionEnabled(RT_EXCEPTION_ALL) ? "true" : "false") << " Exception flag is " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
 
         if( m_context->getExceptionEnabled(RT_EXCEPTION_ALL) != m_enableOptiXExceptions )
         {
@@ -256,18 +261,21 @@ namespace ElVis
             m_context->setExceptionEnabled(RT_EXCEPTION_ALL, m_enableOptiXExceptions);
         }
 
+        std::cout << "m_tracePixelDirty " << (m_tracePixelDirty ? "true" : "false") << std::endl;
         if( m_tracePixelDirty )
         {
             m_context["TracePixel"]->setInt(m_optixTraceIndex.x(), m_optixTraceIndex.y());
             m_tracePixelDirty = false;
         }
 
+        std::cout << "m_enableTraceDirty " << (m_enableTraceDirty ? "true" : "false") << std::endl;
         if( m_enableTraceDirty )
         {
             m_context["EnableTrace"]->setInt((m_enableOptiXTrace ? 1 : 0));
             m_enableTraceDirty = false;
         }
 
+        std::cout << "m_optixDataDirty is " << (m_optixDataDirty ? "true" : "false") << std::endl;
         m_optixDataDirty = false;
     }
 
