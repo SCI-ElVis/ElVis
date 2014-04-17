@@ -127,13 +127,9 @@ namespace ElVis
 
             ELVIS_EXPORT void SynchronizeWithOptiXIfNeeded();
 
-            //ELVIS_EXPORT OptiXBuffer<FaceInfo>& GetFaceInfoBuffer() { return m_faceIdBuffer; }
-
-//            ELVIS_EXPORT optixu::Geometry GetCurvedFaceGeometry() const { return m_curvedFaceGeometry; }
-//            ELVIS_EXPORT optixu::Geometry GetPlanarFaceGeometry() const { return m_planarFaceGeometry; }
             boost::signal<void (const ColorMapInfo&)> OnColorMapAdded;
-            boost::signal< void (boost::shared_ptr<Model>) > OnModelChanged;
-            boost::signal< void (const Scene&)> OnSceneInitialized;
+            boost::signal<void (boost::shared_ptr<Model>) > OnModelChanged;
+            boost::signal<void (const Scene&)> OnSceneInitialized;
             boost::signal<void (const Scene&)> OnSceneChanged;
             boost::signal<void (int)> OnOptixPrintBufferSizeChanged;
             boost::signal<void (bool)> OnEnableTraceChanged;

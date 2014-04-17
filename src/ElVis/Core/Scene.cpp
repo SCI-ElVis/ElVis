@@ -64,11 +64,8 @@ namespace ElVis
         m_tracePixelDirty(true),
         m_enableTraceDirty(true),
         m_faceIntersectionProgram(),
-//        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
         m_faceIdBuffer("FaceInfoBuffer"),
-//        m_curvedFaceGeometry(0),
-//        m_planarFaceGeometry(0),
         m_faceAcceleration()
     {
         m_optixTraceIndex.SetX(0);
