@@ -153,7 +153,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
    T xref[2] = {r,s};
    //T xreflocal[2];
 
-   rtPrintf("MCG EvaluateFaceJacobian: qorder=%d, xref[0]=%f, xref[1]=%f\n", faceData->qorder,xref[0],xref[1]);
+   //rtPrintf("MCG EvaluateFaceJacobian: qorder=%d, xref[0]=%f, xref[1]=%f\n", faceData->qorder,xref[0],xref[1]);
 
    //PXErrorDebug( PXFaceRef2ElemFaceRef<T>( faceData->shape, faceData->orientation, xref, xreflocal) );
 

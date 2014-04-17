@@ -131,7 +131,6 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
                                                PX_REAL *pJ, PX_REAL *ijac,
                                                PX_REAL const *gphi, enum PXE_Boolean const& CoordinateVerbosity)
 {
-  rtPrintf("###### Test test\n");
   int i,k;
   PX_REAL J=0.0;
   PX_REAL temp1 = 0.0;
@@ -144,10 +143,6 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
   PX_REAL const *gphiz;
 
   PX_REAL jacT[9] = {0,0,0, 0,0,0, 0,0,0};
-
-  //MCG: So if this is uncommented, ElVis stops working....
-  //for(i = 0; i < 9; i++)
-  //  jacT[i] = 0;
 
   
   /* Get Jacobian Determinant and Inverse */
@@ -214,8 +209,6 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
     gphiy = gphi + nbf;
     gphiz = gphi + 2*nbf;
 
-    rtPrintf("###### HOW DID I GET HERE!?!?!?!?\n");
-
     // initialize jacT
     //for(i = 0; i < 9; i++)
     //  jacT[i] = 0.0;
@@ -223,9 +216,9 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
     // Evaluate Jacobian
     for( k = 0; k < nbf; k++){
       for( i = 0; i < 3; i++){
-//        jacT[3*i+0] += nodeCoordinates[i]*gphix[k];
-//        jacT[3*i+1] += nodeCoordinates[i]*gphiy[k];
-//        jacT[3*i+2] += nodeCoordinates[i]*gphiz[k];
+        jacT[3*i+0] += nodeCoordinates[i]*gphix[k];
+        jacT[3*i+1] += nodeCoordinates[i]*gphiy[k];
+        jacT[3*i+2] += nodeCoordinates[i]*gphiz[k];
       }
       nodeCoordinates += 3;
     }
@@ -241,11 +234,11 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
   if (pJ!=NULL)
     (*pJ) = J;
 
-//  if ( unlikely(J<=0.0) ){
+  if ( unlikely(J<=0.0) ){
 
 //    if (CoordinateVerbosity==PXE_True){
 
-      //ALWAYS_PRINTF("Negative Jacobian found: %e\n",J);
+      ALWAYS_PRINTF("Negative Jacobian found: %e\n",J);
 
       /* nodeCoordinates -= Dim*nbf; //reset to beginning of coordinates */
 
@@ -266,9 +259,9 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
       /* printf("  ];\n"); */
       /* printf("plot(ps(:,1),ps(:,2),'g^');\n"); */
 
-//    }
-//    return PX_NON_PHYSICAL;
-//  }
+
+    return PX_NON_PHYSICAL;
+  }
 
 
 
@@ -772,7 +765,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
 
     // Jacobian element for current xref
     ierr = PXJacobianElementFromCoordinatesGivenGradient2(elemData.type, nbf, xnodes, xref, NULL, iJac, gphi, CoordinateVerbosity);
-/*
+
     if(ierr != PX_NO_ERROR)
       break;
 
@@ -829,7 +822,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     // Update State
     for (d=0; d<Dim; d++)
       xref[d] += lim*dxref[d];
-*/
+
   }// for iter
 
   //we may have broken out of while loop b/c ierr != PX_NO_ERROR
