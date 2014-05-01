@@ -57,6 +57,11 @@ enum ElVisError
     eConvergenceFailure
 };
 
+#define checkElVisError(x) ( \
+{ \
+  ElVisError r = (x); \
+  if( r != eNoError) rtThrow(RT_EXCEPTION_USER + r); \
+})
 
 #endif //ELVIS_CORE_CUDA_H
 
