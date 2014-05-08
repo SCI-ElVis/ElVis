@@ -39,6 +39,7 @@
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/ElementTraversal.cu>
 #include <ElVis/Core/FieldEvaluator.cu>
+#include <ElVis/Core/Cuda.h>
 
 #include <ElVis/Math/TrapezoidalIntegration.hpp>
 #include <ElVis/Core/TransferFunction.h>
@@ -324,14 +325,19 @@ struct ClosestRootStackEntry
 };
 
 template<typename F, typename FPrime>
-ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const IntervalPoint& initialGuess, IntervalPoint& out)
+ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const IntervalPoint& initialGuess, IntervalPoint& out,
+  const CurvedFaceIdx& curvedFaceIdx)
 {
     ElVisFloat tolerance = FaceTolerance;
 
     // So we first need an initial guess.  We can probably make this smarter, but
     // for now let's go with 0,0,0.
     //ReferencePoint result = initialGuess.GetMidpoint();
-    ReferencePoint result = MakeFloat3(MAKE_FLOAT(0), MAKE_FLOAT(0), initialGuess[2].GetMidpoint());
+    ElVisFloat2 initialReferenceCoordinates = MakeFloat2(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+    getStartingReferencePointForNewtonIteration(curvedFaceIdx, initialReferenceCoordinates);
+
+    ReferencePoint result = MakeFloat3(initialReferenceCoordinates.x, 
+      initialReferenceCoordinates.y, initialGuess[2].GetMidpoint());
 
 //   ELVIS_PRINTF("FindClosestRoot: Initial Guess (%f, %f, %f), tolerance %2.15f\n", result.x, result.y, result.z, tolerance);
 
@@ -355,15 +361,18 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
 //        ELVIS_PRINTF("I[1] (%f, %f, %f)\n", inverse[3], inverse[4], inverse[5]);
 //        ELVIS_PRINTF("I[2] (%f, %f, %f)\n", inverse[6], inverse[7], inverse[8]);
 
-        ElVisFloat r_adjust = (inverse[0]*f.x + inverse[1]*f.y + inverse[2]*f.z);
-        ElVisFloat s_adjust = (inverse[3]*f.x + inverse[4]*f.y + inverse[5]*f.z);
-        ElVisFloat t_adjust = (inverse[6]*f.x + inverse[7]*f.y + inverse[8]*f.z);
+        ElVisFloat3 step;
+        step.x = (inverse[0]*f.x + inverse[1]*f.y + inverse[2]*f.z);
+        step.y = (inverse[3]*f.x + inverse[4]*f.y + inverse[5]*f.z);
+        step.z = (inverse[6]*f.x + inverse[7]*f.y + inverse[8]*f.z);
 
 //        ELVIS_PRINTF("Adjust %f, %f, %f\n", r_adjust, s_adjust, t_adjust);
+        adjustNewtonStepToKeepReferencePointOnFace(result, curvedFaceIdx,
+          step);
 
-        bool test = fabsf(r_adjust) < tolerance;
-        test &= fabsf(s_adjust) < tolerance;
-        test &= fabsf(t_adjust) < tolerance;
+        bool test = fabsf(step.x) < tolerance;
+        test &= fabsf(step.y) < tolerance;
+        test &= fabsf(step.z) < tolerance;
         if( test )
         {
             out[0].Set(result.x, result.x);
@@ -382,9 +391,10 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
         //}
 
         //result = tempResult;
-        result.x -= r_adjust;
-        result.y -= s_adjust;
-        result.z -= t_adjust;
+        result -= step;
+        //result.x -= r_adjust;
+        //result.y -= s_adjust;
+        //result.z -= t_adjust;
 
 //        if( result.x > 1 ) result.x = 1;
 //        if( result.y > 1 ) result.y = 1;
@@ -609,7 +619,7 @@ ELVIS_DEVICE void NewtonFaceIntersection(const CurvedFaceIdx& curvedFaceIdx)
     initialGuess.z.Set(fmaxf(MAKE_FLOAT(0.0), tmin), tmax);
 
     IntervalPoint result;
-    if( FindClosestRoot(f, fprime, initialGuess, result) )
+    if( FindClosestRoot(f, fprime, initialGuess, result, curvedFaceIdx) )
     {
         ElVisFloat r = result.x.GetMidpoint();
         ElVisFloat s = result.y.GetMidpoint();
