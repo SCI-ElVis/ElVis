@@ -242,8 +242,8 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& worldPoint,
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& referencePoint)
 {
-    ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
-                 elementId, worldPoint.x, worldPoint.y, worldPoint.z);
+    //ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+    //             elementId, worldPoint.x, worldPoint.y, worldPoint.z);
 
     if( referenceType != ElVis::eReferencePointIsValid )
     {
@@ -254,8 +254,8 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         int nbfQ = PXEgrpDataBuffer[egrp].elemData.nbf;
         int geomIndexStart = PXEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
 
-        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
-            Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
+        //ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
+        //    Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
 
         ElVisFloat *localCoord = &PXElemCoordBuffer[geomIndexStart + Dim*elem*nbfQ];
 
@@ -265,7 +265,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         referencePoint.x = xref[0];
         referencePoint.y = xref[1];
         referencePoint.z = xref[2];
-        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: xref[0]=%f, xref[1]=%f, xref[2]=%f\n", xref[0], xref[1], xref[2]);
+        //ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: xref[0]=%f, xref[1]=%f, xref[2]=%f\n", xref[0], xref[1], xref[2]);
 
     }
 
@@ -289,8 +289,8 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                ResultType& result)
 {
 
-    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
-                 elementId, worldPoint.x, worldPoint.y, worldPoint.z);
+    //ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+    //             elementId, worldPoint.x, worldPoint.y, worldPoint.z);
 
     int egrp = 0;
     while( elementId > egrp2GlobalElemIndex[egrp+1] ) { egrp++; }
@@ -310,7 +310,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
     int solnIndexStart = PXEgrpDataBuffer[egrp].egrpSolnCoeffStartIndex;
     int nbf = PXEgrpDataBuffer[egrp].solData.nbf;
 
-    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d, idx=%d\n", fieldId, SOLN_MAX_NBF, nbf, solnIndexStart + elem*StateRank*nbf);
+    //ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d, idx=%d\n", fieldId, SOLN_MAX_NBF, nbf, solnIndexStart + elem*StateRank*nbf);
 
     ElVisFloat* localSolution = &PXSolutionBuffer[solnIndexStart + elem*StateRank*nbf];
     PX_SolutionOrderData *attachData = NULL;
@@ -336,7 +336,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
     for(int j=0; j<nbf; j++)
         result += localSolution[j*StateRank + fieldId]*phi[j];
 */
-    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: result=%f\n", result);
+    //ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: result=%f\n", result);
 
     return eNoError;
 
@@ -351,9 +351,47 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceRe
             s >= MAKE_FLOAT(0.0) &&
             (r+s) <= MAKE_FLOAT(1.0);
 
-    ELVIS_PRINTF("MCG IsValidFaceCoordinate: r=%f, s=%f, result=%d!\n", r, s, result);
+    //ELVIS_PRINTF("MCG IsValidFaceCoordinate: r=%f, s=%f, result=%d!\n", r, s, result);
 
     return eNoError;
+}
+
+ELVIS_DEVICE ElVisError getStartingReferencePointForNewtonIteration(const CurvedFaceIdx& idx, ElVisFloat2& startingPoint)
+{
+  startingPoint.x = MAKE_FLOAT(0.0);
+  startingPoint.y = MAKE_FLOAT(0.0);
+  return eNoError;
+}
+
+/// \brief Adjust the step size in a Newton root-finding iteration to keep the current test point on the element's face.
+/// \param curPoint The current test point.  curPoint.x and curPoint.y represent the current reference point on the
+///                 face.  curPoint.z is the current t value along the ray.
+/// \param idx The face being tested for intersection.
+/// \param step The calculated adjustment that will be applied to curPoint for the next iteration.  If this adjustment
+///             will cause the reference parameter to leave the element face, then step must be adjusted to prevent this.
+/// Ray-face intersection is performed using Newton's method to numerically find the intersection.  The intersection
+/// if found in term's of the face's reference coordinates.  In many systems, the mapping from reference to world space
+/// is invalid outside the face's bounds, so we must keep the iteration from leaving the face).
+ELVIS_DEVICE ElVisError adjustNewtonStepToKeepReferencePointOnFace(const ElVisFloat3& curPoint, const CurvedFaceIdx& idx, ElVisFloat3& step)
+{
+  if( curPoint.x - step.x < 0 )
+    step.x = curPoint.x;
+
+  if( curPoint.y - step.y < 0 )
+    step.y = curPoint.y;
+
+  if( curPoint.x - step.x + curPoint.y - step.y > 1 )
+  {
+    if( curPoint.x - step.x > 1)
+      step.x = -(1 - curPoint.x);
+
+    if( curPoint.x - step.x + curPoint.y - step.y > 1 )
+      step.y = -(1 - curPoint.x + step.x - curPoint.y);
+  }
+
+  //ELVIS_PRINTF("MCG New Point: r=%f, s=%f\n", curPoint.x - step.x, curPoint.y - step.y);
+
+  return eNoError;
 }
 
 // This function calculates the normal at the given point on a face.
@@ -374,7 +412,6 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
   }
 }
 
-//ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result)
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result)
 {
   ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");

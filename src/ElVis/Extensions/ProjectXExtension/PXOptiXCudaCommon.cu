@@ -257,7 +257,7 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOr
   PX_REAL phi[SOLN_MAX_NBF];
   for(int j = 0; j < SOLN_MAX_NBF; j++ ) phi[j] = 0;
 
-  ELVIS_PRINTF("MCG: EvaluateField: xref=%f, yref=%f, zref=%f\n", refPoint.x, refPoint.y, refPoint.z);
+  //ELVIS_PRINTF("MCG: EvaluateField: xref=%f, yref=%f, zref=%f\n", refPoint.x, refPoint.y, refPoint.z);
 
 /*
   if(egrpData.cutCellFlag == (char) 1){
@@ -284,7 +284,7 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOr
   /* evaluate basis */
   PXShapeElem_Solution<PX_REAL>(order, porder, xref, phi);
 
-  ELVIS_PRINTF("MCG: EvaluateField: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d\n", fieldId, SOLN_MAX_NBF, nbf);
+  //ELVIS_PRINTF("MCG: EvaluateField: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d\n", fieldId, SOLN_MAX_NBF, nbf);
   ElVisFloat result = MAKE_FLOAT(0.0);
   for(int j=0; j<nbf; j++)
       result += localSolution[j*StateRank + fieldId]*phi[j];

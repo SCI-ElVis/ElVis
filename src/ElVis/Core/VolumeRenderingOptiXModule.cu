@@ -347,7 +347,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     const int MAX_ITERATIONS = 10;
     do
     {
-        ELVIS_PRINTF("Starting iteration with curr guess (%f, %f, %f).\n", result.x, result.y, result.z);
+        //ELVIS_PRINTF("Starting iteration with curr guess (%f, %f, %f).\n", result.x, result.y, result.z);
         WorldPoint f = func(result);
 
         fprime(result, J);
@@ -391,7 +391,9 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
         //}
 
         //result = tempResult;
-        result -= step;
+        result.x -= step.x;
+        result.y -= step.y;
+        result.z -= step.z;
         //result.x -= r_adjust;
         //result.y -= s_adjust;
         //result.z -= t_adjust;
@@ -631,8 +633,8 @@ ELVIS_DEVICE void NewtonFaceIntersection(const CurvedFaceIdx& curvedFaceIdx)
         p.y = s;
 
         IsValidFaceCoordinate(globalFaceIdx, p, coordIsValid);
-        if( coordIsValid && initialGuess.z.Contains(t) )
-        {
+//        if( coordIsValid && initialGuess.z.Contains(t) )
+//        {
 
             ELVIS_PRINTF("Found intersection (%2.15f, %2.15f, %2.15f)\n", r, s, t);
             if( rtPotentialIntersection(t) )
@@ -643,11 +645,11 @@ ELVIS_DEVICE void NewtonFaceIntersection(const CurvedFaceIdx& curvedFaceIdx)
                 faceIntersectionReferencePointIsValid = true;
                 rtReportIntersection(0);
             }
-        }
-        else
-        {
-            ELVIS_PRINTF("Intersection found, but out of range %2.15f.\n", t);
-        }
+//        }
+//        else
+//        {
+//            ELVIS_PRINTF("Intersection found, but out of range %2.15f.\n", t);
+//        }
     }
     else
     {

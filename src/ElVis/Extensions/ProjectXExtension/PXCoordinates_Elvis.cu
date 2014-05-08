@@ -796,7 +796,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     //Residual += RHS[0]*RHS[0] + RHS[1]*RHS[1] + RHS[2]*RHS[2];
     Residual = sqrt(Residual);
 
-    ELVIS_PRINTF("MCG: PXCurvedGlob2Ref residual = %f\n", Residual);
+    //ELVIS_PRINTF("MCG: PXCurvedGlob2Ref residual = %f\n", Residual);
 
     // Check Residual Tolerance
     if ( ( Residual < 1.0E-10) && (iter>nLimitedIter) ) {
@@ -862,7 +862,7 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
   /*                             Evaluate Based on linear Element                           */
   /*----------------------------------------------------------------------------------------*/
   if ((qorder ==  1) && ( (Shape == PXE_Shape_Edge) || (Shape == PXE_Shape_Triangle) || (Shape == PXE_Shape_Tet))) {
-    ELVIS_PRINTF("MCG: PXGlob2RefFromCoordinates2: Linear Element\n");
+    //ELVIS_PRINTF("MCG: PXGlob2RefFromCoordinates2: Linear Element\n");
     return LinearSimplexGlob2Ref(xnodes, xglobal, xref);
   }
 
