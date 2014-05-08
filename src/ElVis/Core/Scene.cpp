@@ -60,16 +60,12 @@ namespace ElVis
         m_enableOptiXTrace(true),
         m_optiXTraceBufferSize(100000),
         m_optixTraceIndex(),
-        m_enableOptiXExceptions(false),
         m_optixDataDirty(true),
         m_tracePixelDirty(true),
         m_enableTraceDirty(true),
         m_faceIntersectionProgram(),
-//        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
         m_faceIdBuffer("FaceInfoBuffer"),
-//        m_curvedFaceGeometry(0),
-//        m_planarFaceGeometry(0),
         m_faceAcceleration()
     {
         m_optixTraceIndex.SetX(0);
@@ -78,7 +74,6 @@ namespace ElVis
 
         // For some reason in gcc, setting this in the constructor initialization list
         // doesn't work.
-        m_enableOptiXExceptions = false;
         m_optixDataDirty = true;
     }
 
@@ -242,23 +237,6 @@ namespace ElVis
         if( m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
         {
             m_context->setPrintBufferSize(m_optiXTraceBufferSize);
-        }
-
-        //std::cout << "Exceptions " << (m_context->getExceptionEnabled(RT_EXCEPTION_ALL) ? "true" : "false") << " Exception flag is " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
-
-        if( m_context->getExceptionEnabled(RT_EXCEPTION_ALL) != m_enableOptiXExceptions )
-        {
-            if( m_enableOptiXExceptions )
-            {
-                std::cout << "Enabling optix exceptions." << std::endl;
-            }
-            else
-            {
-                std::cout << "Disabling optix exceptions." << std::endl;
-            }
-
-            //std::cout << "Setting exception flag to " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
-            m_context->setExceptionEnabled(RT_EXCEPTION_ALL, m_enableOptiXExceptions);
         }
 
         //std::cout << "m_tracePixelDirty " << (m_tracePixelDirty ? "true" : "false") << std::endl;

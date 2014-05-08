@@ -127,13 +127,9 @@ namespace ElVis
 
             ELVIS_EXPORT void SynchronizeWithOptiXIfNeeded();
 
-            //ELVIS_EXPORT OptiXBuffer<FaceInfo>& GetFaceInfoBuffer() { return m_faceIdBuffer; }
-
-//            ELVIS_EXPORT optixu::Geometry GetCurvedFaceGeometry() const { return m_curvedFaceGeometry; }
-//            ELVIS_EXPORT optixu::Geometry GetPlanarFaceGeometry() const { return m_planarFaceGeometry; }
             boost::signal<void (const ColorMapInfo&)> OnColorMapAdded;
-            boost::signal< void (boost::shared_ptr<Model>) > OnModelChanged;
-            boost::signal< void (const Scene&)> OnSceneInitialized;
+            boost::signal<void (boost::shared_ptr<Model>) > OnModelChanged;
+            boost::signal<void (const Scene&)> OnSceneInitialized;
             boost::signal<void (const Scene&)> OnSceneChanged;
             boost::signal<void (int)> OnOptixPrintBufferSizeChanged;
             boost::signal<void (bool)> OnEnableTraceChanged;
@@ -194,10 +190,7 @@ namespace ElVis
                 ar & BOOST_SERIALIZATION_NVP(m_enableOptiXTrace);
                 ar & BOOST_SERIALIZATION_NVP(m_optiXTraceBufferSize);
                 ar & BOOST_SERIALIZATION_NVP(m_optixTraceIndex);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
+
 
                 do_serialize(ar, version);
             }
@@ -216,7 +209,7 @@ namespace ElVis
             bool m_enableOptiXTrace;
             int m_optiXTraceBufferSize;
             Point<int, TwoD> m_optixTraceIndex;
-            bool m_enableOptiXExceptions;
+            
             bool m_optixDataDirty;
             bool m_tracePixelDirty;
             bool m_enableTraceDirty;

@@ -769,7 +769,6 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     if(ierr != PX_NO_ERROR)
       break;
 
-    // NOTE: phi (size nbf) will OVERWRITE the first nbf elements of gphi
     PXShapeElem(order, qorder, xref, phi );
 
     // Initialize RHS and Jacobian
@@ -796,6 +795,8 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
       Residual += RHS[d]*RHS[d];
     //Residual += RHS[0]*RHS[0] + RHS[1]*RHS[1] + RHS[2]*RHS[2];
     Residual = sqrt(Residual);
+
+    ELVIS_PRINTF("MCG: PXCurvedGlob2Ref residual = %f\n", Residual);
 
     // Check Residual Tolerance
     if ( ( Residual < 1.0E-10) && (iter>nLimitedIter) ) {
@@ -836,9 +837,9 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
 
   // Check Convergence
   if (ConvergedFlag == PXE_False) {
-    if (CoordinateVerbosity==PXE_True){
+    //if (CoordinateVerbosity==PXE_True){
       ALWAYS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref\n");
-    }
+    //}
     return PX_NOT_CONVERGED;
   }
 

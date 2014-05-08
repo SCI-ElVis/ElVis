@@ -237,6 +237,7 @@ namespace ElVis
             ElVisFloat m_faceIntersectionTolerance;
             Color m_headlightColor;
             bool m_headlightColorIsDirty;
+            bool m_enableOptiXExceptions;
             optixu::Program m_exceptionProgram;
             Color m_backgroundColor;
             bool m_backgroundColorIsDirty;

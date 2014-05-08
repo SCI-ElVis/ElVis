@@ -91,6 +91,7 @@ namespace ElVis
         m_headlightColor(82.0/255.0, 82.0/255.0, 82.0/255.0),
         m_headlightColorIsDirty(true),
         m_backgroundColorIsDirty(true),
+        m_enableOptiXExceptions(true),
         m_exceptionProgram(),
         //m_backgroundColor(0.0, 0.0, 0.0)
         m_backgroundColor(1.0, 1.0, 1.0),
@@ -99,6 +100,8 @@ namespace ElVis
     {
         m_projectionType.OnDirtyFlagChanged.connect(boost::bind(&SceneView::HandleSynchedObjectChanged<SceneViewProjection>, this, _1));
         m_viewSettings->OnCameraChanged.connect(boost::bind(&SceneView::SetupCamera, this));
+
+        m_enableOptiXExceptions = true;
     }
 
 
@@ -613,11 +616,6 @@ namespace ElVis
             m_elementTypeBuffer.SetDimensions(GetWidth(), GetHeight());
 
             m_exceptionProgram = PtxManager::LoadProgram(m_context, GetPTXPrefix(), "ExceptionProgram");
-            for(unsigned int i = 0; i < m_context->getEntryPointCount(); ++i)
-            {
-                m_context->setExceptionProgram(i, m_exceptionProgram);
-            }
-            m_context->setExceptionEnabled(RT_EXCEPTION_ALL, true);
             m_context->setPrintLaunchIndex(-1, -1, -1);
             SetupCamera();
             m_context["DepthBits"]->setInt(m_depthBits);
@@ -712,6 +710,18 @@ namespace ElVis
             context["ProjectionType"]->setUserData(sizeof(ElVis::SceneViewProjection), &data);
             m_projectionType.MarkClean();
         }
+
+        if( context->getExceptionEnabled(RT_EXCEPTION_ALL) != m_enableOptiXExceptions )
+        {
+            std::cout << "Setting exception flag to " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
+            context->setExceptionEnabled(RT_EXCEPTION_ALL, m_enableOptiXExceptions);
+        }
+
+        for(unsigned int i = 0; i < context->getEntryPointCount(); ++i)
+        {
+            context->setExceptionProgram(i, m_exceptionProgram);
+        }
+        context->setExceptionEnabled(RT_EXCEPTION_ALL, true);
     }
 
     const Color& SceneView::GetHeadlightColor() const

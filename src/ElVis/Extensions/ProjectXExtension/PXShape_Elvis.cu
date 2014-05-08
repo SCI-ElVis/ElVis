@@ -2837,8 +2837,8 @@ PXGradientsHexUniformLagrange3d(const int porder, const DT * RESTRICT xref, DT *
   for (k=0; k<(porder+1); k++){
     for (j=0; j<(porder+1); j++){
       for (i=0; i<(porder+1); i++){
-	gphi[l] = gphi_i[i]*phi_j[j]*phi_k[k];
-	l++;
+        gphi[l] = gphi_i[i]*phi_j[j]*phi_k[k];
+        l++;
       }
     }
   }
@@ -2847,18 +2847,18 @@ PXGradientsHexUniformLagrange3d(const int porder, const DT * RESTRICT xref, DT *
   for (k=0; k<(porder+1); k++){
     for (j=0; j<(porder+1); j++){
       for (i=0; i<(porder+1); i++){
-	gphi[l] = phi_i[i]*gphi_j[j]*phi_k[k];
-	l++;
+        gphi[l] = phi_i[i]*gphi_j[j]*phi_k[k];
+        l++;
       }
     }
   }
-  
+
   /* compute dphi/dy */
   for (k=0; k<(porder+1); k++){
     for (j=0; j<(porder+1); j++){
       for (i=0; i<(porder+1); i++){
-	gphi[l] = phi_i[i]*phi_j[j]*gphi_k[k];
-	l++;
+        gphi[l] = phi_i[i]*phi_j[j]*gphi_k[k];
+        l++;
       }
     }
   }
@@ -2894,8 +2894,8 @@ PXGradientsHexSpectralLagrange3d(const int porder, const DT * RESTRICT xref, DT 
   for (k=0; k<(porder+1); k++){
     for (j=0; j<(porder+1); j++){
       for (i=0; i<(porder+1); i++){
-	gphi[l] = gphi_i[i]*phi_j[j]*phi_k[k];
-	l++;
+        gphi[l] = gphi_i[i]*phi_j[j]*phi_k[k];
+        l++;
       }
     }
   }
@@ -2904,18 +2904,18 @@ PXGradientsHexSpectralLagrange3d(const int porder, const DT * RESTRICT xref, DT 
   for (k=0; k<(porder+1); k++){
     for (j=0; j<(porder+1); j++){
       for (i=0; i<(porder+1); i++){
-	gphi[l] = phi_i[i]*gphi_j[j]*phi_k[k];
-	l++;
+        gphi[l] = phi_i[i]*gphi_j[j]*phi_k[k];
+        l++;
       }
     }
   }
-  
+
   /* compute dphi/dy */
   for (k=0; k<(porder+1); k++){
     for (j=0; j<(porder+1); j++){
       for (i=0; i<(porder+1); i++){
-	gphi[l] = phi_i[i]*phi_j[j]*gphi_k[k];
-	l++;
+        gphi[l] = phi_i[i]*phi_j[j]*gphi_k[k];
+        l++;
       }
     }
   }
@@ -3089,7 +3089,7 @@ PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
     ( PXShapeHexSpectralLagrange3d<DT>(porder, xref, phi) );
     return PX_NO_ERROR;
   default:
-    //ELVIS_PRINTF("Unknown order = %d\n", order);
+    ELVIS_PRINTF("Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -3130,22 +3130,22 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
   /* case PXE_Hierarch3dP5: */
   /*     ( PXShapeHierarch3d(porder, xref, phi) ); */
   /*     return PX_NO_ERROR; */
-  /* case PXE_HexUniformLagrangeP0: */
-  /* case PXE_HexUniformLagrangeP1: */
-  /* case PXE_HexUniformLagrangeP2:  */
-  /* case PXE_HexUniformLagrangeP3: */
-  /* case PXE_HexUniformLagrangeP4: */
-  /* case PXE_HexUniformLagrangeP5: */
-  /*   ( PXShapeHexUniformLagrange3d<DT>(porder, xref, phi) ); */
-  /*   return PX_NO_ERROR; */
-  /* case PXE_HexSpectralLagrangeP0: */
-  /* case PXE_HexSpectralLagrangeP1: */
-  /* case PXE_HexSpectralLagrangeP2:  */
-  /* case PXE_HexSpectralLagrangeP3: */
-  /* case PXE_HexSpectralLagrangeP4: */
-  /* case PXE_HexSpectralLagrangeP5: */
-  /*   ( PXShapeHexSpectralLagrange3d<DT>(porder, xref, phi) ); */
-  /*   return PX_NO_ERROR; */
+  case PXE_HexUniformLagrangeP0:
+  case PXE_HexUniformLagrangeP1:
+  case PXE_HexUniformLagrangeP2:
+  case PXE_HexUniformLagrangeP3:
+  case PXE_HexUniformLagrangeP4:
+  case PXE_HexUniformLagrangeP5:
+    ( PXShapeHexUniformLagrange3d<DT>(porder, xref, phi) );
+     return PX_NO_ERROR;
+  case PXE_HexSpectralLagrangeP0:
+  case PXE_HexSpectralLagrangeP1:
+  case PXE_HexSpectralLagrangeP2:
+  case PXE_HexSpectralLagrangeP3:
+  case PXE_HexSpectralLagrangeP4:
+  case PXE_HexSpectralLagrangeP5:
+    ( PXShapeHexSpectralLagrange3d<DT>(porder, xref, phi) );
+    return PX_NO_ERROR;
   default:
     ELVIS_PRINTF("Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
@@ -3391,7 +3391,7 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
     return PX_NO_ERROR;
     */
    default:
-     //ELVIS_PRINTF("Unknown order = %d\n", order);
+     ELVIS_PRINTF("********* Unknown order = %d ***********\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -3483,13 +3483,13 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_SpectralLagrange1dP5:
     ( PXGradientsSpectralLagrange1d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
-  /* case PXE_Hierarch1dP1: */
-  /* case PXE_Hierarch1dP2: */
-  /* case PXE_Hierarch1dP3: */
-  /* case PXE_Hierarch1dP4: */
-  /* case PXE_Hierarch1dP5: */
-  /*   ( PXGradientsHierarch1d(porder, xref, gphi) ); */
-  /*   return PX_NO_ERROR; */
+//  case PXE_Hierarch1dP1:
+//  case PXE_Hierarch1dP2:
+//  case PXE_Hierarch1dP3:
+//  case PXE_Hierarch1dP4:
+//  case PXE_Hierarch1dP5:
+//     ( PXGradientsHierarch1d(porder, xref, gphi) );
+//     return PX_NO_ERROR;
   case PXE_LagrangeP0:
   case PXE_LagrangeP1:
   case PXE_LagrangeP2: 
@@ -3498,14 +3498,16 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_LagrangeP5:
     ( PXGradientsLagrange2d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
-  /* case PXE_HierarchP1: */
-  /* case PXE_HierarchP2: */
-  /* case PXE_HierarchP3:  */
-  /* case PXE_HierarchP4:  */
-  /* case PXE_HierarchP5:  */
-  /*   ( PXGradientsHierarch2d(porder, xref, gphi) ); */
-  /*   return PX_NO_ERROR; */
+
     /*
+  case PXE_HierarchP1:
+  case PXE_HierarchP2:
+  case PXE_HierarchP3:
+  case PXE_HierarchP4:
+  case PXE_HierarchP5:
+     ( PXGradientsHierarch2d(porder, xref, gphi) );
+     return PX_NO_ERROR;
+*/
   case PXE_QuadUniformLagrangeP0:
   case PXE_QuadUniformLagrangeP1:
   case PXE_QuadUniformLagrangeP2: 
@@ -3522,7 +3524,7 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_QuadSpectralLagrangeP5:
     ( PXGradientsQuadSpectralLagrange2d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
-    */
+
    default:
      rtPrintf("PXGradientsFace: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);

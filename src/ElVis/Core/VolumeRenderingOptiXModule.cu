@@ -331,7 +331,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     // So we first need an initial guess.  We can probably make this smarter, but
     // for now let's go with 0,0,0.
     //ReferencePoint result = initialGuess.GetMidpoint();
-    ReferencePoint result = MakeFloat3(MAKE_FLOAT(.25), MAKE_FLOAT(.25), initialGuess[2].GetMidpoint());
+    ReferencePoint result = MakeFloat3(MAKE_FLOAT(0), MAKE_FLOAT(0), initialGuess[2].GetMidpoint());
 
 //   ELVIS_PRINTF("FindClosestRoot: Initial Guess (%f, %f, %f), tolerance %2.15f\n", result.x, result.y, result.z, tolerance);
 
@@ -341,7 +341,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     const int MAX_ITERATIONS = 10;
     do
     {
-//        ELVIS_PRINTF("Starting iteration with curr guess (%f, %f, %f).\n", result.x, result.y, result.z);
+        ELVIS_PRINTF("Starting iteration with curr guess (%f, %f, %f).\n", result.x, result.y, result.z);
         WorldPoint f = func(result);
 
         fprime(result, J);
@@ -386,13 +386,13 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
         result.y -= s_adjust;
         result.z -= t_adjust;
 
-        if( result.x > 1 ) result.x = 1;
-        if( result.y > 1 ) result.y = 1;
-        if( result.z > 1 ) result.z = 1;
-
-        if( result.x < 0 ) result.x = 0;
-        if( result.y < 0 ) result.y = 0;
-        if( result.z < 0 ) result.z = 0;
+//        if( result.x > 1 ) result.x = 1;
+//        if( result.y > 1 ) result.y = 1;
+//        if( result.z > 1 ) result.z = 1;
+//
+//        if( result.x < 0 ) result.x = 0;
+//        if( result.y < 0 ) result.y = 0;
+//        if( result.z < 0 ) result.z = 0;
 
         // Trial 1 - The odds of this are so small that we probably shouldn't check.
         //ElVis::WorldPoint inversePoint = transformReferenceToWorld(result);

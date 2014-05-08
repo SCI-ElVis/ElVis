@@ -106,7 +106,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePo
   PXShapeFace<PX_REAL>(faceData->order, faceData->qorder, xref, phi);
 
   //ELVIS_PRINTF("MCG EvaluateFace: xref[0]=%f, xref[1]=%f, xreflocal[0]=%f, xreflocal[1]=%f\n",xref[0],xref[1],xreflocal[0],xreflocal[1]);
-  ELVIS_PRINTF("MCG EvaluateFace: xref[0]=%f, xref[1]=%f\n",xref[0],xref[1]);
+  //ELVIS_PRINTF("MCG EvaluateFace: xref[0]=%f, xref[1]=%f\n",xref[0],xref[1]);
 
   result.x = 0.0;
   result.y = 0.0;
@@ -119,7 +119,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePo
       //ELVIS_PRINTF("MCG EvaluateFace: phi[%d]=%f\n",i,phi[i]);
   }
 
-  ELVIS_PRINTF("MCG EvaluateFace: result.x=%f, result.y=%f, result.z=%f\n",result.x,result.y,result.z);
+  //ELVIS_PRINTF("MCG EvaluateFace: result.x=%f, result.y=%f, result.z=%f\n",result.x,result.y,result.z);
 
   return eNoError;
 
@@ -173,8 +173,8 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
      //ELVIS_PRINTF("MCG EvaluateFaceJacobian: gphir[%d]=%f, gphis[%d]=%f\n",i,gphir[i],i,gphis[i]);
    }
 
-   ELVIS_PRINTF("MCG EvaluateFaceJacobian: dx_dr=%f, dy_dr=%f, dz_dr=%f\n",dx_dr,dy_dr,dz_dr);
-   ELVIS_PRINTF("MCG EvaluateFaceJacobian: dx_ds=%f, dy_ds=%f, dz_ds=%f\n",dx_ds,dy_ds,dz_ds);
+   //ELVIS_PRINTF("MCG EvaluateFaceJacobian: dx_dr=%f, dy_dr=%f, dz_dr=%f\n",dx_dr,dy_dr,dz_dr);
+   //ELVIS_PRINTF("MCG EvaluateFaceJacobian: dx_ds=%f, dy_ds=%f, dz_ds=%f\n",dx_ds,dy_ds,dz_ds);
 
    return eNoError;
 
@@ -347,10 +347,11 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceRe
 {
     ElVisFloat r = p.x;
     ElVisFloat s = p.y;
-    ELVIS_PRINTF("MCG IsValidFaceCoordinate: r=%f, s=%f!\n", r, s);
     result = r >= MAKE_FLOAT(0.0) &&
             s >= MAKE_FLOAT(0.0) &&
             (r+s) <= MAKE_FLOAT(1.0);
+
+    ELVIS_PRINTF("MCG IsValidFaceCoordinate: r=%f, s=%f, result=%d!\n", r, s, result);
 
     return eNoError;
 }
