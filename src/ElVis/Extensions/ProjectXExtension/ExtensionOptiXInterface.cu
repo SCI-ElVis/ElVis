@@ -231,14 +231,26 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
 // Required ElVis Interface
 /////////////////////////////////////////////
 /// \brief Converts a point from world space to the given element's reference space.
-/// \param elementId The element's id.
+/// \param elementId The element's id.  The id is a global id in the range [0, Model::GetNumberOfElements())
 /// \param elementType The element's type.
 /// \param wp The world point to be converted.
-/// \param referenceType Describes the meaning of result.  If eReferencePointIsInvalid then
-///        result will only be used for output. If eReferencePointIsInitialGuess, then result is
-///        a guess for the actual location of the reference point.
+/// \param referenceType Describes the result parameter.
+///                      if referenceType == eReferencePointIsInvalid then the result parameter is invalid on input,
+///                                          and contains the conversion result on output.
+///                      if referenceType == eReferencePointIsInitialGuess, then the result parameter is an initial guess on input,
+///                                          and contains the conversion result on output.
 /// \param result On input, it can be an initial guess.  On output, the actual reference point corresponding to wp.
-/// \returns
+/// \returns eNoError if a valid reference point is found
+///          ePointOutsideElement if the world point does not fall inside this element
+///          eInvalidElementId if the requested element id is invalid
+///          eInvalidElementType if the requested element type is invalid
+///          eConvergenceFailure if the reference point cannot be found due to convergence errors.
+///
+/// This method is responsible for transforming a given world-space coordinate to
+/// the corresponding reference space coordinate for the specified element.  It
+/// is assumed that an iterative method will be used to find the reference space coordinate,
+/// although this is not required if analytic methods are available.  To aid convergence
+/// of iterative methods, ElVis will provide an initial guess to this method when possible.
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& worldPoint,
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& referencePoint)
 {
@@ -254,19 +266,22 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         int nbfQ = PXEgrpDataBuffer[egrp].elemData.nbf;
         int geomIndexStart = PXEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
 
-        //ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
-        //    Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
+        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
+            Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
 
         ElVisFloat *localCoord = &PXElemCoordBuffer[geomIndexStart + Dim*elem*nbfQ];
 
         PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
-        PX_REAL xref[3] = {0.5,0.5,0.5};
-        PXGlob2RefFromCoordinates2(PXEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
+        PX_REAL xref[3] = {0.,0.,0.}; //Initial guess is overwritten anyways
+        int result = PXGlob2RefFromCoordinates2(PXEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
         referencePoint.x = xref[0];
         referencePoint.y = xref[1];
         referencePoint.z = xref[2];
-        //ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: xref[0]=%f, xref[1]=%f, xref[2]=%f\n", xref[0], xref[1], xref[2]);
+        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref[0]=%f, xref[1]=%f, xref[2]=%f\n", elementId, xref[0], xref[1], xref[2]);
 
+        //Bad point...
+        if( result == PX_NOT_CONVERGED )
+          return ePointOutsideElement;
     }
 
     return eNoError;
@@ -289,8 +304,11 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                ResultType& result)
 {
 
-    //ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
-    //             elementId, worldPoint.x, worldPoint.y, worldPoint.z);
+    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+                 elementId, worldPoint.x, worldPoint.y, worldPoint.z);
+
+    ELVIS_PRINTF("MCG SampleScalarFieldAtReferencePointOptiX: Element Id %d, reference point (%f, %f, %f)\n",
+                 elementId, referencePoint.x, referencePoint.y, referencePoint.z);
 
     int egrp = 0;
     while( elementId > egrp2GlobalElemIndex[egrp+1] ) { egrp++; }
@@ -358,8 +376,13 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceRe
 
 ELVIS_DEVICE ElVisError getStartingReferencePointForNewtonIteration(const CurvedFaceIdx& idx, ElVisFloat2& startingPoint)
 {
-  startingPoint.x = MAKE_FLOAT(0.0);
-  startingPoint.y = MAKE_FLOAT(0.0);
+  PX_REAL xref[2];
+  PX_FaceTypeData * faceData = &PXFaceDataBuffer[idx.Value];
+
+  PXElementCentroidReference(faceData->shape, xref);
+
+  startingPoint.x = xref[0];
+  startingPoint.y = xref[1];
   return eNoError;
 }
 

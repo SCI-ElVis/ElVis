@@ -117,6 +117,7 @@ namespace ElVis
 
     PXModel& operator=(const PXModel& rhs);
 
+    std::vector<FaceInfo> m_FaceInfos;
     std::vector<PXPlanarFace> m_PlanarFaces;
     std::vector<uint> m_egrp2GlobalElemIndex;
 

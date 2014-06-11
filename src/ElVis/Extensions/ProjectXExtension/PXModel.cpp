@@ -343,7 +343,7 @@ namespace ElVis
 
   FaceInfo PXModel::DoGetFaceDefinition(size_t globalFaceId) const
   {
-    return m_PlanarFaces[globalFaceId].info;
+    return m_FaceInfos[globalFaceId];
   }
 
   size_t PXModel::DoGetNumberOfPlanarFaceVertices() const
@@ -809,8 +809,9 @@ namespace ElVis
 
         //printf("elem0=%d, elem1=%d\n", info.CommonElements[0].Id, info.CommonElements[1].Id);
 
-        m_PlanarFaces.push_back( PXPlanarFace(normal, info, planarInfo ) );
-
+        m_FaceInfos.push_back(info);
+        if( info.Type == ePlanar )
+          m_PlanarFaces.push_back( PXPlanarFace(normal, info, planarInfo ) );
 
       }
     }

@@ -72,6 +72,267 @@ URL:    http://raphael.mit.edu
 #include <stdio.h>
 #include <Fundamentals/PX.h>
 
+
+/******************************************************************/
+//  FUNCTION Definition: PXProject2RefElement_Edge
+ELVIS_DEVICE int
+PXProject2RefElement_Edge( PX_REAL * RESTRICT xref, int * RESTRICT pnFaceSearch, int * RESTRICT FaceSearch )
+{
+  PX_REAL x;
+  int nFaceSearch = 0;
+
+  x = xref[0];
+
+  if      ( x < 0.0 ) {
+    x = 0.0;
+    FaceSearch[nFaceSearch] = 0;
+    nFaceSearch++;
+  }
+  else if ( x > 1.0 ){
+    x = 1.0;
+    FaceSearch[nFaceSearch] = 1;
+    nFaceSearch++;
+  }
+
+  xref[0] = x;
+  (*pnFaceSearch) = nFaceSearch;
+
+  return PX_NO_ERROR;
+}
+
+/******************************************************************/
+//  FUNCTION Definition: PXProject2RefElement_Triangle
+ELVIS_DEVICE int
+PXProject2RefElement_Triangle( PX_REAL * RESTRICT xref, int * RESTRICT pnFaceSearch, int * RESTRICT FaceSearch )
+{
+  PX_REAL x, y;
+  PX_REAL alpha;
+  int nFaceSearch = 0;
+
+  x = xref[0];
+  y = xref[1];
+
+  /* project to faces 1 & 2 */
+  if  ( x < 0.0 ) { FaceSearch[nFaceSearch] = 1; nFaceSearch++; x = 0.0; }
+  if  ( y < 0.0 ) { FaceSearch[nFaceSearch] = 2; nFaceSearch++; y = 0.0; }
+
+  /* project to face 0 */
+  if ( x + y > 1 ) {
+    FaceSearch[0] = 0;
+    nFaceSearch   = 1;
+
+    alpha = (1-x-y)/2.0;
+    x = x+alpha;
+    y = y+alpha;
+
+    /* Project to corners */
+    if ( x < 0 ) {
+      FaceSearch[nFaceSearch] = 1;
+      nFaceSearch++;
+      x = 0.0;
+      y = 1.0;
+    }
+    else if ( y < 0 ) {
+      FaceSearch[nFaceSearch] = 2;
+      nFaceSearch++;
+      x = 1.0;
+      y = 0.0;
+    }
+  }
+
+  xref[0] = x;
+  xref[1] = y;
+  (*pnFaceSearch) = nFaceSearch;
+
+  return PX_NO_ERROR;
+}
+
+
+/******************************************************************/
+//  FUNCTION Definition: PXProject2RefElement_Quad
+ELVIS_DEVICE int
+PXProject2RefElement_Quad( PX_REAL * RESTRICT xref, int * RESTRICT pnFaceSearch, int * RESTRICT FaceSearch )
+{
+  PX_REAL x,y;
+  int nFaceSearch = 0;
+
+  x = xref[0];
+  y = xref[1];
+
+  if      ( x < 0.0 ) { FaceSearch[nFaceSearch] = 0; nFaceSearch++; x = 0.0; }
+  else if ( x > 1.0 ) { FaceSearch[nFaceSearch] = 1; nFaceSearch++; x = 1.0; }
+
+  if      ( y < 0.0 ) { FaceSearch[nFaceSearch] = 2; nFaceSearch++; y = 0.0; }
+  else if ( y > 1.0 ) { FaceSearch[nFaceSearch] = 3; nFaceSearch++; y = 1.0; }
+
+  xref[0] = x;
+  xref[1] = y;
+  (*pnFaceSearch) = nFaceSearch;
+
+  return PX_NO_ERROR;
+}
+
+/******************************************************************/
+//  FUNCTION Definition: PXProject2RefElement_Tet
+ELVIS_DEVICE int
+PXProject2RefElement_Tet( PX_REAL * RESTRICT xref, int * RESTRICT pnFaceSearch, int * RESTRICT FaceSearch )
+{
+  PX_REAL x, y, z;
+  PX_REAL alpha;
+  int nFaceSearch = 0;
+
+  x = xref[0];
+  y = xref[1];
+  z = xref[2];
+
+  /* project to faces 1-3 */
+  if ( x < 0.0 ) { FaceSearch[nFaceSearch] = 1; nFaceSearch++; x = 0.0; }
+  if ( y < 0.0 ) { FaceSearch[nFaceSearch] = 2; nFaceSearch++; y = 0.0; }
+  if ( z < 0.0 ) { FaceSearch[nFaceSearch] = 3; nFaceSearch++; z = 0.0; }
+
+  /* project to face 0 */
+  if ( x + y + z > 1.0 ) {
+    FaceSearch[0] = 0;
+    nFaceSearch   = 1;
+
+    alpha = (1-x-y-z)/3.0;
+    x = x+alpha;
+    y = y+alpha;
+    z = z+alpha;
+
+    /* project to edges of face 1 */
+    if ( x < 0 ) {
+      FaceSearch[nFaceSearch] = 1;
+      nFaceSearch++;
+      alpha = (1-y-z)/2.0;
+      x = 0.0;
+      y = MIN(y+alpha,1.0);
+      z = MIN(z+alpha,1.0);
+    }
+    if ( y < 0 ) {
+      FaceSearch[nFaceSearch] = 2;
+      nFaceSearch++;
+      alpha = (1-x-z)/2.0;
+      x = MIN(x+alpha,1.0);
+      y = 0.0;
+      z = MIN(z+alpha,1.0);
+    }
+    if ( z < 0 ) {
+      FaceSearch[nFaceSearch] = 3;
+      nFaceSearch++;
+      alpha = (1-x-y)/2.0;
+      x = MIN(x+alpha,1.0);
+      y = MIN(y+alpha,1.0);
+      z = 0.0;
+    }
+  }
+
+  xref[0] = x;
+  xref[1] = y;
+  xref[2] = z;
+  (*pnFaceSearch) = nFaceSearch;
+
+  return PX_NO_ERROR;
+}
+
+
+/******************************************************************/
+//  FUNCTION Definition: PXProject2RefElement_Quad
+ELVIS_DEVICE int
+PXProject2RefElement_Hex( PX_REAL * RESTRICT xref, int * RESTRICT pnFaceSearch, int * RESTRICT FaceSearch )
+{
+  PX_REAL x, y, z;
+  int nFaceSearch = 0;
+
+  x = xref[0];
+  y = xref[1];
+  z = xref[2];
+
+  if      ( x < 0.0 ) { FaceSearch[nFaceSearch] = 0; nFaceSearch++; x = 0.0; }
+  else if ( x > 1.0 ) { FaceSearch[nFaceSearch] = 1; nFaceSearch++; x = 1.0; }
+
+  if      ( y < 0.0 ) { FaceSearch[nFaceSearch] = 2; nFaceSearch++; y = 0.0; }
+  else if ( y > 1.0 ) { FaceSearch[nFaceSearch] = 3; nFaceSearch++; y = 1.0; }
+
+  if      ( z < 0.0 ) { FaceSearch[nFaceSearch] = 4; nFaceSearch++; z = 0.0; }
+  else if ( z > 1.0 ) { FaceSearch[nFaceSearch] = 5; nFaceSearch++; z = 1.0; }
+
+  xref[0] = x;
+  xref[1] = y;
+  xref[2] = z;
+  (*pnFaceSearch) = nFaceSearch;
+
+  return PX_NO_ERROR;
+}
+
+#define SEARCH_EPS 1e-1
+
+/******************************************************************/
+//  FUNCTION Definition: PXRefElement2SearchParameters_Hex
+ELVIS_DEVICE int
+PXRefElement2SearchParameters_Hex( PX_REAL const * RESTRICT xref, int * RESTRICT pnFaceSearch, int * RESTRICT FaceSearch)
+{
+  PX_REAL x, y, z;
+  int nFaceSearch = 0;
+
+  x = xref[0];
+  y = xref[1];
+  z = xref[2];
+
+  if      ( x < 0.0 + SEARCH_EPS ) { FaceSearch[nFaceSearch] = 0; nFaceSearch++; }
+  else if ( x > 1.0 - SEARCH_EPS ) { FaceSearch[nFaceSearch] = 1; nFaceSearch++; }
+
+  if      ( y < 0.0 + SEARCH_EPS ) { FaceSearch[nFaceSearch] = 2; nFaceSearch++; }
+  else if ( y > 1.0 - SEARCH_EPS ) { FaceSearch[nFaceSearch] = 3; nFaceSearch++; }
+
+  if      ( z < 0.0 + SEARCH_EPS ) { FaceSearch[nFaceSearch] = 4; nFaceSearch++; }
+  else if ( z > 1.0 - SEARCH_EPS ) { FaceSearch[nFaceSearch] = 5; nFaceSearch++; }
+
+  (*pnFaceSearch) = nFaceSearch;
+
+  return PX_NO_ERROR;
+}
+
+
+/******************************************************************/
+//  FUNCTION Definition: PXProject2RefElement
+ELVIS_DEVICE int
+PXProject2RefElement( enum PXE_Shape Shape, PX_REAL * RESTRICT xref, int * RESTRICT nFaceSearch, int * RESTRICT FaceSearch )
+{
+  switch( Shape ) {
+  case PXE_Shape_Edge:
+    PXErrorReturn( PXProject2RefElement_Edge( xref, nFaceSearch, FaceSearch) );
+    break;
+  case PXE_Shape_Triangle:
+    PXErrorReturn( PXProject2RefElement_Triangle( xref, nFaceSearch, FaceSearch ) );
+    break;
+  case PXE_Shape_Quad:
+    PXErrorReturn( PXProject2RefElement_Quad( xref, nFaceSearch, FaceSearch ) );
+    break;
+  case PXE_Shape_Tet:
+    PXErrorReturn( PXProject2RefElement_Tet( xref, nFaceSearch, FaceSearch ) );
+    break;
+  case PXE_Shape_Hex:
+    PXErrorReturn( PXProject2RefElement_Hex( xref, nFaceSearch, FaceSearch ) );
+    break;
+  default:
+    return PXError(PX_CODE_FLOW_ERROR);
+    break;
+  }
+
+  return PX_NO_ERROR;
+}
+
+/******************************************************************/
+//  FUNCTION Definition: PXProject2RefElement
+ELVIS_DEVICE int
+PXProject2RefElement( enum PXE_Shape Shape, PX_REAL * RESTRICT xref )
+{
+  int nFaceSearch = 0;
+  int FaceSearch[6] = {0, 0, 0, 0, 0, 0};
+
+  return PXProject2RefElement(Shape, xref, &nFaceSearch, FaceSearch);
+}
 /******************************************************************/
 //   FUNCTION Definition: PXRef2GlobFromCoordinates
 ELVIS_DEVICE int
@@ -728,12 +989,13 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
   const int maxIter = 200;
   PX_REAL Residual;     // Residual of Newton Solve
   PX_REAL lim = 1.0;    // limit on the newton update - so the first step doesn't take us way out of the reference element
-  PX_REAL Jac[9];       // Transformation Jacobian
+  //PX_REAL Jac[9];       // Transformation Jacobian
   PX_REAL iJac[9];      // Inverse of Jacobian
   PX_REAL RHS[3];       // right hand side vector for Newton Solve
   PX_REAL dxref[3];     // Update in xref for Newton Solve
   PX_REAL phi[MAX_NBF];  // Basis Functions
   PX_REAL gphi[DIM3D*MAX_NBF]; // Derivative of Basis Functions wrt reference coordinates
+  PX_REAL xg[3];
   enum PXE_Boolean ConvergedFlag; // flag indicating if the newton solve has converged
   enum PXE_Shape Shape;           // shape of the basis in this element
   enum PXE_SolutionOrder order;   // interpolation order of a given element type
@@ -757,11 +1019,10 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
 
   // Starting Newton iteration
   for ( iter = 0; iter < maxIter; iter++) {
+
     // Get Shape functions and gradients
     PXGradientsElem(order, qorder, xref, gphi );
 
-    // ref 2 glob for current xref
-    //( PXRef2GlobFromCoordinatesGivenShape2(nbf, Dim, xnodes, xg, phi) );
 
     // Jacobian element for current xref
     ierr = PXJacobianElementFromCoordinatesGivenGradient2(elemData.type, nbf, xnodes, xref, NULL, iJac, gphi, CoordinateVerbosity);
@@ -796,7 +1057,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     //Residual += RHS[0]*RHS[0] + RHS[1]*RHS[1] + RHS[2]*RHS[2];
     Residual = sqrt(Residual);
 
-    //ELVIS_PRINTF("MCG: PXCurvedGlob2Ref residual = %f\n", Residual);
+    ELVIS_PRINTF("MCG: PXCurvedGlob2Ref xref = %f, %f, %f | residual = %f\n", xref[0], xref[1], xref[2], Residual);
 
     // Check Residual Tolerance
     if ( ( Residual < 1.0E-10) && (iter>nLimitedIter) ) {
@@ -810,7 +1071,6 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     dxref[1] = iJac[1*DIM3D+0]*RHS[0] + iJac[1*DIM3D+1]*RHS[1] + iJac[1*DIM3D+2]*RHS[2];
     dxref[2] = iJac[2*DIM3D+0]*RHS[0] + iJac[2*DIM3D+1]*RHS[1] + iJac[2*DIM3D+2]*RHS[2];
 
-
     // limiting - for the first iteration we don't want to take the full step
     if (iter<nLimitedIter){
       //Residual = 1.0;
@@ -823,6 +1083,9 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     // Update State
     for (d=0; d<Dim; d++)
       xref[d] += lim*dxref[d];
+
+    //Make sure the reference coordinates are inside the element
+    PXProject2RefElement( Shape, xref );
 
   }// for iter
 
@@ -838,7 +1101,13 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
   // Check Convergence
   if (ConvergedFlag == PXE_False) {
     //if (CoordinateVerbosity==PXE_True){
-      ALWAYS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref\n");
+
+    // ref 2 glob for current xref
+    PXRef2GlobFromCoordinatesGivenShape2(nbf, Dim, xnodes, xg, phi);
+
+      ELVIS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref: xref = %f, %f, %f\n", xref[0], xref[1], xref[2] );
+      ELVIS_PRINTF("ERROR: xglobal = %f, %f, %f\n", xglobal[0], xglobal[1], xglobal[2] );
+      ELVIS_PRINTF("ERROR: xg@xref = %f, %f, %f\n", xg[0], xg[1], xg[2] );
     //}
     return PX_NOT_CONVERGED;
   }
