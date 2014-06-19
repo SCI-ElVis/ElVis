@@ -472,39 +472,60 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
                                       ElVisFloat3& result)
 {
   ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
-  result.x = 1;
-  result.y = 0;
-  result.z = 0;
-	return eNoError;
-    //PX_REAL xface[2] = {referencePointOnFace.x, referencePointOnFace.y};
-    //PX_REAL nvec[3];
 
-    /* compute normal w/orientation correction */
-    /* this is guaranteed to point from left->right element */
-    //PXError(PXOutwardNormal(faceOrder, porderFace, nbfQFace, &PXFaceDataBuffer[faceId], &PXFaceCoordinateBuffer[DIM3D*nbfQFace*faceId], xface, nvec));
+  PX_REAL xface[2] = {refPoint.x, refPoint.y};
+  PX_REAL nvec[3] = {0,0,0};
 
-    /* compute normal at the physical location corresponding to the input ref coords */
-    /* EvaluateFace() & EvaluateFaceJacobian() do not perform the orientation
-       correction.  Thus the normal *must* be evaluated without the correction too! */
-    //PX_REAL nvec2[3];
-    //PX_FaceData tempFace = {.orientation = 0, .side = 0, .shape = PXE_Shape_Triangle};
-    //PXError(PXOutwardNormal(faceOrder, porderFace, nbfQFace, &tempFace, &PXFaceCoordinateBuffer[DIM3D*nbfQFace*faceId], xface, nvec2));
+  CurvedFaceIdx Idx = ConvertToCurvedFaceIdx(faceId);
 
-    /* Ensure that non-orientation-corrected normal points in the proper direction
-       (=same direction as orientation-corrected normal) */
-    /*
-    PX_REAL temp = nvec[0]*nvec2[0]+nvec[1]*nvec2[1]+nvec[2]*nvec2[2];
-    if(temp < 0){
-      nvec2[0] *= -1;
-      nvec2[1] *= -1;
-      nvec2[2] *= -1;
-    }
+  if( Idx.Value >= nCurvedFace ) {
+    rtPrintf("############ GetFaceNormal Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
+    return eFieldNotDefinedOnFace;
+  }
 
-    result.x = nvec2[0];
-    result.y = nvec2[1];
-    result.z = nvec2[2];
+  PX_FaceTypeData * faceData = &PXFaceDataBuffer[Idx.Value];
+
+  PX_REAL *nodeCoord = &PXFaceCoordBuffer[faceData->idx];
+  int nbfQFace = faceData->nbf;
+
+  //PXErrorDebug( PXFaceRef2ElemFaceRef<PX_REAL>( faceData->shape, faceData->orientation, xref, xreflocal) );
+
+  /* compute normal w/orientation correction */
+  /* this is guaranteed to point from left->right element */
+  PXError(PXOutwardNormal(faceData->order, faceData->qorder, nbfQFace, faceData, nodeCoord, xface, nvec));
+
+  /* compute normal at the physical location corresponding to the input ref coords */
+  /* EvaluateFace() & EvaluateFaceJacobian() do not perform the orientation
+     correction.  Thus the normal *must* be evaluated without the correction too! */
+  /*
+  PX_REAL nvec2[3] = {0,0,0};
+  PX_FaceTypeData tempFace = {.idx=faceData->idx,
+                              .nodesOnFace=faceData->nodesOnFace,
+                              .nbf=faceData->nbf,
+                              .order=faceData->order,
+                              .qorder=faceData->qorder,
+                              .orientation = 0,
+                              .side = 0,
+                              .shape = faceData->shape};
+  PXError(PXOutwardNormal(tempFace.order, tempFace.qorder, nbfQFace, &tempFace, nodeCoord, xface, nvec2));
 */
-//    return eNoError;
+  /* Ensure that non-orientation-corrected normal points in the proper direction
+     (=same direction as orientation-corrected normal) */
+/*
+  PX_REAL temp = nvec[0]*nvec2[0]+nvec[1]*nvec2[1]+nvec[2]*nvec2[2];
+  if(temp < 0){
+    nvec2[0] *= -1;
+    nvec2[1] *= -1;
+    nvec2[2] *= -1;
+  }
+*/
+  result.x = nvec[0];
+  result.y = nvec[1];
+  result.z = nvec[2];
+
+  ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS normal = (%f, %f, %f), xface = (%f, %f)\n", result.x, result.y, result.z, refPoint.x, refPoint.y);
+
+  return eNoError;
 }
 
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)

@@ -3483,13 +3483,13 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_SpectralLagrange1dP5:
     ( PXGradientsSpectralLagrange1d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
-//  case PXE_Hierarch1dP1:
-//  case PXE_Hierarch1dP2:
-//  case PXE_Hierarch1dP3:
-//  case PXE_Hierarch1dP4:
-//  case PXE_Hierarch1dP5:
-//     ( PXGradientsHierarch1d(porder, xref, gphi) );
-//     return PX_NO_ERROR;
+  case PXE_Hierarch1dP1:
+  case PXE_Hierarch1dP2:
+  case PXE_Hierarch1dP3:
+  case PXE_Hierarch1dP4:
+  case PXE_Hierarch1dP5:
+     ( PXGradientsHierarch1d<DT>(porder, xref, gphi) );
+     return PX_NO_ERROR;
   case PXE_LagrangeP0:
   case PXE_LagrangeP1:
   case PXE_LagrangeP2: 
@@ -3498,16 +3498,13 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_LagrangeP5:
     ( PXGradientsLagrange2d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
-
-    /*
   case PXE_HierarchP1:
   case PXE_HierarchP2:
   case PXE_HierarchP3:
   case PXE_HierarchP4:
   case PXE_HierarchP5:
-     ( PXGradientsHierarch2d(porder, xref, gphi) );
+     ( PXGradientsHierarch2d<DT>(porder, xref, gphi) );
      return PX_NO_ERROR;
-*/
   case PXE_QuadUniformLagrangeP0:
   case PXE_QuadUniformLagrangeP1:
   case PXE_QuadUniformLagrangeP2: 
@@ -3526,7 +3523,7 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
     return PX_NO_ERROR;
 
    default:
-     rtPrintf("PXGradientsFace: Unknown order = %d\n", order);
+    ELVIS_PRINTF("PXGradientsFace: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 

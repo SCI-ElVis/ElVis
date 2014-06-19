@@ -571,7 +571,7 @@ PXFaceRef2ElemFaceRefTriangle( int orientation, T const * RESTRICT xface,
     xfacelocal[0] = temp;
     break;
   default:
-    //ELVIS_PRINTF("Invalid rotation: %d\n", rot );
+    ELVIS_PRINTF("Invalid rotation: %d\n", rot );
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
