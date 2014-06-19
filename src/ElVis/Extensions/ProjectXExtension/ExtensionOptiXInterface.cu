@@ -431,8 +431,54 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
   }
   else
   {
-    return eInvalidFaceId;
+#if 0
+    PX_REAL xface[2] = {referencePointOnFace.x, referencePointOnFace.y};
+    PX_REAL nvec[3];
+
+    /* compute normal w/orientation correction */
+    /* this is guaranteed to point from left->right element */
+    PXError(PXOutwardNormal(faceOrder, porderFace, nbfQFace, &PXFaceDataBuffer[faceId], &PXFaceCoordinateBuffer[DIM3D*nbfQFace*faceId], xface, nvec));
+
+    /* compute normal at the physical location corresponding to the input ref coords */
+    /* EvaluateFace() & EvaluateFaceJacobian() do not perform the orientation
+       correction.  Thus the normal *must* be evaluated without the correction too! */
+    PX_REAL nvec2[3];
+    PX_FaceData tempFace = {.orientation = 0, .side = 0, .shape = PXE_Shape_Triangle};
+    PXError(PXOutwardNormal(faceOrder, porderFace, nbfQFace, &tempFace, &PXFaceCoordinateBuffer[DIM3D*nbfQFace*faceId], xface, nvec2));
+
+    /* Ensure that non-orientation-corrected normal points in the proper direction
+       (=same direction as orientation-corrected normal) */
+    PX_REAL temp = nvec[0]*nvec2[0]+nvec[1]*nvec2[1]+nvec[2]*nvec2[2];
+    if(temp < 0){
+      nvec2[0] *= -1;
+      nvec2[1] *= -1;
+      nvec2[2] *= -1;
+    }
+
+    result.x = nvec2[0];
+    result.y = nvec2[1];
+    result.z = nvec2[2];
+#endif
+    ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS with Planar elements Didn't know this was called yet! (%f, %f, %f)\n", pointOnFace.x, pointOnFace.y, pointOnFace.x );
+    result.x = 0;
+    result.y = 1;
+    result.z = 0;
+
+    return eNoError;
   }
+}
+
+/// \brief Get the world space normal vector for the given point on a face.
+/// \param pointOnFace The point in world space coordinates.
+/// \param refPoint The point in the face's reference coordinates.
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, GlobalFaceIdx faceId,
+                                      ElVisFloat3& result)
+{
+  ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
+  result.x = 1;
+  result.y = 0;
+  result.z = 0;
+  return eNoError;
 }
 
 ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result)
