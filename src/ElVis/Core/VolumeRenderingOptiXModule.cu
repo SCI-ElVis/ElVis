@@ -787,10 +787,24 @@ RT_PROGRAM void CurvedFaceIntersection(int idx)
 
 RT_PROGRAM void FaceClosestHitProgram()
 {
-    //ELVIS_PRINTF("FaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceGlobalIdx);
+    ELVIS_PRINTF("FaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceGlobalIdx.Value);
     volumePayload.FoundIntersection = true;
     volumePayload.IntersectionT = closest_t;
-    volumePayload.FaceId = intersectedFaceGlobalIdx;
+    volumePayload.FaceId = intersectedFaceGlobalIdx.Value;
+    volumePayload.FaceReferecePointIsValid = faceIntersectionReferencePointIsValid;
+
+    if( faceIntersectionReferencePointIsValid )
+    {
+        volumePayload.FaceReferencePoint = faceIntersectionReferencePoint;
+        ELVIS_PRINTF("Has reference point.\n");
+    }
+    else
+    {
+        // We don't know the reference coordinate (because the intersection program didn't
+        // provide them).
+        ELVIS_PRINTF("Don't have reference point.\n");
+    }
+
     //ELVIS_PRINTF("FaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
     //    volumePayload.IntersectionT, volumePayload.FaceId);
 }

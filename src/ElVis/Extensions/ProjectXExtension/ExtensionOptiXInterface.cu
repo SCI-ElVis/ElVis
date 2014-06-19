@@ -468,20 +468,8 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
   }
 }
 
-/// \brief Get the world space normal vector for the given point on a face.
-/// \param pointOnFace The point in world space coordinates.
-/// \param refPoint The point in the face's reference coordinates.
 ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, GlobalFaceIdx faceId,
                                       ElVisFloat3& result)
-{
-  ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
-  result.x = 1;
-  result.y = 0;
-  result.z = 0;
-  return eNoError;
-}
-
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result)
 {
   ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
   result.x = 1;
