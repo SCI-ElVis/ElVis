@@ -51,7 +51,17 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
 
     ElVisFloat3 faceNormal;
     ElVisFloat3 pointOnFace = p + payload_v.IntersectionT*direction;
-    GetFaceNormal(pointOnFace, payload_v.FaceId, faceNormal);
+
+    if( payload_v.FaceReferecePointIsValid )
+    {
+        ELVIS_PRINTF("Calling reference point aware face normal (%f, %f)\n",
+                     payload_v.FaceReferencePoint.x, payload_v.FaceReferencePoint.y);
+        GetFaceNormal(pointOnFace, payload_v.FaceReferencePoint, payload_v.FaceId, faceNormal);
+    }
+    else
+    {
+        GetFaceNormal(pointOnFace, payload_v.FaceId, faceNormal);
+    }
 
     ElVisFloat3 vectorToPointOnFace = pointOnFace -p ;//p - pointOnFace;
 
@@ -218,7 +228,7 @@ __device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVi
 
 __device__ ElVis::ElementId FindElement(const ElVisFloat3& testPoint, const ElVisFloat3& pointOnFace, const ElVisFloat2& referencePointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& faceNormal)
 {
-    GetFaceNormal(referencePointOnFace, pointOnFace, globalFaceIdx, faceNormal);
+    GetFaceNormal(pointOnFace, referencePointOnFace, globalFaceIdx, faceNormal);
     ElVisFloat3 vectorToPointOnFace = testPoint - pointOnFace;
 
     ElVisFloat d = dot(faceNormal, vectorToPointOnFace);

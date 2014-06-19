@@ -44,6 +44,7 @@ struct VolumeRenderingPayload
         ElementTypeId = 0;
         IntersectionT = MAKE_FLOAT(-1.0);
         FaceId.Value = -1;
+        FaceReferecePointIsValid = false;
     }
 
     bool FoundIntersection;
@@ -51,6 +52,9 @@ struct VolumeRenderingPayload
     unsigned int ElementTypeId;
     ElVisFloat IntersectionT;
     GlobalFaceIdx FaceId;
+    ElVisFloat2 FaceReferencePoint;
+    bool FaceReferecePointIsValid;
+
 };
 
 rtDeclareVariable(VolumeRenderingPayload, volumePayload, rtPayload, );
