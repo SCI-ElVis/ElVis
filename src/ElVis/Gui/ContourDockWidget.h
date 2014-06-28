@@ -29,18 +29,18 @@
 #ifndef ELVIS_GUI_CONTOUR_DOCK_WIDGET_H
 #define ELVIS_GUI_CONTOUR_DOCK_WIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include <boost/shared_ptr.hpp>
 #include <ElVis/Gui/ApplicationState.h>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsRectItem>
-#include <QVBoxLayout>
-#include <QListWidget>
-#include <QDockWidget>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QCheckBox>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsRectItem>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QCheckBox>
 
 namespace ElVis
 {
@@ -52,7 +52,7 @@ namespace ElVis
             Q_OBJECT;
 
             public:
-                ContourDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent = 0, Qt::WFlags f = 0);
+                ContourDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent = 0, Qt::WindowFlags f = 0);
                 virtual ~ContourDockWidget() {}
 
             public Q_SLOTS:

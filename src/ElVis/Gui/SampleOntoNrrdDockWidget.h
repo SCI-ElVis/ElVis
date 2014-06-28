@@ -29,19 +29,19 @@
 #ifndef ELVIS_GUI_SAMPLE_ONTO_NRRD_DOCK_WIDGET_H
 #define ELVIS_GUI_SAMPLE_ONTO_NRRD_DOCK_WIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include <boost/shared_ptr.hpp>
 #include <ElVis/Gui/ApplicationState.h>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsRectItem>
-#include <QVBoxLayout>
-#include <QListWidget>
-#include <QDockWidget>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QLabel>
-#include <QLineEdit>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsRectItem>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <ElVis/Core/SampleOntoNrrdModule.h>
 
 namespace ElVis
@@ -54,7 +54,7 @@ namespace ElVis
             Q_OBJECT;
 
             public:
-                SampleOntoNrrdDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent = 0, Qt::WFlags f = 0);
+                SampleOntoNrrdDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent = 0, Qt::WindowFlags f = 0);
                 virtual ~SampleOntoNrrdDockWidget() {}
 
             public Q_SLOTS:

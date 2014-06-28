@@ -45,7 +45,7 @@
 #include <fstream>
 #include <iostream>
 
-#include <QMouseEvent>
+#include <QtGui/QMouseEvent>
 
 using std::cout;
 using std::endl;
@@ -58,7 +58,7 @@ namespace ElVis
             GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6,
             GL_LIGHT7 };
 
-        SceneViewWidget::SceneViewWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, const char* name, const QGLWidget* shareWidget, Qt::WFlags f) :
+        SceneViewWidget::SceneViewWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, const char* name, const QGLWidget* shareWidget, Qt::WindowFlags f) :
             QGLWidget(parent, shareWidget, f),
             clearDepth(1.0),
             viewport(),

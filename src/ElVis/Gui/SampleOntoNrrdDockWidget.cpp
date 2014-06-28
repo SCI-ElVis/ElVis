@@ -33,7 +33,7 @@ namespace ElVis
 {
     namespace Gui
     {
-        SampleOntoNrrdDockWidget::SampleOntoNrrdDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WFlags f) :
+        SampleOntoNrrdDockWidget::SampleOntoNrrdDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Sample Onto Nrrd", parent, f),
             m_appData(appData),
             m_fileName(new QLineEdit()),

@@ -41,7 +41,7 @@
 #include <boost/array.hpp>
 
 #include <QtOpenGL/QGLWidget>
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QPoint>
 
 
@@ -75,7 +75,7 @@ namespace ElVis
                 /// to the appropriate QGLWidget constructor.
                 SceneViewWidget(boost::shared_ptr<ApplicationState> appData,
                                 QWidget* parent = NULL, const char* name = NULL,
-                                const QGLWidget* shareWidget = NULL, Qt::WFlags f = 0);
+                                const QGLWidget* shareWidget = NULL, Qt::WindowFlags f = 0);
 
                 virtual ~SceneViewWidget();
 

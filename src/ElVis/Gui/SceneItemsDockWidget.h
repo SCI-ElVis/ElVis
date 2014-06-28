@@ -33,9 +33,9 @@
 #ifndef ELVIS_GUI_SCENEITEMSDOCKWIDGET_H
 #define ELVIS_GUI_SCENEITEMSDOCKWIDGET_H
 
-#include <QDockWidget>
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QTreeWidgetItem>
 
 #include <boost/shared_ptr.hpp>
 
@@ -56,7 +56,7 @@ namespace ElVis
 
             public:
                 SceneItemsDockWidget(boost::shared_ptr<ApplicationState> appData,
-                    QWidget* parent = NULL, Qt::WFlags f = 0);
+                    QWidget* parent = NULL, Qt::WindowFlags f = 0);
 
                 virtual ~SceneItemsDockWidget();
 

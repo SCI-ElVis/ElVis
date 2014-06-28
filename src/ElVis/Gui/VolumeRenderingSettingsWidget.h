@@ -33,10 +33,10 @@
 #ifndef ELVIS_GUI_VOLUME_RENDERING_SETTINGS_WIDGET_H
 #define ELVIS_GUI_VOLUME_RENDERING_SETTINGS_WIDGET_H
 
-#include <QDockWidget>
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
-#include <QGridLayout>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QTreeWidgetItem>
+#include <QtWidgets/QGridLayout>
 
 #include <ElVis/QtPropertyBrowser/qtgroupboxpropertybrowser.h>
 #include <ElVis/QtPropertyBrowser/qtpropertymanager.h>
@@ -61,7 +61,7 @@ namespace ElVis
 
             public:
                 VolumeRenderingSettingsWidget(boost::shared_ptr<ApplicationState> appData,
-                    QWidget* parent = NULL, Qt::WFlags f = 0);
+                    QWidget* parent = NULL, Qt::WindowFlags f = 0);
 
                 virtual ~VolumeRenderingSettingsWidget() {}
 

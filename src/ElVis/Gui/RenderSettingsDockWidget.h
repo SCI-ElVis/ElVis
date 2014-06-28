@@ -34,9 +34,9 @@
 #include <ElVis/QtPropertyBrowser/qtpropertymanager.h>
 #include <ElVis/QtPropertyBrowser/qteditorfactory.h>
 
-#include <QDockWidget>
-#include <QGridLayout>
-#include <QScrollArea>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QScrollArea>
 
 #include <map>
 

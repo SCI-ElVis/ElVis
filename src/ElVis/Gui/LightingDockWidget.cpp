@@ -36,8 +36,8 @@
 
 #include <ElVis/Core/VolumeRenderingModule.h>
 
-#include <QScrollArea>
-#include <QColorDialog>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QColorDialog>
 
 #include <boost/bind.hpp>
 
@@ -46,7 +46,7 @@ namespace ElVis
     namespace Gui
     {
         LightingDockWidget::LightingDockWidget(boost::shared_ptr<ApplicationState> appData,
-            QWidget* parent, Qt::WFlags f) :
+            QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Light Settings", parent, f),
             m_appData(appData),
             m_layout(0),

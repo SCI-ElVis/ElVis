@@ -29,9 +29,9 @@
 #ifndef ELVIS_GUI_OBJECT_INSPECTOR_UI_H
 #define ELVIS_GUI_OBJECT_INSPECTOR_UI_H
 
-#include <QDockWidget>
-#include <QScrollArea>
-#include <QGridLayout>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QGridLayout>
 
 #include <ElVis/QtPropertyBrowser/qtgroupboxpropertybrowser.h>
 #include <ElVis/QtPropertyBrowser/MemberProperty.hpp>

@@ -29,17 +29,17 @@
 #ifndef ELVIS_GUI_COLOR_MAP_RECT_H
 #define ELVIS_GUI_COLOR_MAP_RECT_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include <boost/shared_ptr.hpp>
 
 #include <ElVis/Gui/Breakpoints.h>
 #include <ElVis/Gui/ApplicationState.h>
 #include <ElVis/Core/HostTransferFunction.h>
 
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsRectItem>
-#include <QImage>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsRectItem>
+#include <QtGui/QImage>
 
 namespace ElVis
 {

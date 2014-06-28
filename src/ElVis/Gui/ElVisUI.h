@@ -49,14 +49,14 @@
 #include <ElVis/Gui/LightingDockWidget.h>
 #include <ElVis/Gui/SampleOntoNrrdDockWidget.h>
 
-#include <QErrorMessage>
-#include <QMdiArea>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QToolBar>
-#include <QSettings>
-#include <QComboBox>
-#include <QMainWindow>
+#include <QtWidgets/QErrorMessage>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QToolBar>
+#include <QtCore/QSettings>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QMainWindow>
 
 #include <boost/shared_ptr.hpp>
 

@@ -38,8 +38,8 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <QWidget>
-#include <QScrollArea>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QScrollArea>
 
 namespace ElVis
 {
@@ -57,7 +57,7 @@ namespace ElVis
             // The model change event in the scene will be a boost::signals event, but
             // I want to hook it up to a slot.
             public:
-                ModelInspectorWidget(boost::shared_ptr<Scene> scene, QWidget* parent = NULL, Qt::WFlags f = 0);
+                ModelInspectorWidget(boost::shared_ptr<Scene> scene, QWidget* parent = NULL, Qt::WindowFlags f = 0);
 
                 virtual ~ModelInspectorWidget();
 

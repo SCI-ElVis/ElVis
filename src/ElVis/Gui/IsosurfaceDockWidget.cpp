@@ -36,7 +36,7 @@
 
 #include <ElVis/Core/VolumeRenderingModule.h>
 
-#include <QScrollArea>
+#include <QtWidgets/QScrollArea>
 
 #include <boost/bind.hpp>
 
@@ -45,7 +45,7 @@ namespace ElVis
     namespace Gui
     {
         IsosurfaceDockWidget::IsosurfaceDockWidget(boost::shared_ptr<ApplicationState> appData,
-            QWidget* parent, Qt::WFlags f) :
+            QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Isosurface Settings", parent, f),
             m_appData(appData),
             m_layout(0),

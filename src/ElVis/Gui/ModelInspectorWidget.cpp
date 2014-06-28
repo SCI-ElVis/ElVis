@@ -28,13 +28,13 @@
 
 #include <ElVis/Gui/ModelInspectorWidget.h>
 #include <boost/bind.hpp>
-#include <QScrollArea>
+#include <QtWidgets/QScrollArea>
 
 namespace ElVis
 {
     namespace Gui
     {
-        ModelInspectorWidget::ModelInspectorWidget(boost::shared_ptr<Scene> scene, QWidget* parent, Qt::WFlags f) :
+        ModelInspectorWidget::ModelInspectorWidget(boost::shared_ptr<Scene> scene, QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Model Properties", parent, f),
             m_scene(scene),
             m_dockWidgetContents(new QScrollArea()),

@@ -35,7 +35,7 @@ namespace ElVis
 {
     namespace Gui
     {
-        ElementFaceRenderingDockWidget::ElementFaceRenderingDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WFlags f) :
+        ElementFaceRenderingDockWidget::ElementFaceRenderingDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Element Face Rendering", parent, f),
             m_appData(appData),
             m_list(new QListWidget()),

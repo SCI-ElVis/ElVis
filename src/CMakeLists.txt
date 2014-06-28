@@ -1,15 +1,12 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.11)
+project(ElVis1)
 
-# As of CMake 2.6 policies were introduced in order to provide a mechanism for
-# adding backwards compatibility one feature at a time.  We will just specify
-# that all policies will use version 2.6 semantics.
-cmake_policy(VERSION 2.6)
-
-#Set the apple compiler so it doesn't default to clang
-IF ( APPLE )
-    SET(CMAKE_CXX_COMPILER "/usr/bin/g++")
-    SET(CMAKE_C_COMPILER "/usr/bin/gcc")
-ENDIF ()
+# Disallow in-source build
+if ("${CMAKE_SOURCE_DIR}"  STREQUAL "${CMAKE_BINARY_DIR}")
+  message(FATAL_ERROR
+    "ElVis requires an out of source Build. "
+    "Please create a separate binary directory and run CMake there.")
+endif()
 
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -22,6 +19,18 @@ PROJECT(ElVis)
 
 ENABLE_TESTING()
 SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
+
+###########################################
+# APPLICATION Information
+###########################################
+SET(APPLICATION_NAME "ElVis1" CACHE INTERNAL "Name of the application" FORCE)
+
+###########################################
+# SETUP DEFINTIONS FOR EXTERNAL PACKAGES
+# To force a static build these flags
+# need to be set project wide.
+###########################################
+ADD_DEFINITIONS(-DGLEW_STATIC)
 
 # Set the default build to Release.  Note this doesn't do anything for the VS
 # default build target which defaults to Debug when you first start it.
@@ -39,16 +48,67 @@ FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/lib ELVIS_LIB_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/include ELVIS_INCLUDE_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/ColorMaps ELVIS_COLOR_MAP_DIR)
 
-IF( NOT QT4_FOUND )
-    FIND_PACKAGE(Qt4)
-ENDIF() 
+###########################################
+# Find QT
+# We need QT - We use a modified version of
+# the FindQt4.cmake file that can be set
+# to search for different versions of QT
+# just point QT_DIR to the right directory
+# to skip the use of the default installed
+# QT distribution. 
+###########################################a
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Network REQUIRED)
+find_package(Qt5WebKit REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5OpenGL REQUIRED)
 
-IF( QT4_FOUND )
-    include(${QT_USE_FILE})
-ENDIF()
+include_directories(${Qt5Core_INCLUDE_DIRS})
+include_directories(${Qt5Gui_INCLUDE_DIRS})
+include_directories(${Qt5Network_INCLUDE_DIRS})
+include_directories(${Qt5WebKit_INCLUDE_DIRS})
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+include_directories(${Qt5OpenGL_INCLUDE_DIRS})
 
+foreach(plugin ${Qt5Network_PLUGINS})
+  get_target_property(_loc ${plugin} LOCATION)
+  message("Plugin ${plugin} is at location ${_loc}")
+endforeach()
 
-INCLUDE(SetupOptiX.cmake)
+#IF (QT_FOUND)
+#  SET(QT_USE_QTOPENGL 1)
+#  INCLUDE(${QT_USE_FILE})
+#ELSE (QT_FOUND)
+#  MESSAGE(FATAL_ERROR "QT ${QT_MIN_VERSION} or later is required for building Seg3D")
+#ENDIF (QT_FOUND)
+
+###########################################
+# Instruct CMake to run moc automatically when needed.
+###########################################
+set(CMAKE_AUTOMOC ON)
+
+###########################################
+# Instruct Qt to not use keywords like signals but
+# rather Q_SIGNALS because it interferes with
+# boost signals
+###########################################
+add_definitions(-DQT_NO_KEYWORDS)
+
+###########################################
+# External packages other than Qt
+# Include the External packages, these are
+# the packages that are shipped with 
+# ElVis2 to lower the number of dependencies.
+# Qt is currently not included as the code
+# is a huge repository and to allow it to
+# be build against different licensed 
+# versions of Qt.
+###########################################
+
+include(FindCUDA.cmake)
+include(SetupOptiX.cmake)
+
 ADD_SUBDIRECTORY(Externals)
 
 IF( NOT PASSED_FIRST_CONFIGURE )
@@ -65,6 +125,7 @@ ENDIF()
 #INCLUDE(CheckComputeCapability.cmake)
 #MESSAGE(STATUS "CUDA COMPUTE ${CUDA_COMPUTE_CAPABILITY}")
 
+SET(PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
 
 OPTION(ELVIS_USE_DOUBLE_PRECISION "Use double precision value in GPU code.")
 OPTION(ELVIS_ENABLE_PRINTF "Enable the use of ELVIS_PRINTF in device code.")
@@ -80,17 +141,16 @@ SET(GLUT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Externals/glut/include)
 INCLUDE_DIRECTORIES( 
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
-    ${BOOST_INCLUDE}
     ${GLEW_INCLUDE}
     ${GLUT_INCLUDE_DIR}
+	${QT_INCLUDE_DIR}
+	${BOOST_INCLUDE}
+	${CMAKE_CURRENT_SOURCE_DIR}
   # Cuda includes must appear after other GL includes to prevent accidentally
   # including the versions that ship with cuda.
   ${OptiX_INCLUDE}
   ${ELVIS_CUDA_INCLUDE}
 )
-
-
-
 
 IF(ELVIS_USE_DOUBLE_PRECISION)
     SET(ELVIS_FLOAT "double")
@@ -98,18 +158,10 @@ ELSE()
     SET(ELVIS_FLOAT "float")
 ENDIF()
 
-
-SET(CUDA_GENERATED_OUTPUT_DIR ${ELVIS_CUBIN_DIR} CACHE PATH "" FORCE)
-
-IF( MSVC )	
-    # Removes the warnings about unsafe methods such as strcpy, std::copy, memcmp, etc.
-    ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE)
-
-    # Adds support for M_PI
-    ADD_DEFINITIONS(-D_USE_MATH_DEFINES)	
-ENDIF( MSVC )
-
 MACRO(SET_ELVIS_TARGET_PROPERTIES name)
+
+  IF (NOT ELVIS_TARGET_PROPERTIES_SET)
+    SET(NOT ELVIS_TARGET_PROPERTIES_SET TRUE CACHE INTERNAL "Guards target properties so they are only set once" FORCE)
     SET_TARGET_PROPERTIES(${name} PROPERTIES DEBUG_POSTFIX -g)
     SET_TARGET_PROPERTIES(${name} PROPERTIES MINSIZEREL_POSTFIX -ms)
     SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
@@ -158,6 +210,7 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
         # Enable source level parallel builds.
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
     ENDIF(  )
+  ENDIF  (NOT ELVIS_TARGET_PROPERTIES_SET)
 ENDMACRO(SET_ELVIS_TARGET_PROPERTIES name)
 
 MACRO(ADD_ELVIS_EXECUTABLE name)
@@ -215,6 +268,10 @@ MACRO(ADD_ELVIS_OPTIX_LIBRARY name bindir)
     SET_ELVIS_TARGET_PROPERTIES(${name})
 ENDMACRO()
 
+#ADD_SUBDIRECTORY(ElVis)
+#ADD_SUBDIRECTORY(ElVis/Core)
+#ADD_SUBDIRECTORY(ElVis/Extensions)
+
 SET(PROJECTS 
   ElVis
   Utilities
@@ -222,9 +279,34 @@ SET(PROJECTS
 
 SUBDIRS(${PROJECTS})
 
+SET(CUDA_GENERATED_OUTPUT_DIR ${ELVIS_CUBIN_DIR} CACHE PATH "" FORCE)
+
+IF( MSVC )	
+    # Removes the warnings about unsafe methods such as strcpy, std::copy, memcmp, etc.
+    ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE)
+
+    # Adds support for M_PI
+    ADD_DEFINITIONS(-D_USE_MATH_DEFINES)	
+ENDIF( MSVC )
+
+###########################################
+#Add path for glu32 for windows machines
+###########################################
+IF(WIN32)
+	set (CMAKE_LIBRARY_PATH "C:\\Program Files (x86)\\Windows Kits\\8.0\\Lib\\win8\\um\\x64")
+ENDIF()
+
+
+###########################################
+# Find includes in corresponding build directories
+###########################################
+#set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 if(APPLE)	
     set(CMAKE_EXE_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
 endif(APPLE)
+
+SET(CONFIGURE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Configuration/ CACHE INTERNAL "Path to the configuration directory" FORCE)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in 
                ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
@@ -248,4 +330,5 @@ endif()
 SET(PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
 MARK_AS_ADVANCED(PASSED_FIRST_CONFIGURE)
 
+SET(CUDA_GENERATED_OUTPUT_DIR ${ELVIS_CUBIN_DIR} CACHE PATH "" FORCE)
 

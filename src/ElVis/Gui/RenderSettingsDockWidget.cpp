@@ -38,8 +38,8 @@
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
-#include <QDockWidget>
-#include <QGridLayout>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QGridLayout>
 
 namespace ElVis
 {

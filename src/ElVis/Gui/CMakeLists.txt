@@ -70,7 +70,7 @@ ADD_ELVIS_EXECUTABLE(${Project}
     ${QT_QOBJECT_HEADERS}
     ${QT_PROCESSED_UI_HEADERS}
     #${QT_PROCESSED_UI_SOURCE}
-    ${QT_PROCESSED_MOC_SOURCE}
+#    ${QT_PROCESSED_MOC_SOURCE}
 )
 
 SET_PROPERTY(TARGET ${Project} PROPERTY FOLDER "Core")
@@ -80,7 +80,12 @@ INCLUDE_DIRECTORIES(
 )
 
 TARGET_LINK_LIBRARIES(${Project}
-    ${QT_LIBRARIES}
+    Qt5::Core
+    Qt5::Network
+    Qt5::WebKit
+    Qt5::Gui
+    Qt5::Widgets
+    Qt5::OpenGL
     ${QT_QTOPENGL_LIBRARY}
     ${BOOST_LIBRARY}
     ElVisCore

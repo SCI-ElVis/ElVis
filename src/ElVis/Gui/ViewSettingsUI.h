@@ -34,8 +34,8 @@
 #include <ElVis/QtPropertyBrowser/qtgroupboxpropertybrowser.h>
 #include <ElVis/QtPropertyBrowser/qttreepropertybrowser.h>
 
-#include <QDockWidget>
-#include <QGridLayout>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QGridLayout>
 
 namespace ElVis
 {

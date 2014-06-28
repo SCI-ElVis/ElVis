@@ -54,16 +54,16 @@
 
 #include <QtCore/QMap>
 #include <QtGui/QIcon>
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QtCore/QStringList>
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 #include <QtGui/QPainter>
-#include <QtGui/QHBoxLayout>
+#include <QtWidgets/QHBoxLayout>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QCheckBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QMenu>
-#include <QtGui/QStyleOption>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QStyleOption>
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
@@ -72,6 +72,8 @@ QT_BEGIN_NAMESPACE
 class QMouseEvent;
 class QCheckBox;
 class QLineEdit;
+
+#define slots
 
 class QtCursorDatabase
 {

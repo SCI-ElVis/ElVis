@@ -28,10 +28,10 @@
 
 #include <ElVis/Gui/ElVisUI.h>
 
-#include <QDockWidget>
-#include <QFileDialog>
-#include <QStringList>
-#include <QMenuBar>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QFileDialog>
+#include <QtCore/QStringList>
+#include <QtWidgets/QMenuBar>
 
 #include <iostream>
 
@@ -395,8 +395,8 @@ namespace ElVis
             for(int i = 0; i < size; ++i)
             {
                 m_settings->setArrayIndex(i);
-                std::string pluginName = std::string(m_settings->value("PluginName").toString().toAscii().constData());
-                boost::filesystem::path path(m_settings->value("Path").toString().toAscii().constData());
+                std::string pluginName = std::string(m_settings->value("PluginName").toString().toUtf8().constData());
+                boost::filesystem::path path(m_settings->value("Path").toString().toUtf8().constData());
                 bool loaded = m_settings->value("Loaded").toBool();
 
                 AddPlugin(path, loaded, pluginName);
@@ -577,11 +577,11 @@ namespace ElVis
             chooseFile->setFileMode(QFileDialog::ExistingFile);
 
             #if defined _MSC_VER
-                chooseFile->setFilter("Plugins (*.dll)");
+//                chooseFile->setFilter("Plugins (*.dll)");
             #elif defined __APPLE__
-                chooseFile->setFilter("Plugins (*.dylib)");
+//                chooseFile->setFilter("Plugins (*.dylib)");
             #else
-                chooseFile->setFilter("Plugins (*.so)");
+//                chooseFile->setFilter("Plugins (*.so)");
             #endif
 
             chooseFile->setViewMode(QFileDialog::Detail);
@@ -595,7 +595,7 @@ namespace ElVis
             QStringList list = chooseFile->selectedFiles();
             QStringList::Iterator it = list.begin();
             QString fileName = *it;
-            QByteArray bytes = fileName.toAscii();
+            QByteArray bytes = fileName.toUtf8();
             boost::filesystem::path path(bytes.constData());
             AddPlugin(path, true);
         }
@@ -712,7 +712,7 @@ namespace ElVis
 
         void ElVisUI::LoadFile(const QString &fileName, const QString& filter)
         {
-            QByteArray bytes = fileName.toAscii();
+            QByteArray bytes = fileName.toUtf8();
 
             typedef std::map<std::string, boost::shared_ptr<Plugin> >::value_type IterType;
             BOOST_FOREACH( IterType iter, m_plugins )
@@ -869,7 +869,7 @@ namespace ElVis
             boost::shared_ptr<QFileDialog> chooseFile(new QFileDialog(NULL, "Load State", m_settings->value(DEFAULT_STATE_DIR_SETTING_NAME).toString()));
             chooseFile->setFileMode(QFileDialog::ExistingFile);
 
-            chooseFile->setFilter(GetElVisStateFilter().c_str());
+//            chooseFile->setFilter(GetElVisStateFilter().c_str());
 
             chooseFile->setViewMode(QFileDialog::Detail);
             chooseFile->setAcceptMode(QFileDialog::AcceptOpen);

@@ -29,18 +29,18 @@
 #ifndef ELVIS_GUI_ELEMENT_FACE_RENDERING_DOCK_WIDGET_H
 #define ELVIS_GUI_ELEMENT_FACE_RENDERING_DOCK_WIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include <boost/shared_ptr.hpp>
 #include <ElVis/Gui/ApplicationState.h>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsRectItem>
-#include <QVBoxLayout>
-#include <QListWidget>
-#include <QDockWidget>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QDoubleSpinBox>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsRectItem>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QDoubleSpinBox>
 
 #include <ElVis/Gui/ColorMapRect.h>
 #include <ElVis/Core/HostTransferFunction.h>
@@ -59,7 +59,7 @@ namespace ElVis
             Q_OBJECT;
 
             public:
-                ElementFaceRenderingDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent = 0, Qt::WFlags f = 0);
+                ElementFaceRenderingDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent = 0, Qt::WindowFlags f = 0);
                 virtual ~ElementFaceRenderingDockWidget() {}
 
             public Q_SLOTS:

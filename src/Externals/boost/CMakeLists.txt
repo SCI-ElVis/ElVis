@@ -50,17 +50,14 @@ SET(BOOST_SRCS
   libs/date_time/src/gregorian/gregorian_types.cpp 
   libs/date_time/src/posix_time/posix_time_types.cpp 
 
-  libs/filesystem/v2/src/v2_operations.cpp 
-  libs/filesystem/v2/src/v2_path.cpp 
-  libs/filesystem/v2/src/v2_portability.cpp 
-  libs/filesystem/v3/src/codecvt_error_category.cpp
-  libs/filesystem/v3/src/operations.cpp
-  libs/filesystem/v3/src/path_traits.cpp
-  libs/filesystem/v3/src/path.cpp
-  libs/filesystem/v3/src/portability.cpp
-  libs/filesystem/v3/src/unique_path.cpp
-  libs/filesystem/v3/src/utf8_codecvt_facet.cpp
-  libs/filesystem/v3/src/windows_file_codecvt.cpp
+  libs/filesystem/src/codecvt_error_category.cpp
+  libs/filesystem/src/operations.cpp
+  libs/filesystem/src/path_traits.cpp
+  libs/filesystem/src/path.cpp
+  libs/filesystem/src/portability.cpp
+  libs/filesystem/src/unique_path.cpp
+  libs/filesystem/src/utf8_codecvt_facet.cpp
+  libs/filesystem/src/windows_file_codecvt.cpp
 
 #  libs/detail/utf8_codecvt_facet.cpp
   
@@ -76,16 +73,6 @@ SET(BOOST_SRCS
 #  libs/iostreams/src/zlib.cpp
 #  libs/iostreams/src/bzip2.cpp
   libs/iostreams/src/gzip.cpp
-
-  libs/processes/src/child.cpp
-  libs/processes/src/environment.cpp
-  libs/processes/src/launch_shell.cpp
-  libs/processes/src/launch.cpp
-  libs/processes/src/pipe_end.cpp
-  libs/processes/src/pipe.cpp
-  libs/processes/src/posix_util.cpp
-  libs/processes/src/utility.cpp
-  libs/processes/src/windows_util.cpp
 
   libs/program_options/src/cmdline.cpp 
   libs/program_options/src/config_file.cpp 
@@ -272,7 +259,6 @@ ENDIF(BUILD_SHARED_LIBS AND UNIX AND NOT APPLE AND NOT CYGWIN)
 
 IF(WIN32)
   ADD_DEFINITIONS(-D_BIND_TO_CURRENT_VCLIBS_VERSION=1)
-  ADD_DEFINITIONS(-DBOOST_NO_0X_HDR_INITIALIZER_LIST)
 
   IF(NOT UNIX AND NOT BORLAND AND NOT MINGW)
     SET_TARGET_PROPERTIES(${BOOST_LIBRARY}

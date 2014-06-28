@@ -29,13 +29,13 @@
 #ifndef ELVIS_GUI_COLOR_MAP_EDITOR_WIDGET_H
 #define ELVIS_GUI_COLOR_MAP_EDITOR_WIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include <boost/shared_ptr.hpp>
 #include <ElVis/Gui/ApplicationState.h>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsRectItem>
-#include <QVBoxLayout>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsRectItem>
+#include <QtWidgets/QVBoxLayout>
 
 #include <ElVis/Gui/ColorMapRect.h>
 #include <ElVis/Core/HostTransferFunction.h>

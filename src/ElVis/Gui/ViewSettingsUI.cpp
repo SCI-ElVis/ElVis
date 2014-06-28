@@ -27,7 +27,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <ElVis/Gui/ViewSettingsUI.h>
-#include <QScrollArea>
+#include <QtWidgets/QScrollArea>
 #include <boost/typeof/typeof.hpp>
 
 namespace ElVis

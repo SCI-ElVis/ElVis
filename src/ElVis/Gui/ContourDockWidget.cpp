@@ -27,7 +27,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <ElVis/Gui/ContourDockWidget.h>
-#include <QKeyEvent>
+#include <QtGui/QKeyEvent>
 
 #include <boost/bind.hpp>
 
@@ -35,7 +35,7 @@ namespace ElVis
 {
     namespace Gui
     {
-        ContourDockWidget::ContourDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WFlags f) :
+        ContourDockWidget::ContourDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Cut-Surface Contour Module", parent, f),
             m_appData(appData),
             m_list(new QListWidget()),

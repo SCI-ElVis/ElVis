@@ -28,7 +28,7 @@
 
 
 #include <QApplication>
-#include <QLabel>
+#include <QtWidgets/QLabel>
 
 #include <ElVis/Gui/ElVisUI.h>
 

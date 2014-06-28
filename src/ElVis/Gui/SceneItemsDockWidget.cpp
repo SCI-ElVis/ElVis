@@ -44,7 +44,7 @@ namespace ElVis
     namespace Gui
     {
         SceneItemsDockWidget::SceneItemsDockWidget(boost::shared_ptr<ApplicationState> appData,
-            QWidget* parent, Qt::WFlags f) : QDockWidget(QString::fromUtf8("Pipeline Browser"), parent, f),
+            QWidget* parent, Qt::WindowFlags f) : QDockWidget(QString::fromUtf8("Pipeline Browser"), parent, f),
             m_listWidget(0),
             m_cutSurfaceItem(0),
             m_objectItem(0),

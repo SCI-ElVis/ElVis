@@ -31,7 +31,7 @@
 
 #include <ElVis/Gui/ColorMapRect.h>
 
-#include <QPushButton>
+#include <QtWidgets/QPushButton>
 
 namespace ElVis
 {

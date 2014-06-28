@@ -36,7 +36,7 @@
 
 #include <ElVis/Core/VolumeRenderingModule.h>
 
-#include <QScrollArea>
+#include <QtWidgets/QScrollArea>
 
 #include <boost/bind.hpp>
 
@@ -45,7 +45,7 @@ namespace ElVis
     namespace Gui
     {
         VolumeRenderingSettingsWidget::VolumeRenderingSettingsWidget(boost::shared_ptr<ApplicationState> appData,
-            QWidget* parent, Qt::WFlags f) :
+            QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Volume Rendering Settings", parent, f),
             m_appData(appData),
             m_boolPropertyManager(new QtBoolPropertyManager()),

@@ -38,10 +38,10 @@
 
 #include <ElVis/Core/Object.h>
 
-#include <QHBoxLayout>
-#include <QTreeWidget>
-#include <QPushButton>
-#include <QGridLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QGridLayout>
 
 namespace ElVis
 {

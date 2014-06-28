@@ -41,79 +41,23 @@
 #include "qttreepropertybrowser.h"
 #include <QtCore/QSet>
 #include <QtGui/QIcon>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QItemDelegate>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QHeaderView>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QItemDelegate>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
 #include <QtGui/QPainter>
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 #include <QtGui/QFocusEvent>
-#include <QtGui/QStyle>
+#include <QtWidgets/QStyle>
 #include <QtGui/QPalette>
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
 #endif
 
+#define emit
+
 class QtPropertyEditorView;
-
-class QtTreePropertyBrowserPrivate
-{
-    QtTreePropertyBrowser *q_ptr;
-    Q_DECLARE_PUBLIC(QtTreePropertyBrowser)
-
-public:
-    QtTreePropertyBrowserPrivate();
-    void init(QWidget *parent);
-
-    void propertyInserted(QtBrowserItem *index, QtBrowserItem *afterIndex);
-    void propertyRemoved(QtBrowserItem *index);
-    void propertyChanged(QtBrowserItem *index);
-    QWidget *createEditor(QtProperty *property, QWidget *parent) const
-        { return q_ptr->createEditor(property, parent); }
-    QtProperty *indexToProperty(const QModelIndex &index) const;
-    QTreeWidgetItem *indexToItem(const QModelIndex &index) const;
-    QtBrowserItem *indexToBrowserItem(const QModelIndex &index) const;
-    bool lastColumn(int column) const;
-    void disableItem(QTreeWidgetItem *item) const;
-    void enableItem(QTreeWidgetItem *item) const;
-    bool hasValue(QTreeWidgetItem *item) const;
-
-    void slotCollapsed(const QModelIndex &index);
-    void slotExpanded(const QModelIndex &index);
-
-    QColor calculatedBackgroundColor(QtBrowserItem *item) const;
-
-    QtPropertyEditorView *treeWidget() const { return m_treeWidget; }
-    bool markPropertiesWithoutValue() const { return m_markPropertiesWithoutValue; }
-
-    QtBrowserItem *currentItem() const;
-    void setCurrentItem(QtBrowserItem *browserItem, bool block);
-    void editItem(QtBrowserItem *browserItem);
-
-    void slotCurrentBrowserItemChanged(QtBrowserItem *item);
-    void slotCurrentTreeItemChanged(QTreeWidgetItem *newItem, QTreeWidgetItem *);
-
-    QTreeWidgetItem *editedItem() const;
-
-private:
-    void updateItem(QTreeWidgetItem *item);
-
-    QMap<QtBrowserItem *, QTreeWidgetItem *> m_indexToItem;
-    QMap<QTreeWidgetItem *, QtBrowserItem *> m_itemToIndex;
-
-    QMap<QtBrowserItem *, QColor> m_indexToBackgroundColor;
-
-    QtPropertyEditorView *m_treeWidget;
-
-    bool m_headerVisible;
-    QtTreePropertyBrowser::ResizeMode m_resizeMode;
-    class QtPropertyEditorDelegate *m_delegate;
-    bool m_markPropertiesWithoutValue;
-    bool m_browserChangedBlocked;
-    QIcon m_expandIcon;
-};
-
 
 
 QtPropertyEditorView::QtPropertyEditorView(QWidget *parent) :
@@ -397,16 +341,16 @@ void QtTreePropertyBrowserPrivate::init(QWidget *parent)
 
     m_treeWidget->setColumnCount(2);
     QStringList labels;
-    labels.append(QApplication::translate("QtTreePropertyBrowser", "Property", 0, QApplication::UnicodeUTF8));
-    labels.append(QApplication::translate("QtTreePropertyBrowser", "Value", 0, QApplication::UnicodeUTF8));
+    labels.append(QApplication::translate("QtTreePropertyBrowser", "Property", 0));
+    labels.append(QApplication::translate("QtTreePropertyBrowser", "Value", 0));
     m_treeWidget->setHeaderLabels(labels);
     m_treeWidget->setAlternatingRowColors(true);
     m_treeWidget->setEditTriggers(QAbstractItemView::EditKeyPressed);
     m_delegate = new QtPropertyEditorDelegate(parent);
     m_delegate->setEditorPrivate(this);
     m_treeWidget->setItemDelegate(m_delegate);
-    m_treeWidget->header()->setMovable(false);
-    m_treeWidget->header()->setResizeMode(QHeaderView::Stretch);
+    m_treeWidget->header()->setSectionsMovable(false);
+    m_treeWidget->header()->setSectionResizeMode(QHeaderView::Stretch);
 
     m_expandIcon = drawIndicatorIcon(q_ptr->palette(), q_ptr->style());
 
@@ -791,7 +735,7 @@ void QtTreePropertyBrowser::setHeaderVisible(bool visible)
   size based on the contents of the entire column.
   The size cannot be changed by the user or programmatically.
 
-  \sa setResizeMode()
+  \sa setSectionResizeMode()
 */
 
 /*!
@@ -804,7 +748,7 @@ QtTreePropertyBrowser::ResizeMode QtTreePropertyBrowser::resizeMode() const
     return d_ptr->m_resizeMode;
 }
 
-void QtTreePropertyBrowser::setResizeMode(QtTreePropertyBrowser::ResizeMode mode)
+void QtTreePropertyBrowser::setSectionResizeMode(QtTreePropertyBrowser::ResizeMode mode)
 {
     if (d_ptr->m_resizeMode == mode)
         return;
@@ -818,7 +762,7 @@ void QtTreePropertyBrowser::setResizeMode(QtTreePropertyBrowser::ResizeMode mode
         case QtTreePropertyBrowser::Stretch:
         default:                                      m = QHeaderView::Stretch;          break;
     }
-    d_ptr->m_treeWidget->header()->setResizeMode(m);
+    d_ptr->m_treeWidget->header()->setSectionResizeMode(m);
 }
 
 /*!

@@ -41,9 +41,14 @@
 #ifndef QTPROPERTYBROWSER_H
 #define QTPROPERTYBROWSER_H
 
-#include <QtGui/QWidget>
+#include "qtpropertybrowser.h"
 #include <QtCore/QSet>
-#include <QtGui/QLineEdit>
+#include <QtCore/QMap>
+#include <QtGui/QIcon>
+#include <QtWidgets/QLineEdit>
+#include <QWidget>
+#include <QtCore/QSet>
+#include <QtWidgets/QLineEdit>
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
@@ -107,6 +112,28 @@ protected:
 private:
     friend class QtAbstractPropertyManager;
     QtPropertyPrivate *d_ptr;
+};
+
+class QtPropertyPrivate
+{
+public:
+    QtPropertyPrivate(QtAbstractPropertyManager *manager)
+        : m_enabled(true),
+          m_modified(false),
+          m_manager(manager) {}
+    QtProperty *q_ptr;
+
+    QSet<QtProperty *> m_parentItems;
+    QList<QtProperty *> m_subItems;
+
+    QString m_toolTip;
+    QString m_statusTip;
+    QString m_whatsThis;
+    QString m_name;
+    bool m_enabled;
+    bool m_modified;
+
+    QtAbstractPropertyManager * const m_manager;
 };
 
 class QtAbstractPropertyManagerPrivate
@@ -281,6 +308,25 @@ private:
     friend class QtAbstractPropertyBrowserPrivate;
 };
 
+class QtBrowserItemPrivate
+{
+public:
+    QtBrowserItemPrivate(QtAbstractPropertyBrowser *browser, QtProperty *property, QtBrowserItem *parent)
+        : m_browser(browser), m_property(property), m_parent(parent), q_ptr(0) {}
+
+    void addChild(QtBrowserItem *index, QtBrowserItem *after);
+    void removeChild(QtBrowserItem *index);
+
+    QtAbstractPropertyBrowser * const m_browser;
+    QtProperty *m_property;
+    QtBrowserItem *m_parent;
+
+    QtBrowserItem *q_ptr;
+
+    QList<QtBrowserItem *> m_children;
+
+};
+
 class QtAbstractPropertyBrowserPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtAbstractPropertyBrowser : public QWidget
@@ -346,6 +392,40 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
     Q_PRIVATE_SLOT(d_func(), void slotPropertyDataChanged(QtProperty *))
 
+};
+
+class QtAbstractPropertyBrowserPrivate
+{
+    QtAbstractPropertyBrowser *q_ptr;
+    Q_DECLARE_PUBLIC(QtAbstractPropertyBrowser)
+public:
+    QtAbstractPropertyBrowserPrivate();
+
+    void insertSubTree(QtProperty *property,
+            QtProperty *parentProperty);
+    void removeSubTree(QtProperty *property,
+            QtProperty *parentProperty);
+    void createBrowserIndexes(QtProperty *property, QtProperty *parentProperty, QtProperty *afterProperty);
+    void removeBrowserIndexes(QtProperty *property, QtProperty *parentProperty);
+    QtBrowserItem *createBrowserIndex(QtProperty *property, QtBrowserItem *parentIndex, QtBrowserItem *afterIndex);
+    void removeBrowserIndex(QtBrowserItem *index);
+    void clearIndex(QtBrowserItem *index);
+
+    void slotPropertyInserted(QtProperty *property,
+            QtProperty *parentProperty, QtProperty *afterProperty);
+    void slotPropertyRemoved(QtProperty *property, QtProperty *parentProperty);
+    void slotPropertyDestroyed(QtProperty *property);
+    void slotPropertyDataChanged(QtProperty *property);
+
+    QList<QtProperty *> m_subItems;
+    QMap<QtAbstractPropertyManager *, QList<QtProperty *> > m_managerToProperties;
+    QMap<QtProperty *, QList<QtProperty *> > m_propertyToParents;
+
+    QMap<QtProperty *, QtBrowserItem *> m_topLevelPropertyToIndex;
+    QList<QtBrowserItem *> m_topLevelIndexes;
+    QMap<QtProperty *, QList<QtBrowserItem *> > m_propertyToIndexes;
+
+    QtBrowserItem *m_currentItem;
 };
 
 #if QT_VERSION >= 0x040400

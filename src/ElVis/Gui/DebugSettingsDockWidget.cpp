@@ -33,7 +33,7 @@ namespace ElVis
 {
     namespace Gui
     {
-        DebugSettingDockWidget::DebugSettingDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WFlags f) :
+        DebugSettingDockWidget::DebugSettingDockWidget(boost::shared_ptr<ApplicationState> appData, QWidget* parent, Qt::WindowFlags f) :
             QDockWidget("Debug Settings", parent, f),
             m_appData(appData),
             m_dockWidgetContents(new QScrollArea()),

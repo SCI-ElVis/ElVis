@@ -42,12 +42,46 @@
 #define QTEDITORFACTORY_H
 
 #include "qtpropertymanager.h"
-#include <QLabel>
-#include <QToolButton>
+#include "qtpropertybrowserutils_p.h"
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QAbstractItemView>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QDateTimeEdit>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QMenu>
+#include <QtGui/QKeyEvent>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QColorDialog>
+#include <QtWidgets/QFontDialog>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QStyleOption>
+#include <QtGui/QPainter>
+#include <QtCore/QMap>
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
 #endif
+
+template <class Editor>
+class EditorFactoryPrivate
+{
+public:
+
+    typedef QList<Editor *> EditorList;
+    typedef QMap<QtProperty *, EditorList> PropertyToEditorListMap;
+    typedef QMap<Editor *, QtProperty *> EditorToPropertyMap;
+
+    Editor *createEditor(QtProperty *property, QWidget *parent);
+    void initializeEditor(QtProperty *property, Editor *e);
+    void slotEditorDestroyed(QObject *object);
+
+    PropertyToEditorListMap  m_createdEditors;
+    EditorToPropertyMap m_editorToProperty;
+};
 
 class QtSpinBoxFactoryPrivate;
 
@@ -71,6 +105,18 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotSingleStepChanged(QtProperty *, int))
     Q_PRIVATE_SLOT(d_func(), void slotSetValue(int))
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+};
+
+class QtSpinBoxFactoryPrivate : public EditorFactoryPrivate<QSpinBox>
+{
+    QtSpinBoxFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtSpinBoxFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, int value);
+    void slotRangeChanged(QtProperty *property, int min, int max);
+    void slotSingleStepChanged(QtProperty *property, int step);
+    void slotSetValue(int value);
 };
 
 class QtSliderFactoryPrivate;
@@ -97,6 +143,17 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
+class QtSliderFactoryPrivate : public EditorFactoryPrivate<QSlider>
+{
+    QtSliderFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtSliderFactory)
+public:
+    void slotPropertyChanged(QtProperty *property, int value);
+    void slotRangeChanged(QtProperty *property, int min, int max);
+    void slotSingleStepChanged(QtProperty *property, int step);
+    void slotSetValue(int value);
+};
+
 class QtScrollBarFactoryPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtScrollBarFactory : public QtAbstractEditorFactory<QtIntPropertyManager>
@@ -121,6 +178,17 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
+class QtScrollBarFactoryPrivate : public  EditorFactoryPrivate<QScrollBar>
+{
+    QtScrollBarFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtScrollBarFactory)
+public:
+    void slotPropertyChanged(QtProperty *property, int value);
+    void slotRangeChanged(QtProperty *property, int min, int max);
+    void slotSingleStepChanged(QtProperty *property, int step);
+    void slotSetValue(int value);
+};
+
 class QtCheckBoxFactoryPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtCheckBoxFactory : public QtAbstractEditorFactory<QtBoolPropertyManager>
@@ -141,6 +209,15 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, bool))
     Q_PRIVATE_SLOT(d_func(), void slotSetValue(bool))
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+};
+
+class QtCheckBoxFactoryPrivate : public EditorFactoryPrivate<QtBoolEdit>
+{
+    QtCheckBoxFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtCheckBoxFactory)
+public:
+    void slotPropertyChanged(QtProperty *property, bool value);
+    void slotSetValue(bool value);
 };
 
 class QtDoubleSpinBoxFactoryPrivate;
@@ -168,6 +245,19 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
+class QtDoubleSpinBoxFactoryPrivate : public EditorFactoryPrivate<QDoubleSpinBox>
+{
+    QtDoubleSpinBoxFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtDoubleSpinBoxFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, double value);
+    void slotRangeChanged(QtProperty *property, double min, double max);
+    void slotSingleStepChanged(QtProperty *property, double step);
+    void slotDecimalsChanged(QtProperty *property, int prec);
+    void slotSetValue(double value);
+};
+
 class QtLineEditFactoryPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtLineEditFactory : public QtAbstractEditorFactory<QtStringPropertyManager>
@@ -190,6 +280,18 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEchoModeChanged(QtProperty *, int))
     Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QString &))
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+};
+
+class QtLineEditFactoryPrivate : public EditorFactoryPrivate<QLineEdit>
+{
+    QtLineEditFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtLineEditFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QString &value);
+    void slotRegExpChanged(QtProperty *property, const QRegExp &regExp);
+    void slotSetValue(const QString &value);
+    void slotEchoModeChanged(QtProperty *, int);
 };
 
 class QtDateEditFactoryPrivate;
@@ -216,6 +318,17 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
+class QtDateEditFactoryPrivate : public EditorFactoryPrivate<QDateEdit>
+{
+    QtDateEditFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtDateEditFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QDate &value);
+    void slotRangeChanged(QtProperty *property, const QDate &min, const QDate &max);
+    void slotSetValue(const QDate &value);
+};
+
 class QtTimeEditFactoryPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtTimeEditFactory : public QtAbstractEditorFactory<QtTimePropertyManager>
@@ -236,6 +349,16 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, const QTime &))
     Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QTime &))
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+};
+
+class QtTimeEditFactoryPrivate : public EditorFactoryPrivate<QTimeEdit>
+{
+    QtTimeEditFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtTimeEditFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QTime &value);
+    void slotSetValue(const QTime &value);
 };
 
 class QtDateTimeEditFactoryPrivate;
@@ -260,6 +383,17 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
+class QtDateTimeEditFactoryPrivate : public EditorFactoryPrivate<QDateTimeEdit>
+{
+    QtDateTimeEditFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtDateTimeEditFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QDateTime &value);
+    void slotSetValue(const QDateTime &value);
+
+};
+
 class QtKeySequenceEditorFactoryPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtKeySequenceEditorFactory : public QtAbstractEditorFactory<QtKeySequencePropertyManager>
@@ -282,6 +416,46 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
+class QtKeySequenceEditorFactoryPrivate : public EditorFactoryPrivate<QtKeySequenceEdit>
+{
+    QtKeySequenceEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtKeySequenceEditorFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QKeySequence &value);
+    void slotSetValue(const QKeySequence &value);
+};
+
+// QtCharEdit
+
+class QtCharEdit : public QWidget
+{
+    Q_OBJECT
+public:
+    QtCharEdit(QWidget *parent = 0);
+
+    QChar value() const;
+    bool eventFilter(QObject *o, QEvent *e);
+public Q_SLOTS:
+    void setValue(const QChar &value);
+Q_SIGNALS:
+    void valueChanged(const QChar &value);
+protected:
+    void focusInEvent(QFocusEvent *e);
+    void focusOutEvent(QFocusEvent *e);
+    void keyPressEvent(QKeyEvent *e);
+    void keyReleaseEvent(QKeyEvent *e);
+    void paintEvent(QPaintEvent *);
+    bool event(QEvent *e);
+private Q_SLOTS:
+    void slotClearChar();
+private:
+    void handleKeyEvent(QKeyEvent *e);
+
+    QChar m_value;
+    QLineEdit *m_lineEdit;
+};
+
 class QtCharEditorFactoryPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtCharEditorFactory : public QtAbstractEditorFactory<QtCharPropertyManager>
@@ -302,6 +476,17 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, const QChar &))
     Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QChar &))
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+};
+
+class QtCharEditorFactoryPrivate : public EditorFactoryPrivate<QtCharEdit>
+{
+    QtCharEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtCharEditorFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QChar &value);
+    void slotSetValue(const QChar &value);
+
 };
 
 class QtEnumEditorFactoryPrivate;
@@ -330,6 +515,18 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
+class QtEnumEditorFactoryPrivate : public EditorFactoryPrivate<QComboBox>
+{
+    QtEnumEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtEnumEditorFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, int value);
+    void slotEnumNamesChanged(QtProperty *property, const QStringList &);
+    void slotEnumIconsChanged(QtProperty *property, const QMap<int, QIcon> &);
+    void slotSetValue(int value);
+};
+
 class QtCursorEditorFactoryPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtCursorEditorFactory : public QtAbstractEditorFactory<QtCursorPropertyManager>
@@ -352,48 +549,25 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
 };
 
-class QtColorEditorFactoryPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtColorEditorFactory : public QtAbstractEditorFactory<QtColorPropertyManager>
+class QtCursorEditorFactoryPrivate
 {
-    Q_OBJECT
+    QtCursorEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtCursorEditorFactory)
 public:
-    QtColorEditorFactory(QObject *parent = 0);
-    ~QtColorEditorFactory();
-protected:
-    void connectPropertyManager(QtColorPropertyManager *manager);
-    QWidget *createEditor(QtColorPropertyManager *manager, QtProperty *property,
-                QWidget *parent);
-    void disconnectPropertyManager(QtColorPropertyManager *manager);
-private:
-    QtColorEditorFactoryPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtColorEditorFactory)
-    Q_DISABLE_COPY(QtColorEditorFactory)
-    Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, const QColor &))
-    Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
-    Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QColor &))
-};
+    QtCursorEditorFactoryPrivate();
 
-class QtFontEditorFactoryPrivate;
+    void slotPropertyChanged(QtProperty *property, const QCursor &cursor);
+    void slotEnumChanged(QtProperty *property, int value);
+    void slotEditorDestroyed(QObject *object);
 
-class QT_QTPROPERTYBROWSER_EXPORT QtFontEditorFactory : public QtAbstractEditorFactory<QtFontPropertyManager>
-{
-    Q_OBJECT
-public:
-    QtFontEditorFactory(QObject *parent = 0);
-    ~QtFontEditorFactory();
-protected:
-    void connectPropertyManager(QtFontPropertyManager *manager);
-    QWidget *createEditor(QtFontPropertyManager *manager, QtProperty *property,
-                QWidget *parent);
-    void disconnectPropertyManager(QtFontPropertyManager *manager);
-private:
-    QtFontEditorFactoryPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtFontEditorFactory)
-    Q_DISABLE_COPY(QtFontEditorFactory)
-    Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, const QFont &))
-    Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
-    Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QFont &))
+    QtEnumEditorFactory *m_enumEditorFactory;
+    QtEnumPropertyManager *m_enumPropertyManager;
+
+    QMap<QtProperty *, QtProperty *> m_propertyToEnum;
+    QMap<QtProperty *, QtProperty *> m_enumToProperty;
+    QMap<QtProperty *, QList<QWidget *> > m_enumToEditors;
+    QMap<QWidget *, QtProperty *> m_editorToEnum;
+    bool m_updatingEnum;
 };
 
 class QtColorEditWidget : public QWidget {
@@ -422,6 +596,60 @@ private:
     QLabel *m_pixmapLabel;
     QLabel *m_label;
     QToolButton *m_button;
+};
+
+class QtColorEditorFactoryPrivate;
+
+class QT_QTPROPERTYBROWSER_EXPORT QtColorEditorFactory : public QtAbstractEditorFactory<QtColorPropertyManager>
+{
+    Q_OBJECT
+public:
+    QtColorEditorFactory(QObject *parent = 0);
+    ~QtColorEditorFactory();
+protected:
+    void connectPropertyManager(QtColorPropertyManager *manager);
+    QWidget *createEditor(QtColorPropertyManager *manager, QtProperty *property,
+                QWidget *parent);
+    void disconnectPropertyManager(QtColorPropertyManager *manager);
+private:
+    QtColorEditorFactoryPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QtColorEditorFactory)
+    Q_DISABLE_COPY(QtColorEditorFactory)
+    Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, const QColor &))
+    Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+    Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QColor &))
+};
+
+class QtColorEditorFactoryPrivate : public EditorFactoryPrivate<QtColorEditWidget>
+{
+    QtColorEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtColorEditorFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QColor &value);
+    void slotSetValue(const QColor &value);
+};
+
+class QtFontEditorFactoryPrivate;
+
+class QT_QTPROPERTYBROWSER_EXPORT QtFontEditorFactory : public QtAbstractEditorFactory<QtFontPropertyManager>
+{
+    Q_OBJECT
+public:
+    QtFontEditorFactory(QObject *parent = 0);
+    ~QtFontEditorFactory();
+protected:
+    void connectPropertyManager(QtFontPropertyManager *manager);
+    QWidget *createEditor(QtFontPropertyManager *manager, QtProperty *property,
+                QWidget *parent);
+    void disconnectPropertyManager(QtFontPropertyManager *manager);
+private:
+    QtFontEditorFactoryPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QtFontEditorFactory)
+    Q_DISABLE_COPY(QtFontEditorFactory)
+    Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, const QFont &))
+    Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+    Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QFont &))
 };
 
 // QtFontEditWidget
@@ -453,34 +681,14 @@ private:
     QToolButton *m_button;
 };
 
-// QtCharEdit
-
-class QtCharEdit : public QWidget
+class QtFontEditorFactoryPrivate : public EditorFactoryPrivate<QtFontEditWidget>
 {
-    Q_OBJECT
+    QtFontEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtFontEditorFactory)
 public:
-    QtCharEdit(QWidget *parent = 0);
 
-    QChar value() const;
-    bool eventFilter(QObject *o, QEvent *e);
-public Q_SLOTS:
-    void setValue(const QChar &value);
-Q_SIGNALS:
-    void valueChanged(const QChar &value);
-protected:
-    void focusInEvent(QFocusEvent *e);
-    void focusOutEvent(QFocusEvent *e);
-    void keyPressEvent(QKeyEvent *e);
-    void keyReleaseEvent(QKeyEvent *e);
-    void paintEvent(QPaintEvent *);
-    bool event(QEvent *e);
-private Q_SLOTS:
-    void slotClearChar();
-private:
-    void handleKeyEvent(QKeyEvent *e);
-
-    QChar m_value;
-    QLineEdit *m_lineEdit;
+    void slotPropertyChanged(QtProperty *property, const QFont &value);
+    void slotSetValue(const QFont &value);
 };
 
 #if QT_VERSION >= 0x040400

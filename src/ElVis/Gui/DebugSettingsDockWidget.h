@@ -30,8 +30,8 @@
 #define ELVIS_GUI_DEBUG_SETTINGS_DOCK_WIDGET_H
 
 #include <QDockWidget>
-#include <QWidget>
-#include <QScrollArea>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QScrollArea>
 #include <ElVis/QtPropertyBrowser/qttreepropertybrowser.h>
 
 #include <boost/shared_ptr.hpp>
@@ -43,9 +43,9 @@
 #include <ElVis/Gui/ColorPropertyManager.h>
 #include <ElVis/Gui/Property.hpp>
 
-#include <QScrollArea>
-#include <QGridLayout>
-#include <QScrollArea>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QScrollArea>
 
 namespace ElVis
 {
@@ -56,7 +56,7 @@ namespace ElVis
             Q_OBJECT
 
             public:
-                DebugSettingDockWidget(boost::shared_ptr<ApplicationState> scene, QWidget* parent = 0, Qt::WFlags f = 0);
+                DebugSettingDockWidget(boost::shared_ptr<ApplicationState> scene, QWidget* parent = 0, Qt::WindowFlags f = 0);
 
             public Q_SLOTS:
                 void HandleSelectedPointChanged(const PointInfo& info);
