@@ -1,10 +1,13 @@
-cmake_minimum_required(VERSION 2.8.11)
+
 
 #This must be set before the 'project' command
 IF( APPLE )
+  cmake_minimum_required(VERSION 2.8.12)
   #Apple uses clang now, so force it to avoid confusions
   SET( CMAKE_CXX_COMPILER clang++ )
   SET( CMAKE_C_COMPILER clang )
+ELSE()
+  cmake_minimum_required(VERSION 2.8.11)
 ENDIF()
 
 project(ElVis1)
