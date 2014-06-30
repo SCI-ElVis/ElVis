@@ -43,6 +43,7 @@
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
 #include <ElVis/Core/ElVisConfig.h>
 #include <boost/make_shared.hpp>
+#include <boost/typeof/typeof.hpp>
 
 int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath)
 {

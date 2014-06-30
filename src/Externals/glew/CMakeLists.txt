@@ -46,6 +46,7 @@ IF(OPENGL_LIBRARIES AND OPENGL_INCLUDE_DIR)
 ENDIF(OPENGL_LIBRARIES AND OPENGL_INCLUDE_DIR)
 IF (WIN32)
   SET(GL_LIBRARY ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} gdi32 CACHE STRING "OpenGL Libs")
+  ADD_DEFINITIONS(-DGLEW_BUILD)
 ENDIF(WIN32)
 
 ###########################################
@@ -61,12 +62,6 @@ SET (GLEW_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "glew build path")
 # Add the sources needed for the project
 
 SET(GLEW_SRCS glew.c include/GL/glew.h include/GL/glxew.h include/GL/wglew.h)
-
-###########################################
-# Specific defines that need to be set
-# STATIC - we want glew to be a static library
-
-ADD_DEFINITIONS(-DGLEW_BUILD)
 
 ###########################################
 # Build the libary 

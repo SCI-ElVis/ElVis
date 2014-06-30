@@ -57,6 +57,7 @@
 #include <boost/filesystem.hpp>
 #include <ElVis/Core/ColorMapperModule.h>
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
+#include <boost/typeof/typeof.hpp>
 
 #include <boost/make_shared.hpp>
 

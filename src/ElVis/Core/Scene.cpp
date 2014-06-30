@@ -40,7 +40,7 @@
 #include <ElVis/Core/Cuda.h>
 
 #include <boost/foreach.hpp>
-
+#include <boost/typeof/typeof.hpp>
 #include <iostream>
 
 #include <tinyxml.h>

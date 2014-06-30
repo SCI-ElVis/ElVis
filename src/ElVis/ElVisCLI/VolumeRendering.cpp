@@ -45,6 +45,7 @@
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/ElVisConfig.h>
 #include <boost/make_shared.hpp>
+#include <boost/typeof/typeof.hpp>
 
 int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c)
 {
@@ -147,9 +148,9 @@ int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> mode
 int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c)
 {
     glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(100, 100);
-	glutCreateWindow("fake");
+  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+  glutInitWindowSize(100, 100);
+  glutCreateWindow("fake");
 
     const char* integrationTypeLabel = "IntegrationType";
     const char* breakpointLabel = "Breakpoints";
@@ -340,9 +341,9 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
 int VolumeRenderSphereForVerification(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c)
 {
     glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(100, 100);
-	glutCreateWindow("fake");
+  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+  glutInitWindowSize(100, 100);
+  glutCreateWindow("fake");
 
     const char* integrationTypeLabel = "IntegrationType";
     const char* breakpointLabel = "Breakpoints";

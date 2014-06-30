@@ -39,6 +39,7 @@
 
 #include <boost/timer.hpp>
 #include <boost/bind.hpp>
+#include <boost/typeof/typeof.hpp>
 
 #include <ElVis/Core/Util.hpp>
 #include <ElVis/Core/Color.h>

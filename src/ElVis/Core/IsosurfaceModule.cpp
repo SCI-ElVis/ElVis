@@ -37,6 +37,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/typeof/typeof.hpp>
 
 namespace ElVis
 {

@@ -32,6 +32,7 @@
 #include <ElVis/Core/OptiXBuffer.hpp>
 
 #include <fstream>
+#include <boost/typeof/typeof.hpp>
 
 namespace ElVis
 {

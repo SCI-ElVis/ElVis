@@ -31,6 +31,7 @@
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
 #include <boost/timer.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <iostream>
 #include <stdio.h>
 

@@ -1,21 +1,11 @@
 SET(Project "QtPropertyBrowser")
 
-IF( NOT QT4_FOUND )
-    FIND_PACKAGE(Qt4)
-ENDIF() 
-
-IF( QT4_FOUND )
-    include(${QT_USE_FILE})
-ENDIF()
-
-#SET(QT_UI_HEADERS 
-#)
-
 SET(QT_INCLUDED_QOBJECT_HEADERS
     qtbuttonpropertybrowser.h
     qteditorfactory.h
     qtgroupboxpropertybrowser.h
     qtpropertybrowser.h
+    #qtpropertybrowserutils_p.h
     qtpropertymanager.h
     qtvariantproperty.h
     qttreepropertybrowser.h
@@ -30,7 +20,6 @@ SET(HEADERS
     MemberPropertyManager.hpp
 )
 
-#QT_WRAP_UI(${Project} QT_PROCESSED_UI_HEADERS QT_PROCESSED_UI_SOURCE ${QT_UI_HEADERS})
 QT_WRAP_CPP(${Project} QT_PROCESSED_MOC_SOURCE ${QT_QOBJECT_HEADERS})
 QT_WRAP_CPP(${Project} QT_INCLUDED_PROCESSED_MOC_SOURCE ${QT_INCLUDED_QOBJECT_HEADERS})
 
@@ -58,7 +47,6 @@ ADD_ELVIS_STATIC_LIBRARY(${Project}
     ${Sources} 
     ${Headers}
     ${QT_QOBJECT_HEADERS}
-    ${QT_PROCESSED_UI_HEADERS}
     ${QT_INCLUDED_QOBJECT_HEADERS}
     #${QT_PROCESSED_UI_SOURCE}
     ${QT_PROCESSED_MOC_SOURCE}

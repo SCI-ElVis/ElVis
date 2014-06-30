@@ -27,10 +27,11 @@ SET(APPLICATION_NAME "ElVis1" CACHE INTERNAL "Name of the application" FORCE)
 
 ###########################################
 # SETUP DEFINTIONS FOR EXTERNAL PACKAGES
-# To force a static build these flags
-# need to be set project wide.
 ###########################################
-ADD_DEFINITIONS(-DGLEW_STATIC)
+IF( NOT WIN32 )
+  # glew must be a DLL on windows.
+  ADD_DEFINITIONS(-DGLEW_STATIC)
+ENDIF()
 
 # Set the default build to Release.  Note this doesn't do anything for the VS
 # default build target which defaults to Debug when you first start it.
@@ -57,6 +58,10 @@ FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/ColorMaps ELVIS_COLOR_MAP_DIR)
 # to skip the use of the default installed
 # QT distribution. 
 ###########################################a
+if( MSVC )
+  set (CMAKE_PREFIX_PATH "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Lib")
+endif()
+
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Network REQUIRED)
@@ -86,7 +91,7 @@ endforeach()
 ###########################################
 # Instruct CMake to run moc automatically when needed.
 ###########################################
-set(CMAKE_AUTOMOC ON)
+#set(CMAKE_AUTOMOC ON)
 
 ###########################################
 # Instruct Qt to not use keywords like signals but
