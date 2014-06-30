@@ -1,4 +1,12 @@
 cmake_minimum_required(VERSION 2.8.11)
+
+#This must be set before the 'project' command
+IF( APPLE )
+  #Apple uses clang now, so force it to avoid confusions
+  SET( CMAKE_CXX_COMPILER clang++ )
+  SET( CMAKE_C_COMPILER clang )
+ENDIF()
+
 project(ElVis1)
 
 # Disallow in-source build
@@ -25,6 +33,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 ###########################################
 SET(APPLICATION_NAME "ElVis1" CACHE INTERNAL "Name of the application" FORCE)
 
+
 ###########################################
 # SETUP DEFINTIONS FOR EXTERNAL PACKAGES
 # To force a static build these flags
@@ -48,6 +57,8 @@ FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/lib ELVIS_LIB_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/include ELVIS_INCLUDE_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/ColorMaps ELVIS_COLOR_MAP_DIR)
 
+SET(ELVIS_LIB_INSTALL_DIR "@executable_path/../lib")
+
 ###########################################
 # Find QT
 # We need QT - We use a modified version of
@@ -70,11 +81,6 @@ include_directories(${Qt5Network_INCLUDE_DIRS})
 include_directories(${Qt5WebKit_INCLUDE_DIRS})
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-
-foreach(plugin ${Qt5Network_PLUGINS})
-  get_target_property(_loc ${plugin} LOCATION)
-  message("Plugin ${plugin} is at location ${_loc}")
-endforeach()
 
 #IF (QT_FOUND)
 #  SET(QT_USE_QTOPENGL 1)
@@ -233,7 +239,7 @@ ENDMACRO(ADD_CUDA_ELVIS_EXECUTABLE name)
 MACRO(ADD_ELVIS_STATIC_LIBRARY name)
     ADD_LIBRARY(${name} STATIC ${ARGN})
     SET_ELVIS_TARGET_PROPERTIES(${name})
-    INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
+    INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_LIB_DIR} 
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR} NAMELINK_SKIP
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 ENDMACRO(ADD_ELVIS_STATIC_LIBRARY name)
@@ -258,14 +264,13 @@ ENDMACRO(ADD_ELVIS_LIBRARY name)
 MACRO(ADD_ELVIS_CUDA_LIBRARY name type)
     CUDA_ADD_LIBRARY(${name} ${type} ${ARGN})
     SET_ELVIS_TARGET_PROPERTIES(${name})
-    INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
-                                LIBRARY DESTINATION ${ELVIS_BIN_DIR} NAMELINK_SKIP
-                                ARCHIVE DESTINATION ${ELVIS_LIB_DIR}  )
 ENDMACRO(ADD_ELVIS_CUDA_LIBRARY name)
 
-MACRO(ADD_ELVIS_OPTIX_LIBRARY name bindir)
-    ADD_OPTIX_LIBRARY(${name} ${bindir} ${ARGN})
+MACRO(ADD_ELVIS_OPTIX_LIBRARY name)
+    ADD_OPTIX_LIBRARY(${name} ${ELVIS_LIB_DIR} ${ARGN})
     SET_ELVIS_TARGET_PROPERTIES(${name})
+    INSTALL(TARGETS ${name} EXPORT ElVisLibraries DESTINATION ${ELVIS_LIB_DIR} )
+    SET_TARGET_PROPERTIES( ${name} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE INSTALL_NAME_DIR ${ELVIS_LIB_INSTALL_DIR} )
 ENDMACRO()
 
 #ADD_SUBDIRECTORY(ElVis)
@@ -331,4 +336,13 @@ SET(PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
 MARK_AS_ADVANCED(PASSED_FIRST_CONFIGURE)
 
 SET(CUDA_GENERATED_OUTPUT_DIR ${ELVIS_CUBIN_DIR} CACHE PATH "" FORCE)
+
+
+###########################################
+# Set RPATH information so the executable does not need to be run in the bin directory
+###########################################
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 

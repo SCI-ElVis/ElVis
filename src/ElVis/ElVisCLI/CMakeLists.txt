@@ -1,13 +1,4 @@
 
-IF( NOT QT4_FOUND )
-    FIND_PACKAGE(Qt4)
-ENDIF() 
-
-IF( QT4_FOUND )
-    include(${QT_USE_FILE})
-ENDIF()
-
- 
 SET(ProjectName ElVisCLI)
 
 # Default location

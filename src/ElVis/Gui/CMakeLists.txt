@@ -86,7 +86,6 @@ TARGET_LINK_LIBRARIES(${Project}
     Qt5::Gui
     Qt5::Widgets
     Qt5::OpenGL
-    ${QT_QTOPENGL_LIBRARY}
     ${BOOST_LIBRARY}
     ElVisCore
     QtPropertyBrowser

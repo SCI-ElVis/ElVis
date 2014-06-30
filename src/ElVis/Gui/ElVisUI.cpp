@@ -28,10 +28,10 @@
 
 #include <ElVis/Gui/ElVisUI.h>
 
-#include <QtWidgets/QDockWidget>
-#include <QtWidgets/QFileDialog>
+#include <QDockWidget>
+#include <QFileDialog>
 #include <QtCore/QStringList>
-#include <QtWidgets/QMenuBar>
+#include <QMenuBar>
 
 #include <iostream>
 

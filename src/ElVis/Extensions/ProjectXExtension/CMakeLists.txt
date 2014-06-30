@@ -70,7 +70,7 @@ SOURCE_GROUP("OptiX" FILES ${ProjectX_OPTIX_HEADER_ONLY} ${ProjectX_Extension_Op
 #################################3
 
 # Need to use ADD_OPTIX_LIBRARY so the .cu files get routed to nvcc.
-ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR}
+ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} 
     ${ProjectX_EXTENSION_HEADERS}
     ${ProjectX_EXTENSION_SOURCES}
     ${ProjectX_EXTENSION_ELVIS_HEADERS}

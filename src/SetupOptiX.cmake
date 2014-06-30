@@ -2,7 +2,7 @@
 
 FIND_PACKAGE(OptiX REQUIRED)
 
-#IF( OptiX_FOUND )
+IF( OptiX_FOUND )
     # Setup OptiX related stuff
     SET(CMAKE_MODULE_PATH ${OptiX_INSTALL_DIR}/SDK/CMake ${CMAKE_MODULE_PATH})
 
@@ -184,4 +184,4 @@ function(ADD_OPTIX_LIBRARY target_name ptx_dir)
     )
 endfunction()
 
-#ENDIF()
+ENDIF()
