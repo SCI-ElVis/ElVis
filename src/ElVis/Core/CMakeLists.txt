@@ -314,7 +314,7 @@ TARGET_LINK_LIBRARIES(${ProjectName}
 )
 
 
-INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries DESTINATION ${ELVIS_LIB_DIR} )
+INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries DESTINATION ${ELVIS_BIN_DIR} )
 
 SET_TARGET_PROPERTIES( ${ProjectName} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE INSTALL_NAME_DIR ${ELVIS_LIB_INSTALL_DIR} )
 
@@ -322,7 +322,7 @@ SET_TARGET_PROPERTIES( ${ProjectName} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE I
 #  set(CMAKE_SHARED_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
 #endif(APPLE)
                 
-INSTALL(FILES #${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
+INSTALL(FILES ${optix_DLL} ${optixu_DLL} ${optix_LIBRARY} ${optixu_LIBRARY}
     Nodes.txt Weights.txt MonomialConversionTables.txt
     DESTINATION ${ELVIS_BIN_DIR}
 )
