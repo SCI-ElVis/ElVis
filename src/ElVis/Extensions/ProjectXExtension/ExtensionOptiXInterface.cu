@@ -274,10 +274,15 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
         PX_REAL xref[3] = {0.,0.,0.}; //Initial guess is overwritten anyways
         int result = PXGlob2RefFromCoordinates2(PXEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
+
+        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref[0]=%f, xref[1]=%f, xref[2]=%f\n", elementId, xref[0], xref[1], xref[2]);
+
+        PXProject2RefElement( PXEgrpDataBuffer[egrp].elemData.shape, xref );
+        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref[0]=%f, xref[1]=%f, xref[2]=%f\n", elementId, xref[0], xref[1], xref[2]);
+
         referencePoint.x = xref[0];
         referencePoint.y = xref[1];
         referencePoint.z = xref[2];
-        ELVIS_PRINTF("MCG ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref[0]=%f, xref[1]=%f, xref[2]=%f\n", elementId, xref[0], xref[1], xref[2]);
 
         //Bad point...
         if( result == PX_NOT_CONVERGED )
@@ -386,35 +391,33 @@ ELVIS_DEVICE ElVisError getStartingReferencePointForNewtonIteration(const Curved
   return eNoError;
 }
 
-/// \brief Adjust the step size in a Newton root-finding iteration to keep the current test point on the element's face.
-/// \param curPoint The current test point.  curPoint.x and curPoint.y represent the current reference point on the
-///                 face.  curPoint.z is the current t value along the ray.
+/// \brief Adjust the newPoint in a Newton root-finding iteration to keep the current test point on the element's face.
+/// \param curPoint The current test point.  newPoint.x and newPoint.y represent the current reference point on the
+///                 face.  newPoint.z is the current t value along the ray.
 /// \param idx The face being tested for intersection.
 /// \param step The calculated adjustment that will be applied to curPoint for the next iteration.  If this adjustment
 ///             will cause the reference parameter to leave the element face, then step must be adjusted to prevent this.
 /// Ray-face intersection is performed using Newton's method to numerically find the intersection.  The intersection
 /// if found in term's of the face's reference coordinates.  In many systems, the mapping from reference to world space
 /// is invalid outside the face's bounds, so we must keep the iteration from leaving the face).
-ELVIS_DEVICE ElVisError adjustNewtonStepToKeepReferencePointOnFace(const ElVisFloat3& curPoint, const CurvedFaceIdx& idx, ElVisFloat3& step)
+ELVIS_DEVICE ElVisError adjustNewtonStepToKeepReferencePointOnFace(const CurvedFaceIdx& idx, ElVisFloat3& newPoint)
 {
-  if( curPoint.x - step.x < 0 )
-    step.x = curPoint.x;
 
-  if( curPoint.y - step.y < 0 )
-    step.y = curPoint.y;
+  PX_REAL xref[3] = {newPoint.x, newPoint.y, 0};
+  PX_FaceTypeData * faceData = &PXFaceDataBuffer[idx.Value];
 
-  if( curPoint.x - step.x + curPoint.y - step.y > 1 )
-  {
-    if( curPoint.x - step.x > 1)
-      step.x = -(1 - curPoint.x);
+  int nFaceSearch = 0;
+  int FaceSearch[6] = {0, 0, 0, 0, 0, 0};
 
-    if( curPoint.x - step.x + curPoint.y - step.y > 1 )
-      step.y = -(1 - curPoint.x + step.x - curPoint.y);
-  }
+  PXProject2RefElement(faceData->shape, xref, &nFaceSearch, FaceSearch);
+
+  newPoint.x = xref[0];
+  newPoint.y = xref[1];
 
   //ELVIS_PRINTF("MCG New Point: r=%f, s=%f\n", curPoint.x - step.x, curPoint.y - step.y);
-
-  return eNoError;
+  if( nFaceSearch == 0 )
+    return eNoError;
+  return ePointOutsideElement;
 }
 
 // This function calculates the normal at the given point on a face.
@@ -471,8 +474,15 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
 ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, GlobalFaceIdx faceId,
                                       ElVisFloat3& result)
 {
-  ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
+/*
+  result.x = 1;
+  result.y = 0;
+  result.z = 0;
 
+  return eNoError;
+
+  ELVIS_PRINTF("MCG GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
+*/
   PX_REAL xface[2] = {refPoint.x, refPoint.y};
   PX_REAL nvec[3] = {0,0,0};
 
@@ -497,7 +507,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
   /* compute normal at the physical location corresponding to the input ref coords */
   /* EvaluateFace() & EvaluateFaceJacobian() do not perform the orientation
      correction.  Thus the normal *must* be evaluated without the correction too! */
-  /*
+/*
   PX_REAL nvec2[3] = {0,0,0};
   PX_FaceTypeData tempFace = {.idx=faceData->idx,
                               .nodesOnFace=faceData->nodesOnFace,

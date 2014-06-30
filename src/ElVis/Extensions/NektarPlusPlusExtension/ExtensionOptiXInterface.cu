@@ -248,5 +248,18 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, c
     return eNoError;
 }
 
+/// \brief Adjust the newPoint in a Newton root-finding iteration to keep the current test point on the element's face.
+/// \param curPoint The current test point.  newPoint.x and newPoint.y represent the current reference point on the
+///                 face.  newPoint.z is the current t value along the ray.
+/// \param idx The face being tested for intersection.
+/// \param step The calculated adjustment that will be applied to curPoint for the next iteration.  If this adjustment
+///             will cause the reference parameter to leave the element face, then step must be adjusted to prevent this.
+/// Ray-face intersection is performed using Newton's method to numerically find the intersection.  The intersection
+/// if found in term's of the face's reference coordinates.  In many systems, the mapping from reference to world space
+/// is invalid outside the face's bounds, so we must keep the iteration from leaving the face).
+ELVIS_DEVICE ElVisError adjustNewtonStepToKeepReferencePointOnFace(const CurvedFaceIdx& idx, ElVisFloat3& newPoint)
+{
+  return eNoError;
+}
 
 #endif

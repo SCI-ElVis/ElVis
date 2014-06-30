@@ -339,12 +339,15 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     ReferencePoint result = MakeFloat3(initialReferenceCoordinates.x, 
       initialReferenceCoordinates.y, initialGuess[2].GetMidpoint());
 
+    ReferencePoint lastPoint;
+
 //   ELVIS_PRINTF("FindClosestRoot: Initial Guess (%f, %f, %f), tolerance %2.15f\n", result.x, result.y, result.z, tolerance);
 
     int numIterations = 0;
     ElVis::Matrix<3,3> J;
     ElVis::Matrix<3,3> inverse;
     const int MAX_ITERATIONS = 10;
+    ElVisError err;
     do
     {
         //ELVIS_PRINTF("Starting iteration with curr guess (%f, %f, %f).\n", result.x, result.y, result.z);
@@ -366,13 +369,23 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
         step.y = (inverse[3]*f.x + inverse[4]*f.y + inverse[5]*f.z);
         step.z = (inverse[6]*f.x + inverse[7]*f.y + inverse[8]*f.z);
 
+        lastPoint = result;
+
+        result.x -= step.x;
+        result.y -= step.y;
+        result.z -= step.z;
+
 //        ELVIS_PRINTF("Adjust %f, %f, %f\n", r_adjust, s_adjust, t_adjust);
-        adjustNewtonStepToKeepReferencePointOnFace(result, curvedFaceIdx,
-          step);
+        err = adjustNewtonStepToKeepReferencePointOnFace( curvedFaceIdx, result );
+
+        //step.x = result.x - lastPoint.x;
+        //step.y = result.y - lastPoint.y;
+        //step.z = result.z - lastPoint.z;
 
         bool test = fabsf(step.x) < tolerance;
         test &= fabsf(step.y) < tolerance;
         test &= fabsf(step.z) < tolerance;
+        test &= err == eNoError;
         if( test )
         {
             out[0].Set(result.x, result.x);
@@ -391,9 +404,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
         //}
 
         //result = tempResult;
-        result.x -= step.x;
-        result.y -= step.y;
-        result.z -= step.z;
+
         //result.x -= r_adjust;
         //result.y -= s_adjust;
         //result.z -= t_adjust;

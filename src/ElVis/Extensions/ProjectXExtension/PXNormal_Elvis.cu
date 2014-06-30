@@ -117,9 +117,22 @@ PXFaceNormalReferenceGivenGradients( int nnode, PX_REAL const *gphi,
         x_u[t*Dim+d] += xnodes[k*Dim+d]*gphi[t*nnode+k];
   
   /* Compute normal */
+  switch ( Dim ) {
+  case 2:
+    /* normal is perpendicular to tangent */
+    nvec[0] =  x_u[1];
+    nvec[1] = -x_u[0];
+    break;
 
+  case 3:
     /* Compute normal as cross product */
-  PXCrossProduct( x_u, x_u+Dim, nvec);
+    PXCrossProduct( x_u, x_u+Dim, nvec);
+    break;
+
+  default:
+    return PXError(PX_CODE_FLOW_ERROR);
+    break;
+  }
 
   return PX_NO_ERROR;
 }

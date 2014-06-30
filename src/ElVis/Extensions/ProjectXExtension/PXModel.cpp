@@ -512,14 +512,34 @@ namespace ElVis
     int nodesOnFace[36];
     int nNodesOnFace;
 
+    int egrpL, egrpR;
     int lface, elem;
     int nFaceCoordTotal = 0;
     int nCurvedFace = 0;
     for(int fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
       for(int face=0; face<pg->FaceGroup[fgrp].nFace; face++){
         // for now, ALWAYS use LEFT face
-        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
-        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+        //egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        //lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+        //elemType = pg->ElementGroup[egrp].type;
+
+        egrpL = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        if ( unlikely((pg->FaceGroup[fgrp].FaceGroupFlag==PXE_BoundaryFG)|| (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_EmbeddedBoundaryFG)) ){
+          egrpR = egrpL;
+        }
+        else{ // not a boundary face so we have a face on the Right side
+          egrpR  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+        }
+
+
+        // pick the element with lowest Q
+        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+          egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        }
+        else{
+          egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+        }
+
         elemType = pg->ElementGroup[egrp].type;
 
         PXType2qorder(elemType, &qorder);
@@ -543,6 +563,7 @@ namespace ElVis
     BOOST_AUTO(FaceCoord, FaceCoordBuffer.Map());
 
     int orientation, nbfQFace;
+    int side = PXE_Left;
     enum PXE_ElementType FaceType;
     enum PXE_Shape faceShape;
     G = 0;
@@ -551,10 +572,36 @@ namespace ElVis
       for(int face=0; face<pg->FaceGroup[fgrp].nFace; face++){
 
         // for now, ALWAYS use LEFT face
-        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
-        elem = pg->FaceGroup[fgrp].FaceL[face].Element;
-        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+//        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+//        elem = pg->FaceGroup[fgrp].FaceL[face].Element;
+//        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+//        elemType = pg->ElementGroup[egrp].type;
+
+        egrpL = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        if ( unlikely((pg->FaceGroup[fgrp].FaceGroupFlag==PXE_BoundaryFG)|| (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_EmbeddedBoundaryFG)) ){
+          egrpR = egrpL;
+        }
+        else{ // not a boundary face so we have a face on the Right side
+          egrpR  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+        }
+
+
+        // pick the element with lowest Q
+        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+          egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+          elem  = pg->FaceGroup[fgrp].FaceL[face].Element;
+          lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+          side = PXE_Left;
+        }
+        else{
+          egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+          elem  = pg->FaceGroup[fgrp].FaceR[face].Element;
+          lface = pg->FaceGroup[fgrp].FaceR[face].Face;
+          side = PXE_Right;
+        }
+
         elemType = pg->ElementGroup[egrp].type;
+
 
         //for curved faces
         PXError( PXType2qorder(elemType, &qorder) );
@@ -574,7 +621,7 @@ namespace ElVis
         FaceData[nCurvedFace].nbf = nbfQFace;
         FaceData[nCurvedFace].shape = faceShape;
         FaceData[nCurvedFace].orientation = orientation;
-        FaceData[nCurvedFace].side = 0; //LEFT
+        FaceData[nCurvedFace].side = side;
         FaceData[nCurvedFace].order = orderQ;
         FaceData[nCurvedFace].qorder = qorder;
         FaceData[nCurvedFace].idx = G;
@@ -695,6 +742,7 @@ namespace ElVis
     int geomRank;
     int fgrp, face;
     int egrp, elem, lface;
+    int egrpL;
     int egrpR, elemR;
     int i;
     int qorder;
@@ -723,11 +771,38 @@ namespace ElVis
 
     for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
       for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){
+
         // for now, ALWAYS use LEFT face
-        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
-        elem = pg->FaceGroup[fgrp].FaceL[face].Element;
-        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+//        egrp = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+//        elem = pg->FaceGroup[fgrp].FaceL[face].Element;
+//        lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+//        elemType = pg->ElementGroup[egrp].type;
+
+
+
+        egrpL = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+        if ( unlikely((pg->FaceGroup[fgrp].FaceGroupFlag==PXE_BoundaryFG)|| (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_EmbeddedBoundaryFG)) ){
+          egrpR = egrpL;
+        }
+        else{ // not a boundary face so we have a face on the Right side
+          egrpR  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+        }
+
+
+        // pick the element with lowest Q
+        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+          egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+          elem  = pg->FaceGroup[fgrp].FaceL[face].Element;
+          lface = pg->FaceGroup[fgrp].FaceL[face].Face;
+        }
+        else{
+          egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+          elem  = pg->FaceGroup[fgrp].FaceR[face].Element;
+          lface = pg->FaceGroup[fgrp].FaceR[face].Face;
+        }
+
         elemType = pg->ElementGroup[egrp].type;
+
 
         //for curved faces
         PXNodesOnFace(elemType, lface, nodesOnFace, &nNodesOnFace);
@@ -765,7 +840,7 @@ namespace ElVis
 
         if( PXE_UniformTriangleQ1 <= FaceType && FaceType <= PXE_UniformTriangleQ5 ) planarInfo.Type = eTriangle;
         else if( (PXE_UniformQuadQ1  <= FaceType && FaceType <= PXE_UniformQuadQ5 ) ||
-                 (PXE_SpectralQuadQ1 <= FaceType && FaceType <= PXE_SpectralQuadQ5)) planarInfo.Type = eQuad;
+            (PXE_SpectralQuadQ1 <= FaceType && FaceType <= PXE_SpectralQuadQ5)) planarInfo.Type = eQuad;
         else
         {
           printf("UNKNOWN FaceType=%d\n", FaceType);
@@ -785,6 +860,12 @@ namespace ElVis
         info.MaxExtent.y = bBoxTemp[2*1+1];
         info.MaxExtent.z = bBoxTemp[2*2+1];
 
+        //Expand the bounding box to account for curved elements
+        //ElVisFloat3 FaceSize = 1.1*(info.MaxExtent - info.MinExtent);
+
+        //info.MinExtent = info.MinExtent - FaceSize;
+        //info.MaxExtent = info.MaxExtent + FaceSize;
+
 
         info.CommonElements[0].Id = m_egrp2GlobalElemIndex[egrp] + elem;
         info.CommonElements[0].Type = (int) elemType;
@@ -802,16 +883,19 @@ namespace ElVis
           info.CommonElements[1].Type = -1;
         }
 
-        PXFaceNormal(pg, fgrp, face, xface, nvec, NULL);
-
-        WorldVector normal(nvec[0], nvec[1], nvec[2]);
-        normal /= normal.Magnitude();
-
         //printf("elem0=%d, elem1=%d\n", info.CommonElements[0].Id, info.CommonElements[1].Id);
 
         m_FaceInfos.push_back(info);
         if( info.Type == ePlanar )
+        {
+          PXFaceNormal(pg, fgrp, face, xface, nvec, NULL);
+          //PXGeomNormal(pg, egrp, elem, lface, xface, nvec);
+
+          WorldVector normal(nvec[0], nvec[1], nvec[2]);
+          normal /= normal.Magnitude();
+
           m_PlanarFaces.push_back( PXPlanarFace(normal, info, planarInfo ) );
+        }
 
       }
     }
