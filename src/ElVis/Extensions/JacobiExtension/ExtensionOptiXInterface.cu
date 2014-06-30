@@ -226,7 +226,8 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
     }
 }
 
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, GlobalFaceIdx globalFaceIdx, ElVisFloat3& result)
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, GlobalFaceIdx faceId,
+                                      ElVisFloat3& result)
 {
     result.x = MAKE_FLOAT(0.0);
     result.y = MAKE_FLOAT(0.0);
