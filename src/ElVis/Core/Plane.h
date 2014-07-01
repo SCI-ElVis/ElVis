@@ -39,7 +39,7 @@
 
 #include <iostream>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 

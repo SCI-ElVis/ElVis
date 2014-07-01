@@ -32,7 +32,7 @@
 #include <ElVis/Core/TransferFunction.h>
 #include <ElVis/Core/ColorMap.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <optixu/optixpp.h>
 
 namespace ElVis
@@ -64,7 +64,7 @@ namespace ElVis
 
             ELVIS_EXPORT void CopyToOptix(optixu::Context context, OptiXBuffer<ElVisFloat>& buffer, OptiXBuffer<ElVisFloat>& values, TransferFunctionChannel channel);
 
-            boost::signal<void (void)> OnTransferFunctionChanged;
+            boost::signals2::signal<void (void)> OnTransferFunctionChanged;
 
             bool& Dirty() { return m_dirty; }
 

@@ -36,7 +36,7 @@
 #include <optix_math.h>
 
 #include <boost/shared_ptr.hpp>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
@@ -57,7 +57,7 @@ namespace ElVis
 
             ELVIS_EXPORT void CreateNode(SceneView* view, optixu::Transform& transform, optixu::GeometryGroup& group);
 
-            boost::signal<void (const PrimaryRayObject&)> OnObjectChanged;
+            boost::signals2::signal<void (const PrimaryRayObject&)> OnObjectChanged;
 
         protected:
             virtual optixu::Material GetMaterial(SceneView* view) = 0;

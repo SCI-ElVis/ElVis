@@ -36,7 +36,7 @@
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 #include <set>
 #include <vector>
@@ -60,8 +60,8 @@ namespace ElVis
             ELVIS_EXPORT int GetMatchVisual3Contours() const;
             ELVIS_EXPORT void SetMatchVisual3Contours(int newValue);
 
-            boost::signal<void (ElVisFloat)> OnIsovalueAdded;
-            boost::signal<void (ElVisFloat)> OnIsovalueRemoved;
+            boost::signals2::signal<void (ElVisFloat)> OnIsovalueAdded;
+            boost::signals2::signal<void (ElVisFloat)> OnIsovalueRemoved;
 
         protected:
             ELVIS_EXPORT virtual void DoSetup(SceneView* view);

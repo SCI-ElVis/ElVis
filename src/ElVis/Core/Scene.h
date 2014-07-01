@@ -45,7 +45,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
@@ -127,12 +127,12 @@ namespace ElVis
 
             ELVIS_EXPORT void SynchronizeWithOptiXIfNeeded();
 
-            boost::signal<void (const ColorMapInfo&)> OnColorMapAdded;
-            boost::signal<void (boost::shared_ptr<Model>) > OnModelChanged;
-            boost::signal<void (const Scene&)> OnSceneInitialized;
-            boost::signal<void (const Scene&)> OnSceneChanged;
-            boost::signal<void (int)> OnOptixPrintBufferSizeChanged;
-            boost::signal<void (bool)> OnEnableTraceChanged;
+            boost::signals2::signal<void (const ColorMapInfo&)> OnColorMapAdded;
+            boost::signals2::signal<void (boost::shared_ptr<Model>) > OnModelChanged;
+            boost::signals2::signal<void (const Scene&)> OnSceneInitialized;
+            boost::signals2::signal<void (const Scene&)> OnSceneChanged;
+            boost::signals2::signal<void (int)> OnOptixPrintBufferSizeChanged;
+            boost::signals2::signal<void (bool)> OnEnableTraceChanged;
 
 
 

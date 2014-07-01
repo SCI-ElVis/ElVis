@@ -32,7 +32,7 @@
 #include <optixu/optixpp.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 
@@ -58,7 +58,7 @@ namespace ElVis
             ELVIS_EXPORT void CreateNode(SceneView* view, 
                 optixu::Transform& transform, optixu::GeometryGroup& group);
 
-            boost::signal<void (const Object&)> OnObjectChanged;
+            boost::signals2::signal<void (const Object&)> OnObjectChanged;
 
         protected:
             Object(const Object& rhs);

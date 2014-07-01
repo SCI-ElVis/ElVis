@@ -411,6 +411,9 @@ endforeach()
 # Locate CUDA, Set Build Type, etc.
 ###############################################################################
 ###############################################################################
+if (NOT CUDA_TOOLKIT_ROOT_DIR AND DEFINED ENV{CUDA_TOOLKIT_ROOT_DIR} )
+  set(CUDA_TOOLKIT_ROOT_DIR $ENV{CUDA_TOOLKIT_ROOT_DIR} CACHE PATH "Toolkit location." FORCE)
+endif()
 
 # Check to see if the CUDA_TOOLKIT_ROOT_DIR and CUDA_SDK_ROOT_DIR have changed,
 # if they have then clear the cache variables, so that will be detected again.

@@ -34,7 +34,7 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <string>
 #include <map>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {
@@ -54,7 +54,7 @@ namespace ElVis
 
             // When a model is loaded, we find the Ptx file for the contect, create a context,
             // then ask people to add their programs.
-            ELVIS_EXPORT static boost::signal<void (const std::string&, optixu::Context)>& GetOnPtxLoaded();
+            ELVIS_EXPORT static boost::signals2::signal<void (const std::string&, optixu::Context)>& GetOnPtxLoaded();
 
         private:
             typedef std::map<std::string, optixu::Program> ProgramMap;

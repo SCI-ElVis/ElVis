@@ -427,7 +427,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
   PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(globalFaceIdx);
   //ELVIS_PRINTF("MCG GetFaceNormal: Didn't know this was called yet!\n");
   //ELVIS_PRINTF("MCG GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[planarFaceIdx.Value].x, PlanarFaceNormalBuffer[planarFaceIdx.Value].y, PlanarFaceNormalBuffer[planarFaceIdx.Value].z);
-  if( planarFaceIdx.Value > 0 )
+  if( planarFaceIdx.Value >= 0 )
   {
     result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
     return eNoError;

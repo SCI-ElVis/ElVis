@@ -12,7 +12,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/utility/enable_if.hpp>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/split_member.hpp>
@@ -119,7 +119,7 @@ namespace ElVis
     {
         public:
             typedef Vector<DataType, space> ThisType;
-            boost::signal< void (const ThisType&) > OnVectorChanged;
+            boost::signals2::signal< void (const ThisType&) > OnVectorChanged;
 
         public:
             /// \brief Creates a vector of size 3.
