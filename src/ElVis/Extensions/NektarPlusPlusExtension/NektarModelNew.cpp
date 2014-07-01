@@ -51,7 +51,6 @@ namespace NektarPlusPlusExtension
 
     void NektarModel::LoadVolume(const std::string &path)
     {
-        cout << "loading volume" << endl;
         int i, j;
 
         boost::filesystem::path geometryFile(path + ".xml");
@@ -145,9 +144,9 @@ namespace NektarPlusPlusExtension
             fInfo.CommonElements[1] = ElementId(-1,-1);
             for (int i = 0; i < connectedElmt->size(); ++i)
             {
-                fInfo.CommonElements[0] = ElementId(
-                    m_idToElmt[connectedElmt->at(0)->m_Element->GetGlobalID()],
-                    (int)connectedElmt->at(0)->m_Element->GetShapeType());
+                fInfo.CommonElements[i] = ElementId(
+                    m_idToElmt[connectedElmt->at(i)->m_Element->GetGlobalID()],
+                    (int)connectedElmt->at(i)->m_Element->GetShapeType());
             }
 
             if (face->GetGeomFactors()->GetGtype() == SpatialDomains::eDeformed)
@@ -211,31 +210,42 @@ namespace NektarPlusPlusExtension
             Array<Nektar::OneD, NekDouble> x(nPts), y(nPts), z(nPts);
             faceExp->GetCoords(x, y, z);
 
-            WorldVector minExt(x[0], y[0], z[0]), maxExt(x[0], y[0], z[0]);
-
+            //WorldVector minExt(x[0], y[0], z[0]), maxExt(x[0], y[0], z[0]);
+            ElVisFloat minX = x[0], minY = y[0], minZ = z[0];
+            ElVisFloat maxX = x[0], maxY = y[0], maxZ = z[0];
+            cout << x[0] << " " << y[0] << " " << z[0] << endl;
             for (j = 1; j < nPts; ++j)
             {
-                minExt.x() = min(x[j], minExt.x());
-                minExt.y() = min(y[j], minExt.y());
-                minExt.z() = min(z[j], minExt.y());
-                maxExt.x() = max(x[j], maxExt.x());
-                maxExt.y() = max(y[j], maxExt.y());
-                maxExt.z() = max(z[j], maxExt.y());
+                cout << x[j] << " " << y[j] << " " << z[j] << endl;
+                minX = std::min((ElVisFloat)x[j], minX);
+                minY = std::min((ElVisFloat)y[j], minY);
+                minZ = std::min((ElVisFloat)z[j], minZ);
+                maxX = std::max((ElVisFloat)x[j], maxX);
+                maxY = std::max((ElVisFloat)y[j], maxY);
+                maxZ = std::max((ElVisFloat)z[j], maxZ);
             }
 
-            cout << "face " << i << " extent = ["
-                 << minExt.x() << ", " << minExt.y() << ", " << minExt.z() << "] <-> ["
-                 << maxExt.x() << ", " << maxExt.y() << ", " << maxExt.z() << "]" << endl;
+            //WorldVector minExt(minX, minY, minZ), maxExt(maxX, maxY, maxZ);
+            //cout << "MINEXT " << minExt << "   MAXEXT = " << maxExt << endl;
 
-        cout << "Extent = ["
-             << extentMinX << ", " << extentMinY << ", " << extentMinZ << "] <-> ["
-             << extentMaxX << ", " << extentMaxY << ", " << extentMaxZ << "]" << endl;
-            extentMinX = min(minExt.x(), extentMinX);
-            extentMinY = min(minExt.y(), extentMinY);
-            extentMinZ = min(minExt.z(), extentMinZ);
-            extentMaxX = max(maxExt.x(), extentMaxX);
-            extentMaxY = max(maxExt.y(), extentMaxY);
-            extentMaxZ = max(maxExt.z(), extentMaxZ);
+            fInfo.MinExtent.x = minX;
+            fInfo.MinExtent.y = minY;
+            fInfo.MinExtent.z = minZ;
+            fInfo.MaxExtent.x = maxX;
+            fInfo.MaxExtent.y = maxY;
+            fInfo.MaxExtent.z = maxZ;
+
+            cout << "MINEXT " << fInfo.MinExtent.x << " "  << fInfo.MinExtent.y << " " << fInfo.MinExtent.z
+                 << "   MAXEXT = " << fInfo.MaxExtent.x << " " << fInfo.MaxExtent.y << " " << fInfo.MaxExtent.z << endl;
+
+            m_faceInfo.push_back(fInfo);
+
+            extentMinX = std::min(minX, extentMinX);
+            extentMinY = std::min(minY, extentMinY);
+            extentMinZ = std::min(minZ, extentMinZ);
+            extentMaxX = std::max(maxX, extentMaxX);
+            extentMaxY = std::max(maxY, extentMaxY);
+            extentMaxZ = std::max(maxZ, extentMaxZ);
         }
 
         m_extentMin = WorldPoint(extentMinX, extentMinY, extentMinZ);
@@ -318,6 +328,7 @@ namespace NektarPlusPlusExtension
 
     unsigned int NektarModel::DoGetNumberOfElements() const
     {
+        cout << "num elements = " << m_fields[0]->GetExpSize() << endl;
         return m_fields[0]->GetExpSize();
     }
 
@@ -339,31 +350,42 @@ namespace NektarPlusPlusExtension
 
     FaceInfo NektarModel::DoGetFaceDefinition(size_t globalFaceId) const
     {
+        FaceInfo f = m_faceInfo[globalFaceId];
+        cout << "Face " << globalFaceId << ": left = "
+             << f.CommonElements[0].Id << " " << f.CommonElements[0].Type << " "
+             << f.CommonElements[1].Id << " " << f.CommonElements[1].Type
+             << "   minext = " << f.MinExtent.x << " " << f.MinExtent.y << " " << f.MinExtent.z
+             << "   maxext = " << f.MaxExtent.x << " " << f.MaxExtent.y << " " << f.MaxExtent.z << endl;
         return m_faceInfo[globalFaceId];
     }
 
     size_t NektarModel::DoGetNumberOfPlanarFaceVertices() const
     {
+        cout << "num planar verts = " << m_planarVerts.size() << endl;
         return m_planarVerts.size();
     }
 
     WorldPoint NektarModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
     {
+        cout << "planar vert " << vertexIdx << " = " << m_planarVerts[vertexIdx] << endl;
         return m_planarVerts[vertexIdx];
     }
 
     size_t NektarModel::DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const
     {
+        cout << "face " << localFaceIdx << " has " << m_planarFaces[localFaceIdx]->GetNumVerts() << " verts" << endl;
         return m_planarFaces[localFaceIdx]->GetNumVerts();
     }
 
     size_t NektarModel::DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId)
     {
+        cout << "face " << localFaceIdx << " vId " << vertexId << " has index " << m_planarVertIdMap[m_planarFaces[localFaceIdx]->GetVid(vertexId)] << endl;
         return m_planarVertIdMap[m_planarFaces[localFaceIdx]->GetVid(vertexId)];
     }
 
     WorldVector NektarModel::DoGetPlanarFaceNormal(size_t localFaceIdx) const
     {
+        cout << "face " << localFaceIdx << " normal " << m_planarFaceNormals[localFaceIdx] << endl;
         return m_planarFaceNormals[localFaceIdx];
     }
 

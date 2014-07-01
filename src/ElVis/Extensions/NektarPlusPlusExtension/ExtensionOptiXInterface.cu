@@ -33,8 +33,9 @@
 #include <ElVis/Core/OptixVariables.cu>
 #include <ElVis/Core/Float.cu>
 
-rtBuffer<ElVisFloat4> FaceNormalBuffer;
+//rtBuffer<ElVisFloat4> FaceNormalBuffer;
 
+// Everything
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(
     int                                elementId,
     int                                elementType,
@@ -42,9 +43,14 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(
     ElVis::ReferencePointParameterType referenceType,
     ReferencePoint&                    result)
 {
+    ELVIS_PRINTF("[NEKTAR] Called\n");
+    result.x = MAKE_FLOAT(0.0);
+    result.y = MAKE_FLOAT(0.0);
+    result.z = MAKE_FLOAT(0.0);
     return eNoError;
 }
 
+// Everything
 template<typename PointType, typename ResultType>
 ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(
     int              elementId,
@@ -69,6 +75,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(
     return returnVal;
 }
 
+// Curved? may not be used
 ELVIS_DEVICE ElVisError IsValidFaceCoordinate(
     GlobalFaceIdx             faceId,
     const FaceReferencePoint& point,
@@ -81,8 +88,9 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(
     return eNoError;
 }
 
+// Curved
 template<typename T>
-ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoint& p,
+ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceReferencePoint& p,
                                              T& dx_dr, T& dx_ds,
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds)
@@ -90,14 +98,26 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
     return eNoError;
 }
 
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, int faceId, ElVisFloat3& result)
+// Planar
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result)
 {
     PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(faceId);
-    result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
-    return eNoError;
+    if( planarFaceIdx.Value >= 0 )
+    {
+        result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
+        ELVIS_PRINTF("[NEKTAR] faceId = %d   result = %f %f %f\n", planarFaceIdx.Value, result.x, result.y, result.z);
+        return eNoError;
+    }
+    else
+    {
+        ELVIS_PRINTF("[NEKTAR] ERRORRRRR!!!!!!!!!!!!!!!!!!\n");
+        return eNoError;
+    }
 }
 
-ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, const ElVisFloat3& worldPointOnFace, int faceId, ElVisFloat3& result)
+// Curved
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, GlobalFaceIdx faceId,
+                                      ElVisFloat3& result)
 {
     result.x = MAKE_FLOAT(1.0);
     result.y = MAKE_FLOAT(0.0);
@@ -105,15 +125,19 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, c
     return eNoError;
 }
 
-// Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
+// Returns the world space position (x,y,z) for face faceId and parametric
+// coordinates (r,s).
+
+// Curved
 ELVIS_DEVICE ElVisError EvaluateFace(
-    int                       faceId,
+    GlobalFaceIdx             faceId,
     const FaceReferencePoint& refPoint,
     WorldPoint&               result)
 {
     return eNoError;
 }
 
+// Removed
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(
     int                   elementId,
     int                   elementType,
@@ -143,6 +167,7 @@ ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(
     return returnVal;
 }
 
+// Legacy
 ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(
     int                   elementId,
     int                   elementType,
@@ -163,11 +188,13 @@ ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(
     return returnVal;
 }
 
+// Curved: reference/starting point for Newton algorithm
 ELVIS_DEVICE ElVisError getStartingReferencePointForNewtonIteration(const CurvedFaceIdx& idx, ElVisFloat2& startingPoint)
 {
     return eNoError;
 }
 
+// Curved: stop point from leaving the element
 ELVIS_DEVICE ElVisError adjustNewtonStepToKeepReferencePointOnFace(const CurvedFaceIdx& idx, ElVisFloat3& newPoint)
 {
     return eNoError;
