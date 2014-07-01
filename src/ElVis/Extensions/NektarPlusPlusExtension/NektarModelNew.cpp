@@ -387,11 +387,10 @@ namespace NektarPlusPlusExtension
 
     void NektarModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
     {
-#if 0
         vector<int> fieldNcoeffs(m_fields.size());
-        vector<int> elmtOffsets (m_fields[0]->GetExpSize());
-        int i, nCoeffs = 0;
+        int i, j, cnt, nCoeffs = 0, nVerts = 0;
 
+        // Count number of coefficients in fields
         for (i = 0; i < m_fields.size(); ++i)
         {
             fieldNcoeffs[i] = m_fields[0]->GetNcoeffs();
@@ -400,7 +399,7 @@ namespace NektarPlusPlusExtension
 
         for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
         {
-            elmtOffsets[i] = m_fields[0]->GetCoeff_Offset(i);
+            nVerts += m_fields[0]->GetExp(i)->GetNverts();
         }
 
         // Create buffers for OptiX
@@ -413,10 +412,45 @@ namespace NektarPlusPlusExtension
         {
             for (j = 0; j < m_fields[i]->GetExpSize(); ++j)
             {
-                
+                solution[cnt++] = (ElVisFloat)m_fields[i]->GetCoeff(j);
             }
         }
-#endif
+
+        ElVis::OptiXBuffer<ElVisFloat3> coordBuffer("CoordBuffer");
+        coordBuffer.SetContext   (context);
+        coordBuffer.SetDimensions(nVerts);
+        BOOST_AUTO(coord, coordBuffer.map());
+
+        ElVis::OptiXBuffer<int> coordOffsetBuffer("CoordOffsetBuffer");
+        coordOffsetBuffer.SetContext   (context);
+        coordOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
+        BOOST_AUTO(coordOffset, coordOffsetBuffer.map());
+
+        ElVis::OptiXBuffer<int> coeffOffsetsBuffer("CoeffOffsets");
+        coeffOffsetsBuffer.SetContext   (context);
+        coeffOffsetsBuffer.SetDimensions(m_fields[0]->GetExpSize());
+        BOOST_AUTO(coeffOffsets, coeffOffsetsBuffer.map());
+
+        cnt = 0;
+        for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
+        {
+            coeffOffsets[i] = m_fields[0]->GetCoeff_Offset(i);
+            coordOffset[i] = cnt;
+
+            for (j = 0; j < m_fields[0]->GetExp(i)->GetNverts(); ++j)
+            {
+                ElVisFloat3 tmp;
+                SpatialDomains::PointGeomSharedPtr vertex =
+                    m_fields[0]->GetExp(i)->GetGeom()->GetVertex(j);
+                tmp.x = (*vertex)(0);
+                tmp.y = (*vertex)(1);
+                tmp.z = (*vertex)(2);
+
+                coord[cnt+j] = tmp;
+            }
+            
+            cnt += m_fields[0]->GetExp(i)->GetNverts();
+        }
     }
 }
 }

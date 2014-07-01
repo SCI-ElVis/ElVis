@@ -29,11 +29,17 @@
 #ifndef ELVIS_NEKTAR_PLUS_PLUS_EXTENSION_EXTENSION_OPTIX_INTERFACE_CU
 #define ELVIS_NEKTAR_PLUS_PLUS_EXTENSION_EXTENSION_OPTIX_INTERFACE_CU
 
+rtBuffer<ElVisFloat> SolutionBuffer;
+rtBuffer<int> CoeffOffsets;
+rtBuffer<ElVisFloat3> CoordBuffer;
+rtBuffer<int> CoordOffsetBuffer;
+
 #include <ElVis/Core/VolumeRenderingPayload.cu>
 #include <ElVis/Core/OptixVariables.cu>
 #include <ElVis/Core/Float.cu>
+#include <ElVis/Extensions/NektarPlusPlusExtension/Hexahedron.cu>
 
-//rtBuffer<ElVisFloat4> FaceNormalBuffer;
+#include <LibUtilities/BasicUtils/ShapeType.hpp>
 
 // Everything
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(
@@ -43,10 +49,19 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(
     ElVis::ReferencePointParameterType referenceType,
     ReferencePoint&                    result)
 {
-    ELVIS_PRINTF("[NEKTAR] Called\n");
-    result.x = MAKE_FLOAT(0.0);
-    result.y = MAKE_FLOAT(0.0);
-    result.z = MAKE_FLOAT(0.0);
+    if (referenceType != ElVis::eReferencePointIsValid)
+    {
+        if (elementType == Nektar::LibUtilities::eHexahedron)
+        {
+            result = TransformWorldToReferenceHex(elementId, wp);
+            ELVIS_PRINTF("[NEKTAR] Found reference point %f %f %f\n", result.x, result.y, result.z);
+        }
+        else
+        {
+            return eInvalidElementType;
+        }
+    }
+
     return eNoError;
 }
 
