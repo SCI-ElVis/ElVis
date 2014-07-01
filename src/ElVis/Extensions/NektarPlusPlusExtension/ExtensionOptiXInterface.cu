@@ -30,7 +30,7 @@
 #define ELVIS_NEKTAR_PLUS_PLUS_EXTENSION_EXTENSION_OPTIX_INTERFACE_CU
 
 rtBuffer<ElVisFloat> SolutionBuffer;
-rtBuffer<int> CoeffOffsets;
+rtBuffer<int> CoeffOffsetBuffer;
 rtBuffer<ElVisFloat3> CoordBuffer;
 rtBuffer<int> CoordOffsetBuffer;
 
@@ -76,17 +76,17 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(
     ResultType&      result)
 {
     ElVisError returnVal = eNoError;
-    /*
-    if (elementType == Nektar::SpatialDomains::eHexahedron)
+    result = MAKE_FLOAT(0.0);
+
+    if (elementType == Nektar::LibUtilities::eHexahedron)
     {
-        result = EvaluateNektarPlusPlusHexAtTensorPoint(elementId, tp);
+        result = EvaluateHexAtReferencePoint(elementId, tp);
     }
     else
     {
         returnVal = eInvalidElementType;
     }
-    */
-    result = MAKE_FLOAT(0.0);
+
     return returnVal;
 }
 

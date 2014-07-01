@@ -388,7 +388,7 @@ namespace NektarPlusPlusExtension
     void NektarModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
     {
         vector<int> fieldNcoeffs(m_fields.size());
-        int i, j, cnt, nCoeffs = 0, nVerts = 0;
+        int i, j, k, cnt, nCoeffs = 0, nVerts = 0;
 
         // Count number of coefficients in fields
         for (i = 0; i < m_fields.size(); ++i)
@@ -408,11 +408,15 @@ namespace NektarPlusPlusExtension
         solutionBuffer.SetDimensions(nCoeffs);
         BOOST_AUTO(solution, solutionBuffer.map());
 
-        for (i = 0; i < m_fields.size(); ++i)
+        for (cnt = i = 0; i < m_fields.size(); ++i)
         {
             for (j = 0; j < m_fields[i]->GetExpSize(); ++j)
             {
-                solution[cnt++] = (ElVisFloat)m_fields[i]->GetCoeff(j);
+                int offset = m_fields[i]->GetCoeff_Offset(j);
+                for (k = 0; k < m_fields[i]->GetExp(j)->GetNcoeffs(); ++k)
+                {
+                    solution[cnt++] = (ElVisFloat)m_fields[i]->GetCoeff(k + offset);
+                }
             }
         }
 
@@ -426,15 +430,15 @@ namespace NektarPlusPlusExtension
         coordOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
         BOOST_AUTO(coordOffset, coordOffsetBuffer.map());
 
-        ElVis::OptiXBuffer<int> coeffOffsetsBuffer("CoeffOffsets");
-        coeffOffsetsBuffer.SetContext   (context);
-        coeffOffsetsBuffer.SetDimensions(m_fields[0]->GetExpSize());
-        BOOST_AUTO(coeffOffsets, coeffOffsetsBuffer.map());
+        ElVis::OptiXBuffer<int> coeffOffsetBuffer("CoeffOffsetBuffer");
+        coeffOffsetBuffer.SetContext   (context);
+        coeffOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
+        BOOST_AUTO(coeffOffset, coeffOffsetBuffer.map());
 
         cnt = 0;
         for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
         {
-            coeffOffsets[i] = m_fields[0]->GetCoeff_Offset(i);
+            coeffOffset[i] = m_fields[0]->GetCoeff_Offset(i);
             coordOffset[i] = cnt;
 
             for (j = 0; j < m_fields[0]->GetExp(i)->GetNverts(); ++j)
