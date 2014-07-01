@@ -213,10 +213,9 @@ namespace NektarPlusPlusExtension
             //WorldVector minExt(x[0], y[0], z[0]), maxExt(x[0], y[0], z[0]);
             ElVisFloat minX = x[0], minY = y[0], minZ = z[0];
             ElVisFloat maxX = x[0], maxY = y[0], maxZ = z[0];
-            cout << x[0] << " " << y[0] << " " << z[0] << endl;
+
             for (j = 1; j < nPts; ++j)
             {
-                cout << x[j] << " " << y[j] << " " << z[j] << endl;
                 minX = std::min((ElVisFloat)x[j], minX);
                 minY = std::min((ElVisFloat)y[j], minY);
                 minZ = std::min((ElVisFloat)z[j], minZ);
@@ -234,9 +233,6 @@ namespace NektarPlusPlusExtension
             fInfo.MaxExtent.x = maxX;
             fInfo.MaxExtent.y = maxY;
             fInfo.MaxExtent.z = maxZ;
-
-            cout << "MINEXT " << fInfo.MinExtent.x << " "  << fInfo.MinExtent.y << " " << fInfo.MinExtent.z
-                 << "   MAXEXT = " << fInfo.MaxExtent.x << " " << fInfo.MaxExtent.y << " " << fInfo.MaxExtent.z << endl;
 
             m_faceInfo.push_back(fInfo);
 
@@ -391,7 +387,36 @@ namespace NektarPlusPlusExtension
 
     void NektarModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
     {
-        
+#if 0
+        vector<int> fieldNcoeffs(m_fields.size());
+        vector<int> elmtOffsets (m_fields[0]->GetExpSize());
+        int i, nCoeffs = 0;
+
+        for (i = 0; i < m_fields.size(); ++i)
+        {
+            fieldNcoeffs[i] = m_fields[0]->GetNcoeffs();
+            nCoeffs        += m_fields[0]->GetNcoeffs();
+        }
+
+        for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
+        {
+            elmtOffsets[i] = m_fields[0]->GetCoeff_Offset(i);
+        }
+
+        // Create buffers for OptiX
+        ElVis::OptiXBuffer<ElVisFloat> solutionBuffer("SolutionBuffer");
+        solutionBuffer.SetContext   (context);
+        solutionBuffer.SetDimensions(nCoeffs);
+        BOOST_AUTO(solution, solutionBuffer.map());
+
+        for (i = 0; i < m_fields.size(); ++i)
+        {
+            for (j = 0; j < m_fields[i]->GetExpSize(); ++j)
+            {
+                
+            }
+        }
+#endif
     }
 }
 }
