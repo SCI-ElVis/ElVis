@@ -420,6 +420,11 @@ namespace NektarPlusPlusExtension
             }
         }
 
+        ElVis::OptiXBuffer<int> coeffOffsetBuffer("CoeffOffsetBuffer");
+        coeffOffsetBuffer.SetContext   (context);
+        coeffOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
+        BOOST_AUTO(coeffOffset, coeffOffsetBuffer.map());
+
         ElVis::OptiXBuffer<ElVisFloat3> coordBuffer("CoordBuffer");
         coordBuffer.SetContext   (context);
         coordBuffer.SetDimensions(nVerts);
@@ -430,10 +435,10 @@ namespace NektarPlusPlusExtension
         coordOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
         BOOST_AUTO(coordOffset, coordOffsetBuffer.map());
 
-        ElVis::OptiXBuffer<int> coeffOffsetBuffer("CoeffOffsetBuffer");
-        coeffOffsetBuffer.SetContext   (context);
-        coeffOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
-        BOOST_AUTO(coeffOffset, coeffOffsetBuffer.map());
+        ElVis::OptiXBuffer<uint3> expNumModesBuffer("ExpNumModesBuffer");
+        expNumModesBuffer.SetContext   (context);
+        expNumModesBuffer.SetDimensions(m_fields[0]->GetExpSize());
+        BOOST_AUTO(expNumModes, expNumModesBuffer.map());
 
         cnt = 0;
         for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
@@ -452,6 +457,12 @@ namespace NektarPlusPlusExtension
 
                 coord[cnt+j] = tmp;
             }
+
+            uint3 numModes;
+            numModes.x = m_fields[0]->GetExp(i)->GetBasisNumModes(0);
+            numModes.y = m_fields[0]->GetExp(i)->GetBasisNumModes(1);
+            numModes.z = m_fields[0]->GetExp(i)->GetBasisNumModes(2);
+            expNumModes[i] = numModes;
             
             cnt += m_fields[0]->GetExp(i)->GetNverts();
         }

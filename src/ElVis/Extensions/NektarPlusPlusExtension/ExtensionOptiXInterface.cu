@@ -31,6 +31,7 @@
 
 rtBuffer<ElVisFloat> SolutionBuffer;
 rtBuffer<int> CoeffOffsetBuffer;
+rtBuffer<uint3> ExpNumModesBuffer;
 rtBuffer<ElVisFloat3> CoordBuffer;
 rtBuffer<int> CoordOffsetBuffer;
 
@@ -54,7 +55,6 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(
         if (elementType == Nektar::LibUtilities::eHexahedron)
         {
             result = TransformWorldToReferenceHex(elementId, wp);
-            ELVIS_PRINTF("[NEKTAR] Found reference point %f %f %f\n", result.x, result.y, result.z);
         }
         else
         {
@@ -97,9 +97,9 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(
     bool&                     result)
 {
     result = point.x >= MAKE_FLOAT(-1.0) &&
-             point.x <= MAKE_FLOAT(1.0) &&
+             point.x <= MAKE_FLOAT( 1.0) &&
              point.y >= MAKE_FLOAT(-1.0) &&
-             point.y <= MAKE_FLOAT(1.0);
+             point.y <= MAKE_FLOAT( 1.0);
     return eNoError;
 }
 
@@ -160,26 +160,10 @@ ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(
     const ReferencePoint& refPoint,
     ElVisFloat3&          gradient)
 {
-    ElVisError returnVal = eNoError;
-    /*
-    if (elementType == Nektar::SpatialDomains::eHexahedron)
-    {
-        gradient.x = EvaluateHexGradientDir1AtTensorPoint(
-            elementId, refPoint.x, refPoint.y, refPoint.z);
-        gradient.y = EvaluateHexGradientDir2AtTensorPoint(
-            elementId, refPoint.x, refPoint.y, refPoint.z);
-        gradient.z = EvaluateHexGradientDir3AtTensorPoint(
-            elementId, refPoint.x, refPoint.y, refPoint.z);
-    }
-    else
-    {
-        returnVal = eInvalidElementType;
-    }
-    */
     gradient.x = MAKE_FLOAT(0.0);
     gradient.y = MAKE_FLOAT(0.0);
     gradient.z = MAKE_FLOAT(0.0);
-    return returnVal;
+    return eNoError;
 }
 
 // Legacy
@@ -189,18 +173,7 @@ ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(
     const ReferencePoint& refPoint,
     ElVisFloat*           J)
 {
-    ElVisError returnVal = eNoError;
-    /*
-    if( elementType ==  Nektar::SpatialDomains::eHexahedron )
-    {
-        calculateTensorToWorldSpaceMappingJacobian(elementId, refPoint, J);
-    }
-    else
-    {
-        returnVal = eInvalidElementType;
-    }
-    */
-    return returnVal;
+    return eNoError;
 }
 
 // Curved: reference/starting point for Newton algorithm
