@@ -1,14 +1,18 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
+IF( APPLE )
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
+ELSE()
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
+ENDIF()
 
 # As of CMake 2.6 policies were introduced in order to provide a mechanism for
 # adding backwards compatibility one feature at a time.  We will just specify
 # that all policies will use version 2.6 semantics.
 cmake_policy(VERSION 2.6)
 
-#Set the apple compiler so it doesn't default to clang
+#Set the apple compiler to default to clang, that's all apple supports anyways...
 IF ( APPLE )
-    SET(CMAKE_CXX_COMPILER "/usr/bin/g++")
-    SET(CMAKE_C_COMPILER "/usr/bin/gcc")
+    SET(CMAKE_CXX_COMPILER clang++)
+    SET(CMAKE_C_COMPILER clang)
 ENDIF ()
 
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -248,4 +252,11 @@ endif()
 SET(PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
 MARK_AS_ADVANCED(PASSED_FIRST_CONFIGURE)
 
+###########################################
+# Set RPATH information so the executable does not need to be run in the bin directory
+###########################################
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 

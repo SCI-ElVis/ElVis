@@ -36,7 +36,7 @@
 #include <ElVis/Core/ColorMap.h>
 #include <ElVis/Core/OptiXExtensions.hpp>
 #include <vector>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {
@@ -76,9 +76,9 @@ namespace ElVis
             float m_min;
             float m_max;
             bool m_dirty;
-            boost::signals::connection m_minConnection;
-            boost::signals::connection m_maxConnection;
-            boost::signals::connection m_changedConnection;
+            boost::signals2::connection m_minConnection;
+            boost::signals2::connection m_maxConnection;
+            boost::signals2::connection m_changedConnection;
     };
 }
 

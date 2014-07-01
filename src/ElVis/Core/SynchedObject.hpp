@@ -29,7 +29,7 @@
 #ifndef ELVIS_CORE_SYNCHED_OBJECT_HPP
 #define ELVIS_CORE_SYNCHED_OBJECT_HPP
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {
@@ -87,7 +87,7 @@ namespace ElVis
             }
 
 
-            boost::signal<void (const SynchedObject<T>&)> OnDirtyFlagChanged;
+            boost::signals2::signal<void (const SynchedObject<T>&)> OnDirtyFlagChanged;
 
         private:
             void Assign(const T& data)

@@ -44,7 +44,7 @@
 #include <ElVis/Core/Scene.h>
 #include <map>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/foreach.hpp>
 
 #include <boost/archive/xml_iarchive.hpp>
@@ -157,9 +157,9 @@ namespace ElVis
             ELVIS_EXPORT void SetProjectionType(SceneViewProjection type);
             ELVIS_EXPORT SceneViewProjection GetProjectionType() const;
 
-            boost::signal<void (const SceneView&)> OnSceneViewChanged;
-            boost::signal<void (int w, int h)> OnWindowSizeChanged;
-            boost::signal<void (const SceneView&)> OnNeedsRedraw;
+            boost::signals2::signal<void (const SceneView&)> OnSceneViewChanged;
+            boost::signals2::signal<void (int w, int h)> OnWindowSizeChanged;
+            boost::signals2::signal<void (const SceneView&)> OnNeedsRedraw;
 
         protected:
             virtual void DoWindowSizeHasChanged() {}

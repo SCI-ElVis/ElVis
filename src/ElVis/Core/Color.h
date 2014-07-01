@@ -32,7 +32,7 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Float.h>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/split_member.hpp>
@@ -44,7 +44,7 @@ namespace ElVis
     class Color
     {
         public:
-            boost::signal<void (const Color&)> OnColorChanged;
+            boost::signals2::signal<void (const Color&)> OnColorChanged;
 
         public:
             ELVIS_EXPORT Color();

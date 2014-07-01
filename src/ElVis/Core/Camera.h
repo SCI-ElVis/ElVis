@@ -34,7 +34,7 @@
 #include <ElVis/Core/Vector.hpp>
 #include <ElVis/Core/matrix.cu>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 #include <iostream>
 
@@ -47,7 +47,7 @@ namespace ElVis
     class Camera
     {
         public:
-            boost::signal< void() > OnCameraChanged;
+            boost::signals2::signal< void() > OnCameraChanged;
 
         public:
             ELVIS_EXPORT Camera();

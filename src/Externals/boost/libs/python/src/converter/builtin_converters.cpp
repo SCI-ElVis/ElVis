@@ -366,7 +366,9 @@ namespace
       static PyTypeObject const* get_pytype() { return &PyFloat_Type;}
   };
 
+#if PY_VERSION_HEX >= 0x03000000
   unaryfunc py_unicode_as_string_unaryfunc = PyUnicode_AsUTF8String;
+#endif
 
   // A SlotPolicy for extracting C++ strings from Python objects.
   struct string_rvalue_from_python
@@ -375,7 +377,8 @@ namespace
       static unaryfunc* get_slot(PyObject* obj)
       {
 #if PY_VERSION_HEX >= 0x03000000
-          return (PyUnicode_Check(obj)) ? &py_unicode_as_string_unaryfunc : 0;
+          return (PyUnicode_Check(obj)) ? &py_unicode_as_string_unaryfunc : 
+                  PyBytes_Check(obj) ? &py_object_identity : 0;
 #else
           return (PyString_Check(obj)) ? &obj->ob_type->tp_str : 0;
 
@@ -431,7 +434,10 @@ namespace
           if (!result.empty())
           {
               int err = PyUnicode_AsWideChar(
-                  intermediate
+#if PY_VERSION_HEX < 0x03020000
+                  (PyUnicodeObject *)
+#endif
+                    intermediate
                 , &result[0]
                 , result.size());
 

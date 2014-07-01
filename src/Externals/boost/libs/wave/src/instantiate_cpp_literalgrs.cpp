@@ -2,7 +2,7 @@
     Boost.Wave: A Standard compliant C++ preprocessor library
     http://www.boost.org/
 
-    Copyright (c) 2001-2011 Hartmut Kaiser. Distributed under the Boost
+    Copyright (c) 2001-2012 Hartmut Kaiser. Distributed under the Boost
     Software License, Version 1.0. (See accompanying file
     LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
@@ -41,7 +41,11 @@ typedef boost::wave::cpplexer::lex_token<> token_type;
 
 // no need to change anything below
 template struct boost::wave::grammars::intlit_grammar_gen<token_type>;
-template struct boost::wave::grammars::chlit_grammar_gen<token_type>;
+#if BOOST_WAVE_WCHAR_T_SIGNEDNESS == BOOST_WAVE_WCHAR_T_AUTOSELECT || \
+    BOOST_WAVE_WCHAR_T_SIGNEDNESS == BOOST_WAVE_WCHAR_T_FORCE_SIGNED
+template struct boost::wave::grammars::chlit_grammar_gen<int, token_type>;
+#endif
+template struct boost::wave::grammars::chlit_grammar_gen<unsigned int, token_type>;
 
 // the suffix header occurs after all of the code
 #ifdef BOOST_HAS_ABI_HEADERS

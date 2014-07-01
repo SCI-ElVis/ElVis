@@ -36,7 +36,7 @@
 
 #include <vector>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {
@@ -50,8 +50,8 @@ namespace ElVis
             ELVIS_EXPORT boost::shared_ptr<PrimaryRayObject> GetObject(int i) { return m_objects[i]; }
             ELVIS_EXPORT size_t NumberOfObjects() { return m_objects.size(); }
 
-            boost::signal< void (boost::shared_ptr<PrimaryRayObject>) > OnObjectAdded;
-            boost::signal< void (const PrimaryRayObject&)> OnObjectChanged;
+            boost::signals2::signal< void (boost::shared_ptr<PrimaryRayObject>) > OnObjectAdded;
+            boost::signals2::signal< void (const PrimaryRayObject&)> OnObjectChanged;
 
         protected:
             ELVIS_EXPORT virtual void DoSetup(SceneView* view);

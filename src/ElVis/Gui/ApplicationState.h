@@ -41,7 +41,7 @@
 #include <ElVis/Core/CutSurfaceContourModule.h>
 #include <ElVis/Core/IsosurfaceModule.h>
 #include <ElVis/Core/CutSurfaceMeshModule.h>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {
@@ -125,10 +125,10 @@ namespace ElVis
                 void SetLookAtPointToIntersectionPoint(unsigned int pixel_x, unsigned int pixel_y);
                 void GeneratePointInformation(unsigned int pixel_x, unsigned int pixel_y);
 
-                boost::signal<void (boost::shared_ptr<PrimaryRayObject>)> OnSelectedObjectChanged;
-                boost::signal<void (boost::shared_ptr<PiecewiseLinearColorMap>)> OnSelectedTransferFunctionChanged;
-                boost::signal<void ()> OnApplicationStateChanged;
-                boost::signal<void (const PointInfo&)> OnSelectedPointChanged;
+                boost::signals2::signal<void (boost::shared_ptr<PrimaryRayObject>)> OnSelectedObjectChanged;
+                boost::signals2::signal<void (boost::shared_ptr<PiecewiseLinearColorMap>)> OnSelectedTransferFunctionChanged;
+                boost::signals2::signal<void ()> OnApplicationStateChanged;
+                boost::signals2::signal<void (const PointInfo&)> OnSelectedPointChanged;
 
                 bool GetShowLookAtPoint() const { return m_showLookAtPoint; }
                 void SetShowLookAtPoint(bool newValue);
@@ -170,8 +170,8 @@ namespace ElVis
                 PointInfo m_selectedPointInfo;
 
                 // Data for debuggins a single point.
-                boost::signals::connection m_minConnection;
-                boost::signals::connection m_maxConnection;
+                boost::signals2::connection m_minConnection;
+                boost::signals2::connection m_maxConnection;
 
                 bool m_showLookAtPoint;
                 bool m_showBoundingBox;

@@ -35,7 +35,7 @@
 #include <ElVis/QtPropertyBrowser/QtCheckBoxFactory>
 #include <QObject>
 #include <boost/function.hpp>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 #include <boost/signals/connection.hpp>
 #include <boost/bind.hpp>
 
@@ -106,7 +106,7 @@ namespace ElVis
 
             public:
                 Property(const std::string& name, const SetFunctionType& setFunc, const GetFunctionType& getFunc,
-                         boost::signal<void (T)>& changedSignal) :
+                         boost::signals2::signal<void (T)>& changedSignal) :
                     m_factory(new FactoryType()),
                     m_property(0),
                     m_manager(new ManagerType()),
@@ -154,7 +154,7 @@ namespace ElVis
                 ManagerType* m_manager;
                 SetFunctionType m_setFunc;
                 GetFunctionType m_getFunc;
-                //boost::signals::connection m_connection;
+                //boost::signals2::connection m_connection;
         };
 
     }

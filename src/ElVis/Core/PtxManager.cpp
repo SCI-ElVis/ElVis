@@ -121,9 +121,9 @@ namespace ElVis
 
     }
 
-    boost::signal<void (const std::string&, optixu::Context)>& PtxManager::GetOnPtxLoaded()
+    boost::signals2::signal<void (const std::string&, optixu::Context)>& PtxManager::GetOnPtxLoaded()
     {
-        static boost::signal<void (const std::string&, optixu::Context)> result;
+        static boost::signals2::signal<void (const std::string&, optixu::Context)> result;
         return result;
     }
 

@@ -39,7 +39,7 @@
 
 #include <set>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {
@@ -56,9 +56,9 @@ namespace ElVis
 
             ELVIS_EXPORT const std::set<ElVisFloat> GetIsovalues() const { return m_isovalues; }
 
-            boost::signal< void (ElVisFloat) > OnIsovalueAdded;
-            boost::signal< void (ElVisFloat, ElVisFloat)> OnIsovalueChanged;
-            boost::signal< void (ElVisFloat)> OnIsovalueRemoved;
+            boost::signals2::signal< void (ElVisFloat) > OnIsovalueAdded;
+            boost::signals2::signal< void (ElVisFloat, ElVisFloat)> OnIsovalueChanged;
+            boost::signals2::signal< void (ElVisFloat)> OnIsovalueRemoved;
 
         protected:
 

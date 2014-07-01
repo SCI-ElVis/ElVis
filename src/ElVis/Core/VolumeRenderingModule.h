@@ -78,7 +78,7 @@ namespace ElVis
 
             void SetEnableEmptySpaceSkipping(bool value) { m_enableEmptySpaceSkipping = value; }
 
-            boost::signal<void (const RenderModule&, VolumeRenderingIntegrationType)> OnIntegrationTypeChanged;
+            boost::signals2::signal<void (const RenderModule&, VolumeRenderingIntegrationType)> OnIntegrationTypeChanged;
 
         protected:
             ELVIS_EXPORT virtual void DoRender(SceneView* view);
