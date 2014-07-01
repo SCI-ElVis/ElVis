@@ -61,7 +61,7 @@ ADD_SUBDIRECTORY(tinyxml)
 ##################################################
 
 MESSAGE(STATUS "Configuring boost")
-FIND_PACKAGE( Boost COMPONENTS system filesystem serialization thread program_options )
+FIND_PACKAGE( Boost 1.39.0 COMPONENTS system filesystem serialization thread program_options )
 IF( Boost_FOUND )
   SET(BOOST_LIBRARY ${Boost_LIBRARIES} CACHE INTERNAL "Boost library name." FORCE)
 ELSE()
