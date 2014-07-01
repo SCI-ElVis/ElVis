@@ -51,13 +51,10 @@ namespace NektarPlusPlusExtension
 
     void NektarModel::LoadVolume(const std::string &path)
     {
+        cout << "loading volume" << endl;
         int i, j;
 
-        // Strip .fld extension
-        int    dot      = path.find_last_of('.') + 1;
-        string basename = path.substr(0, dot);
-
-        boost::filesystem::path geometryFile(basename + ".xml");
+        boost::filesystem::path geometryFile(path + ".xml");
         boost::filesystem::path fieldFile(path + ".fld");
 
         if (!boost::filesystem::exists(geometryFile))
@@ -125,15 +122,15 @@ namespace NektarPlusPlusExtension
             m_faces[i++] = qIt->second;
         }
 
+        m_fields[0]->SetUpPhysNormals();
+
         // Initialise with large values (fix me later)
-        /*
-        m_extentMax(0) = -1e200;
-        m_extentMax(1) = -1e200;
-        m_extentMax(2) = -1e200;
-        m_extentMin(0) =  1e200;
-        m_extentMin(1) =  1e200;
-        m_extentMin(2) =  1e200;
-        */
+        ElVisFloat extentMaxX = -ELVIS_FLOAT_MAX;
+        ElVisFloat extentMaxY = -ELVIS_FLOAT_MAX;
+        ElVisFloat extentMaxZ = -ELVIS_FLOAT_MAX;
+        ElVisFloat extentMinX =  ELVIS_FLOAT_MAX;
+        ElVisFloat extentMinY =  ELVIS_FLOAT_MAX;
+        ElVisFloat extentMinZ =  ELVIS_FLOAT_MAX;
 
         set<int> seenPlanarVerts;
         
@@ -153,7 +150,7 @@ namespace NektarPlusPlusExtension
                     (int)connectedElmt->at(0)->m_Element->GetShapeType());
             }
 
-            if (face->GetMetricInfo()->GetGtype() == SpatialDomains::eDeformed)
+            if (face->GetGeomFactors()->GetGtype() == SpatialDomains::eDeformed)
             {
                 fInfo.Type = eCurved;
             }
@@ -226,8 +223,29 @@ namespace NektarPlusPlusExtension
                 maxExt.z() = max(z[j], maxExt.y());
             }
 
-            // WORLD EXTENT HERE
+            cout << "face " << i << " extent = ["
+                 << minExt.x() << ", " << minExt.y() << ", " << minExt.z() << "] <-> ["
+                 << maxExt.x() << ", " << maxExt.y() << ", " << maxExt.z() << "]" << endl;
+
+        cout << "Extent = ["
+             << extentMinX << ", " << extentMinY << ", " << extentMinZ << "] <-> ["
+             << extentMaxX << ", " << extentMaxY << ", " << extentMaxZ << "]" << endl;
+            extentMinX = min(minExt.x(), extentMinX);
+            extentMinY = min(minExt.y(), extentMinY);
+            extentMinZ = min(minExt.z(), extentMinZ);
+            extentMaxX = max(maxExt.x(), extentMaxX);
+            extentMaxY = max(maxExt.y(), extentMaxY);
+            extentMaxZ = max(maxExt.z(), extentMaxZ);
         }
+
+        m_extentMin = WorldPoint(extentMinX, extentMinY, extentMinZ);
+        m_extentMax = WorldPoint(extentMaxX, extentMaxY, extentMaxZ);
+
+        cout << "Read " << m_fields[0]->GetExpSize() << " elements" << endl;
+        cout << "Extent = ["
+             << extentMinX << ", " << extentMinY << ", " << extentMinZ << "] <-> ["
+             << extentMaxX << ", " << extentMaxY << ", " << extentMaxZ << "]" << endl;
+        cout << "Mesh has " << m_planarFaces.size() << " planar face(s)" << endl;
     }
 
     void NektarModel::LoadFields(const boost::filesystem::path& fieldFile)
@@ -272,6 +290,7 @@ namespace NektarPlusPlusExtension
         returnval.Name = m_session->GetVariable(index);
         returnval.Id = index;
         returnval.Shortcut = m_session->GetVariable(index);
+        return returnval;
     }
 
     int NektarModel::DoGetNumberOfBoundarySurfaces() const
@@ -293,7 +312,7 @@ namespace NektarPlusPlusExtension
 
     const std::string& NektarModel::DoGetPTXPrefix() const
     {
-        static std::string extensionName("NektarPPExtension");
+        static std::string extensionName("NektarPlusPlusExtension");
         return extensionName;
     }
 

@@ -54,6 +54,7 @@ ElVis::Model* LoadModel(const char* path)
     }
 
     ElVis::NektarPlusPlusExtension::NektarModel* result = new ElVis::NektarPlusPlusExtension::NektarModel(withoutExtension.string());
+    result->LoadVolume(withoutExtension.string());
     return result;
 }
 
