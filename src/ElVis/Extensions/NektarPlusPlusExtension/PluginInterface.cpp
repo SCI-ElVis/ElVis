@@ -30,8 +30,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <ElVis/Extensions/NektarPlusPlusExtension/PluginInterface.h>
-#include <ElVis/Extensions/NektarPlusPlusExtension/NektarModel.h>
-
 #include <boost/filesystem.hpp>
 
 std::string GetPluginName()

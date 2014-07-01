@@ -585,7 +585,7 @@ if(APPLE)
     get_filename_component(_cuda_path_to_cudart "${CUDA_CUDART_LIBRARY}" PATH)
   endif()
   if(_cuda_path_to_cudart)
-    list(APPEND CUDA_LIBRARIES -Wl,-rpath "-Wl,${_cuda_path_to_cudart}")
+    #list(APPEND CUDA_LIBRARIES -Wl,-rpath "-Wl,${_cuda_path_to_cudart}")
   endif()
 endif()
 

@@ -19,20 +19,12 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
                ${CMAKE_BINARY_DIR}/ElVis/Extensions/NektarPlusPlusExtension/NektarPlusPlusExtensionPTXConfig.h @ONLY)
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
                ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu @ONLY)
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
-               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu @ONLY)
 
 #################################3
 # Nektar++ Extension
 #################################3
 SET(NEKTAR_PLUS_PLUS_EXTENSION_OPTIX_HEADER_ONLY
-  Expansions.cu
   ExtensionOptiXInterface.cu
-  NektarModel.cu
-  OptixHexahedron.cu
-  OptixQuad.cu
-  OptixTriangle.cu
-  typedefs.cu
 )
 SET_SOURCE_FILES_PROPERTIES(${NEKTAR_PLUS_PLUS_EXTENSION_OPTIX_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
 
@@ -40,16 +32,15 @@ SET(NEKTAR_PLUS_PLUS_EXTENSION_SOURCES
   ${CMAKE_BINARY_DIR}/ElVis/Extensions/NektarPlusPlusExtension/NektarPlusPlusExtensionPTXConfig.cpp
   ${CMAKE_BINARY_DIR}/ElVis/Extensions/NektarPlusPlusExtension/NektarPlusPlusExtensionPTXConfig.h
   Declspec.h
-  FieldInfo.h
-  NektarModel.cpp
-  NektarModel.h
+  NektarModelNew.cpp
+  NektarModelNew.h
   PluginInterface.cpp
   PluginInterface.h
   ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu
 ) 
 
-INCLUDE_DIRECTORIES(${NEKTAR++_INCLUDE_DIRS} )
-LINK_DIRECTORIES(${Boost_LIBRARY_DIRS} ${NEKTAR++_LIBRARY_DIRS})
+INCLUDE_DIRECTORIES(${NEKTAR++_INCLUDE_DIRS} ${NEKTAR++_TP_INCLUDE_DIRS})
+LINK_DIRECTORIES(${Boost_LIBRARY_DIRS} ${NEKTAR++_LIBRARY_DIRS} ${NEKTAR++_TP_LIBRARY_DIRS})
 
 # Need to use ADD_OPTIX_LIBRARY so the .cu files get routed to nvcc.
 ADD_ELVIS_OPTIX_LIBRARY(${ProjectName} ${ELVIS_BIN_DIR}

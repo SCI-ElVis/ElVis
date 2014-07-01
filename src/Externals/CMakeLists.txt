@@ -60,8 +60,15 @@ ADD_SUBDIRECTORY(tinyxml)
 # Adding BOOST
 ##################################################
 
+#MESSAGE(STATUS "Configuring boost")
+#ADD_SUBDIRECTORY(boost)
+
 MESSAGE(STATUS "Configuring boost")
-ADD_SUBDIRECTORY(boost)
+FIND_PACKAGE(Boost COMPONENTS thread iostreams date_time filesystem graph signals system program_options regex serialization)
+
+SET(BOOST_LIBRARY ${Boost_LIBRARIES} CACHE FILEPATH INTERNAL)
+
+INCLUDE_DIRECTORIES(SYSTEM ${Boost_INCLUDE_DIRS})
 
 ##################################################
 # ADDING OptiX

@@ -32,7 +32,7 @@
 #ifndef ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_PLUGIN_INTERFACE_H
 #define ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_PLUGIN_INTERFACE_H
 
-#include <ElVis/Extensions/NektarPlusPlusExtension/NektarModel.h>
+#include <ElVis/Extensions/NektarPlusPlusExtension/NektarModelNew.h>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Declspec.h>
 
 extern "C"
@@ -41,4 +41,5 @@ extern "C"
     NEKTAR_PLUS_PLUS_EXTENSION_EXPORT ElVis::Model* LoadModel(const char* path);
     NEKTAR_PLUS_PLUS_EXTENSION_EXPORT std::string GetVolumeFileFilter();
 }
+
 #endif //ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_PLUGIN_INTERFACE_H
