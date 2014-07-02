@@ -35,11 +35,6 @@
 
 #include <ElVis/Extensions/NektarPlusPlusExtension/Expansions.cu>
 
-__device__ __forceinline__ const ElVisFloat3& GetVertex(int hexId, int vertexId)
-{
-    return CoordBuffer[CoordOffsetBuffer[hexId] + vertexId];
-}
-
 __device__ __forceinline__ ElVisFloat EvaluateHexAtReferencePoint(
     ElVisFloat *coeffs, uint3 *modes, const ElVisFloat3& p)
 {

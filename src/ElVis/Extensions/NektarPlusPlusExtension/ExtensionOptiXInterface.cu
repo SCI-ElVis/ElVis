@@ -72,10 +72,17 @@ rtBuffer<ElVisFloat>  NormalFlipBuffer;
 // Record number of curved faces
 rtDeclareVariable(int, nCurvedFaces, , );
 
+// Helper function
+__device__ __forceinline__ const ElVisFloat3& GetVertex(int hexId, int vertexId)
+{
+    return CoordBuffer[CoordOffsetBuffer[hexId] + vertexId];
+}
+
 #include <ElVis/Core/VolumeRenderingPayload.cu>
 #include <ElVis/Core/OptixVariables.cu>
 #include <ElVis/Core/Float.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Quadrilateral.cu>
+#include <ElVis/Extensions/NektarPlusPlusExtension/Prism.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Hexahedron.cu>
 
 #include <LibUtilities/BasicUtils/ShapeType.hpp>
@@ -93,6 +100,10 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(
         if (elementType == Nektar::LibUtilities::eHexahedron)
         {
             result = TransformWorldToReferenceHex(elementId, wp);
+        }
+        else if (elementType == Nektar::LibUtilities::ePrism)
+        {
+            result = TransformWorldToReferencePrism(elementId, wp);
         }
         else
         {
@@ -120,6 +131,12 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(
     {
         int coeffOffset = CoeffOffsetBuffer[elementId];
         result = EvaluateHexAtReferencePoint(
+            &SolutionBuffer[coeffOffset], &ExpNumModesBuffer[elementId], tp);
+    }
+    else if (elementType == Nektar::LibUtilities::ePrism)
+    {
+        int coeffOffset = CoeffOffsetBuffer[elementId];
+        result = EvaluatePrismAtReferencePoint(
             &SolutionBuffer[coeffOffset], &ExpNumModesBuffer[elementId], tp);
     }
     else
@@ -156,7 +173,6 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(
 
     if (Idx.Value >= nCurvedFaces)
     {
-        rtPrintf("############ EvaluateFace Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFaces);
         return eFieldNotDefinedOnFace;
     }
 
