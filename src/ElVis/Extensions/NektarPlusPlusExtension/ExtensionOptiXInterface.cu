@@ -102,7 +102,9 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(
 
     if (elementType == Nektar::LibUtilities::eHexahedron)
     {
-        result = EvaluateHexAtReferencePoint(elementId, tp);
+        int coeffOffset = CoeffOffsetBuffer[elementId];
+        result = EvaluateHexAtReferencePoint(
+            &SolutionBuffer[coeffOffset], &ExpNumModesBuffer[elementId], tp);
     }
     else
     {

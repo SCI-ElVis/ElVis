@@ -232,26 +232,20 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
 }
 
 __device__ __forceinline__ ElVisFloat EvaluateHexAtReferencePoint(
-    unsigned int elementId, const ElVisFloat3& p)
+    ElVisFloat *coeffs, uint3 *modes, const ElVisFloat3& p)
 {
-    uint3 modes = ExpNumModesBuffer[elementId];
-    uint coefficientIndex = CoeffOffsetBuffer[elementId];
-
     ElVisFloat result = MAKE_FLOAT(0.0);
+    unsigned int cnt = 0;
 
-    for(unsigned int k = 0; k < modes.z; ++k)
+    for(unsigned int k = 0; k < modes->z; ++k)
     {
         ElVisFloat value_k = ModifiedA(k, p.z);
-        for(unsigned int j = 0; j < modes.y; ++j)
+        for(unsigned int j = 0; j < modes->y; ++j)
         {
             ElVisFloat value_j = ModifiedA(j, p.y);
-            for(unsigned int i = 0; i < modes.x; ++i)
+            for(unsigned int i = 0; i < modes->x; ++i)
             {
-                result += SolutionBuffer[coefficientIndex] * 
-                    ModifiedA(i, p.x) *
-                    value_j * 
-                    value_k;
-                ++coefficientIndex;
+                result += coeffs[cnt++] * ModifiedA(i, p.x) * value_j * value_k;
             }
         }
     }
