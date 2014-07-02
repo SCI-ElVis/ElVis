@@ -40,7 +40,29 @@ __device__ __forceinline__ const ElVisFloat3& GetVertex(int hexId, int vertexId)
     return CoordBuffer[CoordOffsetBuffer[hexId] + vertexId];
 }
 
-__device__ __forceinline__ WorldPoint TransformReferenceToWorldHex(
+__device__ __forceinline__ ElVisFloat EvaluateHexAtReferencePoint(
+    ElVisFloat *coeffs, uint3 *modes, const ElVisFloat3& p)
+{
+    ElVisFloat result = MAKE_FLOAT(0.0);
+    unsigned int cnt = 0;
+
+    for(unsigned int k = 0; k < modes->z; ++k)
+    {
+        ElVisFloat value_k = ModifiedA(k, p.z);
+        for(unsigned int j = 0; j < modes->y; ++j)
+        {
+            ElVisFloat value_j = ModifiedA(j, p.y);
+            for(unsigned int i = 0; i < modes->x; ++i)
+            {
+                result += coeffs[cnt++] * ModifiedA(i, p.x) * value_j * value_k;
+            }
+        }
+    }
+
+    return result;
+}
+
+__device__ __forceinline__ WorldPoint TransformReferenceToWorldLinearHex(
     int hexId, const ReferencePoint& p)
 {
     ElVisFloat r = p.x;
@@ -78,7 +100,30 @@ __device__ __forceinline__ WorldPoint TransformReferenceToWorldHex(
     return result;
 }
 
-__device__ __forceinline__ void CalculateJacobianHex(
+__device__ __forceinline__ WorldPoint TransformReferenceToWorldHex(
+    int hexId, const ReferencePoint& p)
+{
+    const int offset = CurvedGeomOffsetBuffer[hexId];
+    uint3 *modes = &CurvedGeomNumModesBuffer[hexId];
+
+    if (offset >= 0)
+    {
+        const int nm = modes->x * modes->y * modes->z;
+        return MakeFloat3(
+            EvaluateHexAtReferencePoint(
+                &CurvedGeomBuffer[offset], modes, p),
+            EvaluateHexAtReferencePoint(
+                &CurvedGeomBuffer[offset+nm], modes, p),
+            EvaluateHexAtReferencePoint(
+                &CurvedGeomBuffer[offset+2*nm], modes, p));
+    }
+    else
+    {
+        return TransformReferenceToWorldLinearHex(hexId, p);
+    }
+}
+
+__device__ __forceinline__ void CalculateJacobianLinearHex(
     int hexId, const ElVisFloat3& p, ElVisFloat* J)
 {
     ElVisFloat r = p.x;
@@ -156,7 +201,7 @@ __device__ __forceinline__ void calculateInverseJacobianHex(
 {
     // Calculate the Jacobian matrix.
     ElVisFloat J[9];
-    CalculateJacobianHex(hexId, p, J);
+    CalculateJacobianLinearHex(hexId, p, J);
 
     // Now take the inverse.
     ElVisFloat determinant = (-J[0]*J[4]*J[8]+J[0]*J[5]*J[7]
@@ -230,28 +275,6 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
     while( numIterations < MAX_ITERATIONS);
 
     ELVIS_PRINTF("[NEKTAR] DIDN'T CONVERGE   result = %f %f %f\n", numIterations, result.x, result.y, result.z);
-
-    return result;
-}
-
-__device__ __forceinline__ ElVisFloat EvaluateHexAtReferencePoint(
-    ElVisFloat *coeffs, uint3 *modes, const ElVisFloat3& p)
-{
-    ElVisFloat result = MAKE_FLOAT(0.0);
-    unsigned int cnt = 0;
-
-    for(unsigned int k = 0; k < modes->z; ++k)
-    {
-        ElVisFloat value_k = ModifiedA(k, p.z);
-        for(unsigned int j = 0; j < modes->y; ++j)
-        {
-            ElVisFloat value_j = ModifiedA(j, p.y);
-            for(unsigned int i = 0; i < modes->x; ++i)
-            {
-                result += coeffs[cnt++] * ModifiedA(i, p.x) * value_j * value_k;
-            }
-        }
-    }
 
     return result;
 }

@@ -213,7 +213,6 @@ namespace NektarPlusPlusExtension
             Array<Nektar::OneD, NekDouble> x(nPts), y(nPts), z(nPts);
             faceExp->GetCoords(x, y, z);
 
-            //WorldVector minExt(x[0], y[0], z[0]), maxExt(x[0], y[0], z[0]);
             ElVisFloat minX = x[0], minY = y[0], minZ = z[0];
             ElVisFloat maxX = x[0], maxY = y[0], maxZ = z[0];
 
@@ -226,9 +225,6 @@ namespace NektarPlusPlusExtension
                 maxY = std::max((ElVisFloat)y[j], maxY);
                 maxZ = std::max((ElVisFloat)z[j], maxZ);
             }
-
-            //WorldVector minExt(minX, minY, minZ), maxExt(maxX, maxY, maxZ);
-            //cout << "MINEXT " << minExt << "   MAXEXT = " << maxExt << endl;
 
             fInfo.MinExtent.x = minX;
             fInfo.MinExtent.y = minY;
@@ -527,6 +523,70 @@ namespace NektarPlusPlusExtension
         
         // Set in OptiX buffer.
         context["nCurvedFaces"]->setInt(nCurvedFaces);
+
+        // Count number of deformed hexahedra
+        int nCurvedElmt = 0, nCurvedGeomCoeffs = 0;
+        for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
+        {
+#if 0
+            if (m_fields[0]->GetExp(i)->GetMetricInfo()->GetGtype() == SpatialDomains::eDeformed)
+            {
+#endif
+                nCurvedElmt++;
+                nCurvedGeomCoeffs +=
+                    m_fields[0]->GetExp(i)->GetGeom()->GetXmap()->GetNcoeffs() * 3;
+            }
+#if 0
+        }
+#endif
+
+        ElVis::OptiXBuffer<ElVisFloat> curvedGeomBuffer("CurvedGeomBuffer");
+        curvedGeomBuffer.SetContext   (context);
+        curvedGeomBuffer.SetDimensions(nCurvedGeomCoeffs);
+        BOOST_AUTO(curvedGeom, curvedGeomBuffer.map());
+
+        ElVis::OptiXBuffer<int> curvedGeomOffsetBuffer("CurvedGeomOffsetBuffer");
+        curvedGeomOffsetBuffer.SetContext   (context);
+        curvedGeomOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
+        BOOST_AUTO(curvedGeomOffset, curvedGeomOffsetBuffer.map());
+
+        ElVis::OptiXBuffer<uint3> curvedGeomNumModesBuffer("CurvedGeomNumModesBuffer");
+        curvedGeomNumModesBuffer.SetContext   (context);
+        curvedGeomNumModesBuffer.SetDimensions(m_fields[0]->GetExpSize());
+        BOOST_AUTO(curvedGeomNumModes, curvedGeomNumModesBuffer.map());
+
+        for (cnt = i = 0; i < m_fields[0]->GetExpSize(); ++i)
+        {
+            SpatialDomains::GeometrySharedPtr geom =
+                m_fields[0]->GetExp(i)->GetGeom();
+            uint3 nm;
+            nm.x = nm.y = nm.z = -1;
+
+#if 0
+            if (m_fields[0]->GetExp(i)->GetMetricInfo()->GetGtype() == SpatialDomains::eDeformed)
+            {
+#endif
+                curvedGeomOffset[i] = cnt;
+                nm.x = geom->GetXmap()->GetBasisNumModes(0);
+                nm.y = geom->GetXmap()->GetBasisNumModes(1);
+                nm.z = geom->GetXmap()->GetBasisNumModes(2);
+
+                for (j = 0; j < 3; ++j)
+                {
+                    for (k = 0; k < geom->GetXmap()->GetNcoeffs(); ++k)
+                    {
+                        curvedGeom[cnt++] = (ElVisFloat)geom->GetCoeffs(j)[k];
+                    }
+                }
+#if 0
+            }
+            else
+            {
+                curvedGeomOffset[i] = -1;
+            }
+#endif
+            curvedGeomNumModes[i] = nm;
+        }
     }
 }
 }

@@ -57,13 +57,14 @@ rtBuffer<uint2>       FaceNumModesBuffer;
 /// Contains offset of a curved face within the buffer.
 rtBuffer<int>         FaceCoeffsOffsetBuffer;
 
-#if 0
 /// Contains full 3D curved geometry coeffs.
 rtBuffer<ElVisFloat>  CurvedGeomBuffer;
 
 /// Contains offset of coefficients within curved geometry buffer.
 rtBuffer<int>         CurvedGeomOffsetBuffer;
-#endif
+
+/// Contains offset of coefficients within curved geometry buffer.
+rtBuffer<uint3>       CurvedGeomNumModesBuffer;
 
 // Record number of curved faces
 rtDeclareVariable(int, nCurvedFaces, , );
