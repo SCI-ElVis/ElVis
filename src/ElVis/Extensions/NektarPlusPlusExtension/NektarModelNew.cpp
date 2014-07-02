@@ -420,21 +420,25 @@ namespace NektarPlusPlusExtension
             }
         }
 
+        // Buffer for coefficient offsets
         ElVis::OptiXBuffer<int> coeffOffsetBuffer("CoeffOffsetBuffer");
         coeffOffsetBuffer.SetContext   (context);
         coeffOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
         BOOST_AUTO(coeffOffset, coeffOffsetBuffer.map());
 
+        // Buffer for coordinates
         ElVis::OptiXBuffer<ElVisFloat3> coordBuffer("CoordBuffer");
         coordBuffer.SetContext   (context);
         coordBuffer.SetDimensions(nVerts);
         BOOST_AUTO(coord, coordBuffer.map());
 
+        // Buffer for coordinate offsets
         ElVis::OptiXBuffer<int> coordOffsetBuffer("CoordOffsetBuffer");
         coordOffsetBuffer.SetContext   (context);
         coordOffsetBuffer.SetDimensions(m_fields[0]->GetExpSize());
         BOOST_AUTO(coordOffset, coordOffsetBuffer.map());
 
+        // Buffer for number of modes
         ElVis::OptiXBuffer<uint3> expNumModesBuffer("ExpNumModesBuffer");
         expNumModesBuffer.SetContext   (context);
         expNumModesBuffer.SetDimensions(m_fields[0]->GetExpSize());
@@ -466,6 +470,54 @@ namespace NektarPlusPlusExtension
             
             cnt += m_fields[0]->GetExp(i)->GetNverts();
         }
+
+        // Count number of curved faces and record number of coefficients.
+        int nCurvedFaces = 0, nFaceCoeffs = 0;
+        for (i = 0; i < m_faceInfo.size(); ++i)
+        {
+            if (m_faceInfo[i].Type == eCurved)
+            {
+                nCurvedFaces++;
+                nFaceCoeffs += m_faces[i]->GetXmap()->GetNcoeffs();
+            }
+        }
+
+        // Buffer for curved face coefficients
+        ElVis::OptiXBuffer<ElVisFloat3> faceCoeffsBuffer("FaceCoeffsBuffer");
+        faceCoeffsBuffer.SetContext   (context);
+        faceCoeffsBuffer.SetDimensions(nFaceCoeffs);
+        BOOST_AUTO(faceCoeffs, faceCoeffsBuffer.map());
+
+        ElVis::OptiXBuffer<int> faceCoeffsOffsetBuffer("FaceCoeffsOffsetBuffer");
+        faceCoeffsOffsetBuffer.SetContext   (context);
+        faceCoeffsOffsetBuffer.SetDimensions(nCurvedFaces);
+        BOOST_AUTO(faceCoeffsOffset, faceCoeffsOffsetBuffer.map());
+
+        int cnt2 = 0;
+        for (cnt = i = 0; i < m_faceInfo.size(); ++i)
+        {
+            if (m_faceInfo[i].Type != eCurved)
+            {
+                continue;
+            }
+
+            SpatialDomains::Geometry2DSharedPtr face = m_faces[i];
+            const int nFaceCoeffs = face->GetXmap()->GetNcoeffs();
+
+            faceCoeffsOffset[cnt2++] = cnt;
+
+            for (j = 0; j < nFaceCoeffs; ++j)
+            {
+                ElVisFloat3 tmp;
+                tmp.x = (ElVisFloat)face->GetCoeffs(0)[j];
+                tmp.y = (ElVisFloat)face->GetCoeffs(1)[j];
+                tmp.z = (ElVisFloat)face->GetCoeffs(2)[j];
+                faceCoeffs[cnt++] = tmp;
+            }
+        }
+        
+        // Set in OptiX buffer.
+        context["nCurvedFaces"]->setInt(nCurvedFaces);
     }
 }
 }
