@@ -115,6 +115,7 @@ namespace NektarPlusPlusExtension
         SpatialDomains::QuadGeomMap::const_iterator qIt;
         const SpatialDomains::QuadGeomMap &quadMap = m_graph->GetAllQuadGeoms();
         m_faces.resize(quadMap.size());
+        m_faceNormalFlip.resize(quadMap.size());
 
         for (i = 0, qIt = quadMap.begin(); qIt != quadMap.end(); ++qIt)
         {
@@ -149,8 +150,23 @@ namespace NektarPlusPlusExtension
                     (int)connectedElmt->at(i)->m_Element->GetShapeType());
             }
 
-            fInfo.Type = eCurved;
-            /*
+            StdRegions::Orientation orient =
+                boost::dynamic_pointer_cast<SpatialDomains::Geometry3D>(connectedElmt->at(0)->m_Element)->GetFaceOrient(
+                    connectedElmt->at(0)->m_FaceIndx);
+
+            bool flipFace[6] = {true, false, false, true, true, false};
+            bool flipThisFace = flipFace[connectedElmt->at(0)->m_FaceIndx];
+
+            if (orient == StdRegions::eDir1BwdDir1_Dir2FwdDir2 ||
+                orient == StdRegions::eDir1FwdDir1_Dir2BwdDir2)
+            {
+                flipThisFace = !flipThisFace;
+            }
+
+            m_faceNormalFlip[i] = flipThisFace;
+            cout << "FACE " << i << " ORIENT = " << orient << " FLIP = " << flipThisFace;
+
+            //fInfo.Type = eCurved;
             if (face->GetGeomFactors()->GetGtype() == SpatialDomains::eDeformed)
             {
                 fInfo.Type = eCurved;
@@ -189,7 +205,6 @@ namespace NektarPlusPlusExtension
                     seenPlanarVerts.insert(vId);
                 }
             }
-            */
 
             // Calculate estimate of face extent
             LocalRegions::Expansion2DSharedPtr faceExp;
@@ -470,6 +485,17 @@ namespace NektarPlusPlusExtension
             cnt += m_fields[0]->GetExp(i)->GetNverts();
         }
 
+        // 
+        ElVis::OptiXBuffer<ElVisFloat> normalFlipBuffer("NormalFlipBuffer");
+        normalFlipBuffer.SetContext   (context);
+        normalFlipBuffer.SetDimensions(m_faces.size());
+        BOOST_AUTO(normalFlip, normalFlipBuffer.map());
+
+        for (i = 0; i < m_faces.size(); ++i)
+        {
+            normalFlip[i] = m_faceNormalFlip[i] ? (ElVisFloat) (-1.0) : (ElVisFloat) 1.0;
+        }
+
         // Count number of curved faces and record number of coefficients.
         int nCurvedFaces = 0, nFaceCoeffs = 0;
         for (i = 0; i < m_faceInfo.size(); ++i)
@@ -509,7 +535,7 @@ namespace NektarPlusPlusExtension
             const int nFaceCoeffs = face->GetXmap()->GetNcoeffs();
 
             faceNumModes[cnt2].x = m_faces[i]->GetXmap()->GetBasisNumModes(0);
-            faceNumModes[cnt2].y = m_faces[i]->GetXmap()->GetBasisNumModes(0);
+            faceNumModes[cnt2].y = m_faces[i]->GetXmap()->GetBasisNumModes(1);
             faceCoeffsOffset[cnt2++] = cnt;
 
             for (j = 0; j < 3; ++j)
@@ -528,17 +554,13 @@ namespace NektarPlusPlusExtension
         int nCurvedElmt = 0, nCurvedGeomCoeffs = 0;
         for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
         {
-#if 0
             if (m_fields[0]->GetExp(i)->GetMetricInfo()->GetGtype() == SpatialDomains::eDeformed)
             {
-#endif
                 nCurvedElmt++;
                 nCurvedGeomCoeffs +=
                     m_fields[0]->GetExp(i)->GetGeom()->GetXmap()->GetNcoeffs() * 3;
             }
-#if 0
         }
-#endif
 
         ElVis::OptiXBuffer<ElVisFloat> curvedGeomBuffer("CurvedGeomBuffer");
         curvedGeomBuffer.SetContext   (context);

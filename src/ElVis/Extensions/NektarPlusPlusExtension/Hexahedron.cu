@@ -62,6 +62,72 @@ __device__ __forceinline__ ElVisFloat EvaluateHexAtReferencePoint(
     return result;
 }
 
+__device__ __forceinline__ ElVisFloat EvaluateHexGradXAtReferencePoint(
+    ElVisFloat *coeffs, uint3 *modes, const ElVisFloat3& p)
+{
+    ElVisFloat result = MAKE_FLOAT(0.0);
+    unsigned int cnt = 0;
+
+    for(unsigned int k = 0; k < modes->z; ++k)
+    {
+        ElVisFloat value_k = ModifiedA(k, p.z);
+        for(unsigned int j = 0; j < modes->y; ++j)
+        {
+            ElVisFloat value_j = ModifiedA(j, p.y);
+            for(unsigned int i = 0; i < modes->x; ++i)
+            {
+                result += coeffs[cnt++] * ModifiedAPrime(i, p.x) * value_j * value_k;
+            }
+        }
+    }
+
+    return result;
+}
+
+__device__ __forceinline__ ElVisFloat EvaluateHexGradYAtReferencePoint(
+    ElVisFloat *coeffs, uint3 *modes, const ElVisFloat3& p)
+{
+    ElVisFloat result = MAKE_FLOAT(0.0);
+    unsigned int cnt = 0;
+
+    for(unsigned int k = 0; k < modes->z; ++k)
+    {
+        ElVisFloat value_k = ModifiedA(k, p.z);
+        for(unsigned int j = 0; j < modes->y; ++j)
+        {
+            ElVisFloat value_j = ModifiedAPrime(j, p.y);
+            for(unsigned int i = 0; i < modes->x; ++i)
+            {
+                result += coeffs[cnt++] * ModifiedA(i, p.x) * value_j * value_k;
+            }
+        }
+    }
+
+    return result;
+}
+
+__device__ __forceinline__ ElVisFloat EvaluateHexGradZAtReferencePoint(
+    ElVisFloat *coeffs, uint3 *modes, const ElVisFloat3& p)
+{
+    ElVisFloat result = MAKE_FLOAT(0.0);
+    unsigned int cnt = 0;
+
+    for(unsigned int k = 0; k < modes->z; ++k)
+    {
+        ElVisFloat value_k = ModifiedAPrime(k, p.z);
+        for(unsigned int j = 0; j < modes->y; ++j)
+        {
+            ElVisFloat value_j = ModifiedA(j, p.y);
+            for(unsigned int i = 0; i < modes->x; ++i)
+            {
+                result += coeffs[cnt++] * ModifiedA(i, p.x) * value_j * value_k;
+            }
+        }
+    }
+
+    return result;
+}
+
 __device__ __forceinline__ WorldPoint TransformReferenceToWorldLinearHex(
     int hexId, const ReferencePoint& p)
 {
@@ -196,12 +262,46 @@ __device__ __forceinline__ void CalculateJacobianLinearHex(
         t35*v6z/8.0f+t37*v7z/8.0f+t39*v8z/8.0f;
 }
 
+__device__ __forceinline__ void CalculateJacobianHex(
+    int hexId, const ElVisFloat3& p, ElVisFloat* J)
+{
+    const int offset = CurvedGeomOffsetBuffer[hexId];
+    uint3 *modes = &CurvedGeomNumModesBuffer[hexId];
+
+    if (offset >= 0)
+    {
+        const int nm = modes->x * modes->y * modes->z;
+        J[0] = EvaluateHexGradXAtReferencePoint(
+            &CurvedGeomBuffer[offset], modes, p);
+        J[1] = EvaluateHexGradYAtReferencePoint(
+            &CurvedGeomBuffer[offset], modes, p);
+        J[2] = EvaluateHexGradZAtReferencePoint(
+            &CurvedGeomBuffer[offset], modes, p);
+        J[3] = EvaluateHexGradXAtReferencePoint(
+            &CurvedGeomBuffer[offset+nm], modes, p);
+        J[4] = EvaluateHexGradYAtReferencePoint(
+            &CurvedGeomBuffer[offset+nm], modes, p);
+        J[5] = EvaluateHexGradZAtReferencePoint(
+            &CurvedGeomBuffer[offset+nm], modes, p);
+        J[6] = EvaluateHexGradXAtReferencePoint(
+            &CurvedGeomBuffer[offset+2*nm], modes, p);
+        J[7] = EvaluateHexGradYAtReferencePoint(
+            &CurvedGeomBuffer[offset+2*nm], modes, p);
+        J[8] = EvaluateHexGradZAtReferencePoint(
+            &CurvedGeomBuffer[offset+2*nm], modes, p);
+    }
+    else
+    {
+        CalculateJacobianLinearHex(hexId, p, J);
+    }
+}
+
 __device__ __forceinline__ void calculateInverseJacobianHex(
     int hexId, const ReferencePoint& p, ElVisFloat *inverse)
 {
     // Calculate the Jacobian matrix.
     ElVisFloat J[9];
-    CalculateJacobianLinearHex(hexId, p, J);
+    CalculateJacobianHex(hexId, p, J);
 
     // Now take the inverse.
     ElVisFloat determinant = (-J[0]*J[4]*J[8]+J[0]*J[5]*J[7]

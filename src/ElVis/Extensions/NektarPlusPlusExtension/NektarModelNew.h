@@ -94,6 +94,8 @@ namespace NektarPlusPlusExtension
         /// Vector containing all faces
         std::vector<Nektar::SpatialDomains::Geometry2DSharedPtr> m_faces;
 
+        std::vector<bool> m_faceNormalFlip;
+
         /// Map from geometry IDs to contiguous IDs (i.e. 0 -> nFaces-1)
         std::map<int, int> m_idToElmt;
 

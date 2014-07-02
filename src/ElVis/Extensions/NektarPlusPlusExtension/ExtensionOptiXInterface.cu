@@ -66,6 +66,9 @@ rtBuffer<int>         CurvedGeomOffsetBuffer;
 /// Contains offset of coefficients within curved geometry buffer.
 rtBuffer<uint3>       CurvedGeomNumModesBuffer;
 
+/// Contains offset of coefficients within curved geometry buffer.
+rtBuffer<ElVisFloat>  NormalFlipBuffer;
+
 // Record number of curved faces
 rtDeclareVariable(int, nCurvedFaces, , );
 
@@ -210,7 +213,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(
 
     // Construct normal to face by taking cross product
     ElVisFloat3 cr = cross(dr, ds);
-    result = normalize(cr);
+    result = NormalFlipBuffer[faceId.Value] * normalize(cr);
 
     ELVIS_PRINTF("[NEKTAR] face = %d  result = %f %f %f\n", faceId.Value, result.x, result.y, result.z);
     return eNoError;
@@ -241,7 +244,8 @@ ELVIS_DEVICE ElVisError EvaluateFace(
     result.z = EvaluateQuadAtReferencePoint(
         &FaceCoeffsBuffer[offset+2*nummodes], &FaceNumModesBuffer[Idx.Value], refPoint);
 
-    ELVIS_PRINTF("[NEKTAR] offset = %d nummodes = %d   result = %f %f %f\n", offset, nummodes, result.x, result.y, result.z);
+    ELVIS_PRINTF("[NEKTAR] offset = %d  nummodes = %d  refpoint = %f %f  result = %f %f %f\n",
+                 offset, nummodes, refPoint.x, refPoint.y, result.x, result.y, result.z);
     
     return eNoError;
 }
