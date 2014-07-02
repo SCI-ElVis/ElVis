@@ -190,6 +190,8 @@ __device__ __forceinline__ void CalculateJacobianLinearHex(
     ElVisFloat r = p.x;
     ElVisFloat s = p.y;
     ElVisFloat t = p.z;
+    ELVIS_PRINTF("refpoint = %f %f %f\n", r, s, t);
+    
 
     ElVisFloat t1 = 1.0f-s;
     ElVisFloat t2 = 1.0f-t;
@@ -303,6 +305,7 @@ __device__ __forceinline__ void calculateInverseJacobianHex(
                               +J[3]*J[1]*J[8]-J[3]*J[2]*J[7]
                               -J[6]*J[1]*J[5]+J[6]*J[2]*J[4]);
 
+    //ELVIS_PRINTF("[NEKTAR] det = %f\n", determinant);
     inverse[0] = (-J[4]*J[8]+J[5]*J[7])/determinant;
     inverse[1] = -(-J[1]*J[8]+J[2]*J[7])/determinant;
     inverse[2] = -(J[1]*J[5]-J[2]*J[4])/determinant;

@@ -204,7 +204,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(
     ElVisFloat3&      result)
 {
     PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(faceId);
-    if( planarFaceIdx.Value >= 0 )
+    if (planarFaceIdx.Value >= 0)
     {
         result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
         return eNoError;
@@ -229,9 +229,12 @@ ELVIS_DEVICE ElVisError GetFaceNormal(
 
     // Construct normal to face by taking cross product
     ElVisFloat3 cr = cross(dr, ds);
+
+    // Flip sign of normal depending on orientation and normalize
     result = NormalFlipBuffer[faceId.Value] * normalize(cr);
 
-    ELVIS_PRINTF("[NEKTAR] face = %d  result = %f %f %f\n", faceId.Value, result.x, result.y, result.z);
+    ELVIS_PRINTF("[NEKTAR] face = %d  result = %f %f %f\n",
+                 faceId.Value, result.x, result.y, result.z);
     return eNoError;
 }
 

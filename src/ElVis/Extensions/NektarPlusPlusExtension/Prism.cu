@@ -46,10 +46,10 @@ __device__ __forceinline__ ElVisFloat EvaluatePrismAtReferencePoint(
         ElVisFloat value_i = ModifiedA(i, p.x);
         for (uint j = 0; j < modes->y; ++j)
         {
-            ElVisFloat value_j = ModifiedA(j, p.y) * value_i;
+            ElVisFloat value_j = ModifiedA(j, p.y);
             for (uint k = 0; k < modes->z - i; ++k)
             {
-                result += coeffs[cnt++] * ModifiedB(i, k, p.z) * value_j;
+                result += coeffs[cnt++] * ModifiedB(i, k, p.z) * value_i * value_j;
             }
         }
     }
@@ -189,25 +189,6 @@ __device__ __forceinline__ void CalculateJacobianLinearPrism(
     ElVisFloat s = p.y;
     ElVisFloat t = p.z;
 
-    // ElVisFloat t1 = 1.0f-s;
-    // ElVisFloat t2 = 1.0f-t;
-    // ElVisFloat t3 = t1*t2;
-    // ElVisFloat t6 = 1.0f+s;
-    // ElVisFloat t7 = t6*t2;
-    // ElVisFloat t10 = 1.0f+t;
-    // ElVisFloat t11 = t1*t10;
-    // ElVisFloat t14 = t6*t10;
-    // ElVisFloat t18 = 1.0f-r;
-    // ElVisFloat t19 = t18*t2;
-    // ElVisFloat t21 = 1.0f+r;
-    // ElVisFloat t22 = t21*t2;
-    // ElVisFloat t26 = t18*t10;
-    // ElVisFloat t28 = t21*t10;
-    // ElVisFloat t33 = t18*t1;
-    // ElVisFloat t35 = t21*t1;
-    // ElVisFloat t37 = t21*t6;
-    // ElVisFloat t39 = t18*t6;
-
     ElVisFloat eta00 = MAKE_FLOAT(1.0) - r;
     ElVisFloat eta01 = MAKE_FLOAT(1.0) + r;
     ElVisFloat eta10 = MAKE_FLOAT(1.0) - s;
@@ -236,6 +217,43 @@ __device__ __forceinline__ void CalculateJacobianLinearPrism(
     ElVisFloat v4z = GetVertex(priId, 4).z;
     ElVisFloat v5z = GetVertex(priId, 5).z;
 
+    //ELVIS_PRINTF("priid = %d\n", priId);
+    //ELVIS_PRINTF("v0 = %f %f %f\n", v0x, v0y, v0z);
+    //ELVIS_PRINTF("v1 = %f %f %f\n", v1x, v1y, v1z);
+    //ELVIS_PRINTF("v2 = %f %f %f\n", v2x, v2y, v2z);
+    //ELVIS_PRINTF("v3 = %f %f %f\n", v3x, v3y, v3z);
+    //ELVIS_PRINTF("v4 = %f %f %f\n", v4x, v4y, v4z);
+    //ELVIS_PRINTF("v5 = %f %f %f\n", v5x, v5y, v5z);
+
+    J[0] = MAKE_FLOAT(0.25) * (
+        - eta10 * v0x + eta10 * v1x + eta11 * v2x - eta11 * v3x);
+    J[3] = MAKE_FLOAT(0.25) * (
+        - eta10 * v0y + eta10 * v1y + eta11 * v2y - eta11 * v3y);
+    J[6] = MAKE_FLOAT(0.25) * (
+        - eta10 * v0z + eta10 * v1z + eta11 * v2z - eta11 * v3z);
+    J[1] = MAKE_FLOAT(0.125) * (
+        - eta00 * v0x - eta01 * v1x + eta01 * v2x + eta00 * v3x) * eta20 +
+           MAKE_FLOAT(0.25) * (
+        - eta21 * v4x + eta21 * v5x);
+    J[4] = MAKE_FLOAT(0.125) * (
+        - eta00 * v0y - eta01 * v1y + eta01 * v2y + eta00 * v3y) * eta20 +
+           MAKE_FLOAT(0.25) * (
+        - eta21 * v4y + eta21 * v5y);
+    J[7] = MAKE_FLOAT(0.125) * (
+        - eta00 * v0z - eta01 * v1z + eta01 * v2z + eta00 * v3z) * eta20 +
+           MAKE_FLOAT(0.25) * (
+        - eta21 * v4z + eta21 * v5z);
+    J[2] = MAKE_FLOAT(0.125) * (
+        - eta00 * eta10 * v0x - eta01 * eta10 * v1x - eta01 * eta11 * v2x - eta00 * eta11 * v3x)
+        + MAKE_FLOAT(0.25) * (eta10 * v4x + eta11 * v5x) + MAKE_FLOAT(0.5) * eta01 * J[0];
+    J[5] = MAKE_FLOAT(0.125) * (
+        - eta00 * eta10 * v0y - eta01 * eta10 * v1y - eta01 * eta11 * v2y - eta00 * eta11 * v3y)
+        + MAKE_FLOAT(0.25) * (eta10 * v4y + eta11 * v5y) + MAKE_FLOAT(0.5) * eta01 * J[3];
+    J[8] = MAKE_FLOAT(0.125) * (
+        - eta00 * eta10 * v0z - eta01 * eta10 * v1z - eta01 * eta11 * v2z - eta00 * eta11 * v3z)
+        + MAKE_FLOAT(0.25) * (eta10 * v4z + eta11 * v5z) + MAKE_FLOAT(0.5) * eta01 * J[6];
+
+    /*
     J[0] = (- eta10*v0x + eta10*v1x + eta11*v2x - eta11*v3x) * eta20;
     J[1] = (- eta00*v0x - eta01*v1x + eta01*v2x + eta00*v3x) * eta20 +
         MAKE_FLOAT(2.0) * eta21 * (-v4x + v5x);
@@ -251,16 +269,9 @@ __device__ __forceinline__ void CalculateJacobianLinearPrism(
         MAKE_FLOAT(2.0) * eta21 * (-v4z + v5z);
     J[8] = - eta00*eta10*v0z - eta01*eta10*v1z - eta01*eta11*v2z
         - eta00*eta11*v3z + MAKE_FLOAT(2.0) * (eta10 * v4z + eta11 * v5z);
+    */
 
-    J[0] *= MAKE_FLOAT(0.125);
-    J[1] *= MAKE_FLOAT(0.125);
-    J[2] *= MAKE_FLOAT(0.125);
-    J[3] *= MAKE_FLOAT(0.125);
-    J[4] *= MAKE_FLOAT(0.125);
-    J[5] *= MAKE_FLOAT(0.125);
-    J[6] *= MAKE_FLOAT(0.125);
-    J[7] *= MAKE_FLOAT(0.125);
-    J[8] *= MAKE_FLOAT(0.125);
+    //ELVIS_PRINTF("[NEKTAR] ref = %f %f %f   J = %f %f %f %f %f %f %f %f %f\n", r, s, t, J[0], J[1], J[2], J[3], J[4], J[5], J[6], J[7], J[8]);
 }
 
 __device__ __forceinline__ void CalculateJacobianPrism(
@@ -347,6 +358,7 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferencePrism(
             fabs(s_adjust) < tolerance &&
             fabs(t_adjust) < tolerance )
         {
+            ELVIS_PRINTF("[NEKTAR] CONVERGE = %d  result = %f %f %f\n", numIterations, result.x, result.y, result.z);
             return result;
         }
 
@@ -373,6 +385,8 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferencePrism(
         ++numIterations;
     }
     while( numIterations < MAX_ITERATIONS);
+
+    //ELVIS_PRINTF("[NEKTAR] DIDN'T CONVERGE   result = %f %f %f\n", numIterations, result.x, result.y, result.z);
 
     return result;
 }
