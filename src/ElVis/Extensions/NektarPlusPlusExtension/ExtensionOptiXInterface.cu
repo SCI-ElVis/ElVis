@@ -57,6 +57,14 @@ rtBuffer<uint2>       FaceNumModesBuffer;
 /// Contains offset of a curved face within the buffer.
 rtBuffer<int>         FaceCoeffsOffsetBuffer;
 
+#if 0
+/// Contains full 3D curved geometry coeffs.
+rtBuffer<ElVisFloat>  CurvedGeomBuffer;
+
+/// Contains offset of coefficients within curved geometry buffer.
+rtBuffer<int>         CurvedGeomOffsetBuffer;
+#endif
+
 // Record number of curved faces
 rtDeclareVariable(int, nCurvedFaces, , );
 
@@ -194,42 +202,15 @@ ELVIS_DEVICE ElVisError GetFaceNormal(
     GlobalFaceIdx             faceId,
     ElVisFloat3&              result)
 {
-    if (faceId.Value == 0)
-    {
-        result.x = MAKE_FLOAT(0.0);
-        result.y = MAKE_FLOAT(0.0);
-        result.z = MAKE_FLOAT(-1.0);
-    }
-    if (faceId.Value == 1)
-    {
-        result.x = MAKE_FLOAT(0.0);
-        result.y = MAKE_FLOAT(-1.0);
-        result.z = MAKE_FLOAT(0.0);
-    }
-    if (faceId.Value == 2)
-    {
-        result.x = MAKE_FLOAT(1.0);
-        result.y = MAKE_FLOAT(0.0);
-        result.z = MAKE_FLOAT(0.0);
-    }
-    if (faceId.Value == 3)
-    {
-        result.x = MAKE_FLOAT(0.0);
-        result.y = MAKE_FLOAT(1.0);
-        result.z = MAKE_FLOAT(0.0);
-    }
-    if (faceId.Value == 4)
-    {
-        result.x = MAKE_FLOAT(-1.0);
-        result.y = MAKE_FLOAT(0.0);
-        result.z = MAKE_FLOAT(0.0);
-    }
-    if (faceId.Value == 5)
-    {
-        result.x = MAKE_FLOAT(0.0);
-        result.y = MAKE_FLOAT(0.0);
-        result.z = MAKE_FLOAT(1.0);
-    }
+    // Evaluate face Jacobian
+    ElVisFloat3 dr, ds;
+    EvaluateFaceJacobian(
+        faceId, refPoint, dr.x, ds.x, dr.y, ds.y, dr.z, ds.z);
+
+    // Construct normal to face by taking cross product
+    ElVisFloat3 cr = cross(dr, ds);
+    result = normalize(cr);
+
     ELVIS_PRINTF("[NEKTAR] face = %d  result = %f %f %f\n", faceId.Value, result.x, result.y, result.z);
     return eNoError;
 }
