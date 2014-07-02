@@ -483,15 +483,20 @@ namespace NektarPlusPlusExtension
         }
 
         // Buffer for curved face coefficients
-        ElVis::OptiXBuffer<ElVisFloat3> faceCoeffsBuffer("FaceCoeffsBuffer");
+        ElVis::OptiXBuffer<ElVisFloat> faceCoeffsBuffer("FaceCoeffsBuffer");
         faceCoeffsBuffer.SetContext   (context);
-        faceCoeffsBuffer.SetDimensions(nFaceCoeffs);
+        faceCoeffsBuffer.SetDimensions(nFaceCoeffs*3);
         BOOST_AUTO(faceCoeffs, faceCoeffsBuffer.map());
 
         ElVis::OptiXBuffer<int> faceCoeffsOffsetBuffer("FaceCoeffsOffsetBuffer");
         faceCoeffsOffsetBuffer.SetContext   (context);
         faceCoeffsOffsetBuffer.SetDimensions(nCurvedFaces);
         BOOST_AUTO(faceCoeffsOffset, faceCoeffsOffsetBuffer.map());
+
+        ElVis::OptiXBuffer<uint2> faceNumModesBuffer("FaceNumModesBuffer");
+        faceNumModesBuffer.SetContext   (context);
+        faceNumModesBuffer.SetDimensions(nCurvedFaces);
+        BOOST_AUTO(faceNumModes, faceNumModesBuffer.map());
 
         int cnt2 = 0;
         for (cnt = i = 0; i < m_faceInfo.size(); ++i)
@@ -504,15 +509,16 @@ namespace NektarPlusPlusExtension
             SpatialDomains::Geometry2DSharedPtr face = m_faces[i];
             const int nFaceCoeffs = face->GetXmap()->GetNcoeffs();
 
+            faceNumModes[cnt2].x = m_faces[i]->GetXmap()->GetBasisNumModes(0);
+            faceNumModes[cnt2].y = m_faces[i]->GetXmap()->GetBasisNumModes(0);
             faceCoeffsOffset[cnt2++] = cnt;
 
-            for (j = 0; j < nFaceCoeffs; ++j)
+            for (j = 0; j < 3; ++j)
             {
-                ElVisFloat3 tmp;
-                tmp.x = (ElVisFloat)face->GetCoeffs(0)[j];
-                tmp.y = (ElVisFloat)face->GetCoeffs(1)[j];
-                tmp.z = (ElVisFloat)face->GetCoeffs(2)[j];
-                faceCoeffs[cnt++] = tmp;
+                for (k = 0; k < nFaceCoeffs; ++k)
+                {
+                    faceCoeffs[cnt++] = (ElVisFloat)face->GetCoeffs(j)[k];
+                }
             }
         }
         

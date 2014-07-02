@@ -49,7 +49,10 @@ rtBuffer<ElVisFloat3> CoordBuffer;
 rtBuffer<int>         CoordOffsetBuffer;
 
 /// Contains face coefficients for any curved faces.
-rtBuffer<ElVisFloat3> FaceCoeffsBuffer;
+rtBuffer<ElVisFloat>  FaceCoeffsBuffer;
+
+/// Contains number of modes for face buffer
+rtBuffer<uint2>       FaceNumModesBuffer;
 
 /// Contains offset of a curved face within the buffer.
 rtBuffer<int>         FaceCoeffsOffsetBuffer;
@@ -60,6 +63,7 @@ rtDeclareVariable(int, nCurvedFaces, , );
 #include <ElVis/Core/VolumeRenderingPayload.cu>
 #include <ElVis/Core/OptixVariables.cu>
 #include <ElVis/Core/Float.cu>
+#include <ElVis/Extensions/NektarPlusPlusExtension/Quadrilateral.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Hexahedron.cu>
 
 #include <LibUtilities/BasicUtils/ShapeType.hpp>
@@ -144,6 +148,21 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(
         return eFieldNotDefinedOnFace;
     }
 
+    int offset = FaceCoeffsOffsetBuffer[Idx.Value];
+    int nummodes = FaceNumModesBuffer[Idx.Value].x * FaceNumModesBuffer[Idx.Value].y;
+    dx_dr = EvaluateQuadGradientAtReferencePoint0(
+        &FaceCoeffsBuffer[offset], &FaceNumModesBuffer[Idx.Value], p);
+    dx_ds = EvaluateQuadGradientAtReferencePoint1(
+        &FaceCoeffsBuffer[offset], &FaceNumModesBuffer[Idx.Value], p);
+    dy_dr = EvaluateQuadGradientAtReferencePoint0(
+        &FaceCoeffsBuffer[offset+nummodes], &FaceNumModesBuffer[Idx.Value], p);
+    dy_ds = EvaluateQuadGradientAtReferencePoint1(
+        &FaceCoeffsBuffer[offset+nummodes], &FaceNumModesBuffer[Idx.Value], p);
+    dz_dr = EvaluateQuadGradientAtReferencePoint0(
+        &FaceCoeffsBuffer[offset+2*nummodes], &FaceNumModesBuffer[Idx.Value], p);
+    dz_ds = EvaluateQuadGradientAtReferencePoint1(
+        &FaceCoeffsBuffer[offset+2*nummodes], &FaceNumModesBuffer[Idx.Value], p);
+
     return eNoError;
 }
 
@@ -172,9 +191,42 @@ ELVIS_DEVICE ElVisError GetFaceNormal(
     GlobalFaceIdx             faceId,
     ElVisFloat3&              result)
 {
-    result.x = MAKE_FLOAT(1.0);
-    result.y = MAKE_FLOAT(0.0);
-    result.z = MAKE_FLOAT(0.0);
+    if (faceId.Value == 0)
+    {
+        result.x = MAKE_FLOAT(0.0);
+        result.y = MAKE_FLOAT(0.0);
+        result.z = MAKE_FLOAT(-1.0);
+    }
+    if (faceId.Value == 1)
+    {
+        result.x = MAKE_FLOAT(0.0);
+        result.y = MAKE_FLOAT(-1.0);
+        result.z = MAKE_FLOAT(0.0);
+    }
+    if (faceId.Value == 2)
+    {
+        result.x = MAKE_FLOAT(1.0);
+        result.y = MAKE_FLOAT(0.0);
+        result.z = MAKE_FLOAT(0.0);
+    }
+    if (faceId.Value == 3)
+    {
+        result.x = MAKE_FLOAT(1.0);
+        result.y = MAKE_FLOAT(0.0);
+        result.z = MAKE_FLOAT(0.0);
+    }
+    if (faceId.Value == 4)
+    {
+        result.x = MAKE_FLOAT(-1.0);
+        result.y = MAKE_FLOAT(0.0);
+        result.z = MAKE_FLOAT(0.0);
+    }
+    if (faceId.Value == 5)
+    {
+        result.x = MAKE_FLOAT(0.0);
+        result.y = MAKE_FLOAT(0.0);
+        result.z = MAKE_FLOAT(1.0);
+    }
     return eNoError;
 }
 
@@ -187,6 +239,21 @@ ELVIS_DEVICE ElVisError EvaluateFace(
     const FaceReferencePoint& refPoint,
     WorldPoint&               result)
 {
+    CurvedFaceIdx Idx = ConvertToCurvedFaceIdx(faceId);
+
+    if (Idx.Value >= nCurvedFaces)
+    {
+        return eFieldNotDefinedOnFace;
+    }
+
+    int offset = FaceCoeffsOffsetBuffer[Idx.Value];
+    int nummodes = FaceNumModesBuffer[Idx.Value].x * FaceNumModesBuffer[Idx.Value].y;
+    result.x = EvaluateQuadAtReferencePoint(
+        &FaceCoeffsBuffer[offset], &FaceNumModesBuffer[Idx.Value], refPoint);
+    result.y = EvaluateQuadAtReferencePoint(
+        &FaceCoeffsBuffer[offset+nummodes], &FaceNumModesBuffer[Idx.Value], refPoint);
+    result.z = EvaluateQuadAtReferencePoint(
+        &FaceCoeffsBuffer[offset+2*nummodes], &FaceNumModesBuffer[Idx.Value], refPoint);
     return eNoError;
 }
 
