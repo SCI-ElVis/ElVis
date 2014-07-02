@@ -31,7 +31,6 @@
 #include <SpatialDomains/MeshGraph3D.h>
 #include <LocalRegions/TriExp.h>
 #include <LocalRegions/QuadExp.h>
-#include <LocalRegions/HexExp.h>
 #include <MultiRegions/ExpList3D.h>
 
 namespace ElVis
@@ -114,12 +113,21 @@ namespace NektarPlusPlusExtension
         // Populate list of faces
         SpatialDomains::QuadGeomMap::const_iterator qIt;
         const SpatialDomains::QuadGeomMap &quadMap = m_graph->GetAllQuadGeoms();
-        m_faces.resize(quadMap.size());
-        m_faceNormalFlip.resize(quadMap.size());
+
+        SpatialDomains::TriGeomMap::const_iterator tIt;
+        const SpatialDomains::TriGeomMap &triMap = m_graph->GetAllTriGeoms();
+        
+        m_faces.resize(quadMap.size() + triMap.size());
+        m_faceNormalFlip.resize(quadMap.size() + triMap.size());
 
         for (i = 0, qIt = quadMap.begin(); qIt != quadMap.end(); ++qIt)
         {
             m_faces[i++] = qIt->second;
+        }
+
+        for (tIt = triMap.begin(); tIt != triMap.end(); ++tIt)
+        {
+            m_faces[i++] = tIt->second;
         }
 
         m_fields[0]->SetUpPhysNormals();
@@ -151,11 +159,26 @@ namespace NektarPlusPlusExtension
             }
 
             StdRegions::Orientation orient =
-                boost::dynamic_pointer_cast<SpatialDomains::Geometry3D>(connectedElmt->at(0)->m_Element)->GetFaceOrient(
-                    connectedElmt->at(0)->m_FaceIndx);
+                boost::dynamic_pointer_cast<SpatialDomains::Geometry3D>(
+                    connectedElmt->at(0)->m_Element)->GetFaceOrient(
+                        connectedElmt->at(0)->m_FaceIndx);
+            LibUtilities::ShapeType shapeType =
+                boost::dynamic_pointer_cast<SpatialDomains::Geometry3D>(
+                    connectedElmt->at(0)->m_Element)->GetShapeType();
 
-            bool flipFace[6] = {true, false, false, true, true, false};
-            bool flipThisFace = flipFace[connectedElmt->at(0)->m_FaceIndx];
+            bool flipThisFace;
+
+            if (shapeType == LibUtilities::eHexahedron)
+            {
+                bool flipFace[6] = {true, false, false, true, true, false};
+                flipThisFace = flipFace[connectedElmt->at(0)->m_FaceIndx];
+
+            }
+            else if (shapeType == LibUtilities::ePrism)
+            {
+                bool flipFace[5] = {true, false, false, true, true};
+                flipThisFace = flipFace[connectedElmt->at(0)->m_FaceIndx];
+            }
 
             if (orient == StdRegions::eDir1BwdDir1_Dir2FwdDir2 ||
                 orient == StdRegions::eDir1FwdDir1_Dir2BwdDir2)
@@ -164,7 +187,6 @@ namespace NektarPlusPlusExtension
             }
 
             m_faceNormalFlip[i] = flipThisFace;
-            cout << "FACE " << i << " ORIENT = " << orient << " FLIP = " << flipThisFace;
 
             //fInfo.Type = eCurved;
             if (face->GetGeomFactors()->GetGtype() == SpatialDomains::eDeformed)
@@ -178,11 +200,10 @@ namespace NektarPlusPlusExtension
                 // Construct face normal
                 m_planarFaces.push_back(face);
 
-                const Array<Nektar::OneD, const Array<Nektar::OneD, NekDouble> > &normal =
-                    boost::dynamic_pointer_cast<LocalRegions::HexExp>(
-                        m_fields[0]->GetExp(
-                            m_idToElmt[
-                                connectedElmt->at(0)->m_Element->GetGlobalID()]))
+                const Array<Nektar::OneD, const Array<Nektar::OneD, NekDouble> >
+                    &normal = m_fields[0]->GetExp(
+                        m_idToElmt[
+                            connectedElmt->at(0)->m_Element->GetGlobalID()])
                     ->GetFaceNormal(connectedElmt->at(0)->m_FaceIndx);
 
                 m_planarFaceNormals.push_back(
@@ -214,14 +235,16 @@ namespace NektarPlusPlusExtension
                 faceExp = MemoryManager<LocalRegions::QuadExp>::
                     AllocateSharedPtr(xmap->GetBasis(0)->GetBasisKey(),
                                       xmap->GetBasis(1)->GetBasisKey(),
-                                      boost::dynamic_pointer_cast<SpatialDomains::QuadGeom>(face));
+                                      boost::dynamic_pointer_cast<
+                                          SpatialDomains::QuadGeom>(face));
             }
             else if (face->GetShapeType() == LibUtilities::eTriangle)
             {
                 faceExp = MemoryManager<LocalRegions::TriExp>::
                     AllocateSharedPtr(xmap->GetBasis(0)->GetBasisKey(),
                                       xmap->GetBasis(1)->GetBasisKey(),
-                                      boost::dynamic_pointer_cast<SpatialDomains::TriGeom>(face));
+                                      boost::dynamic_pointer_cast<
+                                          SpatialDomains::TriGeom>(face));
             }
 
             const int nPts = faceExp->GetTotPoints();
@@ -361,11 +384,15 @@ namespace NektarPlusPlusExtension
     FaceInfo NektarModel::DoGetFaceDefinition(size_t globalFaceId) const
     {
         FaceInfo f = m_faceInfo[globalFaceId];
+#if 0
         cout << "Face " << globalFaceId << ": left = "
              << f.CommonElements[0].Id << " " << f.CommonElements[0].Type << " "
              << f.CommonElements[1].Id << " " << f.CommonElements[1].Type
-             << "   minext = " << f.MinExtent.x << " " << f.MinExtent.y << " " << f.MinExtent.z
-             << "   maxext = " << f.MaxExtent.x << " " << f.MaxExtent.y << " " << f.MaxExtent.z << endl;
+             << "   minext = " << f.MinExtent.x << " " << f.MinExtent.y
+             << " " << f.MinExtent.z
+             << "   maxext = " << f.MaxExtent.x << " " << f.MaxExtent.y << " "
+             << f.MaxExtent.z << endl;
+#endif
         return m_faceInfo[globalFaceId];
     }
 
@@ -550,15 +577,16 @@ namespace NektarPlusPlusExtension
         // Set in OptiX buffer.
         context["nCurvedFaces"]->setInt(nCurvedFaces);
 
-        // Count number of deformed hexahedra
+        // Count number of deformed elements
         int nCurvedElmt = 0, nCurvedGeomCoeffs = 0;
         for (i = 0; i < m_fields[0]->GetExpSize(); ++i)
         {
-            if (m_fields[0]->GetExp(i)->GetMetricInfo()->GetGtype() == SpatialDomains::eDeformed)
+            if (m_fields[0]->GetExp(i)->GetMetricInfo()->GetGtype() ==
+                    SpatialDomains::eDeformed)
             {
                 nCurvedElmt++;
-                nCurvedGeomCoeffs +=
-                    m_fields[0]->GetExp(i)->GetGeom()->GetXmap()->GetNcoeffs() * 3;
+                nCurvedGeomCoeffs += m_fields[0]->GetExp(i)->GetGeom()
+                                                ->GetXmap()->GetNcoeffs() * 3;
             }
         }
 
@@ -584,10 +612,8 @@ namespace NektarPlusPlusExtension
             uint3 nm;
             nm.x = nm.y = nm.z = -1;
 
-#if 0
             if (m_fields[0]->GetExp(i)->GetMetricInfo()->GetGtype() == SpatialDomains::eDeformed)
             {
-#endif
                 curvedGeomOffset[i] = cnt;
                 nm.x = geom->GetXmap()->GetBasisNumModes(0);
                 nm.y = geom->GetXmap()->GetBasisNumModes(1);
@@ -600,13 +626,12 @@ namespace NektarPlusPlusExtension
                         curvedGeom[cnt++] = (ElVisFloat)geom->GetCoeffs(j)[k];
                     }
                 }
-#if 0
             }
             else
             {
                 curvedGeomOffset[i] = -1;
             }
-#endif
+
             curvedGeomNumModes[i] = nm;
         }
     }
