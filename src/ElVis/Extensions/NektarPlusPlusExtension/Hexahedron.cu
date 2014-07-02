@@ -201,6 +201,7 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
             fabs(s_adjust) < tolerance &&
             fabs(t_adjust) < tolerance )
         {
+            ELVIS_PRINTF("[NEKTAR] CONVERGE = %d  result = %f %f %f\n", numIterations, result.x, result.y, result.z);
             return result;
         }
 
@@ -227,6 +228,8 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
         ++numIterations;
     }
     while( numIterations < MAX_ITERATIONS);
+
+    ELVIS_PRINTF("[NEKTAR] DIDN'T CONVERGE   result = %f %f %f\n", numIterations, result.x, result.y, result.z);
 
     return result;
 }

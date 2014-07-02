@@ -149,6 +149,8 @@ namespace NektarPlusPlusExtension
                     (int)connectedElmt->at(i)->m_Element->GetShapeType());
             }
 
+            fInfo.Type = eCurved;
+            /*
             if (face->GetGeomFactors()->GetGtype() == SpatialDomains::eDeformed)
             {
                 fInfo.Type = eCurved;
@@ -187,6 +189,7 @@ namespace NektarPlusPlusExtension
                     seenPlanarVerts.insert(vId);
                 }
             }
+            */
 
             // Calculate estimate of face extent
             LocalRegions::Expansion2DSharedPtr faceExp;
