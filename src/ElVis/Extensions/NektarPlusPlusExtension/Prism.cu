@@ -140,13 +140,13 @@ __device__ __forceinline__ WorldPoint TransformReferenceToWorldLinearPrism(
     ElVisFloat x = MAKE_FLOAT(.125) * (
         t1*GetVertex(priId, 0).x + t2*GetVertex(priId, 1).x +
         t3*GetVertex(priId, 2).x + t4*GetVertex(priId, 3).x) +
-            MAKE_FLOAT(.5) * (
+            MAKE_FLOAT(.25) * (
         t5*GetVertex(priId, 4).x + t6*GetVertex(priId, 5).x);
 
     ElVisFloat y = MAKE_FLOAT(.125) * (
         t1*GetVertex(priId, 0).y + t2*GetVertex(priId, 1).y +
         t3*GetVertex(priId, 2).y + t4*GetVertex(priId, 3).y) +
-            MAKE_FLOAT(.5) * (
+            MAKE_FLOAT(.25) * (
         t5*GetVertex(priId, 4).y + t6*GetVertex(priId, 5).y);
 
     ElVisFloat z = MAKE_FLOAT(.125) * (
