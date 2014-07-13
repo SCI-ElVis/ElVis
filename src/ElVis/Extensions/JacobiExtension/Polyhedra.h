@@ -303,9 +303,9 @@ namespace ElVis
             /// \f[
             ///     \left(
             ///         \begin{array}{ccc}
-            ///             \frac{\partial^2\rho}{\partial a^2} & \frac{\partial^2 \rho}{\partial a \partial b} & \frac{\partial^2 \rho}{\partial a \partial c}\\
-            ///             \frac{\partial^2\rho}{\partial b \partial a} & \frac{\partial^2 \rho}{\partial b^2} & \frac{\partial^2 \rho}{\partial b \partial c}\\
-            ///             \frac{\partial^2\rho}{\partial c \partial a} & \frac{\partial^2 \rho}{\partial c \partial b} & \frac{\partial^2 \rho}{\partial c^2}\\
+            ///             \frac{\partial^2\rho}{\partial a^2} & \frac{\partial^2 \rho}{\partial a \partial b} & \frac{\partial^2 \rho}{\partial a \partial c}
+            ///             \frac{\partial^2\rho}{\partial b \partial a} & \frac{\partial^2 \rho}{\partial b^2} & \frac{\partial^2 \rho}{\partial b \partial c}
+            ///             \frac{\partial^2\rho}{\partial c \partial a} & \frac{\partial^2 \rho}{\partial c \partial b} & \frac{\partial^2 \rho}{\partial c^2}
             ///         \end{array}\right)
             /// \f]
             JACOBI_EXTENSION_EXPORT void calculateScalarFunctionHessian(const ElVis::TensorPoint& p, JacobiExtension::Matrix<double, 3, 3>& H);
@@ -319,9 +319,9 @@ namespace ElVis
             /// \f[
             ///     \left(
             ///         \begin{array}{c}
-            ///             \frac{\partial \rho}{\partial x} \\
-            ///             \frac{\partial \rho}{\partial y} \\
-            ///             \frac{\partial \rho}{\partial z} \\
+            ///             \frac{\partial \rho}{\partial x}
+            ///             \frac{\partial \rho}{\partial y}
+            ///             \frac{\partial \rho}{\partial z}
             ///         \end{array}\right)
             /// \f]
             JACOBI_EXTENSION_EXPORT ElVis::WorldVector calculateScalarFunctionWorldGradient(const ElVis::TensorPoint& tp);
@@ -336,9 +336,9 @@ namespace ElVis
             /// \f[
             ///     \left(
             ///         \begin{array}{c}
-            ///             \frac{\partial \rho}{\partial x} \\
-            ///             \frac{\partial \rho}{\partial y} \\
-            ///             \frac{\partial \rho}{\partial z} \\
+            ///             \frac{\partial \rho}{\partial x}
+            ///             \frac{\partial \rho}{\partial y}
+            ///             \frac{\partial \rho}{\partial z}
             ///         \end{array}\right)
             /// \f]
             JACOBI_EXTENSION_EXPORT ElVis::WorldVector calculateScalarFunctionWorldGradient(const ElVis::TensorVector& tv, JacobiExtension::Matrix<double, 3, 3>& J);
@@ -352,9 +352,9 @@ namespace ElVis
             /// \f[
             ///     \left(
             ///         \begin{array}{c}
-            ///             \frac{\partial f}{\partial a} \\
-            ///             \frac{\partial f}{\partial b} \\
-            ///             \frac{\partial f}{\partial c} \\
+            ///             \frac{\partial f}{\partial a}
+            ///             \frac{\partial f}{\partial b}
+            ///             \frac{\partial f}{\partial c}
             ///         \end{array}\right)
             /// \f]
             JACOBI_EXTENSION_EXPORT ElVis::TensorVector calculateScalarFunctionTensorGradient(const ElVis::TensorPoint& p);
@@ -378,9 +378,9 @@ namespace ElVis
             /// \f[
             ///     \left(
             ///         \begin{array}{ccc}
-            ///             \frac{\partial f_x}{\partial a} & \frac{\partial f_x}{\partial b} & \frac{\partial f_x}{\partial c }\\
-            ///             \frac{\partial f_y}{\partial a} & \frac{\partial f_y}{\partial b} & \frac{\partial f_y}{\partial c }\\
-            ///             \frac{\partial f_z}{\partial a} & \frac{\partial f_z}{\partial b} & \frac{\partial f_z}{\partial c }\\
+            ///             \frac{\partial f_x}{\partial a} & \frac{\partial f_x}{\partial b} & \frac{\partial f_x}{\partial c }
+            ///             \frac{\partial f_y}{\partial a} & \frac{\partial f_y}{\partial b} & \frac{\partial f_y}{\partial c }
+            ///             \frac{\partial f_z}{\partial a} & \frac{\partial f_z}{\partial b} & \frac{\partial f_z}{\partial c }
             ///         \end{array}\right)
             /// \f]
             JACOBI_EXTENSION_EXPORT virtual void calculateTensorToWorldSpaceMappingJacobian(const ElVis::TensorPoint& p, JacobiExtension::Matrix<double, 3, 3>& J) = 0;
@@ -400,27 +400,27 @@ namespace ElVis
             /// \f[ H_x =
             ///     \left(
             ///         \begin{array}{ccc}
-            ///             \frac{\partial^2f_x}{\partial a^2} & \frac{\partial^2 f_x}{\partial a \partial b} & \frac{\partial^2 f_x}{\partial a \partial c}\\
-            ///             \frac{\partial^2f_x}{\partial b \partial a} & \frac{\partial^2 f_x}{\partial b^2} & \frac{\partial^2 f_x}{\partial b \partial c}\\
-            ///             \frac{\partial^2f_x}{\partial c \partial a} & \frac{\partial^2 f_x}{\partial c \partial b} & \frac{\partial^2 f_x}{\partial c^2}\\
+            ///             \frac{\partial^2f_x}{\partial a^2} & \frac{\partial^2 f_x}{\partial a \partial b} & \frac{\partial^2 f_x}{\partial a \partial c}
+            ///             \frac{\partial^2f_x}{\partial b \partial a} & \frac{\partial^2 f_x}{\partial b^2} & \frac{\partial^2 f_x}{\partial b \partial c}
+            ///             \frac{\partial^2f_x}{\partial c \partial a} & \frac{\partial^2 f_x}{\partial c \partial b} & \frac{\partial^2 f_x}{\partial c^2}
             ///         \end{array}\right)
             /// \f]
             ///
             /// \f[ H_y =
             ///     \left(
             ///         \begin{array}{ccc}
-            ///             \frac{\partial^2f_y}{\partial a^2} & \frac{\partial^2 f_y}{\partial a \partial b} & \frac{\partial^2 f_y}{\partial a \partial c}\\
-            ///             \frac{\partial^2f_y}{\partial b \partial a} & \frac{\partial^2 f_y}{\partial b^2} & \frac{\partial^2 f_y}{\partial b \partial c}\\
-            ///             \frac{\partial^2f_y}{\partial c \partial a} & \frac{\partial^2 f_y}{\partial c \partial b} & \frac{\partial^2 f_y}{\partial c^2}\\
+            ///             \frac{\partial^2f_y}{\partial a^2} & \frac{\partial^2 f_y}{\partial a \partial b} & \frac{\partial^2 f_y}{\partial a \partial c}
+            ///             \frac{\partial^2f_y}{\partial b \partial a} & \frac{\partial^2 f_y}{\partial b^2} & \frac{\partial^2 f_y}{\partial b \partial c}
+            ///             \frac{\partial^2f_y}{\partial c \partial a} & \frac{\partial^2 f_y}{\partial c \partial b} & \frac{\partial^2 f_y}{\partial c^2}
             ///         \end{array}\right)
             /// \f]
             ///
             /// \f[ H_z =
             ///     \left(
             ///         \begin{array}{ccc}
-            ///             \frac{\partial^2f_z}{\partial a^2} & \frac{\partial^2 f_z}{\partial a \partial b} & \frac{\partial^2 f_z}{\partial a \partial c}\\
-            ///             \frac{\partial^2f_z}{\partial b \partial a} & \frac{\partial^2 f_z}{\partial b^2} & \frac{\partial^2 f_z}{\partial b \partial c}\\
-            ///             \frac{\partial^2f_z}{\partial c \partial a} & \frac{\partial^2 f_z}{\partial c \partial b} & \frac{\partial^2 f_z}{\partial c^2}\\
+            ///             \frac{\partial^2f_z}{\partial a^2} & \frac{\partial^2 f_z}{\partial a \partial b} & \frac{\partial^2 f_z}{\partial a \partial c}
+            ///             \frac{\partial^2f_z}{\partial b \partial a} & \frac{\partial^2 f_z}{\partial b^2} & \frac{\partial^2 f_z}{\partial b \partial c}
+            ///             \frac{\partial^2f_z}{\partial c \partial a} & \frac{\partial^2 f_z}{\partial c \partial b} & \frac{\partial^2 f_z}{\partial c^2}
             ///         \end{array}\right)
             /// \f]
             JACOBI_EXTENSION_EXPORT virtual void calculateTensorToWorldSpaceMappingHessian(const ElVis::TensorPoint& p, JacobiExtension::Matrix<double, 3, 3>& Hx,

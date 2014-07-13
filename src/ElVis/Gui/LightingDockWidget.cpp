@@ -58,7 +58,7 @@ namespace ElVis
             m_ambientColorLabel(new QLabel("Ambient"))
         {
             setObjectName("LightingDockWidget");
-            QScrollArea* m_scrollArea = new QScrollArea();
+            //QScrollArea* m_scrollArea = new QScrollArea();
 
             QWidget* widget = new QWidget();
 

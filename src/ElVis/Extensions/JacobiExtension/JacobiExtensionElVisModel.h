@@ -195,9 +195,9 @@ namespace ElVis
                         // Vertices
                         // Each vertex is a float4.
 
-                        for(int i = 0; i < T::VertexCount; ++i)
+                        for(unsigned int i = 0; i < T::VertexCount; ++i)
                         {
-                            int vertexIdx = curElementId*T::VertexCount + i;
+                            unsigned int vertexIdx = curElementId*T::VertexCount + i;
                             const ElVis::WorldPoint& p = element->vertex(i);
                             vertexData[vertexIdx].x = (float)p.x();
                             vertexData[vertexIdx].y = static_cast<ElVisFloat>(p.y() + copyId*range);
@@ -231,7 +231,7 @@ namespace ElVis
 
                         // Faces and planes
                         int planeIdx = 8*curElementId;
-                        for(int i = 0; i < T::NumFaces; ++i)
+                        for(unsigned int i = 0; i < T::NumFaces; ++i)
                         {
                             ElVisFloat4* base = planeData.get() + planeIdx + i;
                             castElement->GetFace(i, base[0].x, base[0].y, base[0].z, base[0].w);

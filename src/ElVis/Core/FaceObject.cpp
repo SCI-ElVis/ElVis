@@ -95,7 +95,7 @@ namespace ElVis
         RTsize bufSize;
         m_facesEnabledBuffer->getSize(bufSize);
 
-        if( faceId >= bufSize )
+        if( faceId >= (int)bufSize )
         {
             std::cout << "Face id " << faceId << " is not in range " << bufSize << std::endl;
         }
@@ -116,7 +116,7 @@ namespace ElVis
         RTsize bufSize;
         m_facesEnabledBuffer->getSize(bufSize);
 
-        if( faceId >= bufSize )
+        if( faceId >= (int)bufSize )
         {
             std::cout << "Face id " << faceId << " is not in range " << bufSize << std::endl;
         }
@@ -179,9 +179,9 @@ namespace ElVis
         std::cout << "Face buffer size: " << bufSize << std::endl;
 
         unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
-        for(int i = 0; i < ids.size(); ++i)
+        for(std::size_t i = 0; i < ids.size(); ++i)
         {
-            if( ids[i] < bufSize )
+            if( ids[i] < (int)bufSize )
             {
                 data[ids[i]] = flag;
             }

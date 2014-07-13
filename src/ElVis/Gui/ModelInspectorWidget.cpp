@@ -66,8 +66,8 @@ namespace ElVis
             // Number of elements of each type.
             // Spatial extent.
 
-            const WorldPoint& minExtent = model->MinExtent();
-            const WorldPoint& maxExtent = model->MaxExtent();
+            //const WorldPoint& minExtent = model->MinExtent();
+            //const WorldPoint& maxExtent = model->MaxExtent();
             unsigned int numElements = model->GetNumberOfElements();
 
             m_intManager->setValue(m_numElementsProperty, numElements);

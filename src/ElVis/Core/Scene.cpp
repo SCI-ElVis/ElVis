@@ -234,7 +234,7 @@ namespace ElVis
         }
 
         //std::cout << "PrintBufferSize " << m_context->getPrintBufferSize() << " ElVis size " << m_optiXTraceBufferSize << std::endl;
-        if( m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
+        if( (int)m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
         {
             m_context->setPrintBufferSize(m_optiXTraceBufferSize);
         }
@@ -275,7 +275,7 @@ namespace ElVis
         }
 
         tinyxml::TiXmlHandle docHandle(&doc);
-        tinyxml::TiXmlNode* node = 0;
+        //tinyxml::TiXmlNode* node = 0;
         tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ColorMap");
 
         if( !rootElement )
@@ -285,7 +285,7 @@ namespace ElVis
         }
 
         const char* name = rootElement->Attribute("name");
-        const char* colorSpace = rootElement->Attribute("space");
+        //const char* colorSpace = rootElement->Attribute("space");
 
         if( !name )
         {
@@ -311,7 +311,7 @@ namespace ElVis
 
         while( pointElement )
         {
-            float scalar, r, g, b, o;
+            float scalar = 0, r = 0, g = 0, b = 0, o = 0;
             int scalarResult = pointElement->QueryFloatAttribute("x", &scalar);
             int rResult = pointElement->QueryFloatAttribute("r", &r);
             int gResult = pointElement->QueryFloatAttribute("g", &g);

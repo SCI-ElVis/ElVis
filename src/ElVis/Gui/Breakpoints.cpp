@@ -44,12 +44,12 @@ namespace ElVis
             QObject(widget),
             m_widget(widget),
             m_connectionType(LineConnection),
-            m_pointPen(QColor(255, 255, 255, 191), 1),
-            m_selectedPointPen(QColor(0, 0, 0, 191), 1),
-            m_connectionPen(QColor(255, 255, 255, 127), 2),
-            m_pointBrush(QColor(191, 191, 191, 127)),
             m_pointSize(11, 11),
             m_selectedBreakpoint(widget->GetTransferFunction()->GetBreakpoints().end()),
+            m_pointPen(QColor(255, 255, 255, 191), 1),
+            m_selectedPointPen(QColor(0, 0, 0, 191), 1),
+            m_pointBrush(QColor(191, 191, 191, 127)),
+            m_connectionPen(QColor(255, 255, 255, 127), 2),
             m_model(widget->GetTransferFunction()),
             m_hostTransferFunction(0)
         {
@@ -71,7 +71,6 @@ namespace ElVis
                     QMouseEvent *me = (QMouseEvent *) event;
                     QPointF clickPos = me->pos();
 
-                    int i = 0;
                     for(m_selectedBreakpoint = m_model->GetBreakpoints().begin(); m_selectedBreakpoint != m_model->GetBreakpoints().end(); ++m_selectedBreakpoint)
                     {
                         QPainterPath path;
@@ -247,15 +246,15 @@ namespace ElVis
             //    p.drawEllipse(bounds);
             //}
         }
-
+/*
         static QPointF bound_point(const QPointF &point, const QRectF &bounds, int lock)
         {
             QPointF p = point;
 
-            qreal left = bounds.left();
-            qreal right = bounds.right();
-            qreal top = bounds.top();
-            qreal bottom = bounds.bottom();
+            //qreal left = bounds.left();
+            //qreal right = bounds.right();
+            //qreal top = bounds.top();
+            //qreal bottom = bounds.bottom();
 
             //if (p.x() < left || (lock & Breakpoints::LockToLeft)) p.setX(left);
             //else if (p.x() > right || (lock & Breakpoints::LockToRight)) p.setX(right);
@@ -265,7 +264,7 @@ namespace ElVis
 
             return p;
         }
-
+*/
 
         //inline static bool x_less_than(const QPointF &p1, const QPointF &p2)
         //{

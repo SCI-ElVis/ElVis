@@ -48,10 +48,10 @@ namespace ElVis
     OnIsovalueChanged(),
     m_isovalues(),
     m_isovalueBufferSize(),
+    m_isovalueBuffer("SurfaceIsovalues"),
     m_gaussLegendreNodesBuffer("Nodes"),
     m_gaussLegendreWeightsBuffer("Weights"),
-    m_monomialConversionTableBuffer("MonomialConversionTable"),
-    m_isovalueBuffer("SurfaceIsovalues")
+    m_monomialConversionTableBuffer("MonomialConversionTable")
   {
   }
 

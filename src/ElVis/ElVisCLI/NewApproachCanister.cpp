@@ -278,7 +278,12 @@ int GenericCLIInterface(int argc, char** argv,
     }
 
     #ifdef __GNUC__
-    system("nvidia-smi");
+    int ierr = system("nvidia-smi");
+    if( ierr != 0 )
+    {
+      std::cout << "Failed to make the system call 'nvidia-smi'" << std::endl;
+      return 1;
+    }
     #endif
 
     bool trace = false;
@@ -377,7 +382,7 @@ int GenericCLIInterface(int argc, char** argv,
         boost::shared_ptr<ElVis::FaceObject> faceObject(new ElVis::FaceObject(scene));
         boost::shared_ptr<ElVis::SampleFaceObject> obj(new ElVis::SampleFaceObject(faceObject));
         primaryRayModule->AddObject(obj);
-        for(int i = 0; i < boundarySurfaces.size(); ++i)
+        for(std::size_t i = 0; i < boundarySurfaces.size(); ++i)
         {
             std::vector<int> faceIds;
             std::string boundaryName;
@@ -397,7 +402,7 @@ int GenericCLIInterface(int argc, char** argv,
         boost::shared_ptr<ElVis::FaceObject> faceObject(new ElVis::FaceObject(scene));
         boost::shared_ptr<ElVis::SampleFaceObject> obj(new ElVis::SampleFaceObject(faceObject));
         primaryRayModule->AddObject(obj);
-        for(int i = 0; i < faces.size(); ++i)
+        for(std::size_t i = 0; i < faces.size(); ++i)
         {
             obj->EnableFace(faces[i]);
         }
@@ -498,7 +503,11 @@ int GenericCLIInterface(int argc, char** argv,
         ElVis::Stat runtimeStats(times, std::numeric_limits<ElVisFloat>::max(), numTests-1, .95);
         std::cout << "Average Time Per Run: " << runtimeStats.Mean << std::endl;
         #ifdef __GNUC__
-        system("nvidia-smi");
+        if( system("nvidia-smi") )
+        {
+          std::cout << "Filed to make system call 'nvidia-smi'" << std::endl;
+          return 1;
+        }
         #endif
 
     }

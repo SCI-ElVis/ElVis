@@ -134,7 +134,7 @@ void SampleField(double node, double gweight, double kweight, std::ostream& outF
 void PrintArray(const double* values, int size, std::ofstream& outFile)
 {
     outFile << "{" << std::endl;
-    for(unsigned int i = 0; i < size; ++i)
+    for(int i = 0; i < size; ++i)
     {
         if( i > 0 )
         {

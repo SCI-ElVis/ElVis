@@ -66,10 +66,10 @@ namespace ElVis
     float Color::Blue() const { return m_blue; }
     float Color::Alpha() const { return m_alpha; }
 
-    unsigned int Color::RedAsInt() const { return static_cast<unsigned int>(m_red*255); }
-    unsigned int Color::GreenAsInt() const { return static_cast<unsigned int>(m_green*255); }
-    unsigned int Color::BlueAsInt() const { return static_cast<unsigned int>(m_blue*255); }
-    unsigned int Color::AlphaAsInt() const { return static_cast<unsigned int>(m_alpha*255); }
+    int Color::RedAsInt() const { return static_cast<int>(m_red*255); }
+    int Color::GreenAsInt() const { return static_cast<int>(m_green*255); }
+    int Color::BlueAsInt() const { return static_cast<int>(m_blue*255); }
+    int Color::AlphaAsInt() const { return static_cast<int>(m_alpha*255); }
 
     void Color::SetRed(double value) { m_red = static_cast<float>(value); OnColorChanged(*this); }
     void Color::SetGreen(double value) { m_green = static_cast<float>(value); OnColorChanged(*this); }

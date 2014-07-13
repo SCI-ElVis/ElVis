@@ -2102,13 +2102,20 @@ namespace ElVis
 #else
         int getExponent(double val)
         {
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
             if( val == 0.0 ) return 0;
-            unsigned int raw = ((unsigned int*)(&val))[0];
+            unsigned int raw = reinterpret_cast<unsigned int*>(&val)[0];
             static unsigned int mask = 0x7FF00000;
 
             unsigned int temp = mask&raw;
 
             return (temp >> 20) - 1023;
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
         }
 #endif
 
