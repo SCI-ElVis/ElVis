@@ -317,7 +317,6 @@ PXProject2RefElement( enum PXE_Shape Shape, PX_REAL * RESTRICT xref, int * RESTR
     break;
   default:
     return PXError(PX_CODE_FLOW_ERROR);
-    break;
   }
 
   return PX_NO_ERROR;

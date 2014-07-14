@@ -405,7 +405,7 @@ namespace ElVis
             UpdateRecentFileActions();
 
             m_settings->beginGroup("OptiX");
-            m_appData->GetScene()->SetOptixStackSize(m_settings->value(OptixStackSize, 2000).toInt());
+            m_appData->GetScene()->SetOptixStackSize(m_settings->value(OptixStackSize, m_appData->GetScene()->GetOptixStackSize() ).toInt());
             m_settings->endGroup();
 
         }

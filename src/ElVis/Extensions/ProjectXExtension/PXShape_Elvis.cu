@@ -3742,7 +3742,7 @@ LinearSimplexGlob2Ref(ElVisFloat const * RESTRICT vertices, PX_REAL const * REST
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
-  return PX_NO_ERROR;
+  //return PX_NO_ERROR;
 }
 
 

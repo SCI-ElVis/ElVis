@@ -535,9 +535,11 @@ namespace ElVis
         // pick the element with lowest Q
         if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+          lface = pg->FaceGroup[fgrp].FaceL[face].Face;
         }
         else{
           egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+          lface = pg->FaceGroup[fgrp].FaceR[face].Face;
         }
 
         elemType = pg->ElementGroup[egrp].type;
@@ -737,24 +739,19 @@ namespace ElVis
     }
 
     ElVisFloat bBoxTemp[BBOX_SIZE];
-    ElVisFloat bBoxTempElVis[BBOX_SIZE];
 
-    int geomRank;
     int fgrp, face;
     int egrp, elem, lface;
     int egrpL;
     int egrpR, elemR;
     int i;
     int qorder;
-    int nbfQ, nbfQFace;
-    int nFaceTotal = 0;
 
     int d;
     int Dim = pg->Dim;
 
-    int orientation;
     enum PXE_Shape elemShape, faceShape;
-    enum PXE_ElementType FaceType, elemType, elemTypeR, baseFaceType, localFaceType;
+    enum PXE_ElementType FaceType, elemType, elemTypeR;
     //int maxnbfQ;
 
     //PX_REAL *nodeCoord;
@@ -767,7 +764,6 @@ namespace ElVis
     PX_REAL nvec[3] = {0,0,0};
     PX_REAL xface[2] = {0,0};
     std::vector<int> CurvedNodeMap(pg->nNode,0);
-    int nCurvedNodes = 0;
 
     for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
       for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){

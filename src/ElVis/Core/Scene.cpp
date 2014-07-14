@@ -55,7 +55,7 @@ namespace ElVis
         m_model(),
         m_context(0),
         m_allPrimaryObjects(),
-        m_optixStackSize(8000),
+        m_optixStackSize(10000),
         m_colorMaps(),
         m_enableOptiXTrace(true),
         m_optiXTraceBufferSize(100000),

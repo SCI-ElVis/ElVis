@@ -49,7 +49,7 @@ namespace ElVis
             m_pointInfo(),
             m_groupPropertyManager(new QtGroupPropertyManager()),
             m_optixProperties(0),
-            m_optixStackSizeProperty(0),
+            m_optixTraceBufferSizeProperty(0),
             m_enableTraceProperty(0),
             m_pixelXProperty(0),
             m_pixelYProperty(0),
@@ -105,11 +105,11 @@ namespace ElVis
             //////////////////////
             // Optix stack size.
             //////////////////////
-            m_optixStackSizeProperty = new Property<int>("Print Buffer Size", boost::bind(&Scene::SetOptixTraceBufferSize, scene.get(), _1),
+            m_optixTraceBufferSizeProperty = new Property<int>("Print Buffer Size", boost::bind(&Scene::SetOptixTraceBufferSize, scene.get(), _1),
                                                          boost::bind(&Scene::GetOptixTraceBufferSize, scene.get()),
                                                          scene->OnOptixPrintBufferSizeChanged);
-            m_optixStackSizeProperty->SetupPropertyManagers(m_browser);
-            m_optixProperties->addSubProperty(m_optixStackSizeProperty->GetProperty());
+            m_optixTraceBufferSizeProperty->SetupPropertyManagers(m_browser);
+            m_optixProperties->addSubProperty(m_optixTraceBufferSizeProperty->GetProperty());
 
             /////////////////////////////
             // Element Id

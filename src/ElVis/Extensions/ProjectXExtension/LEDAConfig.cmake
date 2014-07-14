@@ -4,6 +4,7 @@ if (LEDA_INCLUDE_DIR AND LEDA_LIBRARIES )
 else()  
  
   find_path(LEDA_BASE_DIR NAMES "incl/LEDA/system/basic.h"
+            HINTS $ENV{LEDA_DIR}
             DOC "Base LEDA Path") 
   find_path(LEDA_INCLUDE_DIR 
             NAMES "LEDA/basic.h" "LEDA/system/basic.h"
