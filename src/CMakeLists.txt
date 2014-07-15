@@ -43,14 +43,13 @@ FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/lib ELVIS_LIB_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/include ELVIS_INCLUDE_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/ColorMaps ELVIS_COLOR_MAP_DIR)
 
-IF( NOT QT4_FOUND )
-    FIND_PACKAGE(Qt4)
-ENDIF() 
+FIND_PACKAGE(Qt4 REQUIRED)
 
 IF( QT4_FOUND )
-    include(${QT_USE_FILE})
+    INCLUDE(${QT_USE_FILE})
 ENDIF()
 
+INCLUDE(UnitTest.cmake)
 
 INCLUDE(SetupOptiX.cmake)
 ADD_SUBDIRECTORY(Externals)
@@ -93,7 +92,7 @@ INCLUDE_DIRECTORIES(
   ${ELVIS_CUDA_INCLUDE}
 )
 
-IF( NOT DEFINED CMAKE_FLAGS_INIT )
+IF( NOT DEFINED PASSED_FIRST_CONFIGURE )
 
   IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
       # The static libraries must be compiled with position independent code
@@ -105,8 +104,6 @@ IF( NOT DEFINED CMAKE_FLAGS_INIT )
   SET( CMAKE_C_FLAGS "-Wall -Werror ${ADDITIONAL_COMPILE_FLAGS}" CACHE STRING "C++ Flags" FORCE )
 
 ENDIF()
-
-SET( CMAKE_FLAGS_INIT TRUE CACHE INTERNAL "Inidicator that this is the first run of cmake" )
 
 
 
@@ -238,7 +235,7 @@ SET(PROJECTS
   Utilities
 )
 
-SUBDIRS(${PROJECTS})
+ADD_SUBDIRECTORY(${PROJECTS})
 
 if(APPLE)	
     set(CMAKE_EXE_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
@@ -257,10 +254,10 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/../ColorMaps/Grayscale.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/diverging257.cmap
               DESTINATION ${ELVIS_COLOR_MAP_DIR})
 
-if(WIN32)
+IF(WIN32)
     INSTALL(FILES ${PROJECT_SOURCE_DIR}/Externals/glut/release/glut64.dll
               DESTINATION ${ELVIS_BIN_DIR}) 
-endif()
+ENDIF()
 # Set after the first configure pass is done, and can be used to set default values for 
 # variables that users should be able to modify.
 SET(PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)

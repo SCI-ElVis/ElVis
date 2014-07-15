@@ -61,9 +61,6 @@ SET(Headers
     ElVis.qss
 )
 
-# Allows interoperability between boost::signals and qt signals.
-add_definitions(-DQT_NO_KEYWORDS)
-
 ADD_ELVIS_EXECUTABLE(${Project} 
     ${Sources} 
     ${Headers}
@@ -91,3 +88,4 @@ TARGET_LINK_LIBRARIES(${Project}
     ${TinyXML_Library}
 )
 
+ADD_SUBDIRECTORY(unit)
