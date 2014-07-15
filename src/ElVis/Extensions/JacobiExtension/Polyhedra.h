@@ -602,7 +602,8 @@ namespace ElVis
                 vertices[i] = ElVis::WorldPoint(points[0], points[1], points[2]);
             }
 
-            for(unsigned int i = 0; i < 8u-NUM_VERTICES; ++i)
+            const int remainder = 8u-NUM_VERTICES;
+            for(int i = 0; i < remainder; ++i)
             {
                 double points[3];
                 if( fread(points, sizeof(double), 3, inFile) != 3 )
@@ -621,9 +622,10 @@ namespace ElVis
                 fwrite(vertices[i].GetPtr(), sizeof(double), 3, outFile);
             }
 
-            for(unsigned int i = 0; i < 8u-NUM_VERTICES; ++i)
+            const int remainder = 8u-NUM_VERTICES;
+            for(int i = 0; i < remainder; ++i)
             {
-                double points[3];
+                double points[3] = {0,0,0};
                 fwrite(points, sizeof(double), 3, outFile);
             }
         }

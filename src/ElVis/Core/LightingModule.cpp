@@ -36,10 +36,6 @@ namespace ElVis
         m_program()
     {
     }
-        
-    LightingModule::LightingModule(const LightingModule& rhs)
-    {
-    }
 
     LightingModule::~LightingModule()
     {

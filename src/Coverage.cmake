@@ -14,7 +14,7 @@ IF( BUILD_TYPE AND BUILD_TYPE MATCHES "COVERAGE" )
     MESSAGE( FATAL_ERROR "Could not find genhtml. Please install lcov and add it to your path." )
   ENDIF()
 
-  FIND_PROGRAM( GCOV ${GCOV_COMMAND} )
+  FIND_PROGRAM( GCOV gcov )
   IF( NOT GCOV )
     MESSAGE( FATAL_ERROR "Could not find gcov. Please install gcov and add it to your path." )
   ENDIF()

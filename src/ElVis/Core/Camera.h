@@ -84,10 +84,10 @@ namespace ElVis
             ELVIS_EXPORT const WorldVector& GetGaze() const { return m_w; }
 
             /// \brief Returns the camera's current vertical field of view
-            ELVIS_EXPORT const double GetFieldOfView() const { return m_fieldOfView; }
+            ELVIS_EXPORT double GetFieldOfView() const { return m_fieldOfView; }
 
             /// \brief Returns the aspect ratio of the view port.
-            ELVIS_EXPORT const double GetAspectRatio() const { return m_aspectRatio; }
+            ELVIS_EXPORT double GetAspectRatio() const { return m_aspectRatio; }
 
             /// \brief Sets the vertical field of view.
             ELVIS_EXPORT void SetFieldOfView(double value);

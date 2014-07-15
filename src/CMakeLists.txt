@@ -29,11 +29,11 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 
 # Set the default build to Release.  Note this doesn't do anything for the VS
 # default build target which defaults to Debug when you first start it.
-IF(NOT CMAKE_BUILD_TYPE AND NOT PASSED_FIRST_CONFIGURE)
-  SET(CMAKE_BUILD_TYPE "Release" CACHE STRING
-      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
-ENDIF()
+#IF(NOT CMAKE_BUILD_TYPE AND NOT PASSED_FIRST_CONFIGURE)
+#  SET(CMAKE_BUILD_TYPE "Release" CACHE STRING
+#      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+#      FORCE)
+#ENDIF()
 
 SET(ELVIS_VERSION 0.1.1)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/bin ELVIS_BIN_DIR)
@@ -53,6 +53,8 @@ INCLUDE(UnitTest.cmake)
 
 INCLUDE(SetupOptiX.cmake)
 ADD_SUBDIRECTORY(Externals)
+
+INCLUDE(CompilerFlags.cmake)
 
 IF( NOT PASSED_FIRST_CONFIGURE )
     IF( CUDA_VERSION VERSION_LESS "5.0" )
@@ -92,20 +94,6 @@ INCLUDE_DIRECTORIES(
   ${ELVIS_CUDA_INCLUDE}
 )
 
-IF( NOT DEFINED PASSED_FIRST_CONFIGURE )
-
-  IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-      # The static libraries must be compiled with position independent code
-      # on 64 bit Linux.
-      SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
-  ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-    
-  SET( CMAKE_CXX_FLAGS "-Wall -Werror ${ADDITIONAL_COMPILE_FLAGS}" CACHE STRING "C++ Flags" FORCE )
-  SET( CMAKE_C_FLAGS "-Wall -Werror ${ADDITIONAL_COMPILE_FLAGS}" CACHE STRING "C++ Flags" FORCE )
-
-ENDIF()
-
-
 
 IF(ELVIS_USE_DOUBLE_PRECISION)
     SET(ELVIS_FLOAT "double")
@@ -129,34 +117,34 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     SET_TARGET_PROPERTIES(${name} PROPERTIES MINSIZEREL_POSTFIX -ms)
     SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
 
-    SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
-    get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
-    IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
-        SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
-    ENDIF()
-    IF( CMAKE_COMPILER_IS_GNUCXX )
-        # Some versions of gcc can't handle -g3, but it is set by a cuda
-        # CMakeLists
-        SET(STR1 " ")
-        SET(STR2 " ")
-        STRING(REPLACE "-g3" "" STR1 ${CMAKE_CXX_FLAGS_DEBUG} )
-        STRING(REPLACE "-g" "" STR2 ${STR1} )
-        SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+    #SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
+    #get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
+    #IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
+    #    SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
+    #ENDIF()
+    #IF( CMAKE_COMPILER_IS_GNUCXX )
+    #    # Some versions of gcc can't handle -g3, but it is set by a cuda
+    #    # CMakeLists
+    #    SET(STR1 " ")
+    #    SET(STR2 " ")
+    #    STRING(REPLACE "-g3" "" STR1 ${CMAKE_CXX_FLAGS_DEBUG} )
+    #    STRING(REPLACE "-g" "" STR2 ${STR1} )
+    #    SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
   
-        STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
-        STRING(REPLACE "-g" "" STR4 ${STR3} )
-        SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
-    ENDIF()
+    #    STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
+    #    STRING(REPLACE "-g" "" STR4 ${STR3} )
+    #    SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+    #ENDIF()
 
-    IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    #IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
         # The static libraries must be compiled with position independent code
         # on 64 bit Linux.
-        SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
-    ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    #    SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
+    #ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     
-    IF( ADDITIONAL_COMPILE_FLAGS )
-        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
-    ENDIF()
+    #IF( ADDITIONAL_COMPILE_FLAGS )
+    #    SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
+    #ENDIF()
 
     IF( MSVC )
         # Disable the warnings about duplicate copy/assignment methods
