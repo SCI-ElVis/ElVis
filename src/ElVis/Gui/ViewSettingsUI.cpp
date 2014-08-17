@@ -37,9 +37,9 @@ namespace ElVis
         ViewSettingsUI::ViewSettingsUI(boost::shared_ptr<ApplicationState> appData) :
             QDockWidget("View Settings"),
             m_appData(appData),
+            m_browser(0),
             m_cameraPropertyManager(new CameraPropertyManager()),
             m_cameraProperty(0),
-            m_browser(0),
             m_layout(0),
             m_groupPropertyManager(new QtGroupPropertyManager()),
             m_intPropertyManager(new QtIntPropertyManager()),

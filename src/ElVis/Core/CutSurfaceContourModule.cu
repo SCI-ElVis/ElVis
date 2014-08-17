@@ -130,7 +130,7 @@ RT_PROGRAM void SamplePixelCornersRayGenerator()
     payload.scalarValue = ELVIS_FLOAT_MAX;
     payload.Normal = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
     payload.Color = MakeFloat3(MAKE_FLOAT(1.0), MAKE_FLOAT(1.0), MAKE_FLOAT(1.0));
-    rtTrace(PrimaryRayGeometry, ray, payload);
+    rtTrace(SurfaceGeometryGroup, ray, payload);
     //rtTrace(CutSurfaceContourGeometry, ray, payload);
     
     ContourSampleBuffer[launch_index] = payload.scalarValue;
@@ -296,7 +296,7 @@ RT_PROGRAM void SamplePixelCornersRayGeneratorForCategorization()
     payload.scalarValue = ELVIS_FLOAT_MAX;
     payload.Normal = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
     payload.Color = MakeFloat3(MAKE_FLOAT(1.0), MAKE_FLOAT(1.0), MAKE_FLOAT(1.0));
-    rtTrace(PrimaryRayGeometry, ray, payload);
+    rtTrace(SurfaceGeometryGroup, ray, payload);
     
     ContourSampleBuffer[launch_index] = payload.scalarValue;
     ReferencePointAtIntersectionBuffer[launch_index] = payload.ReferenceIntersectionPoint;

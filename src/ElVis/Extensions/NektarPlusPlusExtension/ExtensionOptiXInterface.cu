@@ -35,18 +35,16 @@
 #include <ElVis/Extensions/NektarPlusPlusExtension/OptixQuad.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/OptixTriangle.cu>
 
-
-rtBuffer<ElVisFloat4> FaceVertexBuffer;
 rtBuffer<ElVisFloat4> FaceNormalBuffer;
 
 // Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
 ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result)
 {
-    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v0 = PlanarFaceVertexBuffer[4*faceId];
+    ElVisFloat4 v1 = PlanarFaceVertexBuffer[4*faceId+1];
+    ElVisFloat4 v2 = PlanarFaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = PlanarFaceVertexBuffer[4*faceId+3];
 
     ElVisFloat r = refPoint.x;
     ElVisFloat s = refPoint.y;
@@ -80,7 +78,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& result)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType == Nektar::SpatialDomains::eHexahedron )
     {
         result = TransformWorldToTensor(elementId, wp);
     }
@@ -94,7 +92,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType == Nektar::SpatialDomains::eHexahedron )
     {
         gradient.x = EvaluateHexGradientDir1AtTensorPoint(elementId, refPoint.x, refPoint.y, refPoint.z);
         gradient.y = EvaluateHexGradientDir2AtTensorPoint(elementId, refPoint.x, refPoint.y, refPoint.z);
@@ -110,7 +108,7 @@ ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementT
 ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType ==  Nektar::SpatialDomains::eHexahedron )
     {
         calculateTensorToWorldSpaceMappingJacobian(elementId, refPoint, J);
     }
@@ -129,7 +127,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                ResultType& result)
 {
     ElVisError returnVal = eNoError;
-    if( elementType == 0 )
+    if( elementType == Nektar::SpatialDomains::eHexahedron )
     {
         result = EvaluateNektarPlusPlusHexAtTensorPoint(elementId, tp);
     }
@@ -142,8 +140,8 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
 
 ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
 {
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v2 = PlanarFaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = PlanarFaceVertexBuffer[4*faceId+3];
 
     if( v2 == v3 )
     {
@@ -159,7 +157,7 @@ ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result)
 
 ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result)
 {
-    result = FaceVertexBuffer[4*faceId+vertexId];
+    result = PlanarFaceVertexBuffer[4*faceId+vertexId];
     return eNoError;
 }
 
@@ -176,10 +174,10 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds)
 {
-    ElVisFloat4 v0 = FaceVertexBuffer[4*faceId];
-    ElVisFloat4 v1 = FaceVertexBuffer[4*faceId+1];
-    ElVisFloat4 v2 = FaceVertexBuffer[4*faceId+2];
-    ElVisFloat4 v3 = FaceVertexBuffer[4*faceId+3];
+    ElVisFloat4 v0 = PlanarFaceVertexBuffer[4*faceId];
+    ElVisFloat4 v1 = PlanarFaceVertexBuffer[4*faceId+1];
+    ElVisFloat4 v2 = PlanarFaceVertexBuffer[4*faceId+2];
+    ElVisFloat4 v3 = PlanarFaceVertexBuffer[4*faceId+3];
 
     const T& r = p.x;
     const T& s = p.y;
@@ -250,5 +248,18 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat2& referencePointOnFace, c
     return eNoError;
 }
 
+/// \brief Adjust the newPoint in a Newton root-finding iteration to keep the current test point on the element's face.
+/// \param curPoint The current test point.  newPoint.x and newPoint.y represent the current reference point on the
+///                 face.  newPoint.z is the current t value along the ray.
+/// \param idx The face being tested for intersection.
+/// \param step The calculated adjustment that will be applied to curPoint for the next iteration.  If this adjustment
+///             will cause the reference parameter to leave the element face, then step must be adjusted to prevent this.
+/// Ray-face intersection is performed using Newton's method to numerically find the intersection.  The intersection
+/// if found in term's of the face's reference coordinates.  In many systems, the mapping from reference to world space
+/// is invalid outside the face's bounds, so we must keep the iteration from leaving the face).
+ELVIS_DEVICE ElVisError adjustNewtonStepToKeepReferencePointOnFace(const CurvedFaceIdx& idx, ElVisFloat3& newPoint)
+{
+  return eNoError;
+}
 
 #endif

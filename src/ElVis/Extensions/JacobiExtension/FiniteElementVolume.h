@@ -73,7 +73,7 @@ namespace ElVis
             JACOBI_EXTENSION_EXPORT FiniteElementVolume(const char* fileName);
 
 
-            // FiniteElementVolume(XERCES_CPP_NAMESPACE_QUALIFIER DOMElement* materialElement, Scene* scene);
+            // FiniteElementVolume(XERCES_CPP_NAMESPACE_QUALIFIER DOMElement* materialElement, boost::shared_ptr<Scene> scene);
 
 
             JACOBI_EXTENSION_EXPORT FiniteElementVolume();

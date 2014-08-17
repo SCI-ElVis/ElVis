@@ -33,23 +33,30 @@
 #include <optix_math.h>
 #include <ElVis/Core/util.cu>
 #include <ElVis/Core/Float.cu>
+#include <ElVis/Core/OptixVariables.cu>
 
 struct VolumeRenderingPayload
 {
     ELVIS_DEVICE void Initialize()
     {
-        FoundIntersection = 0;
+        FoundIntersection = false;
         ElementId = 0;
         ElementTypeId = 0;
         IntersectionT = MAKE_FLOAT(-1.0);
-        FaceId = -1;
+        FaceId.Value = -1;
+        FaceReferecePointIsValid = false;
     }
 
-    int FoundIntersection;
+    bool FoundIntersection;
     unsigned int ElementId;
     unsigned int ElementTypeId;
     ElVisFloat IntersectionT;
-    int FaceId;
+    GlobalFaceIdx FaceId;
+    ElVisFloat2 FaceReferencePoint;
+    bool FaceReferecePointIsValid;
+
 };
+
+rtDeclareVariable(VolumeRenderingPayload, volumePayload, rtPayload, );
 
 #endif //ELVIS_VOLUME_RENDERING_PAYLOAD_CU

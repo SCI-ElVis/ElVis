@@ -45,6 +45,8 @@
 #include <ElVis/Extensions/NektarPlusPlusExtension/NektarModel.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Expansions.cu>
 
+#include <SpatialDomains/GeometryShapeType.h>
+
 rtBuffer<uint> HexVertexIndices;
 rtBuffer<uint3> NumberOfModes;
 rtBuffer<uint4> Hexvertex_face_index;
@@ -287,7 +289,7 @@ __device__ __forceinline__ void RayHexahedronIntersection(int hexId)
     rtPrintf("Origin: (%f, %f, %f) Direction (%f, %f, %f)\n", 
         ray.origin.x, ray.origin.y, ray.origin.z,
         ray.direction.x, ray.direction.y, ray.direction.z);
-	ElVisFloat3 origin = MakeFloat3(ray.origin);
+    ElVisFloat3 origin = MakeFloat3(ray.origin);
     ElVisFloat3 W = MakeFloat3(ray.direction);
     normalize(W);
     ElVisFloat3 U,V;
@@ -399,7 +401,7 @@ __device__ __forceinline__ void NektarHexahedronContainsOriginByCheckingPointMap
     {
         intersectedElementId = elementId;
         intersectionPointPayload.elementId = elementId;
-        intersectionPointPayload.elementType = 0;
+        intersectionPointPayload.elementType = Nektar::SpatialDomains::eHexahedron;
         rtReportIntersection(0);
     }
 }

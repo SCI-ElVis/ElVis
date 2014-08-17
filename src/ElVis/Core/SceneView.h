@@ -44,7 +44,7 @@
 #include <ElVis/Core/Scene.h>
 #include <map>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/foreach.hpp>
 
 #include <boost/archive/xml_iarchive.hpp>
@@ -68,10 +68,10 @@ namespace ElVis
             ELVIS_EXPORT virtual ~SceneView();
 
             ELVIS_EXPORT Timer Draw();
-            ELVIS_EXPORT void Resize(int width, int height);
+            ELVIS_EXPORT void Resize(unsigned int width, unsigned int height);
 
-            ELVIS_EXPORT int GetWidth() const { return m_width; }
-            ELVIS_EXPORT int GetHeight() const { return m_height; }
+            ELVIS_EXPORT unsigned int GetWidth() const { return m_width; }
+            ELVIS_EXPORT unsigned int GetHeight() const { return m_height; }
 
             ELVIS_EXPORT void SetScene(boost::shared_ptr<Scene> value) { m_scene = value; }
             ELVIS_EXPORT boost::shared_ptr<Scene> GetScene() const { return m_scene; }
@@ -157,9 +157,9 @@ namespace ElVis
             ELVIS_EXPORT void SetProjectionType(SceneViewProjection type);
             ELVIS_EXPORT SceneViewProjection GetProjectionType() const;
 
-            boost::signal<void (const SceneView&)> OnSceneViewChanged;
-            boost::signal<void (int w, int h)> OnWindowSizeChanged;
-            boost::signal<void (const SceneView&)> OnNeedsRedraw;
+            boost::signals2::signal<void (const SceneView&)> OnSceneViewChanged;
+            boost::signals2::signal<void (int w, int h)> OnWindowSizeChanged;
+            boost::signals2::signal<void (const SceneView&)> OnNeedsRedraw;
 
         protected:
             virtual void DoWindowSizeHasChanged() {}
@@ -211,8 +211,8 @@ namespace ElVis
             }
 
             boost::shared_ptr<Scene> m_scene;
-            int m_width;
-            int m_height;
+            unsigned int m_width;
+            unsigned int m_height;
             boost::shared_ptr<Camera> m_viewSettings;
 
             OptiXBuffer<uchar4> m_colorBuffer;
@@ -237,6 +237,7 @@ namespace ElVis
             ElVisFloat m_faceIntersectionTolerance;
             Color m_headlightColor;
             bool m_headlightColorIsDirty;
+            bool m_enableOptiXExceptions;
             optixu::Program m_exceptionProgram;
             Color m_backgroundColor;
             bool m_backgroundColorIsDirty;

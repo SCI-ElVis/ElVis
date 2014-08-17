@@ -1,20 +1,24 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
+IF( APPLE )
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
+ELSE()
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
+ENDIF()
 
 # As of CMake 2.6 policies were introduced in order to provide a mechanism for
 # adding backwards compatibility one feature at a time.  We will just specify
 # that all policies will use version 2.6 semantics.
 cmake_policy(VERSION 2.6)
 
-#Set the apple compiler so it doesn't default to clang
+#Set the apple compiler to default to clang, that's all apple supports anyways...
 IF ( APPLE )
-	SET(CMAKE_CXX_COMPILER "/usr/bin/g++")
-	SET(CMAKE_C_COMPILER "/usr/bin/gcc")
+    SET(CMAKE_CXX_COMPILER clang++)
+    SET(CMAKE_C_COMPILER clang)
 ENDIF ()
 
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #IF( NOT(CMAKE_INSTALL_PREFIX_SET) )
-	SET(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/dist CACHE PATH "Install Path" FORCE)
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/dist CACHE PATH "Install Path" FORCE)
 #ENDIF()
 #SET(CMAKE_INSTALL_PREFIX_SET ON CACHE INTERNAL "")
 
@@ -25,12 +29,11 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 
 # Set the default build to Release.  Note this doesn't do anything for the VS
 # default build target which defaults to Debug when you first start it.
-#IF(NOT CMAKE_BUILD_TYPE AND NOT ELVIS_PASSED_FIRST_CONFIGURE)
-IF(NOT CMAKE_BUILD_TYPE AND NOT PASSED_FIRST_CONFIGURE)
-  SET(CMAKE_BUILD_TYPE "Release" CACHE STRING
-      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
-ENDIF()
+#IF(NOT CMAKE_BUILD_TYPE AND NOT PASSED_FIRST_CONFIGURE)
+#  SET(CMAKE_BUILD_TYPE "Release" CACHE STRING
+#      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+#      FORCE)
+#ENDIF()
 
 SET(ELVIS_VERSION 0.1.1)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/bin ELVIS_BIN_DIR)
@@ -40,19 +43,19 @@ FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/lib ELVIS_LIB_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/include ELVIS_INCLUDE_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/ColorMaps ELVIS_COLOR_MAP_DIR)
 
-IF( NOT QT4_FOUND )
-    FIND_PACKAGE(Qt4)
-ENDIF() 
+FIND_PACKAGE(Qt4 REQUIRED)
 
 IF( QT4_FOUND )
-    include(${QT_USE_FILE})
+    INCLUDE(${QT_USE_FILE})
 ENDIF()
 
+INCLUDE(UnitTest.cmake)
 
 INCLUDE(SetupOptiX.cmake)
 ADD_SUBDIRECTORY(Externals)
 
-#IF( NOT ELVIS_PASSED_FIRST_CONFIGURE )
+INCLUDE(CompilerFlags.cmake)
+
 IF( NOT PASSED_FIRST_CONFIGURE )
     IF( CUDA_VERSION VERSION_LESS "5.0" )
       LIST(APPEND CUDA_NVCC_FLAGS_DEBUG "-G0")
@@ -80,18 +83,16 @@ SET(GLUT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Externals/glut/include)
 # {CMAKE_BINARY_DIR} be included to handle generated files.  These files won't exist 
 # in CVS and should not be put in the src directory.
 INCLUDE_DIRECTORIES( 
-	${CMAKE_SOURCE_DIR}
-	${CMAKE_BINARY_DIR}
-	${BOOST_INCLUDE}
-	${GLEW_INCLUDE}
-	${GLUT_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${BOOST_INCLUDE}
+    ${GLEW_INCLUDE}
+    ${GLUT_INCLUDE_DIR}
   # Cuda includes must appear after other GL includes to prevent accidentally
   # including the versions that ship with cuda.
   ${OptiX_INCLUDE}
   ${ELVIS_CUDA_INCLUDE}
 )
-
-
 
 
 IF(ELVIS_USE_DOUBLE_PRECISION)
@@ -104,46 +105,46 @@ ENDIF()
 SET(CUDA_GENERATED_OUTPUT_DIR ${ELVIS_CUBIN_DIR} CACHE PATH "" FORCE)
 
 IF( MSVC )	
-	# Removes the warnings about unsafe methods such as strcpy, std::copy, memcmp, etc.
-	ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE)
+    # Removes the warnings about unsafe methods such as strcpy, std::copy, memcmp, etc.
+    ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE)
 
-	# Adds support for M_PI
-	ADD_DEFINITIONS(-D_USE_MATH_DEFINES)	
+    # Adds support for M_PI
+    ADD_DEFINITIONS(-D_USE_MATH_DEFINES)	
 ENDIF( MSVC )
 
 MACRO(SET_ELVIS_TARGET_PROPERTIES name)
-	SET_TARGET_PROPERTIES(${name} PROPERTIES DEBUG_POSTFIX -g)
-	SET_TARGET_PROPERTIES(${name} PROPERTIES MINSIZEREL_POSTFIX -ms)
-	SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
+    SET_TARGET_PROPERTIES(${name} PROPERTIES DEBUG_POSTFIX -g)
+    SET_TARGET_PROPERTIES(${name} PROPERTIES MINSIZEREL_POSTFIX -ms)
+    SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
 
-    SET(ADDITIONAL_COMPILE_FLAGS "")
-    get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
-    IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
-        SET(ADDITIONAL_COMPILE_FLAGS "")
-    ENDIF()
-    IF( CMAKE_COMPILER_IS_GNUCXX )
-        # Some versions of gcc can't handle -g3, but it is set by a cuda
-        # CMakeLists
-        SET(STR1 " ")
-        SET(STR2 " ")
-        STRING(REPLACE "-g3" "" STR1 ${CMAKE_CXX_FLAGS_DEBUG} )
-        STRING(REPLACE "-g" "" STR2 ${STR1} )
-        SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+    #SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
+    #get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
+    #IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
+    #    SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
+    #ENDIF()
+    #IF( CMAKE_COMPILER_IS_GNUCXX )
+    #    # Some versions of gcc can't handle -g3, but it is set by a cuda
+    #    # CMakeLists
+    #    SET(STR1 " ")
+    #    SET(STR2 " ")
+    #    STRING(REPLACE "-g3" "" STR1 ${CMAKE_CXX_FLAGS_DEBUG} )
+    #    STRING(REPLACE "-g" "" STR2 ${STR1} )
+    #    SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
   
-        STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
-        STRING(REPLACE "-g" "" STR4 ${STR3} )
-        SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
-    ENDIF()
+    #    STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
+    #    STRING(REPLACE "-g" "" STR4 ${STR3} )
+    #    SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+    #ENDIF()
 
-    IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    #IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
         # The static libraries must be compiled with position independent code
         # on 64 bit Linux.
-        SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
-    ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    #    SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
+    #ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     
-    IF( ADDITIONAL_COMPILE_FLAGS )
-        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
-    ENDIF()
+    #IF( ADDITIONAL_COMPILE_FLAGS )
+    #    SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
+    #ENDIF()
 
     IF( MSVC )
         # Disable the warnings about duplicate copy/assignment methods
@@ -163,16 +164,16 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
 ENDMACRO(SET_ELVIS_TARGET_PROPERTIES name)
 
 MACRO(ADD_ELVIS_EXECUTABLE name)
-	ADD_EXECUTABLE(${name} ${ARGN})
-	SET_ELVIS_TARGET_PROPERTIES(${name})
+    ADD_EXECUTABLE(${name} ${ARGN})
+    SET_ELVIS_TARGET_PROPERTIES(${name})
     INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR}
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR}
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 ENDMACRO(ADD_ELVIS_EXECUTABLE name)
 
 MACRO(ADD_CUDA_ELVIS_EXECUTABLE name)
-	CUDA_ADD_EXECUTABLE(${name} ${ARGN})
-	SET_ELVIS_TARGET_PROPERTIES(${name})
+    CUDA_ADD_EXECUTABLE(${name} ${ARGN})
+    SET_ELVIS_TARGET_PROPERTIES(${name})
     INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR}
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR}
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
@@ -180,41 +181,41 @@ MACRO(ADD_CUDA_ELVIS_EXECUTABLE name)
 ENDMACRO(ADD_CUDA_ELVIS_EXECUTABLE name)
 
 MACRO(ADD_ELVIS_STATIC_LIBRARY name)
-	ADD_LIBRARY(${name} STATIC ${ARGN})
-	SET_ELVIS_TARGET_PROPERTIES(${name})
-	INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
+    ADD_LIBRARY(${name} STATIC ${ARGN})
+    SET_ELVIS_TARGET_PROPERTIES(${name})
+    INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR} NAMELINK_SKIP
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 ENDMACRO(ADD_ELVIS_STATIC_LIBRARY name)
 
 MACRO(ADD_ELVIS_PLUGIN name)
-	ADD_LIBRARY(${name} SHARED ${ARGN})
-	SET_ELVIS_TARGET_PROPERTIES(${name})
-	INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
+    ADD_LIBRARY(${name} SHARED ${ARGN})
+    SET_ELVIS_TARGET_PROPERTIES(${name})
+    INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR} NAMELINK_SKIP
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR} )
 ENDMACRO()
 
 MACRO(ADD_ELVIS_LIBRARY name type)
-	ADD_LIBRARY(${name} ${type} ${ARGN})
-	SET_ELVIS_TARGET_PROPERTIES(${name})
-	INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
+    ADD_LIBRARY(${name} ${type} ${ARGN})
+    SET_ELVIS_TARGET_PROPERTIES(${name})
+    INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR} NAMELINK_SKIP
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR}  )
 ENDMACRO(ADD_ELVIS_LIBRARY name)
 
 
 MACRO(ADD_ELVIS_CUDA_LIBRARY name type)
-	CUDA_ADD_LIBRARY(${name} ${type} ${ARGN})
-	SET_ELVIS_TARGET_PROPERTIES(${name})
-	INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
+    CUDA_ADD_LIBRARY(${name} ${type} ${ARGN})
+    SET_ELVIS_TARGET_PROPERTIES(${name})
+    INSTALL(TARGETS ${name} EXPORT ElVisLibraries RUNTIME DESTINATION ${ELVIS_BIN_DIR} 
                                 LIBRARY DESTINATION ${ELVIS_BIN_DIR} NAMELINK_SKIP
                                 ARCHIVE DESTINATION ${ELVIS_LIB_DIR}  )
 ENDMACRO(ADD_ELVIS_CUDA_LIBRARY name)
 
 MACRO(ADD_ELVIS_OPTIX_LIBRARY name bindir)
-	ADD_OPTIX_LIBRARY(${name} ${bindir} ${ARGN})
-	SET_ELVIS_TARGET_PROPERTIES(${name})
+    ADD_OPTIX_LIBRARY(${name} ${bindir} ${ARGN})
+    SET_ELVIS_TARGET_PROPERTIES(${name})
 ENDMACRO()
 
 SET(PROJECTS 
@@ -222,10 +223,10 @@ SET(PROJECTS
   Utilities
 )
 
-SUBDIRS(${PROJECTS})
+ADD_SUBDIRECTORY(${PROJECTS})
 
 if(APPLE)	
-	set(CMAKE_EXE_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
+    set(CMAKE_EXE_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
 endif(APPLE)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in 
@@ -241,9 +242,20 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/../ColorMaps/Grayscale.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/diverging257.cmap
               DESTINATION ${ELVIS_COLOR_MAP_DIR})
 
+IF(WIN32)
+    INSTALL(FILES ${PROJECT_SOURCE_DIR}/Externals/glut/release/glut64.dll
+              DESTINATION ${ELVIS_BIN_DIR}) 
+ENDIF()
 # Set after the first configure pass is done, and can be used to set default values for 
 # variables that users should be able to modify.
-#SET(ELVIS_PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
-#MARK_AS_ADVANCED(ELVIS_PASSED_FIRST_CONFIGURE)
 SET(PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
 MARK_AS_ADVANCED(PASSED_FIRST_CONFIGURE)
+
+###########################################
+# Set RPATH information so the executable does not need to be run in the bin directory
+###########################################
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+

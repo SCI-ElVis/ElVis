@@ -35,7 +35,7 @@
 #include <ElVis/Core/RayGeneratorProgram.h>
 #include <ElVis/Core/Float.h>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 #include <set>
 #include <vector>

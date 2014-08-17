@@ -8,11 +8,11 @@ extern "C"{
 #define PX_DEBUG_MODE 0
 
 #define BBOX_SIZE 6 //number of doubles used to describe a bounding box
-#define MAX_NBF 10 //p=2 simplex, 3d
-#define MAX_NBF_FACE 6 //p=2 simplex, 2d
+#define MAX_NBF 20 //p=3 simplex, 3d
+#define MAX_NBF_FACE 10 //p=3 simplex, 2d
 
-#define SOLN_MAX_NBF 20 //p=2 simplex, 3d
-#define SOLN_MAX_NBF_FACE 10 //p=2 simplex, 2d
+#define SOLN_MAX_NBF 20 //p=3 simplex, 3d
+#define SOLN_MAX_NBF_FACE 10 //p=3 simplex, 2d
 
 #define DIM3D 3
 #define DIM4D 4
@@ -45,27 +45,29 @@ extern "C"{
 
 
 typedef struct{
-  unsigned short type; //PXE_ElementType
-  unsigned short order; //PXE_SolutionOrder
-  unsigned short nbf;
-  unsigned char qorder; //polynomial order
-  unsigned char shape; //PXE_Shape
-  PX_REAL centroidCoord[DIM3D]; //coordinates of element centroid
-  
+  enum PXE_ElementType type; //PXE_ElementType
+  enum PXE_SolutionOrder order; //PXE_SolutionOrder
+  int nbf;
+  int qorder; //polynomial order
+  enum PXE_Shape shape; //PXE_Shape
 } PX_ElementTypeData;
 
 typedef struct{
   unsigned char orientation;
-  unsigned char side; //0: LEFT, 1: RIGHT.  If side is 1, 
-                      //computed normal must be flipped
-  unsigned char shape; //PXE_Shape  
-} PX_FaceData;
+  unsigned char side; //0: LEFT, 1: RIGHT.  If side is 1, computed normal must be flipped
+  unsigned int idx;
+  unsigned int nodesOnFace;
+  int nbf;
+  enum PXE_SolutionOrder order;
+  int qorder; //polynomial order
+  enum PXE_Shape shape; //PXE_Shape
+} PX_FaceTypeData;
 
 
 typedef struct{
-  unsigned short order; //PXE_SolutionOrder
-  unsigned short nbf;
-  unsigned char porder;
+  enum PXE_SolutionOrder order; //PXE_SolutionOrder
+  int porder;
+  int nbf;
 } PX_SolutionOrderData;
 
 
@@ -74,16 +76,24 @@ typedef struct{
   unsigned int egrpGeomCoeffStartIndex; //index of element 0 in an array over coordinates
   unsigned int egrpSolnCoeffStartIndex; //index of element 0 in an array over solution
   char cutCellFlag; //flag for whether this egrp is for cut cells
-  //enum PXE_SolutionOrder order; //solution order of an egrp
-  //enum PXE_ElementType type; //element type of an egrp
 
-  PX_ElementTypeData typeData; //element type of an egrp
-  PX_SolutionOrderData orderData; //element type of an egrp
+  PX_ElementTypeData elemData; //element type of an egrp
+  PX_SolutionOrderData solData; //element type of an egrp
 } PX_EgrpData;
+
+typedef struct{
+  unsigned int fgrpStartIndex; //global element number of element 0
+  unsigned int fgrpGeomCoeffStartIndex; //index of element 0 in an array over coordinates
+  unsigned int fgrpSolnCoeffStartIndex; //index of element 0 in an array over solution
+  char cutCellFlag; //flag for whether this fgrp is for cut cells
+
+  PX_FaceTypeData faceData; //element type of an fgrp
+  PX_SolutionOrderData solData; //element type of an fgrp
+} PX_FgrpData;
 
 
 typedef struct {
-  int length;
+  unsigned int length;
   int nPatchGroup;
 } PX_CutCellElVis;
 
@@ -137,20 +147,17 @@ ELVIS_DEVICE
 #endif
 void PrintPatchGroup(PX_PatchGroup *patchGroup, PX_REAL *backgroundCoordBase, PX_REAL *knownPointBase){
   int i;
-  int threeDId;
 
   GEN_PRINTF("patchGroup length = %d, nPatch = %d\n",patchGroup->length, patchGroup->nPatch);
   GEN_PRINTF("patchGroup threeDId = %d\n",patchGroup->threeDId);
 
-  threeDId = patchGroup->threeDId;
-
   for(i=0; i<DIM3D*BACK_NBF; i++){
-    GEN_PRINTF("bgElem[%d] = %.8E, ",i,backgroundCoordBase[threeDId*BACK_NBF*DIM3D+i]);
+    GEN_PRINTF("bgElem[%d] = %.8E, ",i,backgroundCoordBase[patchGroup->threeDId*BACK_NBF*DIM3D+i]);
   }
   GEN_PRINTF("\n");
 
   for(i=0; i<DIM3D; i++){
-    GEN_PRINTF("known[%d] = %.8E, ",i,knownPointBase[threeDId*DIM3D+i]);
+    GEN_PRINTF("known[%d] = %.8E, ",i,knownPointBase[patchGroup->threeDId*DIM3D+i]);
   }
   GEN_PRINTF("knownType = %d\n",patchGroup->knownPointFlag);
   

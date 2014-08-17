@@ -306,8 +306,8 @@ namespace ElVis
 
             glFlush();
             timer.Stop();
-            double singleFrameTime = timer.TimePerTest(1);
-            std::cout << "Time to draw frame is " << singleFrameTime << " seconds, or " << 1.0/singleFrameTime << " fps." << std::endl;
+            //double singleFrameTime = timer.TimePerTest(1);
+            //std::cout << "Time to draw frame is " << singleFrameTime << " seconds, or " << 1.0/singleFrameTime << " fps." << std::endl;
         }
 
 

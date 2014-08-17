@@ -86,6 +86,22 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CompareFile "${BaselineDir}/BulletCutSurfaceP2Baseline"
     )
 
+    ADD_TEST(NAME BulletCutSurfaceP2WithFaces WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
+        --Module ${JacobiExtensionPath}
+        --Width 1000
+        --Height 600
+        --OutFile BulletCutSurfaceP2WithFaces
+        --CompareFile "${BaselineDir}/BulletCutSurfaceP2WithFacesBaseline"
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml"
+        --ColorMapMin -0.1
+        --ColorMapMax 0.0
+        --RenderFaces 14000
+        --Eye 1.8 0.46 3.7 --Up 0 1 0 --At 0 0 2.7
+        --CutPlaneNormal 1.0 0.0 0.0
+        --CutPlanePoint 0.0 -1.0 0.0
+    )
+
     ADD_TEST(NAME BulletCutSurfaceP3 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName CutSurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
         --Module ${JacobiExtensionPath}
@@ -103,7 +119,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Breakpoints -.04 -.045 -.03 .01 .015 .02 -.001 0.0 .001  --Colors 0.0 0.0 0.0 0.0   1.0 0.0 0.0 100    0.0 0.0 0.0 0.0   0.0 0.0 0.0 0.0   0.0 1.0 0.0 20.0    0.0 0.0 0.0 0.0       0.0 0.0 0.0 0.0  0.0 0.0 1.0 5.0   0.0 0.0 0.0 0.0
         --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
         --OutFile VolumeRenderBulletFull
-        --CompareFile "${BaselineDir}/VolumeRenderBulletFull"
+        --CompareFile "${BaselineDir}/VolumeRenderBulletFullBaseline"
     )
 
     ADD_TEST(NAME VolumeRenderBulletRiemann WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
@@ -114,7 +130,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Breakpoints -.04 -.045 -.03 .01 .015 .02 -.001 0.0 .001  --Colors 0.0 0.0 0.0 0.0   1.0 0.0 0.0 100    0.0 0.0 0.0 0.0   0.0 0.0 0.0 0.0   0.0 1.0 0.0 20.0    0.0 0.0 0.0 0.0       0.0 0.0 0.0 0.0  0.0 0.0 1.0 5.0   0.0 0.0 0.0 0.0
         --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
         --OutFile VolumeRenderBulletRiemann
-        --CompareFile "${BaselineDir}/VolumeRenderBulletRiemann"
+        --CompareFile "${BaselineDir}/VolumeRenderBulletRiemannBaseline"
     )
 
     ADD_TEST(NAME VolumeRenderBulletTrapezoidal WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
@@ -125,7 +141,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Breakpoints -.04 -.045 -.03 .01 .015 .02 -.001 0.0 .001  --Colors 0.0 0.0 0.0 0.0   1.0 0.0 0.0 100    0.0 0.0 0.0 0.0   0.0 0.0 0.0 0.0   0.0 1.0 0.0 20.0    0.0 0.0 0.0 0.0       0.0 0.0 0.0 0.0  0.0 0.0 1.0 5.0   0.0 0.0 0.0 0.0
         --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
         --OutFile VolumeRenderBulletTrapezoidal
-        --CompareFile "${BaselineDir}/VolumeRenderBulletTrapezoidal"
+        --CompareFile "${BaselineDir}/VolumeRenderBulletTrapezoidalBaseline"
     )
 
     ADD_TEST(NAME IsosurfaceBullet1 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName IsosurfaceBullet
@@ -135,7 +151,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
         --OutFile IsosurfaceBullet1
         --Isovalues 0.0
-        --CompareFile "${BaselineDir}/IsosurfaceBullet1"
+        --CompareFile "${BaselineDir}/IsosurfaceBullet1Baseline"
     )
 ENDIF()
 
@@ -210,79 +226,3 @@ IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
     )
 ENDIF()
 
-IF( FALSE )
-ADD_TEST(NAME BulletVolumeRenderP2_Type1 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP2_Type1
-    --IntegrationType 1
-    --CompareFile "${BaselineDir}/BulletVolumeRenderP2_Type1Baseline"
-)
-
-ADD_TEST(NAME BulletVolumeRenderP2_Type2 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP2_Type2
-    --IntegrationType 2
-    --CompareFile "${BaselineDir}/Testing/BulletVolumeRenderP2_Type2Baseline"
-)
-
-ADD_TEST(NAME BulletVolumeRenderP2_Type3 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP2_Type3
-    --IntegrationType 3
-    --CompareFile "${BaselineDir}/Testing/BulletVolumeRenderP2_Type3Baseline"
-)
-
-ADD_TEST(NAME BulletVolumeRenderP2_Type4 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP2_Type4
-    --IntegrationType 4
-    --CompareFile "${BaselineDir}/Testing/BulletVolumeRenderP2_Type4Baseline"
-)
-
-ADD_TEST(NAME BulletVolumeRenderP3_Type1 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP3_Type1
-    --IntegrationType 1
-    --CompareFile "${BaselineDir}/Testing/BulletVolumeRenderP3_Type1Baseline"
-)
-
-ADD_TEST(NAME BulletVolumeRenderP3_Type2 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP3_Type2
-    --IntegrationType 2
-    --CompareFile "${BaselineDir}/Testing/BulletVolumeRenderP3_Type2Baseline"
-)
-
-ADD_TEST(NAME BulletVolumeRenderP3_Type3 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP3_Type3
-    --IntegrationType 3
-    --CompareFile "${BaselineDir}/Testing/BulletVolumeRenderP3_Type3Baseline"
-)
-
-ADD_TEST(NAME BulletVolumeRenderP3_Type4 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
-    --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
-    --Width 1024
-    --Height 1024
-    --OutFile BulletVolumeRenderP3_Type4
-    --IntegrationType 4
-    --CompareFile "${BaselineDir}/Testing/BulletVolumeRenderP3_Type4Baseline"
-)
-
-
-
-ENDIF()

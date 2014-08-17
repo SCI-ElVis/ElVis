@@ -79,7 +79,7 @@ namespace ElVis
         }
 
         //XERCES_CPP_NAMESPACE_USE
-        //FiniteElementVolume::FiniteElementVolume(DOMElement* volumeElement, Scene* theScene) :
+        //FiniteElementVolume::FiniteElementVolume(DOMElement* volumeElement, boost::shared_ptr<Scene> theScene) :
         //  Object(volumeElement, theScene),
         //  m_minValue(-numeric_limits<double>::max()),
         //  m_maxValue(numeric_limits<double>::max()),
@@ -122,7 +122,7 @@ namespace ElVis
         //class CreateFiniteElementVolume
         //{
         //  public:
-        //      Object* operator()(DOMElement* sphereElement, Scene* scene)
+        //      Object* operator()(DOMElement* sphereElement, boost::shared_ptr<Scene> scene)
         //      {
         //          return new FiniteElementVolume(sphereElement, scene);
         //      }
@@ -138,14 +138,14 @@ namespace ElVis
         //boost::enable_shared_from_this<FiniteElementVolume>(),
         m_minValue(-numeric_limits<double>::max()),
             m_maxValue(numeric_limits<double>::max()),
+            LastFoundElement(),
             m_fileName(fileName),
             itsBBoxes(NULL),
             m_lowerBound(0.0), m_upperBound(1.0),
             m_enableColorMap(false),
             m_polynomialDegree(6),
             m_tolerance(0.0),
-            m_createGrid(false),
-            LastFoundElement()
+            m_createGrid(false)
         {
             init();
         }
@@ -159,7 +159,13 @@ namespace ElVis
             }
 
             char buf2[200];
-            fread(buf2, sizeof(char), strlen(headerData)+1, in);
+            if( fread(buf2, sizeof(char), strlen(headerData)+1, in) != strlen(headerData)+1 )
+            {
+              fclose(in);
+              std::cout << __FILE__ << ": " << __LINE__ << std::endl;
+              throw std::runtime_error("Failed to read header data from: " + std::string(fileName) );
+              //std::cout << "Failed to read header data from: " + std::string(fileName) << std::endl;
+            }
             fclose(in);
 
             return strcmp(headerData, buf2) == 0;
@@ -190,11 +196,16 @@ namespace ElVis
             }
 
             char buf2[200];
-            fread(buf2, sizeof(char), strlen(headerData)+1, in);
+            if( fread(buf2, sizeof(char), strlen(headerData)+1, in) != strlen(headerData)+1 )
+            {
+              std::cout << __FILE__ << ": " << __LINE__ << std::endl;
+              throw std::runtime_error("Failed to read header data from: " + m_fileName);
+            }
 
             if(strcmp(headerData, buf2) != 0)
             {
-                throw std::runtime_error(m_fileName + " is not a valid FiniteElementVolume file");
+              std::cout << __FILE__ << ": " << __LINE__ << std::endl;
+              throw std::runtime_error(m_fileName + " is not a valid FiniteElementVolume file");
             }
 
             int endianCheck = -1;

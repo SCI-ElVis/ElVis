@@ -43,12 +43,12 @@ typedef @ELVIS_FLOAT@4 ElVisFloat4;
 
 #cmakedefine01 ELVIS_USE_DOUBLE_PRECISION
 
-RT_HOSTDEVICE static double fminf(const double& a, const double& b)
+RT_HOSTDEVICE static inline double fminf(const double& a, const double& b)
 {
     return a < b ? a : b;
 }
 
-RT_HOSTDEVICE static double fmaxf(const double& a, const double& b)
+RT_HOSTDEVICE static inline double fmaxf(const double& a, const double& b)
 {
     return a > b ? a : b;
 }

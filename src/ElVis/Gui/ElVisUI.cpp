@@ -58,6 +58,8 @@
 #include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/CutSurfaceContourModule.h>
 #include <ElVis/Core/SurfaceObject.h>
+#include <ElVis/Core/Cylinder.h>
+#include <ElVis/Core/SampleVolumeSamplerObject.h>
 
 #include <string>
 #include <boost/bind.hpp>
@@ -403,7 +405,7 @@ namespace ElVis
             UpdateRecentFileActions();
 
             m_settings->beginGroup("OptiX");
-            m_appData->GetScene()->SetOptixStackSize(m_settings->value(OptixStackSize, 2000).toInt());
+            m_appData->GetScene()->SetOptixStackSize(m_settings->value(OptixStackSize, m_appData->GetScene()->GetOptixStackSize() ).toInt());
             m_settings->endGroup();
 
         }
@@ -480,9 +482,9 @@ namespace ElVis
             this->setDockOptions(QMainWindow::AnimatedDocks);
             this->setDockOptions(QMainWindow::AllowTabbedDocks);
 
-            QDockWidget::DockWidgetFeatures features =
-                QDockWidget::DockWidgetMovable|
-                QDockWidget::DockWidgetFloatable;
+            //QDockWidget::DockWidgetFeatures features =
+            //    QDockWidget::DockWidgetMovable|
+            //    QDockWidget::DockWidgetFloatable;
 
             m_sceneItems = new SceneItemsDockWidget(m_appData, this, 0);
             this->addDockWidget(Qt::LeftDockWidgetArea, m_sceneItems);
@@ -543,7 +545,7 @@ namespace ElVis
         {
             int maxCharacters = 0;
             m_fieldComboBox->clear();
-            for(unsigned int i = 0; i < model->GetNumFields(); ++i)
+            for(int i = 0; i < model->GetNumFields(); ++i)
             {
                 FieldInfo info = model->GetFieldInfo(i);
                 m_fieldComboBox->addItem(QString(info.Name.c_str()), QVariant(info.Id));
@@ -823,7 +825,7 @@ namespace ElVis
             BOOST_AUTO(pScene, m_appData->GetSurfaceSceneView()->GetScene());
             std::ofstream outFile(fileName.toStdString().c_str());
             boost::archive::xml_oarchive oa(outFile);
-            ElVis::Scene& scene = *pScene;
+            //ElVis::Scene& scene = *pScene;
             BOOST_AUTO(pSceneView, m_appData->GetSurfaceSceneView());
             oa << BOOST_SERIALIZATION_NVP(pSceneView);
             outFile.close();
@@ -890,7 +892,7 @@ namespace ElVis
             }
 
             tinyxml::TiXmlHandle docHandle(&doc);
-            tinyxml::TiXmlNode* node = 0;
+            //tinyxml::TiXmlNode* node = 0;
             tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ElVisSettings");
 
             // Camera

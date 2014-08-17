@@ -85,20 +85,23 @@ namespace ElVis
         m_depthBits(24),
         m_rayGenerationPrograms(),
         m_allRenderModules(),
+        m_scalarFieldIndex(0),
         m_passedInitialOptixSetup(false),
         m_faceIntersectionToleranceDirty(true),
         m_faceIntersectionTolerance(1e-5),
         m_headlightColor(82.0/255.0, 82.0/255.0, 82.0/255.0),
         m_headlightColorIsDirty(true),
-        m_backgroundColorIsDirty(true),
+        m_enableOptiXExceptions(true),
         m_exceptionProgram(),
         //m_backgroundColor(0.0, 0.0, 0.0)
         m_backgroundColor(1.0, 1.0, 1.0),
-        m_scalarFieldIndex(0),
+        m_backgroundColorIsDirty(true),
         m_projectionType(ePerspective)
     {
         m_projectionType.OnDirtyFlagChanged.connect(boost::bind(&SceneView::HandleSynchedObjectChanged<SceneViewProjection>, this, _1));
         m_viewSettings->OnCameraChanged.connect(boost::bind(&SceneView::SetupCamera, this));
+
+        m_enableOptiXExceptions = true;
     }
 
 
@@ -137,7 +140,7 @@ namespace ElVis
         }
     }
 
-    void SceneView::Resize(int width, int height) 
+    void SceneView::Resize(unsigned int width, unsigned int height)
     {
         if( width == m_width && height == m_height ) 
         {
@@ -303,6 +306,17 @@ namespace ElVis
             result.Start();
 
             PrepareForDisplay();
+
+            bool continueWithRender = false;
+            BOOST_FOREACH(boost::shared_ptr<RenderModule>  module, m_allRenderModules)
+            {
+                if( module->GetEnabled() && module->GetRenderRequired() ) 
+                {
+                    continueWithRender = true;
+                }
+            }
+            if( !continueWithRender ) return result;
+
 //            ClearDepthBuffer();
             ClearColorBuffer();
             BOOST_FOREACH(boost::shared_ptr<RenderModule>  module, m_allRenderModules)
@@ -319,7 +333,7 @@ namespace ElVis
             t.Start();
             GetScene()->GetContext()->compile();
             t.Stop();
-            std::cout << "Time to Compile: " << t.TimePerTest(1) << std::endl;
+            //std::cout << "Time to Compile: " << t.TimePerTest(1) << std::endl;
 
             BOOST_FOREACH(boost::shared_ptr<RenderModule>  module, m_allRenderModules)
             {
@@ -336,7 +350,7 @@ namespace ElVis
                     m_timings[module] = elapsed;
 
 
-                    printf("Module %s time = %e.\n", moduleName.c_str(), elapsed);
+                    //printf("Module %s time = %e.\n", moduleName.c_str(), elapsed);
                 }
             }
             result.Stop();
@@ -384,7 +398,7 @@ namespace ElVis
         if( m_depthBuffer.Initialized() )
         {
             BOOST_AUTO(data, m_depthBuffer.Map());
-            for(int i = 0; i < GetWidth()*GetHeight(); ++i)
+            for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i] = 1.0f;
             }
@@ -396,7 +410,7 @@ namespace ElVis
         if( m_colorBuffer.Initialized() )
         {
             BOOST_AUTO(data, m_colorBuffer.Map());
-            for(int i = 0; i < GetWidth()*GetHeight(); ++i)
+            for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i].x = 255;
                 data[i].y = 255;
@@ -516,7 +530,6 @@ namespace ElVis
         catch(...)
         {
            std::cout << "Caught exception in display buffers." << std::endl;
-           int a = 0;
         }
     }
 
@@ -566,7 +579,7 @@ namespace ElVis
             // similar to what we do with the ray generation programs.
             m_context->setRayTypeCount(3);
 
-            unsigned int memAlloc = 0;
+            //unsigned int memAlloc = 0;
             
             // Setup various buffers the modules can use.
             // TODO - making the color and depth buffers INPUT/OUTPUT slows thing down
@@ -576,24 +589,24 @@ namespace ElVis
             m_colorBuffer.SetDimensions(GetWidth(), GetHeight());
             m_rawColorBuffer.SetContext(m_context);
             m_rawColorBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int colorBuf = GetWidth() * GetHeight() * 4;
+            //unsigned int colorBuf = GetWidth() * GetHeight() * 4;
             
             m_depthBuffer.SetContext(m_context);
             m_depthBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int depthBuffSize = GetWidth() * GetHeight() * sizeof(float);
+            //unsigned int depthBuffSize = GetWidth() * GetHeight() * sizeof(float);
             
             m_sampleBuffer.SetContext(m_context);
             m_sampleBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int sampleBufferSize = GetWidth() * GetHeight() * sizeof(float);
+            //unsigned int sampleBufferSize = GetWidth() * GetHeight() * sizeof(float);
             
             m_normalBuffer.SetContext(m_context);
             m_normalBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int normalBufferSize = GetWidth() * GetHeight() * sizeof(float)*3;
+            //unsigned int normalBufferSize = GetWidth() * GetHeight() * sizeof(float)*3;
             
             
             m_intersectionBuffer.SetContext(m_context);
             m_intersectionBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int intersectionSize = GetWidth() * GetHeight() * sizeof(float)*3;
+            //unsigned int intersectionSize = GetWidth() * GetHeight() * sizeof(float)*3;
 
             m_elementIdBuffer.SetContext(m_context);
             m_elementIdBuffer.SetDimensions(GetWidth(), GetHeight());
@@ -602,11 +615,6 @@ namespace ElVis
             m_elementTypeBuffer.SetDimensions(GetWidth(), GetHeight());
 
             m_exceptionProgram = PtxManager::LoadProgram(m_context, GetPTXPrefix(), "ExceptionProgram");
-            for(unsigned int i = 0; i < m_context->getEntryPointCount(); ++i)
-            {
-                m_context->setExceptionProgram(i, m_exceptionProgram);
-            }
-            m_context->setExceptionEnabled(RT_EXCEPTION_ALL, true);
             m_context->setPrintLaunchIndex(-1, -1, -1);
             SetupCamera();
             m_context["DepthBits"]->setInt(m_depthBits);
@@ -618,59 +626,6 @@ namespace ElVis
             bgColor.z = m_backgroundColor.Blue();
 
             SetFloat(m_context["BGColor"], bgColor);
-
-
-            //////////////////////////////////////////////
-            // Test Code
-            // To try to get a feel for what triggers recompiles, add a dummy geometry node for a plane and
-            // see what happens.
-            ////////////////////////////////////////////////
-//            {
-//                boost::shared_ptr<Plane> plane(new Plane());
-//                SampleVolumeSamplerObject* obj = new SampleVolumeSamplerObject(plane);
-
-//                int numSurfaces = 1;
-
-//                optixu::Group m_group = m_context->createGroup();
-//                m_group->setAcceleration( m_context->createAcceleration("NoAccel","NoAccel") );
-//                m_context["DummyGroup"]->set( m_group );
-//                m_group->setChildCount(numSurfaces);
-
-
-//                optixu::Transform transform;
-//                optixu::GeometryGroup geometryGroup;
-
-//                obj->CreateNode(this, transform, geometryGroup);
-
-//                if( transform.get() )
-//                {
-//                    m_group->setChild(0, transform);
-//                }
-//                else if ( geometryGroup.get() )
-//                {eye
-//                    m_group->setChild(0, geometryGroup);
-//                }
-//            }
-            // Add a cut plane primitive to the scene to make it so we don't have to have
-            // a separate recompile.  This may not be the best long term solution for all
-            // possible shapes.
-//            {
-//                // Default to a cut plane that spans the volume with a normal (1,0,0).
-//                WorldPoint normal(1.0, 0.0, 0.0);
-//                WorldPoint p(1e10, 1e10, 1e10);
-//                boost::shared_ptr<ElVis::Plane> cutPlane(new ElVis::Plane(normal, p));
-
-//                boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule = GetPrimaryRayModule();
-
-//                boost::shared_ptr<ElVis::SampleVolumeSamplerObject> sampler(new ElVis::SampleVolumeSamplerObject(cutPlane));
-//                if( primaryRayModule )
-//                {
-//                    primaryRayModule->AddObject(sampler);
-//                }
-//            }
-            ///////////////////////////////////
-            // End Test Code
-            //////////////////////////////////
 
             m_passedInitialOptixSetup = true;
         }
@@ -754,6 +709,18 @@ namespace ElVis
             context["ProjectionType"]->setUserData(sizeof(ElVis::SceneViewProjection), &data);
             m_projectionType.MarkClean();
         }
+
+        if( context->getExceptionEnabled(RT_EXCEPTION_ALL) != m_enableOptiXExceptions )
+        {
+            std::cout << "Setting exception flag to " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
+            context->setExceptionEnabled(RT_EXCEPTION_ALL, m_enableOptiXExceptions);
+        }
+
+        for(unsigned int i = 0; i < context->getEntryPointCount(); ++i)
+        {
+            context->setExceptionProgram(i, m_exceptionProgram);
+        }
+        context->setExceptionEnabled(RT_EXCEPTION_ALL, true);
     }
 
     const Color& SceneView::GetHeadlightColor() const

@@ -55,26 +55,18 @@ namespace ElVis
         m_model(),
         m_context(0),
         m_allPrimaryObjects(),
-        m_optixStackSize(8000),
+        m_optixStackSize(10000),
         m_colorMaps(),
         m_enableOptiXTrace(true),
         m_optiXTraceBufferSize(100000),
         m_optixTraceIndex(),
-        m_enableOptiXExceptions(false),
         m_optixDataDirty(true),
         m_tracePixelDirty(true),
         m_enableTraceDirty(true),
         m_faceIntersectionProgram(),
-//        m_planarFaceIntersectionProgram(),
         m_faceBoundingBoxProgram(),
-        m_faceIdBuffer("FaceIdBuffer"),
-        m_faceMinExtentBuffer("FaceMinExtentBuffer"),
-        m_faceMaxExtentBuffer("FaceMaxExtentBuffer"),
-        m_faceGeometry(),
-//        m_curvedFaceGeometry(0),
-//        m_planarFaceGeometry(0),
-        m_faceAcceleration(),
-        m_facesEnabledBuffer()
+        m_faceIdBuffer("FaceInfoBuffer"),
+        m_faceAcceleration()
     {
         m_optixTraceIndex.SetX(0);
         m_optixTraceIndex.SetY(0);
@@ -82,7 +74,6 @@ namespace ElVis
 
         // For some reason in gcc, setting this in the constructor initialization list
         // doesn't work.
-        m_enableOptiXExceptions = false;
         m_optixDataDirty = true;
     }
 
@@ -152,13 +143,13 @@ namespace ElVis
                 // same scene.
                 m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
 
-                std::list<DirectionalLight*> allDirectionalLights;
-                std::list<PointLight*> allPointLights;
+                std::list<boost::shared_ptr<DirectionalLight> > allDirectionalLights;
+                std::list<boost::shared_ptr<PointLight> > allPointLights;
                 std::cout << "Total Lights: " << m_allLights.size() << std::endl;
-                for(std::list<Light*>::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
+                for(std::list<boost::shared_ptr<Light> >::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
                 {
-                    DirectionalLight* asDirectional = dynamic_cast<DirectionalLight*>(*iter);
-                    PointLight* asPointLight = dynamic_cast<PointLight*>(*iter);
+                    BOOST_AUTO(asDirectional, boost::dynamic_pointer_cast<DirectionalLight>(*iter));
+                    BOOST_AUTO(asPointLight, boost::dynamic_pointer_cast<PointLight>(*iter));
 
                     if( asDirectional )
                     {
@@ -183,7 +174,7 @@ namespace ElVis
                 float* colorData = static_cast<float*>(lightColorBuffer->map());
 
                 int i = 0;
-                for(std::list<PointLight*>::const_iterator iter = allPointLights.begin(); iter != allPointLights.end(); ++iter)
+                for(std::list<boost::shared_ptr<PointLight> >::const_iterator iter = allPointLights.begin(); iter != allPointLights.end(); ++iter)
                 {
                     positionData[i] = static_cast<float>((*iter)->Position().x());
                     positionData[i+1] = static_cast<float>((*iter)->Position().y());
@@ -203,19 +194,11 @@ namespace ElVis
                 {
 
                     GetModel()->CalculateExtents();
-                    std::cout << "Min Extent: " << GetModel()->MinExtent() << std::endl;
-                    std::cout << "Max Extent: " << GetModel()->MaxExtent() << std::endl;
-
-                    Get3DModelInformation();
-
-                    //////////////////////////////////////////
-                    // Module min/max
-                    /////////////////////////////////////////
-                    GetModel()->CalculateExtents();
                     SetFloat(m_context["VolumeMinExtent"], GetModel()->MinExtent());
                     SetFloat(m_context["VolumeMaxExtent"], GetModel()->MaxExtent());
 
-                    InitializeFaces();
+                    // Version 2.0 Interface.
+                    GetModel()->CopyToOptiX(m_context);
                 }
 
                 m_context->setStackSize(m_optixStackSize);
@@ -225,6 +208,7 @@ namespace ElVis
                 //m_context->setMissProgram( 0, PtxManager::LoadProgram(m_context, "ElVis.cu.ptx", "miss" ) );
                 //m_context["bg_color"]->setFloat( 1.0f, 1.0f, 1.0f );
 
+                m_optixDataDirty = true;
                 SynchronizeWithOptiXIfNeeded();
                 OnSceneInitialized(*this);
             }
@@ -238,153 +222,38 @@ namespace ElVis
         return m_context;
     }
 
-    void Scene::Get3DModelInformation()
-    {
-        //if( GetModel()->GetModelDimension() != 3 ) return;
-
-        std::vector<optixu::GeometryGroup> elements = GetModel()->GetPointLocationGeometry(this, m_context);
-        optixu::Group volumeGroup = m_context->createGroup();
-        volumeGroup->setChildCount(static_cast<unsigned int>(elements.size()));
-
-        // No acceleration provides better performance since there are only a couple of nodes and the
-        // bounding box of each overlap each other.
-        optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("NoAccel","NoAccel");
-        //optixu::Acceleration m_elementGroupAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-
-        volumeGroup->setAcceleration( m_elementGroupAcceleration );
-        int childIndex = 0;
-        for(std::vector<optixu::GeometryGroup>::iterator iter = elements.begin(); iter != elements.end(); ++iter)
-        {
-            volumeGroup->setChild(childIndex, *iter);
-            ++childIndex;
-        }
-        m_context["PointLocationGroup"]->set(volumeGroup);
-    }
-
-    void Scene::InitializeFaces()
-    {
-        optixu::Program closestHit = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "ElementTraversalFaceClosestHitProgram");
-
-        m_faceIdBuffer.SetContext(m_context);
-        m_faceIdBuffer.SetDimensions(1);
-
-        m_faceMinExtentBuffer.SetContext(m_context);
-        m_faceMinExtentBuffer.SetDimensions(1);
-
-        m_faceMaxExtentBuffer.SetContext(m_context);
-        m_faceMaxExtentBuffer.SetDimensions(1);
-
-        m_faceIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceIntersection");
-        m_faceBoundingBoxProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceBoundingBoxProgram");
-        m_faceGeometry = m_context->createGeometry();
-        m_faceGeometry->setPrimitiveCount(0);
-        GetModel()->GetFaceGeometry(this, m_context, m_faceGeometry);
-        m_faceGeometry->setBoundingBoxProgram(m_faceBoundingBoxProgram);
-        m_faceGeometry->setIntersectionProgram(m_faceIntersectionProgram);
-
-
-        optixu::GeometryInstance faceInstance = m_context->createGeometryInstance();
-        optixu::Material faceMaterial = m_context->createMaterial();
-        faceMaterial->setClosestHitProgram(2, closestHit);
-        faceInstance->setMaterialCount(1);
-        faceInstance->setMaterial(0, faceMaterial);
-        faceInstance->setGeometry(m_faceGeometry);
-
-        m_facesEnabledBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, m_faceGeometry->getPrimitiveCount());
-        unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
-        for(unsigned int i = 0; i < m_faceGeometry->getPrimitiveCount(); ++i)
-        {
-            //data[i] = static_cast<unsigned char>(0);
-            data[i] = 0;
-        }
-        m_facesEnabledBuffer->unmap();
-        m_context["FaceEnabled"]->set(m_facesEnabledBuffer);
-
-
-        optixu::GeometryGroup faceGroup = m_context->createGeometryGroup();
-
-
-        faceGroup->setChildCount(1);
-        faceGroup->setChild(0, faceInstance);
-
-        m_faceAcceleration = m_context->createAcceleration("Sbvh","Bvh");
-        //m_faceAcceleration = m_context->createAcceleration("MedianBvh","Bvh");
-        faceGroup->setAcceleration( m_faceAcceleration );
-        m_context["faceGroup"]->set(faceGroup);
-
-
-
-        // For isosurface/volume rendering
-        // Somehow, enabling this code screws up the face rendering with what looks like
-        // memory corruption or something else that causes random patterns.
-        optixu::Geometry facesForTraversal = m_context->createGeometry();
-//        optixu::Buffer tempBuffer = m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_BYTE, m_faceGeometry->getPrimitiveCount());
-//        facesForTraversal["FaceEnabled"]->set(tempBuffer);
-        facesForTraversal->setPrimitiveCount(m_faceGeometry->getPrimitiveCount());
-        optixu::Program faceForTraversalBBProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalBoundingBoxProgram");
-        optixu::Program faceForTraversalIntersectionProgram = PtxManager::LoadProgram(GetModel()->GetPTXPrefix(), "FaceForTraversalIntersection");
-
-        facesForTraversal->setBoundingBoxProgram(faceForTraversalBBProgram);
-        facesForTraversal->setIntersectionProgram(faceForTraversalIntersectionProgram);
-        optixu::GeometryGroup faceForTraversalGroup = m_context->createGeometryGroup();
-        faceForTraversalGroup->setChildCount(1);
-
-        optixu::GeometryInstance faceForTraversalInstance = m_context->createGeometryInstance();
-        optixu::Material faceForTraversalMaterial = m_context->createMaterial();
-        faceForTraversalMaterial->setClosestHitProgram(2, closestHit);
-        faceForTraversalInstance->setMaterialCount(1);
-        faceForTraversalInstance->setMaterial(0, faceForTraversalMaterial);
-        faceForTraversalInstance->setGeometry(facesForTraversal);
-
-        faceForTraversalGroup->setChild(0, faceForTraversalInstance);
-        faceForTraversalGroup->setAcceleration(m_context->createAcceleration("Sbvh","Bvh"));
-        m_context["faceForTraversalGroup"]->set(faceForTraversalGroup);
-
-
-    }
-
     void Scene::SynchronizeWithOptiXIfNeeded()
     {
         if( !m_context ) return;
         if( !m_optixDataDirty ) return;
 
+        //std::cout << "PrintEnabled " << (m_context->getPrintEnabled() ? "true" : "false") << " m_enableOptiXTrace " << (m_enableOptiXTrace ? "true" : "false")<< std::endl;
         if( m_context->getPrintEnabled() != m_enableOptiXTrace )
         {
             m_context->setPrintEnabled(m_enableOptiXTrace);
         }
 
-        if( m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
+        //std::cout << "PrintBufferSize " << m_context->getPrintBufferSize() << " ElVis size " << m_optiXTraceBufferSize << std::endl;
+        if( (int)m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
         {
             m_context->setPrintBufferSize(m_optiXTraceBufferSize);
         }
 
-        if( m_context->getExceptionEnabled(RT_EXCEPTION_ALL) != m_enableOptiXExceptions )
-        {
-            if( m_enableOptiXExceptions )
-            {
-                std::cout << "Enabling optix exceptions." << std::endl;
-            }
-            else
-            {
-                std::cout << "Disabling optix exceptions." << std::endl;
-            }
-
-            std::cout << "Setting exception flag to " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
-            m_context->setExceptionEnabled(RT_EXCEPTION_ALL, m_enableOptiXExceptions);
-        }
-
+        //std::cout << "m_tracePixelDirty " << (m_tracePixelDirty ? "true" : "false") << std::endl;
         if( m_tracePixelDirty )
         {
             m_context["TracePixel"]->setInt(m_optixTraceIndex.x(), m_optixTraceIndex.y());
             m_tracePixelDirty = false;
         }
 
+        //std::cout << "m_enableTraceDirty " << (m_enableTraceDirty ? "true" : "false") << std::endl;
         if( m_enableTraceDirty )
         {
             m_context["EnableTrace"]->setInt((m_enableOptiXTrace ? 1 : 0));
             m_enableTraceDirty = false;
         }
 
+        //std::cout << "m_optixDataDirty is " << (m_optixDataDirty ? "true" : "false") << std::endl;
         m_optixDataDirty = false;
     }
 
@@ -406,7 +275,7 @@ namespace ElVis
         }
 
         tinyxml::TiXmlHandle docHandle(&doc);
-        tinyxml::TiXmlNode* node = 0;
+        //tinyxml::TiXmlNode* node = 0;
         tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ColorMap");
 
         if( !rootElement )
@@ -416,7 +285,7 @@ namespace ElVis
         }
 
         const char* name = rootElement->Attribute("name");
-        const char* colorSpace = rootElement->Attribute("space");
+        //const char* colorSpace = rootElement->Attribute("space");
 
         if( !name )
         {
@@ -442,7 +311,7 @@ namespace ElVis
 
         while( pointElement )
         {
-            float scalar, r, g, b, o;
+            float scalar = 0, r = 0, g = 0, b = 0, o = 0;
             int scalarResult = pointElement->QueryFloatAttribute("x", &scalar);
             int rResult = pointElement->QueryFloatAttribute("r", &r);
             int gResult = pointElement->QueryFloatAttribute("g", &g);

@@ -40,7 +40,7 @@
 #include <iostream>
 #include <set>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {
@@ -68,7 +68,6 @@ namespace ElVis
             FaceObject& operator=(const FaceObject& rhs);
             ELVIS_EXPORT FaceObject(const FaceObject& rhs);
 
-            void CopyDataToOptiX();
             void SetupSubscriptions();
 
             optixu::GeometryGroup m_group;

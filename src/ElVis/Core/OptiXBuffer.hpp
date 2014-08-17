@@ -36,6 +36,7 @@
 #include <ElVis/Core/OptiXExtensions.hpp>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
 #include <boost/bind.hpp>
 
 #include <iostream>
@@ -104,15 +105,13 @@ namespace ElVis
 
             T operator()(size_t x, size_t y)
             {
-                T result;
-
                 if( x < m_width && y < m_height )
                 {
                     boost::shared_array<T> buf = Map();
-                    result = buf[y*m_width + x];
+                    return buf[y*m_width + x];
                 }
 
-                return result;
+                return T();
             }
 
         private:

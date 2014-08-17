@@ -44,13 +44,13 @@ namespace ElVis
             DataType Legendre(int n, const DataType& x);
 
         template<typename DataType>
-            DataType P(int n, int a, int b, const DataType& x);
+        ELVIS_DEVICE DataType P(int n, int a, int b, const DataType& x);
 
         template<typename DataType>
-            DataType dP(int n, int a, int b, const DataType& x);
+        ELVIS_DEVICE DataType dP(int n, int a, int b, const DataType& x);
 
         template<typename DataType>
-            DataType ddP(int n, int a, int b, const DataType& x);
+        ELVIS_DEVICE DataType ddP(int n, int a, int b, const DataType& x);
 
         template<typename DataType>
             DataType Legendre(int n, const DataType& x)

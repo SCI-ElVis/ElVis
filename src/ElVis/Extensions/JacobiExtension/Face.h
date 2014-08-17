@@ -29,7 +29,7 @@ namespace ElVis
                 m_edges.push_back(v3);
             }
 
-            unsigned int NumberOfEdges() const { return m_edges.size(); }
+            std::size_t NumberOfEdges() const { return m_edges.size(); }
             unsigned int EdgeId(unsigned int i) const { return m_edges[i]; }
 
             friend bool operator<(const Face& lhs, const Face& rhs);

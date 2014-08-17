@@ -31,10 +31,9 @@
 
 #include <ElVis/Core/PrimaryRayGenerator.cu>
 #include <ElVis/Core/Cuda.h>
+#include <ElVis/Core/FaceIntersection.cu>
 
-rtDeclareVariable(rtObject, faceGroup, , );
 rtDeclareVariable(ElVisFloat, FaceTolerance, , );
-rtDeclareVariable(rtObject, faceForTraversalGroup, ,);
 
 struct Segment
 {
@@ -62,80 +61,57 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
 
   // If we have already encountered an object we don't need to continue along this ray.
   ElVisFloat depth = depth_buffer[launch_index];
-  ELVIS_PRINTF("FindNextSegmentAlongRay best depth so far %2.10f\n", depth);
+  //ELVIS_PRINTF("FindNextSegmentAlongRay best depth so far %2.10f\n", depth);
   if( depth < seg.Start )
   {
     return false;
   }
 
-  VolumeRenderingPayload payload;
-  payload.FoundIntersection = 0;
   ElVisFloat3 origin = eye + seg.Start*rayDirection;
 
-  optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
-  //rtTrace(PointLocationGroup, ray, payload);
-  rtTrace(faceForTraversalGroup, ray, payload);
-  //rtTrace(faceGroup, ray, payload);
-
-  if( payload.FoundIntersection == 0 )
+  VolumeRenderingPayload payload = FindNextFaceIntersection(origin, rayDirection);
+  
+  if( !payload.FoundIntersection )
   {
-    ELVIS_PRINTF("Did not find element intersection.\n");
+    //ELVIS_PRINTF("Did not find element intersection.\n");
     return false;
   }
 
   seg.End = seg.Start + payload.IntersectionT;
   ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
 
-  //    ElVisFloat3 normal;
-  //    ElVisFloat3 pointOnSecondFace = origin + payload.IntersectionT*rayDirection;
-  //    ElVis::ElementId element = FindElement(eye, pointOnSecondFace, payload.FaceId, normal);
-  //    SegmentElementIdBuffer[segmentIndex] = element.Id;
-  //    SegmentElementTypeBuffer[segmentIndex] = element.Type;
-
-  // Determine the element by casting rays.
-  // For linear volumes not much slower than the comparisons with the normals,
-  // but quite slow for curved.
-  double h = (payload.IntersectionT)*MAKE_FLOAT(.5);
-  ElementFinderPayload findElementPayload = FindElement(origin + h*rayDirection);
-
-  if( findElementPayload.elementId >= 0 )
-  {
-    seg.ElementId = findElementPayload.elementId;
-    seg.ElementTypeId = findElementPayload.elementType; 
-  }
-  else
-  {
-    seg.ElementId = -1;
-    seg.ElementTypeId = -1;
-  }
-
+  ElementFinderPayload newApproach = findElementFromFace(origin, rayDirection, payload);
+  ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New approach id %d and type %d\n",
+    seg.ElementId, seg.ElementTypeId, newApproach.elementId, newApproach.elementType);
+  seg.ElementId = newApproach.elementId;
+  seg.ElementTypeId = newApproach.elementType;
   return true;
 }
 
 __device__ bool ValidateSegment(const Segment& seg)
 {
   int elementId = seg.ElementId;
-  ELVIS_PRINTF("ValidateSegment: Element id %d\n", elementId);
+  //ELVIS_PRINTF("ValidateSegment: Element id %d\n", elementId);
 
   if( elementId == -1 )
   {
-    ELVIS_PRINTF("ValidateSegment: Exiting because element id is -1\n");
+    //ELVIS_PRINTF("ValidateSegment: Exiting because element id is -1\n");
     return false;
   }
 
-  int elementTypeId = seg.ElementTypeId;
+  //int elementTypeId = seg.ElementTypeId;
 
   ElVisFloat a = seg.Start;
   ElVisFloat b = seg.End;
 
-  ElVisFloat3 rayDirection = seg.RayDirection;
+  //ElVisFloat3 rayDirection = seg.RayDirection;
   ElVisFloat d = (b-a);
 
-  ELVIS_PRINTF("ValidateSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);
+  //ELVIS_PRINTF("ValidateSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);
 
   if( d == MAKE_FLOAT(0.0) )
   {
-    ELVIS_PRINTF("ValidateSegment: Exiting because d is 0\n", rayDirection.x, rayDirection.y, rayDirection.z, d);
+    //ELVIS_PRINTF("ValidateSegment: Exiting because d is 0\n", rayDirection.x, rayDirection.y, rayDirection.z, d);
     return false;
   }
 

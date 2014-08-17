@@ -35,6 +35,8 @@ SET(JACOBI_EXTENSION_SOURCES
   Jacobi.hpp
   JacobiExtensionElVisModel.cpp
   JacobiExtensionElVisModel.h
+  JacobiFace.cpp
+  JacobiFace.h
   NumericalIntegration.h
   NumericalIntegration.hpp
   OptiXHexahedron.cu

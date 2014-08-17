@@ -66,8 +66,8 @@
 // #define PXErrorReturnSilent(X) (X)
 
 ELVIS_DEVICE void PXErrorReport( const char *file, const int line, const char *call, const int ierr){
-  //ELVIS_PRINTF("Error %d has occured.\n File : %s  Line : %d\n Call : %s\n", ierr, file, line, call); 
-  ELVIS_PRINTF("Error %d has occured.\n Line : %d\n", ierr, line); 
+  //ELVIS_PRINTF("Error %d has occured.\n File : %s  Line : %d\n Call : %s\n", ierr, file, line, call);
+  ELVIS_PRINTF("Error %d has occured.\n Line : %d\n", ierr, line);
 }
 
 #if PX_DEBUG_MODE == 1
@@ -76,14 +76,21 @@ ELVIS_DEVICE void PXErrorReport( const char *file, const int line, const char *c
 #define PXErrorDebug(X) (X)
 #endif
 
-#include "PXShape_Elvis.c"
-#include "PXCoordinates_Elvis.c"
-#include "PXNormal_Elvis.c"
+#include "PXShape_Elvis.cu"
+#include "PXCoordinates_Elvis.cu"
+#include "PXNormal_Elvis.cu"
 
 
 
 ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_SolutionOrderData const *attachData, ElVisFloat const * localSolution, ElVisFloat const * localCoord, int StateRank, int fieldId, const ElVisFloat3& worldPoint, ElVisFloat3& gradient){
 
+  gradient.x = 0;
+  gradient.y = 0;
+  gradient.z = 0;
+
+  return;
+
+#if 0
   //PXErrorReturn( PXJacobianElementGivenGradient2(pg->ElementGroup[egrp].type, Dim, nbfQ, ResElemData->nodeCoordinates, xref, NULL, &J, ijacp, gphiQStart+Dim*nbfQ*iquad) );
   PX_REAL xref[3];// = {0.25, 0.25, 0.25};
   PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
@@ -92,20 +99,20 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
   PX_REAL phix[DIM3D*SOLN_MAX_NBF];
 
   if(egrpData->cutCellFlag == (char) 1){
-    LinearSimplexGlob2Ref(3, localCoord, xglobal, xref);
+    LinearSimplexGlob2Ref(localCoord, xglobal, xref);
   }else{
-    PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, PXE_False, PXE_False));
+    PXError(PXGlob2RefFromCoordinates2(egrpData->elemData, localCoord, xglobal, xref, PXE_False, PXE_False));
   }
 
-  int nbfQ = (int) egrpData->typeData.nbf;
-  enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->typeData.order;
-  int qorder = (int) egrpData->typeData.qorder;
+  int nbfQ = (int) egrpData->elemData.nbf;
+  enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->elemData.order;
+  int qorder = (int) egrpData->elemData.qorder;
   PXGradientsElem_Solution<PX_REAL>(orderQ, qorder, xref, gphi );
-  PXError(PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) egrpData->typeData.type, nbfQ, localCoord, xref, NULL, NULL, iJac, gphi, PXE_False));
+  PXError(PXJacobianElementFromCoordinatesGivenGradient2(egrpData->elemData.type, nbfQ, localCoord, xref, NULL, NULL, iJac, gphi, PXE_False));
 
-  enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->orderData.order;
-  int porder = (int) egrpData->orderData.porder;
-  int nbf = (int) egrpData->orderData.nbf;
+  enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->solData.order;
+  int porder = (int) egrpData->solData.porder;
+  int nbf = (int) egrpData->solData.nbf;
   int index = fieldId;
   if(fieldId < 0){
     //may need different parameters for plotting attachments
@@ -155,17 +162,18 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
     int jbf, iState;
     for(iState=0; iState<FLOW_RANK; iState++){
       for(jbf=0; jbf<nbf; jbf++){
-	state[iState] += localSolution[jbf*StateRank + iState]*phi[jbf];
-	stateGradx[iState] += localSolution[jbf*StateRank + iState]*phixx[jbf];
-	stateGrady[iState] += localSolution[jbf*StateRank + iState]*phixy[jbf];
-	stateGradz[iState] += localSolution[jbf*StateRank + iState]*phixz[jbf];
+        state[iState] += localSolution[jbf*StateRank + iState]*phi[jbf];
+        stateGradx[iState] += localSolution[jbf*StateRank + iState]*phixx[jbf];
+        stateGrady[iState] += localSolution[jbf*StateRank + iState]*phixy[jbf];
+        stateGradz[iState] += localSolution[jbf*StateRank + iState]*phixz[jbf];
       }
     }
 
     /* compute derived quantities */
+    PX_REAL SpecificHeatRatio = 1.4;
     PX_REAL gmi = SpecificHeatRatio - 1.0;
     PX_REAL irho = 1.0/state[0];
-    PX_REAL vmag, p, M; //magnitude of velocity, pressure, speed of sound
+    PX_REAL vmag, p; //magnitude of velocity, pressure, speed of sound
     PX_REAL v2, q, E, e, a, a2, ia;
     PX_REAL vel[DIM3D] = {state[1]*irho, state[2]*irho, state[3]*irho};
     
@@ -183,177 +191,189 @@ ELVIS_DEVICE void EvaluateFieldGradient(PX_EgrpData const * egrpData, PX_Solutio
     ia = 1.0/a;
     vmag = sqrt(v2);
 
-    M = vmag*ia;
+    //M = vmag*ia;
 
-    /* done if physicality check fails */
+    // done if physicality check fails
     if(p>0.0 && state[0] > 0.0){ //if not, leave result as 0.0
       //c = sqrt(SpecificHeatRatio*p/state[0]);
       PX_REAL a_U[FLOW_RANK];
       PX_REAL result_U[FLOW_RANK] = {0.0};
       PX_REAL temp;
 
-      /* compute gradients */
+      // compute gradients
       switch(fieldId){
       case 7: //mach number
-	temp = 0.5*ia*SpecificHeatRatio*gmi*irho;
-	a_U[0] = temp*(v2-E);
-	a_U[1] = -temp*vel[0];
-	a_U[2] = -temp*vel[1];
-	a_U[3] = -temp*vel[2];
-	a_U[4] = temp;
+        temp = 0.5*ia*SpecificHeatRatio*gmi*irho;
+        a_U[0] = temp*(v2-E);
+        a_U[1] = -temp*vel[0];
+        a_U[2] = -temp*vel[1];
+        a_U[3] = -temp*vel[2];
+        a_U[4] = temp;
 
-	for(iState=0; iState < FLOW_RANK; iState++){
-	  result_U[iState] = -vmag*ia*ia*a_U[iState];
-	}
-	result_U[0] -= ia*vmag*irho;
-	result_U[1] += ia*irho*vel[0]/vmag;
-	result_U[2] += ia*irho*vel[1]/vmag;
-	result_U[3] += ia*irho*vel[2]/vmag;
+        for(iState=0; iState < FLOW_RANK; iState++){
+          result_U[iState] = -vmag*ia*ia*a_U[iState];
+        }
+        result_U[0] -= ia*vmag*irho;
+        result_U[1] += ia*irho*vel[0]/vmag;
+        result_U[2] += ia*irho*vel[1]/vmag;
+        result_U[3] += ia*irho*vel[2]/vmag;
 
-	//result = M;
-	break;
+        //result = M;
+        break;
       case 8: //magnitude of velocity
-	result_U[0] = -2*v2*irho;
-	result_U[1] = 2*vel[0]*irho;
-	result_U[2] = 2*vel[1]*irho;
-	result_U[3] = 2*vel[2]*irho;
-	result_U[4] = 0.0;
-	break;
+        result_U[0] = -2*v2*irho;
+        result_U[1] = 2*vel[0]*irho;
+        result_U[2] = 2*vel[1]*irho;
+        result_U[3] = 2*vel[2]*irho;
+        result_U[4] = 0.0;
+        break;
       case 9: //pressure 
-	//result = p;
-	result_U[0] = gmi*q;
-	result_U[1] = -gmi*vel[0];
-	result_U[2] = -gmi*vel[1];
-	result_U[3] = -gmi*vel[2];
-	result_U[4] = gmi;
-	break;
+        //result = p;
+        result_U[0] = gmi*q;
+        result_U[1] = -gmi*vel[0];
+        result_U[2] = -gmi*vel[1];
+        result_U[3] = -gmi*vel[2];
+        result_U[4] = gmi;
+        break;
       default:
-	//result = -10.0;
-	break;
+        //result = -10.0;
+        break;
       }
       /* fill in gradient */
       for(iState=0; iState<FLOW_RANK; iState++){
-	gradient.x += stateGradx[iState]*result_U[iState];
-	gradient.y += stateGrady[iState]*result_U[iState];
-	gradient.z += stateGradz[iState]*result_U[iState];
+        gradient.x += stateGradx[iState]*result_U[iState];
+        gradient.y += stateGrady[iState]*result_U[iState];
+        gradient.z += stateGradz[iState]*result_U[iState];
       }
     }
 
   }
+#endif
 
 }
 
-ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const * egrpData, PX_SolutionOrderData const *attachData, ElVisFloat const * localSolution, ElVisFloat const * localCoord, int StateRank, int fieldId, const ElVisFloat3& worldPoint, const ElVisFloat3& refPoint){
+ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOrderData const *attachData, ElVisFloat const * localSolution, ElVisFloat const * localCoord, int StateRank, int fieldId, const ElVisFloat3& worldPoint, const ElVisFloat3& refPoint){
   PX_REAL xref[3] = {refPoint.x, refPoint.y, refPoint.z};
   PX_REAL phi[SOLN_MAX_NBF];
+  for(int j = 0; j < SOLN_MAX_NBF; j++ ) phi[j] = 0;
 
-  if(egrpData->cutCellFlag == (char) 1){
-    PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
-    //for cut elements, localCoord contains shadow coordinates
-    //PXError(PXGlob2RefFromCoordinates2(&(egrpData->typeData), localCoord, xglobal, xref, PXE_False));    
-    //shadow element assumed to be PXE_UniformTetQ1
-    LinearSimplexGlob2Ref(3, localCoord, xglobal, xref);
+  //ELVIS_PRINTF("MCG: EvaluateField: xref=%f, yref=%f, zref=%f\n", refPoint.x, refPoint.y, refPoint.z);
+
+/*
+  if(egrpData.cutCellFlag == (char) 1){
+      PX_REAL xglobal[3] = {worldPoint.x, worldPoint.y, worldPoint.z};
+      //for cut elements, localCoord contains shadow coordinates
+      //PXError(PXGlob2RefFromCoordinates2(&(egrpData->elemData), localCoord, xglobal, xref, PXE_False));
+      //shadow element assumed to be PXE_UniformTetQ1
+      LinearSimplexGlob2Ref(localCoord, xglobal, xref);
   }
-
+*/
   /* set up basis parameters */
-  enum PXE_SolutionOrder order = (enum PXE_SolutionOrder) egrpData->orderData.order;
-  int nbf = (int) egrpData->orderData.nbf;
-  int porder = (int) egrpData->orderData.porder;
-  if(fieldId < 0){
-    //may need different parameters for plotting attachments
-    order = (enum PXE_SolutionOrder) attachData->order;
-    nbf = (int) attachData->nbf;
-    porder = (int) attachData->porder;
+  enum PXE_SolutionOrder order = egrpData.solData.order;
+  int nbf = egrpData.solData.nbf;
+  int porder = egrpData.solData.porder;
+
+  /*
+  if(fieldId < 0 && attachData != NULL){
+      //may need different parameters for plotting attachments
+      order = attachData->order;
+      nbf = attachData->nbf;
+      porder = attachData->porder;
   }
-
+*/
   /* evaluate basis */
-  PXShapeElem_Solution<PX_REAL>(order, porder, xref, phi);  
+  PXShapeElem_Solution<PX_REAL>(order, porder, xref, phi);
 
-
+  //ELVIS_PRINTF("MCG: EvaluateField: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d\n", fieldId, SOLN_MAX_NBF, nbf);
   ElVisFloat result = MAKE_FLOAT(0.0);
+  for(int j=0; j<nbf; j++)
+      result += localSolution[j*StateRank + fieldId]*phi[j];
 
+  return result;
+
+/*
   if(fieldId >= 0){
-    if(fieldId < MAX_STATERANK){
-      int index = fieldId;
-      int j;
-      for(j=0; j<nbf; j++){
-	result += localSolution[j*StateRank + index]*phi[j];
+      if(fieldId < MAX_STATERANK){
+          int index = fieldId;
+          for(int j=0; j<nbf; j++){
+              result += localSolution[j*StateRank + index]*phi[j];
+          }
+      }else if(fieldId == 10){
+          //geometric jacobian
+          PX_REAL gphi[DIM3D*MAX_NBF];
+          PX_REAL J;
+          enum PXE_SolutionOrder orderQ = egrpData.elemData.order;
+          int qorder = egrpData.elemData.qorder;
+          PXGradientsElem<PX_REAL>(orderQ, qorder, xref, gphi);
+          int nbfQ = egrpData.elemData.nbf;
+
+          PXJacobianElementFromCoordinatesGivenGradient2(egrpData.elemData.type, nbfQ, localCoord, xref, NULL, &J, NULL, gphi, PXE_True);
+          result = J;
+      }else{
+          PX_REAL state[FLOW_RANK] = {0.0};
+          int jbf, iState;
+          for(iState=0; iState<FLOW_RANK; iState++){
+              for(jbf=0; jbf<nbf; jbf++){
+                  state[iState] += localSolution[jbf*StateRank + iState]*phi[jbf];
+              }
+          }
+
+          PX_REAL SpecificHeatRatio = 1.4;
+          PX_REAL gmi = SpecificHeatRatio - 1.0;
+          PX_REAL irho = 1.0/state[0];
+          PX_REAL vmag, p, M; //magnitude of velocity, pressure, speed of sound
+          PX_REAL v2, q, E, e, a, ia;
+          PX_REAL vel[DIM3D] = {state[1]*irho, state[2]*irho, state[3]*irho};
+
+          v2 = vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2];
+          q = 0.5*v2;
+          E = irho*state[FLOW_RANK-1];
+          e = E-q;
+
+          p = state[0]*gmi*e; //pressure
+
+          a = sqrt(SpecificHeatRatio*gmi*e);
+          vmag = sqrt(v2);
+          ia = 1.0/a;
+
+          M = vmag*ia;
+
+
+          //q = sqrt(state[1]*state[1]+state[2]*state[2]+state[3]*state[3])/state[0];
+          //p = gmi*(state[FLOW_RANK-1]-q*q*state[0]/2.0);
+          if(p>0.0 && state[0] > 0.0){ //if not, leave result as 0.0
+              //c = sqrt(SpecificHeatRatio*p/state[0]);
+
+              switch(fieldId){
+                  case 7: //mach number
+                      //result = q/c;
+                      result = M;
+                      break;
+                  case 8:
+                      //result = q;
+                      result = vmag;
+                      break;
+                  case 9:
+                      //result = p;
+                      result = p;
+                      break;
+                  default:
+                      result = -10.0;
+              }
+          }
+
       }
-    }else if(fieldId == 10){
-      //geometric jacobian
-      PX_REAL gphi[DIM3D*MAX_NBF];
-      PX_REAL J;
-      enum PXE_SolutionOrder orderQ = (enum PXE_SolutionOrder) egrpData->typeData.order;
-      int qorder = (int) egrpData->typeData.qorder;
-      PXGradientsElem<PX_REAL>(orderQ, qorder, xref, gphi);
-      int nbfQ = (int) egrpData->typeData.nbf;
-
-      PXJacobianElementFromCoordinatesGivenGradient2<PX_REAL>((enum PXE_ElementType) egrpData->typeData.type, nbfQ, localCoord, xref, NULL, &J, NULL, gphi, PXE_True);
-      result = J;
-    }else{
-      PX_REAL state[FLOW_RANK] = {0.0};
-      int jbf, iState;
-      for(iState=0; iState<FLOW_RANK; iState++){
-	for(jbf=0; jbf<nbf; jbf++){
-	  state[iState] += localSolution[jbf*StateRank + iState]*phi[jbf];
-	}
-      }
-
-      PX_REAL gmi = SpecificHeatRatio - 1.0;
-      PX_REAL irho = 1.0/state[0];
-      PX_REAL vmag, p, M; //magnitude of velocity, pressure, speed of sound
-      PX_REAL v2, q, E, e, a, ia;
-      PX_REAL vel[DIM3D] = {state[1]*irho, state[2]*irho, state[3]*irho};    
-      
-      v2 = vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2];
-      q = 0.5*v2;
-      E = irho*state[FLOW_RANK-1];
-      e = E-q;
-   
-      p = state[0]*gmi*e; //pressure
-
-      a = sqrt(SpecificHeatRatio*gmi*e);
-      vmag = sqrt(v2);
-      ia = 1.0/a;
-
-      M = vmag*ia;
-      
-    
-      //q = sqrt(state[1]*state[1]+state[2]*state[2]+state[3]*state[3])/state[0];
-      //p = gmi*(state[FLOW_RANK-1]-q*q*state[0]/2.0);
-      if(p>0.0 && state[0] > 0.0){ //if not, leave result as 0.0
-	//c = sqrt(SpecificHeatRatio*p/state[0]);
-
-	switch(fieldId){
-	case 7: //mach number
-	  //result = q/c;
-	  result = M;
-	  break;
-	case 8:
-	  //result = q;
-	  result = vmag;
-	  break;
-	case 9:
-	  //result = p;
-	  result = p;
-	  break;
-	default:
-	  result = -10.0;
-	}
-      }
-
-    }
 
   }else{
-    //distance function
-    int j;
-    for(j=0; j<nbf; j++){
-      result += localSolution[j]*phi[j];
-    }
+      //distance function
+      for(int j=0; j<nbf; j++){
+          result += localSolution[j]*phi[j];
+      }
 
   }
 
   return result; 
+  */
 }
 
 #endif //_PXOPTIXCUDACOMMON_CU

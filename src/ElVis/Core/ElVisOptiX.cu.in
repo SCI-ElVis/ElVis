@@ -35,6 +35,27 @@
 #include <ElVis/Core/ReferencePointParameter.h>
 #include <ElVis/Core/typedefs.cu>
 
+ELVIS_DEVICE ElVisError GetNumberOfVerticesForPlanarFace(PlanarFaceIdx planarFaceIdx, int& result)
+{
+    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[planarFaceIdx.Value];
+    if( info.Type == ElVis::eTriangle ) 
+    {
+      result = 3;
+    }
+    else
+    {
+      result = 4;
+    }
+
+    return eNoError;
+}
+
+ELVIS_DEVICE ElVisError GetPlanarFaceVertex(PlanarFaceIdx planarFaceIdx, int vertexId , ElVisFloat4& result)
+{
+    ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[planarFaceIdx.Value];
+    result = VertexBuffer[info.vertexIdx[vertexId]];
+    return eNoError;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Begin Interface
@@ -47,12 +68,14 @@
 
 
 /// \brief Converts a point from world space to the given element's reference space.
-/// \param elementId The element's id.
+/// \param elementId The element's id.  The id is a global id in the range [0, Model::GetNumberOfElements())
 /// \param elementType The element's type.
 /// \param wp The world point to be converted.
-/// \param referenceType Describes the meaning of result.  If eReferencePointIsInvalid then
-///        result will only be used for output. If eReferencePointIsInitialGuess, then result is
-///        a guess for the actual location of the reference point.
+/// \param referenceType Describes the result parameter.
+///                      if referenceType == eReferencePointIsInvalid then the result parameter is invalid on input,
+///                                          and contains the conversion result on output.
+///                      if referenceType == eReferencePointIsInitialGuess, then the result parameter is an initial guess on input,
+///                                          and contains the conversion result on output.
 /// \param result On input, it can be an initial guess.  On output, the actual reference point corresponding to wp.
 /// \returns eNoError if a valid reference point is found
 ///          ePointOutsideElement if the world point does not fall inside this element
@@ -84,19 +107,18 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                const PointType& referencePoint,
                                                                ResultType& result);
 
-/// \brief Returns the number of vertices associated with the given face.
-ELVIS_DEVICE ElVisError GetNumberOfVerticesForFace(int faceId, int& result);
-
-ELVIS_DEVICE ElVisError GetFaceVertex(int faceId, int vertexId, ElVisFloat4& result);
-
 /// \brief Returns true if the reference point is valid for this face, false otherwise.
-ELVIS_DEVICE ElVisError IsValidFaceCoordinate(int faceId, const FaceReferencePoint& point, bool& result);
+/// \param faceId The global face index to test.
+/// \param point A reference space point found during ray-face intersection.
+/// \param result true if point is a valid reference point for the given face, 
+///               false otherwise.
+ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceReferencePoint& point, bool& result);
 
 /// \brief Evaluates the Jacobian of the given face's mapping function.
 /// \param faceId The face.
 /// \param p The point on the face at which the Jacobian is to be evaluated.
 template<typename T>
-ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoint& p,
+ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceReferencePoint& p,
                                              T& dx_dr, T& dx_ds,
                                              T& dy_dr, T& dy_ds,
                                              T& dz_dr, T& dz_ds);
@@ -104,21 +126,42 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(int faceId, const FaceReferencePoin
 /// \brief Get the world space normal vector for the given point on a face.  This version is called when
 ///        we know the world space location of the point on the face, but do not know the reference coordinate.
 ///        This only occurs for planar faces.
-ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, int faceId, ElVisFloat3& result);
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, GlobalFaceIdx faceId, ElVisFloat3& result);
 
 /// \brief Get the world space normal vector for the given point on a face.
 /// \param pointOnFace The point in world space coordinates.
 /// \param refPoint The point in the face's reference coordinates.
-ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, int faceId,
+ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceReferencePoint& refPoint, GlobalFaceIdx faceId,
                                       ElVisFloat3& result);
 
 // Returns the world space position (x,y,z) for face faceId and parametric coordinates (r,s).
-ELVIS_DEVICE ElVisError EvaluateFace(int faceId, const FaceReferencePoint& refPoint,
+ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePoint& refPoint,
                                WorldPoint& result);
 
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient);
 
 ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J);
+
+/// \brief Get the starting reference point for ray/curved face intersection.
+/// \param idx The curved face being tested for intersection.
+/// \param startingPoint The starting reference point.
+///
+/// The ray-curved face intersection routine uses an iterative approach.  This iteration requires an initial guess
+/// for the position along the ray (which is handled by ElVis) and the reference coordinates of the intersection on 
+/// the face.  Since each plugin may use different bounds for their reference parameters, ElVis is unable to provide
+/// a generice starting location for the search.
+ELVIS_DEVICE ElVisError getStartingReferencePointForNewtonIteration(const CurvedFaceIdx& idx, ElVisFloat2& startingPoint);
+
+/// \brief Adjust the newPoint in a Newton root-finding iteration to keep the current test point on the element's face.
+/// \param curPoint The current test point.  newPoint.x and newPoint.y represent the current reference point on the
+///                 face.  newPoint.z is the current t value along the ray.
+/// \param idx The face being tested for intersection.
+/// \param step The calculated adjustment that will be applied to curPoint for the next iteration.  If this adjustment
+///             will cause the reference parameter to leave the element face, then step must be adjusted to prevent this.
+/// Ray-face intersection is performed using Newton's method to numerically find the intersection.  The intersection
+/// if found in term's of the face's reference coordinates.  In many systems, the mapping from reference to world space
+/// is invalid outside the face's bounds, so we must keep the iteration from leaving the face).
+ELVIS_DEVICE ElVisError adjustNewtonStepToKeepReferencePointOnFace(const CurvedFaceIdx& idx, ElVisFloat3& newPoint);
 
 #include <@ExtensionPath@/ExtensionOptiXInterface.cu>
 
@@ -129,10 +172,9 @@ ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int el
 ///////////////////////////////////////////////////////////////////////////////
 
 
-
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint, ElVis::ReferencePointParameterType referenceType, ElVisFloat3& referencePoint)
 {
-    ELVIS_PRINTF("EvaluateFieldOptiX 1\n");
+    //ELVIS_PRINTF("EvaluateFieldOptiX 1\n");
     if( referenceType != ElVis::eReferencePointIsValid )
     {
         ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, referenceType, referencePoint);
@@ -144,7 +186,7 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 
 ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int elementType, int fieldId, const ElVisFloat3& worldPoint)
 {
-    ELVIS_PRINTF("EvaluateFieldOptiX 2\n");
+    //ELVIS_PRINTF("EvaluateFieldOptiX 2\n");
     ElVisFloat3 dummy;
     return EvaluateFieldOptiX(elementId, elementType, fieldId, worldPoint, ElVis::eReferencePointIsInvalid, dummy);
 }

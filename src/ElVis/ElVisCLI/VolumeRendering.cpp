@@ -44,6 +44,7 @@
 #include <ElVis/Core/LightingModule.h>
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/ElVisConfig.h>
+#include <boost/make_shared.hpp>
 
 int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c)
 {
@@ -66,11 +67,11 @@ int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> mode
                                                                                                               boost::program_options::command_line_style::long_allow_adjacent).allow_unregistered().run(), vm);
     boost::program_options::notify(vm);
 
-    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -250,11 +251,11 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
         enableEmptySpaceSkipping = (vm[emptySpaceSkippingLabel].as<int>() == 1);
     }
 
-    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
 
-    ElVis::PointLight* l = new ElVis::PointLight();
+    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -430,7 +431,7 @@ int VolumeRenderSphereForVerification(int argc, char** argv, boost::shared_ptr<E
         renderIntegrationType = (vm[renderIntegrationTypeLabel].as<int>() == 1);
     }
 
-    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
     boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(new ElVis::PrimaryRayModule());
@@ -533,7 +534,7 @@ int VolumeRenderSphereForVerification(int argc, char** argv, boost::shared_ptr<E
 //    model->LoadVolume(fileName);
 //    boost::shared_ptr<ElVis::JacobiExtension::FiniteElementVolume> m_volume = model->Volume();
 
-//    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+//    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
 //    scene->SetModel(model);
 
 

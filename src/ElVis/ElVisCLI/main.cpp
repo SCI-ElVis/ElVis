@@ -57,7 +57,7 @@
 #include <boost/bind.hpp>
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
-
+#include <boost/make_shared.hpp>
 
 //
 //void ConvertToRGB(double h, double s, double v, double& r, double& g, double& b)
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
     boost::shared_ptr<ElVis::Plugin> plugin(new ElVis::Plugin(modulePath));
     boost::shared_ptr<ElVis::Model> model(plugin->LoadModel(modelPath.c_str()));
 
-    boost::shared_ptr<ElVis::Scene> scene(new ElVis::Scene());
+    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
     boost::shared_ptr<ElVis::ColorMap> colorMap;

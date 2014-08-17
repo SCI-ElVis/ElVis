@@ -31,6 +31,8 @@
 
 #include <ElVis/Core/Cuda.h>
 
+#include <boost/typeof/typeof.hpp>
+
 namespace ElVis
 {
     HostTransferFunction::HostTransferFunction() :

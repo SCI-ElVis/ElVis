@@ -6,7 +6,7 @@
 #include <boost/static_assert.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/serialization/split_member.hpp>
 
 #include <string>
@@ -21,10 +21,10 @@ namespace ElVis
             typedef data_type DataType;
             typedef Point<data_type, dim, space> ThisType;
 
-            boost::signal< void (const ThisType&) > OnPointChanged;
-            boost::signal< void (const DataType&) > OnXChanged;
-            boost::signal< void (const DataType&) > OnYChanged;
-            boost::signal< void (const DataType&) > OnZChanged;
+            boost::signals2::signal< void (const ThisType&) > OnPointChanged;
+            boost::signals2::signal< void (const DataType&) > OnXChanged;
+            boost::signals2::signal< void (const DataType&) > OnYChanged;
+            boost::signals2::signal< void (const DataType&) > OnZChanged;
 
         public:
             Point()
@@ -90,7 +90,11 @@ namespace ElVis
                 }
             }
 
-            Point(const Point<DataType, dim, space>& rhs)
+            Point(const Point<DataType, dim, space>& rhs) :
+              OnPointChanged(),
+              OnXChanged(),
+              OnYChanged(),
+              OnZChanged()
             {
                 for(unsigned int i = 0; i < dim::Value; ++i)
                 {

@@ -43,110 +43,111 @@
 // to rotate and resize the cylinder as needed.
 RT_PROGRAM void CylinderIntersect( int primIdx )
 {
-    ElVisFloat3 d = MakeFloat3(ray.direction);
-    ElVisFloat3 o = MakeFloat3(ray.origin);
+  ElVisFloat3 d = MakeFloat3(ray.direction);
+  ElVisFloat3 o = MakeFloat3(ray.origin);
 
-	ElVisFloat A = d.x*d.x + d.y*d.y;
-	ElVisFloat B = MAKE_FLOAT(2.0)*(o.x*d.x + o.y*d.y);
-	ElVisFloat C = o.x*o.x + o.y*o.y - MAKE_FLOAT(1.0);
-	
-	ElVisFloat D = B*B - MAKE_FLOAT(4.0)*A*C;
+  ElVisFloat A = d.x*d.x + d.y*d.y;
+  ElVisFloat B = MAKE_FLOAT(2.0)*(o.x*d.x + o.y*d.y);
+  ElVisFloat C = o.x*o.x + o.y*o.y - MAKE_FLOAT(1.0);
 
-	if( D < MAKE_FLOAT(0.0) )
-	{
-		return;
+  ElVisFloat D = B*B - MAKE_FLOAT(4.0)*A*C;
+
+  if( D < MAKE_FLOAT(0.0) )
+  {
+    return;
+  }
+
+  // In this case we know that there is at least 1 intersection.
+  ElVisFloat denom = MAKE_FLOAT(2.0) * A;
+  ElVisFloat square_D = Sqrtf(D);
+
+  // Of the two roots, this is the one which is closest to the viewer.
+  ElVisFloat t1 = (-B - square_D)/denom;
+
+  if( t1 > MAKE_FLOAT(0.0) )
+  {
+    const ElVisFloat3 intersectionPoint = o + t1 * d;
+
+    if( intersectionPoint.z >= MAKE_FLOAT(0.0) && intersectionPoint.z <= MAKE_FLOAT(1.0) )
+    {
+      if(  rtPotentialIntersection( t1 ) ) 
+      {
+        normal = MakeFloat3(intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
+        normalize(normal);
+        rtReportIntersection(0);
+      }
     }
-                    
-	// In this case we know that there is at least 1 intersection.
-	ElVisFloat denom = MAKE_FLOAT(2.0) * A;
-	ElVisFloat square_D = Sqrtf(D);
-
-	// Of the two roots, this is the one which is closest to the viewer.
-	ElVisFloat t1 = (-B - square_D)/denom;
-
-	if( t1 > MAKE_FLOAT(0.0) )
-	{
-        const ElVisFloat3 intersectionPoint = o + t1 * d;
-
-        if( intersectionPoint.z >= MAKE_FLOAT(0.0) && intersectionPoint.z <= MAKE_FLOAT(1.0) )
-        {
-		    if(  rtPotentialIntersection( t1 ) ) 
-            {
-                normal = MakeFloat3(intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
-                normalize(normal);
-                rtReportIntersection(0);
-            }
-        }
-	}
+  }
 
     // TODO - Uncommenting the rest of this methods causes failure.  On 1/18/2011 I postponed this so I could finish 
     // some timing tests, but it needs to be addressed.
- //   ElVisFloat t2 = (-B + square_D)/denom;
+  ElVisFloat t2 = (-B + square_D)/denom;
 
-	//if( t2 > MAKE_FLOAT(0.0) )
-	//{
- //       const ElVisFloat3 intersectionPoint = o + t2 * d;
- //       if( intersectionPoint.z >= MAKE_FLOAT(0.0) && intersectionPoint.z <= MAKE_FLOAT(1.0) )
- //       {
-	//        if(  rtPotentialIntersection( t2 ) ) 
- //           {    
- //               // Uncomment the following line for error in Cuda 3.0 and Optix 2.0 and sm_20
- //               // Cuda 3.0 Optix 2.0 sm_20 - x
- //               // Cuda 3.0 Optix 2.0 sm_13 - x
- //               // Cuda 3.0 Optix 2.1 sm_20 - Works
- //               // Cuda 3.0 Optix 2.1 sm_13
- //               // Cuda 3.1 Optix 2.1 sm_20
- //               // Cuda 3.1 Optix 2.1 sm_13
- //               // Cuda 3.2 Optix 2.1 sm_20
- //               // Cuda 3.2 Optix 2.1 sm_13
-
- //               // 
- //               normal = MakeFloat3(intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
- //               normalize(normal);
- //               rtReportIntersection(0);
- //           }
- //       }
- //   }
-	//
-    ElVisFloat4 cap0 = MakeFloat4(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(-1.0), MAKE_FLOAT(0.0));
-    ElVisFloat t3;
-    if( FindPlaneIntersection(o, d, cap0, t3) )
+  if( t2 > MAKE_FLOAT(0.0) )
+  {
+    const ElVisFloat3 intersectionPoint = o + t2 * d;
+    if( intersectionPoint.z >= MAKE_FLOAT(0.0) && intersectionPoint.z <= MAKE_FLOAT(1.0) )
     {
-        const ElVisFloat3 intersectionPoint = o + t3 * d;
-        if( intersectionPoint.x*intersectionPoint.x +
-            intersectionPoint.y*intersectionPoint.y <= MAKE_FLOAT(1.0) )
-        {
-            if(  rtPotentialIntersection( t3 ) ) 
-            {    
-                normal = MakeFloat3(cap0.x, cap0.y, cap0.z);
-                rtReportIntersection(0);
-            }
-        }
-    }
+      if(  rtPotentialIntersection( t2 ) ) 
+      {    
+        // Uncomment the following line for error in Cuda 3.0 and Optix 2.0 and sm_20
+        // Cuda 3.0 Optix 2.0 sm_20 - x
+        // Cuda 3.0 Optix 2.0 sm_13 - x
+        // Cuda 3.0 Optix 2.1 sm_20 - Works
+        // Cuda 3.0 Optix 2.1 sm_13
+        // Cuda 3.1 Optix 2.1 sm_20
+        // Cuda 3.1 Optix 2.1 sm_13
+        // Cuda 3.2 Optix 2.1 sm_20
+        // Cuda 3.2 Optix 2.1 sm_13
 
-    ElVisFloat4 cap1 = MakeFloat4(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(1.0), MAKE_FLOAT(-1.0) );
-    ElVisFloat t4;
-    if( FindPlaneIntersection(o, d, cap1, t4) )
-    {
-        const ElVisFloat3 intersectionPoint = o + t4 * d;
-        if( intersectionPoint.x*intersectionPoint.x +
-            intersectionPoint.y*intersectionPoint.y <= MAKE_FLOAT(1.0) )
-        {
-            if(  rtPotentialIntersection( t4 ) ) 
-            {   
-                normal = MakeFloat3(cap1.x, cap1.y, cap1.z);
-                rtReportIntersection(0);
-            }
-        }
+        // 
+        normal = MakeFloat3(intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
+        normalize(normal);
+        rtReportIntersection(0);
+      }
     }
+  }
+
+  ElVisFloat4 cap0 = MakeFloat4(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(-1.0), MAKE_FLOAT(0.0));
+  ElVisFloat t3;
+  if( FindPlaneIntersection(o, d, cap0, t3) )
+  {
+    const ElVisFloat3 intersectionPoint = o + t3 * d;
+    if( intersectionPoint.x*intersectionPoint.x +
+      intersectionPoint.y*intersectionPoint.y <= MAKE_FLOAT(1.0) )
+    {
+      if(  rtPotentialIntersection( t3 ) ) 
+      {    
+        normal = MakeFloat3(cap0.x, cap0.y, cap0.z);
+        rtReportIntersection(0);
+      }
+    }
+  }
+
+  ElVisFloat4 cap1 = MakeFloat4(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(1.0), MAKE_FLOAT(-1.0) );
+  ElVisFloat t4;
+  if( FindPlaneIntersection(o, d, cap1, t4) )
+  {
+    const ElVisFloat3 intersectionPoint = o + t4 * d;
+    if( intersectionPoint.x*intersectionPoint.x +
+      intersectionPoint.y*intersectionPoint.y <= MAKE_FLOAT(1.0) )
+    {
+      if(  rtPotentialIntersection( t4 ) ) 
+      {   
+        normal = MakeFloat3(cap1.x, cap1.y, cap1.z);
+        rtReportIntersection(0);
+      }
+    }
+  }
 
 }
 
+// Bounding box for the cannonical cylinder.
 RT_PROGRAM void CylinderBounding (int, float result[6])
 {
-    optix::Aabb* aabb = (optix::Aabb*)result;
-    aabb->m_min = make_float3(-1.0f, -1.0f, -1.0f);
-    aabb->m_max = make_float3(1.0f, 1.0f, 1.0f);
+  optix::Aabb* aabb = (optix::Aabb*)result;
+  aabb->m_min = make_float3(-1.0f, -1.0f, -1.0f);
+  aabb->m_max = make_float3(1.0f, 1.0f, 1.0f);
 }
 
 

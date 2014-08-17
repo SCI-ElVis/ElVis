@@ -30,7 +30,7 @@
 #define ELVIS_RENDER_MODULE_H
 
 #include <ElVis/Core/ElVisDeclspec.h>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <bitset>
 
 namespace ElVis
@@ -84,11 +84,11 @@ namespace ElVis
             // Handlers
             ELVIS_EXPORT void SetSyncAndRenderRequired();
             ELVIS_EXPORT void SetRenderRequired();
-
+            ELVIS_EXPORT bool GetRenderRequired() const;
             // Signals
-            boost::signal<void (const RenderModule&)> OnModuleChanged;
-            boost::signal<void (const RenderModule&, bool)> OnEnabledChanged;
-            boost::signal<void (const RenderModule&, const std::bitset<eNumRenderModuleFlags>& )> OnRenderFlagsChanged;
+            boost::signals2::signal<void (const RenderModule&)> OnModuleChanged;
+            boost::signals2::signal<void (const RenderModule&, bool)> OnEnabledChanged;
+            boost::signals2::signal<void (const RenderModule&, const std::bitset<eNumRenderModuleFlags>& )> OnRenderFlagsChanged;
 
         protected:
             virtual void DoSetup(SceneView* view) = 0;

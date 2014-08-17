@@ -102,9 +102,9 @@ namespace Jacobi
             a3 /= a1;
             a4 /= a1;
 
-            DataType t1 = a4*polyn2;
-            DataType t2 = (a2+a3*x);
-            DataType t3 = t2*polyn1;
+            //DataType t1 = a4*polyn2;
+            //DataType t2 = (a2+a3*x);
+            //DataType t3 = t2*polyn1;
             result = (a2 + a3*x)*polyn1 - a4*polyn2;
 
             polyn2 = polyn1;

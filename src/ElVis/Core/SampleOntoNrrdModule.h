@@ -37,7 +37,7 @@
 
 #include <vector>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 
 namespace ElVis
 {

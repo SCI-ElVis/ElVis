@@ -40,7 +40,7 @@
 
 #include <iostream>
 
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/map.hpp>
@@ -64,9 +64,9 @@ namespace ElVis
             ELVIS_EXPORT float GetMin() const { return m_min; }
             ELVIS_EXPORT float GetMax() const { return m_max; }
 
-            boost::signal<void (float)> OnMinChanged;
-            boost::signal<void (float)> OnMaxChanged;
-            boost::signal<void (const ColorMap&)> OnColorMapChanged;
+            boost::signals2::signal<void (float)> OnMinChanged;
+            boost::signals2::signal<void (float)> OnMaxChanged;
+            boost::signals2::signal<void (const ColorMap&)> OnColorMapChanged;
 
         protected:
             virtual void DoPopulateTexture(optixu::Buffer& buffer) = 0;

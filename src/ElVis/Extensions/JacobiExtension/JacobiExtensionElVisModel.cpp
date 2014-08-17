@@ -41,58 +41,12 @@
 
 #include <boost/typeof/typeof.hpp>
 
+#include <ElVis/Core/Float.h>
+
 namespace ElVis
 {
     namespace JacobiExtension
     {
-        const std::string JacobiExtensionModel::HexahedronIntersectionProgramName("HexahedronIntersection");
-        const std::string JacobiExtensionModel::HexahedronPointLocationProgramName("HexahedronContainsOriginByCheckingPoint");
-        const std::string JacobiExtensionModel::HexahedronBoundingProgramName("hexahedron_bounding");
-
-        const std::string JacobiExtensionModel::PrismIntersectionProgramName("PrismIntersection");
-        const std::string JacobiExtensionModel::PrismPointLocationProgramName("PrismContainsOriginByCheckingPoint");
-        const std::string JacobiExtensionModel::PrismBoundingProgramName("PrismBounding");
-
-        WorldPoint JacobiFace::MinExtent() const
-        {
-            //return sorted[0];
-            return CalcMin(p[0], CalcMin(p[1], CalcMin(p[2], p[3])));
-        }
-
-        WorldPoint JacobiFace::MaxExtent() const
-        {
-            //return sorted[4];
-            return CalcMax(p[0], CalcMax(p[1], CalcMax(p[2], p[3])));
-        }
-
-        int JacobiFace::NumVertices() const
-        {
-            return NumEdges;
-        }
-
-        bool operator<(const JacobiFace& lhs, const JacobiFace& rhs)
-        {
-            if( lhs.NumVertices() != rhs.NumVertices() )
-            {
-                return lhs.NumVertices() < rhs.NumVertices();
-            }
-
-//            WorldPoint lhsPoints[] = {lhs.p[0], lhs.p[1], lhs.p[2], lhs.p[3]};
-//            WorldPoint rhsPoints[] = {rhs.p[0], rhs.p[1], rhs.p[2], rhs.p[3]};
-//            std::sort(lhsPoints, lhsPoints+4);
-//            std::sort(rhsPoints, rhsPoints+4);
-
-            for(int i = 0; i < 4; ++i)
-            {
-                if( lhs.sorted[i] != rhs.sorted[i] )
-                {
-                    return lhs.sorted[i] < rhs.sorted[i];
-                }
-            }
-            return false;
-
-        }
-
         JacobiExtensionModel::JacobiExtensionModel(const std::string& modelPath) :
             Model(modelPath),
             m_volume(),
@@ -103,9 +57,7 @@ namespace ElVis
             HexCoefficientBuffer("HexCoefficients"),
             PrismCoefficientBuffer("PrismCoefficients"),
             HexPlaneBuffer("HexPlaneBuffer"),
-            PrismPlaneBuffer("PrismPlaneBuffer"),
-            FaceVertexBuffer("FaceVertexBuffer"),
-            FaceNormalBuffer("FaceNormalBuffer")
+            PrismPlaneBuffer("PrismPlaneBuffer")
         {
         }
 
@@ -137,29 +89,57 @@ namespace ElVis
             SetMinExtent(minExtent);
             SetMaxExtent(maxExtent);
 
+            std::map<JacobiFaceKey, JacobiFace> faceLookupMap;
+            PopulateFaces<Hexahedron>(m_volume, faceLookupMap);
+            PopulateFaces<Prism>(m_volume, faceLookupMap);
+
+
+            // Find all unique vertices.  The OptiX extension requires a unique list of vertices, 
+            // which each face references via vertex index.
+            std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> verticesLookupMap(closePointLessThan);
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
             {
                 BOOST_AUTO(element, m_volume->getElement(i));
                 for(unsigned int j = 0; j < element->numVertices(); ++j)
                 {
                     BOOST_AUTO(vertex, element->vertex(j));
-                    if( m_verticesLookupMap.find(vertex) == m_verticesLookupMap.end() )
+                    if( verticesLookupMap.find(vertex) == verticesLookupMap.end() )
                     {
-                        m_verticesLookupMap.insert(vertex);
-                        m_vertices.push_back(vertex);
+                        verticesLookupMap.insert(vertex);
                     }
                 }
+            }
+
+            // Put the unique vertices in a easily-indexed list for future use.  The list will be sorted, 
+            // so we can easily find the vertex index with a binary search.
+            std::copy(verticesLookupMap.begin(), verticesLookupMap.end(),
+              std::back_inserter(m_vertices));
+
+            // Update the indices for each vertex.
+            for(std::map<JacobiFaceKey, JacobiFace>::iterator iter = faceLookupMap.begin();
+                iter != faceLookupMap.end(); ++iter)
+            {
+              const JacobiFaceKey& key = (*iter).first;
+              JacobiFace& value = (*iter).second;
+              for(unsigned int i = 0; i < 4; ++i)
+              {
+                BOOST_AUTO(iter, std::find_if(m_vertices.begin(), m_vertices.end(), boost::bind(closePointEqual, _1, key.p[i])));
+                value.planarInfo.vertexIdx[i] = std::distance(m_vertices.begin(), iter);
+              }
+            }
+
+            for(std::map<JacobiFaceKey, JacobiFace>::const_iterator iter = faceLookupMap.begin();
+                iter != faceLookupMap.end(); ++iter)
+            {
+              BOOST_AUTO(face, (*iter).second);
+              face.info.widenExtents();
+              m_faces.push_back(face);
             }
         }
 
         void JacobiExtensionModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
         {
             m_volume->calcOverallBoundingBox(min, max);
-        }
-
-        WorldPoint JacobiExtensionModel::DoGetPoint(unsigned int id) const
-        {
-            return m_vertices[id];
         }
 
         unsigned int JacobiExtensionModel::DoGetNumberOfElements() const
@@ -181,155 +161,25 @@ namespace ElVis
             return info;
         }
 
-        void JacobiExtensionModel::DoGetFaceGeometry(Scene* scene, optixu::Context context, optixu::Geometry& faceGeometry)
+        bool closePointLessThan(const WorldPoint& lhs, const WorldPoint& rhs)
         {
-            std::map<JacobiFace, FaceDef> faces;
-
-            PopulateFaces<Hexahedron>(m_volume, faces);
-            PopulateFaces<Prism>(m_volume, faces);
-
-            scene->GetFaceMinExtentBuffer().SetDimensions(faces.size());
-            scene->GetFaceMaxExtentBuffer().SetDimensions(faces.size());
-
-            BOOST_AUTO(minBuffer, scene->GetFaceMinExtentBuffer().Map());
-            BOOST_AUTO(maxBuffer, scene->GetFaceMaxExtentBuffer().Map());
-            FaceVertexBuffer.SetContext(context);
-            FaceVertexBuffer.SetDimensions(faces.size()*4);
-            FaceNormalBuffer.SetContext(context);
-            FaceNormalBuffer.SetDimensions(faces.size());
-
-            scene->GetFaceIdBuffer().SetDimensions(faces.size());
-            BOOST_AUTO(faceDefs, scene->GetFaceIdBuffer().map());
-            BOOST_AUTO(faceVertexBuffer, FaceVertexBuffer.Map());
-            BOOST_AUTO(normalBuffer, FaceNormalBuffer.Map());
-
-            int index = 0;
-            for(std::map<JacobiFace, FaceDef>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
+            double tol = .001;
+            for(unsigned int i = 0; i < 3; ++i)
             {
-                const JacobiFace& face = (*iter).first;
-                FaceDef faceDef = (*iter).second;
-                faceDef.Type = eCurved;
-                //faceDef.Type = ePlanar;
-
-                WorldPoint minExtent = face.MinExtent();
-                WorldPoint maxExtent = face.MaxExtent();
-
-                // There is no proof that OptiX can't handle degenerate boxes,
-                // but just in case...
-                if( minExtent.x() == maxExtent.x() )
-                {
-                    minExtent.SetX(minExtent.x() - .0001);
-                    maxExtent.SetX(maxExtent.x() + .0001);
-                }
-
-                if( minExtent.y() == maxExtent.y() )
-                {
-                    minExtent.SetY(minExtent.y() - .0001);
-                    maxExtent.SetY(maxExtent.y() + .0001);
-                }
-
-                if( minExtent.z() == maxExtent.z() )
-                {
-                    minExtent.SetZ(minExtent.z() - .0001);
-                    maxExtent.SetZ(maxExtent.z() + .0001);
-                }
-
-                minBuffer[index] = MakeFloat3(minExtent);
-                maxBuffer[index] = MakeFloat3(maxExtent);
-
-                faceVertexBuffer[4*index] = MakeFloat4(face.p[0]);
-                faceVertexBuffer[4*index+1] = MakeFloat4(face.p[1]);
-                faceVertexBuffer[4*index+2] = MakeFloat4(face.p[2]);
-                faceVertexBuffer[4*index+3] = MakeFloat4(face.p[3]);
-
-                normalBuffer[index] = MakeFloat4(face.normal);
-
-                faceDefs[index] = faceDef;
-                ++index;
+                if( lhs[i] < (rhs[i]-tol) ) return true;
+                if( lhs[i] > (rhs[i]+tol) ) return false;
             }
-
-
-            // All Jacobi faces are planar, but can be switched to curved for testing the
-            // intersection routines.
-
-            faceGeometry->setPrimitiveCount(faces.size());
-            //curvedFaces->setPrimitiveCount(faces.size());
+            return false;
         }
 
-        std::vector<optixu::GeometryGroup> JacobiExtensionModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)
+        void JacobiExtensionModel::DoCopyExtensionSpecificDataToOptiX(optixu::Context context)
         {
-            try
-            {        
-                std::vector<optixu::GeometryGroup> result;
-                if( !m_volume ) return result;
-
-                std::vector<optixu::GeometryInstance> geometryWithPrimitives;
-
-                optixu::GeometryInstance hexInstance = CreateGeometryForElementType<Hexahedron>(m_volume, context, "Hex");
-
-                if( hexInstance )
-                {
-                    geometryWithPrimitives.push_back(hexInstance);
-
-                    optixu::Material m_hexCutSurfaceMaterial = context->createMaterial();
-
-                    optixu::Program hexBoundingProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), HexahedronBoundingProgramName);
-                    optixu::Program hexIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), HexahedronIntersectionProgramName);
-
-                    hexInstance->setMaterialCount(1);
-                    hexInstance->setMaterial(0, m_hexCutSurfaceMaterial);
-                    optixu::Geometry hexGeometry = hexInstance->getGeometry();
-                    hexGeometry->setBoundingBoxProgram( hexBoundingProgram );
-                    hexGeometry->setIntersectionProgram( hexIntersectionProgram );
-                }
-
-                optixu::GeometryInstance prismInstance = CreateGeometryForElementType<Prism>(m_volume, context, "Prism");
-                if( prismInstance )
-                {
-                    optixu::Material prismCutSurfaceMaterial = context->createMaterial();
-
-                    optixu::Program prismBoundingProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), PrismBoundingProgramName);
-                    optixu::Program prismIntersectionProgram = PtxManager::LoadProgram(context, GetPTXPrefix(), PrismIntersectionProgramName);
-
-                    geometryWithPrimitives.push_back(prismInstance);
-                    prismInstance->setMaterialCount(1);
-                    prismInstance->setMaterial(0, prismCutSurfaceMaterial);
-
-                    optixu::Geometry prismGeometry = prismInstance->getGeometry();
-                    prismGeometry->setBoundingBoxProgram( prismBoundingProgram );
-                    prismGeometry->setIntersectionProgram( prismIntersectionProgram );
-                }
-
-
-                optixu::GeometryGroup group = context->createGeometryGroup();
-                group->setChildCount(geometryWithPrimitives.size());
-                for(unsigned int i = 0; i < geometryWithPrimitives.size(); ++i)
-                {
-                    group->setChild(i, geometryWithPrimitives[i]);
-                }
-
-
-                //group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
-                group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );
-                //group->setAcceleration( context->createAcceleration("MedianBvh","Bvh") );
-
-                result.push_back(group);
-
-                return result;
-            }
-            catch(optixu::Exception& e)
-            {
-                std::cerr << e.getErrorString() << std::endl;
-                throw;
-            }
-            catch(std::exception& f)
-            {
-                std::cerr << f.what() << std::endl;
-                throw;
-            }
+  
+            CopyFieldsForElementType<Hexahedron>(m_volume, context, "Hex");
+            CopyFieldsForElementType<Prism>(m_volume, context, "Prism");
         }
 
-        std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(Scene* scene, optixu::Context context)
+        std::vector<optixu::GeometryInstance> JacobiExtensionModel::DoGet2DPrimaryGeometry(boost::shared_ptr<Scene> scene, optixu::Context context)
         {
             return std::vector<optixu::GeometryInstance>();
         }
@@ -337,15 +187,6 @@ namespace ElVis
         optixu::Material JacobiExtensionModel::DoGet2DPrimaryGeometryMaterial(SceneView* view)
         {
             return optixu::Material();
-        }
-
-        void JacobiExtensionModel::DoMapInteropBufferForCuda()
-        {
-
-        }
-
-        void JacobiExtensionModel::DoUnMapInteropBufferForCuda()
-        {
         }
 
         template<>
@@ -391,6 +232,48 @@ namespace ElVis
 
         void JacobiExtensionModel::DoGetBoundarySurface(int surfaceIndex, std::string& name, std::vector<int>& faceIds)
         {
+        }
+
+        size_t JacobiExtensionModel::DoGetNumberOfFaces() const
+        {
+          return m_faces.size();
+        }
+
+        FaceInfo JacobiExtensionModel::DoGetFaceDefinition(size_t globalFaceId) const
+        {
+          return m_faces[globalFaceId].info;
+        }
+
+        size_t JacobiExtensionModel::DoGetNumberOfPlanarFaceVertices() const
+        {
+          return m_vertices.size();
+        }
+
+        WorldPoint JacobiExtensionModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
+        {
+          return m_vertices[vertexIdx];
+        }
+
+        size_t JacobiExtensionModel::DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const
+        {
+          if( m_faces[localFaceIdx].planarInfo.Type == eTriangle )
+          {
+            return 3;
+          }
+          else
+          {
+            return 4;
+          }
+        }
+
+        size_t JacobiExtensionModel::DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId)
+        {
+          return m_faces[localFaceIdx].planarInfo.vertexIdx[vertexId];
+        }
+
+        WorldVector JacobiExtensionModel::DoGetPlanarFaceNormal(size_t localFaceId) const
+        {
+          return m_faces[localFaceId].normal;
         }
 
     }

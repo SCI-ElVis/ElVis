@@ -38,14 +38,14 @@
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/HostTransferFunction.h>
 #include <ElVis/Core/Point.hpp>
-#include <ElVis/Core/FaceDef.h>
+#include <ElVis/Core/FaceInfo.h>
 #include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/Plugin.h>
 #include <optixu/optixpp.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
@@ -53,6 +53,8 @@
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/enable_shared_from_this.hpp>
+
 #include <QDir>
 
 namespace ElVis
@@ -61,10 +63,10 @@ namespace ElVis
     class Light;
     class HostTransferFunction;
 
-    /// \brief The scene represents the data to be visualized, independent 
-    /// of the specific visualization algorithms.  OptiX data structures can 
+    /// \brief The scene represents the data to be visualized, independent
+    /// of the specific visualization algorithms.  OptiX data structures can
     /// be included in the scene.
-    class Scene
+    class Scene : public boost::enable_shared_from_this<Scene>
     {
         public:
             friend class boost::serialization::access;
@@ -93,12 +95,12 @@ namespace ElVis
             ELVIS_EXPORT Scene();
             ELVIS_EXPORT ~Scene();
 
-            ELVIS_EXPORT void AddLight(Light* value) { m_allLights.push_back(value); }
-            ELVIS_EXPORT const std::list<Light*>& GetLights() const { return m_allLights; }
+            ELVIS_EXPORT void AddLight(boost::shared_ptr<Light> value) { m_allLights.push_back(value); }
+            ELVIS_EXPORT const std::list<boost::shared_ptr<Light> >& GetLights() const { return m_allLights; }
 
             ELVIS_EXPORT const Color& AmbientLightColor() const { return m_ambientLightColor; }
             ELVIS_EXPORT void SetAmbientLightColor(const Color& value) ;
-                        
+
             ELVIS_EXPORT void SetModel(boost::shared_ptr<Model> value) { m_model = value; OnModelChanged(value); }
             ELVIS_EXPORT boost::shared_ptr<Model> GetModel() const { return m_model; }
 
@@ -125,23 +127,12 @@ namespace ElVis
 
             ELVIS_EXPORT void SynchronizeWithOptiXIfNeeded();
 
-            ELVIS_EXPORT OptiXBuffer<FaceDef>& GetFaceIdBuffer() { return m_faceIdBuffer; }
-            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMinExtentBuffer() { return m_faceMinExtentBuffer; }
-            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetFaceMaxExtentBuffer() { return m_faceMaxExtentBuffer; }
-
-//            ELVIS_EXPORT optixu::Geometry GetCurvedFaceGeometry() const { return m_curvedFaceGeometry; }
-//            ELVIS_EXPORT optixu::Geometry GetPlanarFaceGeometry() const { return m_planarFaceGeometry; }
-            ELVIS_EXPORT optixu::Geometry GetFaceGeometry() const { return m_faceGeometry; }
-            ELVIS_EXPORT optixu::Acceleration GetFaceAcceleration() const { return m_faceAcceleration; }
-
-            ELVIS_EXPORT optixu::Buffer GetFacesEnabledBuffer() { return m_facesEnabledBuffer; }
-
-            boost::signal<void (const ColorMapInfo&)> OnColorMapAdded;
-            boost::signal< void (boost::shared_ptr<Model>) > OnModelChanged;
-            boost::signal< void (const Scene&)> OnSceneInitialized;
-            boost::signal<void (const Scene&)> OnSceneChanged;
-            boost::signal<void (int)> OnOptixPrintBufferSizeChanged;
-            boost::signal<void (bool)> OnEnableTraceChanged;
+            boost::signals2::signal<void (const ColorMapInfo&)> OnColorMapAdded;
+            boost::signals2::signal<void (boost::shared_ptr<Model>) > OnModelChanged;
+            boost::signals2::signal<void (const Scene&)> OnSceneInitialized;
+            boost::signals2::signal<void (const Scene&)> OnSceneChanged;
+            boost::signals2::signal<void (int)> OnOptixPrintBufferSizeChanged;
+            boost::signals2::signal<void (bool)> OnEnableTraceChanged;
 
 
 
@@ -149,28 +140,24 @@ namespace ElVis
             Scene(const Scene& rhs);
             Scene& operator=(const Scene& rhs);
 
-
-            void InitializeFaces();
-            void Get3DModelInformation();
-
             template<typename Archive>
-            void do_serialize(Archive& ar, const unsigned int version, 
+            void do_serialize(Archive& ar, const unsigned int version,
                 typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
             {
-                // On output, write the path to the model.  If possible, make 
+                // On output, write the path to the model.  If possible, make
                 // it relative to the execution directory for maximum portability.
                 BOOST_AUTO(path, m_model->GetPath());
 
                 QDir dir;
                 std::string relativeModelPath = dir.relativeFilePath(QString(path.c_str())).toStdString();
-                ar & BOOST_SERIALIZATION_NVP(relativeModelPath);   
+                ar & BOOST_SERIALIZATION_NVP(relativeModelPath);
 
                 BOOST_AUTO(pluginName, m_model->GetPlugin()->GetName());
                 ar & BOOST_SERIALIZATION_NVP(pluginName);
             }
 
             template<typename Archive>
-            void do_serialize(Archive& ar, const unsigned int version, 
+            void do_serialize(Archive& ar, const unsigned int version,
                 typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
             {
                 // On input, if there is a model defined, load it.  We will need the
@@ -184,7 +171,7 @@ namespace ElVis
                     throw new std::runtime_error("Can't load state with a model already loaded.");
                 }
 
-                
+
                 m_optixDataDirty = true;
                 m_tracePixelDirty = true;
                 m_enableTraceDirty = true;
@@ -203,15 +190,12 @@ namespace ElVis
                 ar & BOOST_SERIALIZATION_NVP(m_enableOptiXTrace);
                 ar & BOOST_SERIALIZATION_NVP(m_optiXTraceBufferSize);
                 ar & BOOST_SERIALIZATION_NVP(m_optixTraceIndex);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
-                ar & BOOST_SERIALIZATION_NVP(m_enableOptiXExceptions);
+
 
                 do_serialize(ar, version);
             }
 
-            std::list<Light*> m_allLights;
+            std::list<boost::shared_ptr<Light> > m_allLights;
             Color m_ambientLightColor;
             boost::shared_ptr<Model> m_model;
             optixu::Context m_context;
@@ -225,20 +209,16 @@ namespace ElVis
             bool m_enableOptiXTrace;
             int m_optiXTraceBufferSize;
             Point<int, TwoD> m_optixTraceIndex;
-            bool m_enableOptiXExceptions;
+
             bool m_optixDataDirty;
             bool m_tracePixelDirty;
             bool m_enableTraceDirty;
 
             // Optix variables and programs for use in the newton intersection program.
-            optixu::Program m_faceBoundingBoxProgram;
             optixu::Program m_faceIntersectionProgram;
-            OptiXBuffer<FaceDef> m_faceIdBuffer;
-            OptiXBuffer<ElVisFloat3> m_faceMinExtentBuffer;
-            OptiXBuffer<ElVisFloat3> m_faceMaxExtentBuffer;
-            optixu::Geometry m_faceGeometry;
+            optixu::Program m_faceBoundingBoxProgram;
+            OptiXBuffer<FaceInfo> m_faceIdBuffer;
             optixu::Acceleration m_faceAcceleration;
-            optixu::Buffer m_facesEnabledBuffer;
     };
 }
 

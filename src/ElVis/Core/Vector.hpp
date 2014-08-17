@@ -12,7 +12,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/utility/enable_if.hpp>
-#include <boost/signals.hpp>
+#include <boost/signals2.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/split_member.hpp>
@@ -119,7 +119,7 @@ namespace ElVis
     {
         public:
             typedef Vector<DataType, space> ThisType;
-            boost::signal< void (const ThisType&) > OnVectorChanged;
+            boost::signals2::signal< void (const ThisType&) > OnVectorChanged;
 
         public:
             /// \brief Creates a vector of size 3.
@@ -147,13 +147,13 @@ namespace ElVis
 
 
             /// \brief Creates a vector of given size.  The elements are not initialized.
-            explicit Vector(unsigned int size) :
+            explicit Vector(size_t size) :
                 m_data(size)
             {
             }
 
             /// \brief Creates a vector with given size and initial value.
-            Vector(unsigned int size, const DataType& a) :
+            Vector(size_t size, const DataType& a) :
                 m_data(size, a)
             {
             }
@@ -375,7 +375,7 @@ namespace ElVis
 	template<typename DataType, typename space>
 	std::ostream& operator<<(std::ostream& os, const Vector<DataType, space>& rhs)
 	{
-		for(unsigned int i = 0; i < rhs.GetDimension(); ++i)
+		for(size_t i = 0; i < rhs.GetDimension(); ++i)
 		{
 			if( i > 0 )
 			{
@@ -389,7 +389,7 @@ namespace ElVis
     template<typename DataType, typename space>
     std::istream& operator>>(std::istream& is, Vector<DataType, space>& obj)
     {
-        for(unsigned int i = 0; i < obj.GetDimension(); ++i)
+        for(size_t i = 0; i < obj.GetDimension(); ++i)
         {
             DataType temp;
             is >> temp;
@@ -415,7 +415,7 @@ namespace ElVis
     Vector<DataType, space> createVectorFromPoints(const Point<DataType, dim, space>& source,
                                                    const Point<DataType, dim, space>& dest)
     {
-		Vector<DataType, space> result(dim::Value);
+		    Vector<DataType, space> result(dim::Value);
         for(unsigned int i = 0; i < dim::Value; ++i)
         {
             result[i] = dest[i]-source[i];

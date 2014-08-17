@@ -1,0 +1,26 @@
+# http://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   obj:*libQtGui.so*
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*libQtGui.so*
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:/lib/x86_64-linux-gnu/libglib-2.0.so*
+   fun:start_thread
+   fun:clone
+}
