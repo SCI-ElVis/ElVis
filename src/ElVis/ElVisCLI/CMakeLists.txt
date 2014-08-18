@@ -75,7 +75,8 @@ ENDIF()
 SET(BaselineDir ${CMAKE_SOURCE_DIR}/../Testing/${ELVIS_FLOAT}/${CMAKE_HOST_SYSTEM_NAME})
 
 IF( ELVIS_ENABLE_JACOBI_EXTENSION )
-    GET_PROPERTY(JacobiExtensionPath TARGET JacobiExtension PROPERTY RELEASE_LOCATION)
+    #GET_PROPERTY(JacobiExtensionPath TARGET JacobiExtension PROPERTY RELEASE_LOCATION)
+    SET( JacobiExtensionPath $<TARGET_FILE:JacobiExtension> )
     ADD_TEST(NAME BulletCutSurfaceP2 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} 
         --TestName CutSurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
@@ -156,7 +157,9 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
 ENDIF()
 
 IF( ELVIS_ENABLE_ProjectX_EXTENSION )
-    GET_PROPERTY(PXExtensionPath TARGET ProjectXExtension PROPERTY RELEASE_LOCATION)
+    #GET_PROPERTY(PXExtensionPath TARGET ProjectXExtension PROPERTY RELEASE_LOCATION)
+    SET( PXExtensionPath $<TARGET_FILE:ProjectXExtension> )
+    
     ADD_TEST(NAME OneraWingSurface WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Onera_wing_M0p84_AA3p06_Euler_P2_100000DOF_P2_a06_Primal_3.pxa"
         --Module ${PXExtensionPath}
@@ -173,7 +176,8 @@ IF( ELVIS_ENABLE_ProjectX_EXTENSION )
 ENDIF()
 
 IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
-    GET_PROPERTY(ExtensionPath TARGET NektarPlusPlusExtension PROPERTY RELEASE_LOCATION)
+    #GET_PROPERTY(ExtensionPath TARGET NektarPlusPlusExtension PROPERTY RELEASE_LOCATION)
+    SET( ExtensionPath $<TARGET_FILE:NektarPlusPlusExtension> )
     
     ADD_TEST(NAME NektarPlusPlusColorMapSphere WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset2.xml"

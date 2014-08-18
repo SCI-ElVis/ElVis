@@ -62,14 +62,16 @@ MACRO( ADD_ELVIS_QTEST UNIT_TEST UNIT_TEST_SRC )
   ADD_CUSTOM_TARGET( ${UNIT_TEST} COMMAND $<TARGET_FILE:${UNIT_TEST}_build> ${BOOST_TEST_FLAGS} $(UNITARGS)
                      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
-  #Add the memory checking target
-  ADD_CUSTOM_TARGET( ${UNIT_TEST}_memcheck COMMAND ${VALGRIND_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
-                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-
-  #Add the stack checking target
-  ADD_CUSTOM_TARGET( ${UNIT_TEST}_stackcheck COMMAND ${STACKCHECK_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
-                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-
+  IF( NOT WIN32 )
+    #Add the memory checking target
+    ADD_CUSTOM_TARGET( ${UNIT_TEST}_memcheck COMMAND ${VALGRIND_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    
+    #Add the stack checking target
+    ADD_CUSTOM_TARGET( ${UNIT_TEST}_stackcheck COMMAND ${STACKCHECK_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+  ENDIF()
+  
   #Add the coverage target
   ADD_COVERAGE_TEST( ${UNIT_TEST}_coverage ${UNIT_TEST} )
   
@@ -103,17 +105,18 @@ MACRO( GenerateQTests )
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
       SET_TESTS_PROPERTIES( ${UNIT_TEST} PROPERTIES LABELS ElVisCheck )
       
-      #Add intividiaul memcheck tests to ctest
-      ADD_TEST( NAME ${UNIT_TEST}_memcheck COMMAND ${VALGRIND_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build>
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-      SET_TESTS_PROPERTIES( ${UNIT_TEST}_memcheck PROPERTIES LABELS ElVisMemCheck )
-      
-      #Add intividiaul stackcheck tests to ctest
-      ADD_TEST( NAME ${UNIT_TEST}_stackcheck COMMAND ${STACKCHECK_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build>
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-      SET_TESTS_PROPERTIES( ${UNIT_TEST}_stackcheck PROPERTIES LABELS ElVisStackCheck )
- 
-   ENDIF()
+      IF( NOT WIN32 )
+        #Add intividiaul memcheck tests to ctest
+        ADD_TEST( NAME ${UNIT_TEST}_memcheck COMMAND ${VALGRIND_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build>
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+        SET_TESTS_PROPERTIES( ${UNIT_TEST}_memcheck PROPERTIES LABELS ElVisMemCheck )
+          
+        #Add intividiaul stackcheck tests to ctest
+        ADD_TEST( NAME ${UNIT_TEST}_stackcheck COMMAND ${STACKCHECK_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build>
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+        SET_TESTS_PROPERTIES( ${UNIT_TEST}_stackcheck PROPERTIES LABELS ElVisStackCheck )
+      ENDIF()
+    ENDIF()
   ENDFOREACH()
  
 ENDMACRO()
