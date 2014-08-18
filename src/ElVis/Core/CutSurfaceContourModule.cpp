@@ -78,7 +78,7 @@ namespace ElVis
         if( m_dirty )
         {
             m_isovalueBuffer.SetDimensions(m_isovalues.size());
-            BOOST_AUTO(isovalueData, m_isovalueBuffer.Map());
+            auto isovalueData = m_isovalueBuffer.Map();
             int index = 0;
             for(std::set<ElVisFloat>::iterator iter = m_isovalues.begin(); iter != m_isovalues.end(); ++iter)
             {

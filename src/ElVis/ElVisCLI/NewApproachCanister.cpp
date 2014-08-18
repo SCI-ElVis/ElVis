@@ -79,7 +79,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     cylinder->GetTransformationMatrix()[10] = .41f;
    
     
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -307,7 +307,7 @@ int GenericCLIInterface(int argc, char** argv,
     scene->SetEnableOptixTrace(trace);
     scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
 
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);

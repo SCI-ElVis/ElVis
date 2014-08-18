@@ -283,7 +283,7 @@ namespace ElVis
 
         if( !m_colorBuffer.Initialized() ) return;
 
-        BOOST_AUTO(colorBuffer, m_colorBuffer.Map());
+        auto colorBuffer = m_colorBuffer.Map();
 
         if( !colorBuffer ) return;
 
@@ -397,7 +397,7 @@ namespace ElVis
     {
         if( m_depthBuffer.Initialized() )
         {
-            BOOST_AUTO(data, m_depthBuffer.Map());
+            auto data = m_depthBuffer.Map();
             for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i] = 1.0f;
@@ -409,7 +409,7 @@ namespace ElVis
     {
         if( m_colorBuffer.Initialized() )
         {
-            BOOST_AUTO(data, m_colorBuffer.Map());
+            auto data = m_colorBuffer.Map();
             for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i].x = 255;
@@ -484,7 +484,7 @@ namespace ElVis
             SetRasterPositionToLowerLeftCorner();
     
             glDrawBuffer(GL_BACK);
-            BOOST_AUTO(colorData, m_colorBuffer.Map());
+            auto colorData = m_colorBuffer.Map();
             glDrawPixels(GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, (void*)colorData.get());
 
             //GLenum error = glGetError();

@@ -107,7 +107,7 @@ namespace ElVis
         void ViewSettingsUI::HandleProjectionChangedInGui(QtProperty* prop, int value)
         {
             SceneViewProjection newProjectionType = static_cast<SceneViewProjection>(value);
-            BOOST_AUTO(view, m_appData->GetSurfaceSceneView());
+            auto view = m_appData->GetSurfaceSceneView();
             if( view && view->GetProjectionType() != newProjectionType )
             {
                 view->SetProjectionType(newProjectionType);

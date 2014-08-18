@@ -74,8 +74,10 @@ MACRO( ADD_ELVIS_QTEST UNIT_TEST UNIT_TEST_SRC )
   ADD_COVERAGE_TEST( ${UNIT_TEST}_coverage ${UNIT_TEST} )
   
   #Add the callgrind target
-  ADD_CALLGRIND_TEST( ${UNIT_TEST} )
-   
+  if( NOT MSVC )
+    ADD_CALLGRIND_TEST( ${UNIT_TEST} )
+  endif()
+  
 ENDMACRO()
 
 

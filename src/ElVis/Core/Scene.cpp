@@ -148,8 +148,8 @@ namespace ElVis
                 std::cout << "Total Lights: " << m_allLights.size() << std::endl;
                 for(std::list<boost::shared_ptr<Light> >::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
                 {
-                    BOOST_AUTO(asDirectional, boost::dynamic_pointer_cast<DirectionalLight>(*iter));
-                    BOOST_AUTO(asPointLight, boost::dynamic_pointer_cast<PointLight>(*iter));
+                    auto asDirectional = boost::dynamic_pointer_cast<DirectionalLight>(*iter);
+                    auto asPointLight = boost::dynamic_pointer_cast<PointLight>(*iter);
 
                     if( asDirectional )
                     {

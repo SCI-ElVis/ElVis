@@ -21,5 +21,7 @@ ADD_CUSTOM_TARGET( MemoryCheck
                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 INCLUDE(Coverage.cmake)
-INCLUDE(CallGrind.cmake)
+if( NOT MSVC )
+  INCLUDE(CallGrind.cmake)
+endif()
 INCLUDE(QTest.cmake)

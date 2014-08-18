@@ -121,7 +121,7 @@ namespace ElVis
       {
         buffer.SetContext(context);
         buffer.SetDimensions(faceBufferSize);
-        BOOST_AUTO(mappedBuffer, buffer.Map());
+        auto mappedBuffer = buffer.Map();
 
         size_t localIdx = 0;
         for(size_t i = 0; i < faceBufferSize; ++i)
@@ -143,16 +143,16 @@ namespace ElVis
     {      
       // Get information about faces and copy to OptiX.
       // Array of [0, numFaces] of faceDefs.
-      BOOST_AUTO(numFaces, GetNumberOfFaces());
+      auto numFaces = GetNumberOfFaces();
 
       // Populate the face id buffer.
       m_faceIdBuffer.SetContext(context);
       m_faceIdBuffer.SetDimensions(numFaces);
-      BOOST_AUTO(mappedFaceInfoBuffer, m_faceIdBuffer.Map());
+      auto mappedFaceInfoBuffer = m_faceIdBuffer.Map();
 
       for(size_t i = 0; i < numFaces; ++i)
       {
-        BOOST_AUTO(faceDef, GetFaceDefinition(i));
+        auto faceDef = GetFaceDefinition(i);
         m_faceInfo.push_back(faceDef);
         mappedFaceInfoBuffer[i] = faceDef;
       }
@@ -176,13 +176,13 @@ namespace ElVis
 
     void Model::copyPlanarFaceVerticesToOptiX(optixu::Context context)
     {
-      BOOST_AUTO(numPlanarVertices, GetNumberOfPlanarFaceVertices());
+      auto numPlanarVertices = GetNumberOfPlanarFaceVertices();
       std::cout << "############ Num planar face vertices: " << numPlanarVertices << std::endl;
 
       //// Populate the linear fields that we will handle.
       m_VertexBuffer.SetContext(context);
       m_VertexBuffer.SetDimensions(numPlanarVertices);
-      BOOST_AUTO(mappedPlanarVertices, m_VertexBuffer.Map());
+      auto mappedPlanarVertices = m_VertexBuffer.Map();
 
       for(size_t i = 0; i < numPlanarVertices; ++i)
       {
@@ -195,11 +195,11 @@ namespace ElVis
     {
       m_PlanarFaceNormalBuffer.SetContext(context);
       m_PlanarFaceNormalBuffer.SetDimensions(m_numPlanarFaces);
-      BOOST_AUTO(mappedPlanarFaceNormalBuffer, m_PlanarFaceNormalBuffer.Map());
+      auto mappedPlanarFaceNormalBuffer = m_PlanarFaceNormalBuffer.Map();
 
       for(unsigned int i = 0; i < m_numPlanarFaces; ++i)
       {
-        BOOST_AUTO(normal, GetPlanarFaceNormal(i));
+        auto normal =  GetPlanarFaceNormal(i);
         mappedPlanarFaceNormalBuffer[i] = MakeFloat4(normal);  
       }
     }
@@ -216,17 +216,17 @@ namespace ElVis
       m_PlanarFaceInfoBuffer.SetContext(context);
       m_PlanarFaceInfoBuffer.SetDimensions(m_numPlanarFaces);
 
-      BOOST_AUTO(numFaces, GetNumberOfFaces());
-      BOOST_AUTO(faceBuffer, m_PlanarFaceInfoBuffer.Map());
+      auto numFaces = GetNumberOfFaces();
+      auto faceBuffer = m_PlanarFaceInfoBuffer.Map();
 
       size_t localFaceIdx = 0;
       for(size_t globalFaceIdx = 0; globalFaceIdx < numFaces; ++globalFaceIdx)
       {
-        BOOST_AUTO(faceDef, GetFaceDefinition(globalFaceIdx));
+        auto faceDef = GetFaceDefinition(globalFaceIdx);
         if( faceDef.Type != ePlanar ) continue;
 
         PlanarFaceInfo info;
-        BOOST_AUTO(numVertices, GetNumberOfVerticesForPlanarFace(localFaceIdx));
+        auto numVertices = GetNumberOfVerticesForPlanarFace(localFaceIdx);
         if( numVertices == 3 )
         {
           info.Type = eTriangle;
@@ -254,7 +254,7 @@ namespace ElVis
 
       m_PlanarFaceToGlobalIdxMap.SetContext(context);
       m_PlanarFaceToGlobalIdxMap.SetDimensions(std::max(m_numPlanarFaces,size_t(1)));
-      BOOST_AUTO(planarIdxMap, m_PlanarFaceToGlobalIdxMap.Map());
+      auto planarIdxMap = m_PlanarFaceToGlobalIdxMap.Map();
 
       size_t planarIdx = 0;
       size_t globalIdx = 0;
@@ -274,7 +274,7 @@ namespace ElVis
     {
       m_CurvedFaceToGlobalIdxMap.SetContext(context);
       m_CurvedFaceToGlobalIdxMap.SetDimensions(std::max(size_t(1),m_numCurvedFaces));
-      BOOST_AUTO(curvedIdxMap, m_CurvedFaceToGlobalIdxMap.Map());
+      auto curvedIdxMap = m_CurvedFaceToGlobalIdxMap.Map();
 
       size_t curvedIdx = 0;
       size_t globalIdx = 0;
@@ -293,14 +293,14 @@ namespace ElVis
     void Model::createFaceIntersectionGeometry(optixu::Context context)
     {
         // Geometry group collects nodes in a tree.
-        BOOST_AUTO(planarFaceGroup, context->createGeometryGroup());
-        BOOST_AUTO(curvedFaceGroup, context->createGeometryGroup());
+        auto planarFaceGroup = context->createGeometryGroup();
+        auto curvedFaceGroup = context->createGeometryGroup();
 
         m_planarFaceGeometry = context->createGeometry();
         m_curvedFaceGeometry = context->createGeometry();
 
-        BOOST_AUTO(planarGeometryInstance, context->createGeometryInstance());
-        BOOST_AUTO(curvedGeometryInstance, context->createGeometryInstance());
+        auto planarGeometryInstance = context->createGeometryInstance();
+        auto curvedGeometryInstance = context->createGeometryInstance();
 
         m_faceClosestHitProgram = PtxManager::LoadProgram(GetPTXPrefix(), "FaceClosestHitProgram");
         optixu::Material faceForTraversalMaterial = context->createMaterial();
@@ -335,8 +335,8 @@ namespace ElVis
         planarFaceGroup->setChild(0, planarGeometryInstance);
         curvedFaceGroup->setChild(0, curvedGeometryInstance);
 
-        BOOST_AUTO(planarAcceleration, context->createAcceleration("Sbvh","Bvh"));
-        BOOST_AUTO(curvedAcceleration, context->createAcceleration("Sbvh","Bvh"));
+        auto planarAcceleration = context->createAcceleration("Sbvh","Bvh");
+        auto curvedAcceleration = context->createAcceleration("Sbvh","Bvh");
 
         planarFaceGroup->setAcceleration(planarAcceleration);
         curvedFaceGroup->setAcceleration(curvedAcceleration);

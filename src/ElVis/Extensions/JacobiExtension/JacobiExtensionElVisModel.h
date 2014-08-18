@@ -142,17 +142,17 @@ namespace ElVis
                 VertexBuffer.SetContext(context);
                 VertexBuffer.SetDimensions(numElements*T::VertexCount);
                 
-                BOOST_AUTO(vertexData, VertexBuffer.Map());
+                auto vertexData = VertexBuffer.Map();
 
                 ElVis::OptiXBuffer<int>& CoefficientIndicesBuffer = GetCoefficientIndexBuffer<T>();
                 CoefficientIndicesBuffer.SetContext(context);
                 CoefficientIndicesBuffer.SetDimensions(numElements);
-                BOOST_AUTO(coefficientIndicesData, CoefficientIndicesBuffer.Map());
+                auto coefficientIndicesData = CoefficientIndicesBuffer.Map();
 
                 ElVis::OptiXBuffer<ElVisFloat>& CoefficientBuffer = GetCoefficientBuffer<T>();
                 CoefficientBuffer.SetContext(context);
                 CoefficientBuffer.SetDimensions(numCoefficients);
-                BOOST_AUTO(coefficientData, CoefficientBuffer.Map());
+                auto coefficientData = CoefficientBuffer.Map();
 
                 std::string degreesName = variablePrefix + "Degrees";
                 optixu::Buffer DegreesBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT3, numElements);
@@ -163,7 +163,7 @@ namespace ElVis
                 ElVis::OptiXBuffer<ElVisFloat4>& PlaneBuffer = GetPlaneBuffer<T>();
                 PlaneBuffer.SetContext(context);
                 PlaneBuffer.SetDimensions(8*numElements);
-                BOOST_AUTO(planeData, PlaneBuffer.Map());
+                auto planeData = PlaneBuffer.Map();
 
                 const ElVis::WorldPoint& min = this->MinExtent();
                 const ElVis::WorldPoint& max = this->MaxExtent();
@@ -280,7 +280,7 @@ namespace ElVis
                         ElVis::WorldVector normal = -(asT->GetFaceNormal(i));
                         JacobiFaceKey key(p[0], p[1], p[2], p[3]);
 
-                        BOOST_AUTO(found, faceMap.find(key));
+                        auto found = faceMap.find(key);
                         ElementId curElement(id, T::TypeId);
 
                         if( found != faceMap.end() )
@@ -308,7 +308,7 @@ namespace ElVis
                               face.planarInfo.Type = eTriangle;
                             }
 
-                            BOOST_AUTO(insertValue, std::make_pair(key, face));
+                            auto insertValue = std::make_pair(key, face);
                             faceMap.insert(insertValue);
                         }
                     }
