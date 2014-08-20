@@ -1,0 +1,1 @@
+GenerateBoostTests( ElVisCore )

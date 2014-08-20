@@ -53,9 +53,11 @@ IF( QT4_FOUND )
 ENDIF()
 
 SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake )
+#Need to set compiler flags first
+INCLUDE(CMake/CompilerFlags.cmake)
+
 INCLUDE(CMake/SetupOptiX.cmake)
 INCLUDE(CMake/UnitTest.cmake)
-INCLUDE(CMake/CompilerFlags.cmake)
 
 ADD_SUBDIRECTORY(Externals)
 
@@ -259,3 +261,9 @@ MARK_AS_ADVANCED(PASSED_FIRST_CONFIGURE)
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+
+
+#------------------------------------------------------------------------------
+#Generate a unit tests target that runs all the unit tests in a single executable
+#This must be the last thing generated
+ADD_ELVIS_BOOST_TEST_OBJECTS( unit ALL_BOOST_UNIT_OBJECTS ElVisCore )

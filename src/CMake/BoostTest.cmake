@@ -1,3 +1,5 @@
+#First need to clear all objects from the CACHED list. Othewise we get duplicates from multiple executions of cmake
+UNSET( ALL_BOOST_UNIT_OBJECTS CACHE )
 
 # Produce a warning message if any unit tests are skipped
 IF( UNIT_SKIP )
@@ -37,7 +39,7 @@ MACRO( ADD_ELVIS_BOOST_TEST UNIT_TEST UNIT_TEST_SRC )
 ENDMACRO()
 
 #------------------------------------------------------------------------------
-MACRO( ADD_ELVIS_BOOST_TEST_OBJECTS UNIT_TEST UNIT_TEST_OBJECTS )
+MACRO( ADD_ELVIS_BOOST_TEST_OBJECTS UNIT_TEST BOOST_UNIT_TEST_OBJECTS )
 # This gnerates 4 targest for each unit test
 # ${UNIT_TEST}_build      : compiles the unit test
 # ${UNIT_TEST}            : compiles and executes the unit test
@@ -46,7 +48,7 @@ MACRO( ADD_ELVIS_BOOST_TEST_OBJECTS UNIT_TEST UNIT_TEST_OBJECTS )
 # ${UNIT_TEST}_coverage   : compiles and executes the unit test and generates coverage inforamtion
                  
   #Create the build target
-  ADD_EXECUTABLE( ${UNIT_TEST}_build EXCLUDE_FROM_ALL ${BOOST_TEST_MAIN} ${${UNIT_TEST_OBJECTS}} )
+  ADD_EXECUTABLE( ${UNIT_TEST}_build EXCLUDE_FROM_ALL ${BOOST_TEST_MAIN} ${${BOOST_UNIT_TEST_OBJECTS}} )
   TARGET_LINK_LIBRARIES( ${UNIT_TEST}_build ${ARGN} ${BOOST_LIBRARY} )
   SET_TARGET_PROPERTIES( ${UNIT_TEST}_build PROPERTIES OUTPUT_NAME "${UNIT_TEST}")
 
@@ -54,15 +56,8 @@ MACRO( ADD_ELVIS_BOOST_TEST_OBJECTS UNIT_TEST UNIT_TEST_OBJECTS )
   ADD_CUSTOM_TARGET( ${UNIT_TEST} COMMAND $<TARGET_FILE:${UNIT_TEST}_build> ${BOOST_TEST_FLAGS} $(UNITARGS)
                      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
-  IF( NOT WIN32 )
-    #Add the memory checking target
-    ADD_CUSTOM_TARGET( ${UNIT_TEST}_memcheck COMMAND ${VALGRIND_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
-                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    
-    #Add the stack checking target
-    ADD_CUSTOM_TARGET( ${UNIT_TEST}_stackcheck COMMAND ${STACKCHECK_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
-                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-  ENDIF()
+  #Add memory checking target
+  ADD_MEMCHECK( ${UNIT_TEST} )
   
   #Add the coverage target
   ADD_COVERAGE_TEST( ${UNIT_TEST}_coverage ${UNIT_TEST} )
@@ -107,8 +102,19 @@ MACRO( GenerateBoostTests )
         ADD_TEST( NAME ${UNIT_TEST}_stackcheck COMMAND ${STACKCHECK_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build>
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
         SET_TESTS_PROPERTIES( ${UNIT_TEST}_stackcheck PROPERTIES LABELS ElVisStackCheck )
+        
+        #A list of all the unit test objects in this folder
+        SET( BOOST_UNIT_TEST_OBJECTS ${BOOST_UNIT_TEST_OBJECTS} $<TARGET_OBJECTS:${UNIT_TEST}_OBJECT> )
       ENDIF()
     ENDIF()
   ENDFOREACH()
+ 
+   # Generate a target for the given folder that executes all the tests in the folder
+  GET_FILENAME_COMPONENT( FOLDER_TEST ${CMAKE_CURRENT_BINARY_DIR} NAME_WE )
+  ADD_ELVIS_BOOST_TEST_OBJECTS( ${FOLDER_TEST} BOOST_UNIT_TEST_OBJECTS ${ARGN} )
+  ADD_DEPENDENCIES( check_build ${FOLDER_TEST}_build )
+
+  #Automatically build up a list of all unit test objects for the 'unit' target
+  SET( ALL_BOOST_UNIT_OBJECTS ${ALL_BOOST_UNIT_OBJECTS} ${BOOST_UNIT_TEST_OBJECTS} CACHE INTERNAL "All the unit tets objects" FORCE )
  
 ENDMACRO()

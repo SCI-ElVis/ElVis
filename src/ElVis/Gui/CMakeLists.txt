@@ -88,4 +88,4 @@ TARGET_LINK_LIBRARIES(${Project}
     ${TinyXML_Library}
 )
 
-ADD_SUBDIRECTORY(unit)
+ADD_SUBDIRECTORY( unitGui )

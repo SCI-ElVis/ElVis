@@ -37,9 +37,6 @@ MACRO( ADD_ELVIS_QTEST UNIT_TEST UNIT_TEST_SRC )
 # ${UNIT_TEST}_stackcheck : compiles and executes the unit test with valgrind
 # ${UNIT_TEST}_coverage   : compiles and executes the unit test and generates coverage inforamtion
                  
-  #Automoc the source files
-  #QT4_AUTOMOC(${${UNIT_TEST_SRC}})
-
   #Create the build target
   ADD_EXECUTABLE( ${UNIT_TEST}_build EXCLUDE_FROM_ALL ${${UNIT_TEST_SRC}} )
   TARGET_LINK_LIBRARIES( ${UNIT_TEST}_build ${ARGN} ${QTEST_LIBS} )
@@ -50,15 +47,8 @@ MACRO( ADD_ELVIS_QTEST UNIT_TEST UNIT_TEST_SRC )
   ADD_CUSTOM_TARGET( ${UNIT_TEST} COMMAND $<TARGET_FILE:${UNIT_TEST}_build> ${QTEST_TEST_FLAGS} $(UNITARGS)
                      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
-  IF( NOT WIN32 )
-    #Add the memory checking target
-    ADD_CUSTOM_TARGET( ${UNIT_TEST}_memcheck COMMAND ${VALGRIND_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
-                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    
-    #Add the stack checking target
-    ADD_CUSTOM_TARGET( ${UNIT_TEST}_stackcheck COMMAND ${STACKCHECK_COMMAND} $<TARGET_FILE:${UNIT_TEST}_build> $(UNITARGS)
-                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-  ENDIF()
+  #Add memory checking target
+  ADD_MEMCHECK( ${UNIT_TEST} )
   
   #Add the coverage target
   ADD_COVERAGE_TEST( ${UNIT_TEST}_coverage ${UNIT_TEST} )
