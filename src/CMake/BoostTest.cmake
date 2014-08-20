@@ -16,11 +16,8 @@ IF( UNIT_SKIP )
   MESSAGE( "" )  
 ENDIF()
 
-INCLUDE(XCodeFileGlob.cmake)
-INCLUDE(Valgrind.cmake)
-
 #Create a main object so it only needs to be compield once
-ADD_LIBRARY( BOOST_TEST_MAIN_OBJECT EXCLUDE_FROM_ALL OBJECT main_boost_btest.cpp )
+ADD_LIBRARY( BOOST_TEST_MAIN_OBJECT EXCLUDE_FROM_ALL OBJECT ${CMAKE_SOURCE_DIR}/CMake/main_boost_btest.cpp )
 SET( BOOST_TEST_MAIN $<TARGET_OBJECTS:BOOST_TEST_MAIN_OBJECT> )
 
 #Flags for executing boost-test

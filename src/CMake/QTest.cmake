@@ -16,9 +16,6 @@ IF( UNIT_SKIP )
   MESSAGE( "" )  
 ENDIF()
 
-INCLUDE(XCodeFileGlob.cmake)
-INCLUDE(Valgrind.cmake)
-
 #Add any qtest specific flags here
 SET( QTEST_TEST_FLAGS )
 

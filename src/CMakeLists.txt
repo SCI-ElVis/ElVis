@@ -52,12 +52,12 @@ IF( QT4_FOUND )
     INCLUDE(${QT_USE_FILE})
 ENDIF()
 
-INCLUDE(UnitTest.cmake)
+SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake )
+INCLUDE(CMake/SetupOptiX.cmake)
+INCLUDE(CMake/UnitTest.cmake)
+INCLUDE(CMake/CompilerFlags.cmake)
 
-INCLUDE(SetupOptiX.cmake)
 ADD_SUBDIRECTORY(Externals)
-
-INCLUDE(CompilerFlags.cmake)
 
 IF( NOT PASSED_FIRST_CONFIGURE )
     IF( CUDA_VERSION VERSION_LESS "5.0" )
@@ -70,9 +70,6 @@ IF( NOT PASSED_FIRST_CONFIGURE )
     
     SET(CUDA_BUILD_CUBIN ON CACHE BOOL "" FORCE)
 ENDIF() 
-#INCLUDE(CheckComputeCapability.cmake)
-#MESSAGE(STATUS "CUDA COMPUTE ${CUDA_COMPUTE_CAPABILITY}")
-
 
 OPTION(ELVIS_USE_DOUBLE_PRECISION "Use double precision value in GPU code.")
 OPTION(ELVIS_ENABLE_PRINTF "Enable the use of ELVIS_PRINTF in device code.")
@@ -232,7 +229,7 @@ if(APPLE)
     set(CMAKE_EXE_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
 endif(APPLE)
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in 
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/ElVisConfig.cmake.in 
                ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
 
 INSTALL(FILES ${CMAKE_BINARY_DIR}/ElVisConfig.cmake 
