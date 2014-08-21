@@ -50,7 +50,7 @@
 #include <stdio.h>
 
 #define png_infopp_NULL (png_infopp)NULL
-#define int_p_NULL (int*)NULL
+//#define int_p_NULL (int*)NULL
 
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
@@ -639,7 +639,7 @@ namespace ElVis
 
     RayGeneratorProgram SceneView::AddRayGenerationProgram(const std::string& programName)
     {
-        std::map<std::string, RayGeneratorProgram>::iterator found = m_rayGenerationPrograms.find(programName);
+        auto found = m_rayGenerationPrograms.find(programName);
         if( found != m_rayGenerationPrograms.end() )
         {
             return (*found).second;
@@ -649,11 +649,11 @@ namespace ElVis
 
         optixu::Context m_context = GetScene()->GetContext();
         result.Program = PtxManager::LoadProgram(m_context, GetPTXPrefix(), programName.c_str());
-        result.Index = m_rayGenerationPrograms.size();
+        result.Index = static_cast<unsigned int>(m_rayGenerationPrograms.size());
 
         m_rayGenerationPrograms[programName] = result;
 
-        m_context->setEntryPointCount(m_rayGenerationPrograms.size());
+        m_context->setEntryPointCount(static_cast<unsigned int>(m_rayGenerationPrograms.size()));
         m_context->setRayGenerationProgram(result.Index, result.Program);
         return result;
     }

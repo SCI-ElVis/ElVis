@@ -172,7 +172,7 @@ namespace ElVis
       if( m_isovalueBufferSize != m_isovalues.size()   )
       {
         m_isovalueBuffer.SetDimensions(m_isovalues.size());
-        m_isovalueBufferSize = m_isovalues.size();
+        m_isovalueBufferSize = static_cast<unsigned int>(m_isovalues.size());
       }
 
       if( !m_isovalues.empty() )

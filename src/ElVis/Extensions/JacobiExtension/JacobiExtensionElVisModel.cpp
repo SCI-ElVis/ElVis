@@ -144,7 +144,7 @@ namespace ElVis
 
         unsigned int JacobiExtensionModel::DoGetNumberOfElements() const
         {
-            return m_volume->numElements();
+            return static_cast<unsigned int>(m_volume->numElements());
         }
 
         int JacobiExtensionModel::DoGetNumFields() const

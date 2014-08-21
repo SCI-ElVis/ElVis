@@ -46,23 +46,24 @@ namespace ElVis
                 bool result = fromString(pointValues, *this);
             }
 
-
-            Point(const DataType& x,
-                  const DataType& y)
+            template<typename T>
+            Point(const T& x,
+                  const T& y)
             {
                 BOOST_STATIC_ASSERT(dim::Value == 2);
-                m_data[0] = x;
-                m_data[1] = y;
+                m_data[0] = static_cast<DataType>(x);
+                m_data[1] = static_cast<DataType>(y);
             }
 
-            Point(const DataType& x,
-                  const DataType& y,
-                  const DataType& z)
+            template<typename T>
+            Point(const T& x,
+                  const T& y,
+                  const T& z)
             {
                 BOOST_STATIC_ASSERT(dim::Value == 3);
-                m_data[0] = x;
-                m_data[1] = y;
-                m_data[2] = z;
+                m_data[0] = static_cast<DataType>(x);
+                m_data[1] = static_cast<DataType>(y);
+                m_data[2] = static_cast<DataType>(z);
             }
 
             explicit Point(const ElVisFloat3& values)
@@ -218,32 +219,35 @@ namespace ElVis
                 BOOST_STATIC_ASSERT(dim::Value >= 3);
                 return (*this)[2];
             }
-
-            void SetX(const DataType& val)
+            
+            template<typename T>
+            void SetX(const T& val)
             {
                 BOOST_STATIC_ASSERT(dim::Value >= 1);
                 if( m_data[0] == val ) return;
-                m_data[0] = val;
+                m_data[0] = static_cast<DataType>(val);
                 OnPointChanged(*this);
-                OnXChanged(val);
+                OnXChanged(static_cast<DataType>(val));
             }
 
-            void SetY(const DataType& val)
+            template<typename T>
+            void SetY(const T& val)
             {
                 BOOST_STATIC_ASSERT(dim::Value >= 2);
                 if( m_data[1] == val ) return;
-                m_data[1] = val;
+                m_data[1] = static_cast<DataType>(val);
                 OnPointChanged(*this);
-                OnYChanged(val);
+                OnYChanged(static_cast<DataType>(val));
             }
 
-            void SetZ(const DataType& val)
+            template<typename T>
+            void SetZ(const T& val)
             {
                 BOOST_STATIC_ASSERT(dim::Value >= 2);
                 if( m_data[2] == val ) return;
-                m_data[2] = val;
+                m_data[2] = static_cast<DataType>(val);
                 OnPointChanged(*this);
-                OnZChanged(val);
+                OnZChanged(static_cast<DataType>(val));
             }
 
 

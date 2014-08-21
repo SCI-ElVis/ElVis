@@ -43,8 +43,8 @@ namespace ElVis
         m_isovalueBuffer("Isovalues"),
         m_referencePointAtIntersectionBuffer(ReferencePointAtIntersectionBufferName),
         m_dirty(true),
-        m_treatElementBoundariesAsDiscontinuous(0),
-        m_matchVisual3Contours(0)
+        m_treatElementBoundariesAsDiscontinuous(false),
+        m_matchVisual3Contours(false)
     {}
 
     void CutSurfaceContourModule::DoSetup(SceneView* view)
@@ -87,8 +87,8 @@ namespace ElVis
             }
 
             optixu::Context context = view->GetContext();
-            context["TreatElementBoundariesAsDiscontinuous"]->setInt(m_treatElementBoundariesAsDiscontinuous);
-            context["MatchVisual3Contours"]->setInt(m_matchVisual3Contours);
+            context["TreatElementBoundariesAsDiscontinuous"]->setInt(m_treatElementBoundariesAsDiscontinuous ? 1 : 0);
+            context["MatchVisual3Contours"]->setInt(m_matchVisual3Contours ? 1 : 0);
 
             m_dirty = false;
         }
@@ -145,12 +145,12 @@ namespace ElVis
         }
     }
 
-    int CutSurfaceContourModule::GetTreatElementBoundariesAsDiscontinuous() const
+    bool CutSurfaceContourModule::GetTreatElementBoundariesAsDiscontinuous() const
     {
         return m_treatElementBoundariesAsDiscontinuous;
     }
 
-    void CutSurfaceContourModule::SetTreatElementBoundariesAsDiscontinuous(int value)
+    void CutSurfaceContourModule::SetTreatElementBoundariesAsDiscontinuous(bool value)
     {
         if( m_treatElementBoundariesAsDiscontinuous != value )
         {
@@ -161,12 +161,12 @@ namespace ElVis
         }
     }
 
-    int CutSurfaceContourModule::GetMatchVisual3Contours() const
+    bool CutSurfaceContourModule::GetMatchVisual3Contours() const
     {
         return m_matchVisual3Contours;
     }
 
-    void CutSurfaceContourModule::SetMatchVisual3Contours(int newValue)
+    void CutSurfaceContourModule::SetMatchVisual3Contours(bool newValue)
     {
         if( m_matchVisual3Contours != newValue)
         {

@@ -131,7 +131,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     //c.SetParameters(ElVis::WorldPoint(6, 0, 3.5), ElVis::WorldPoint(0, 0, 3.5), ElVis::WorldVector(0, 1, 0));
 
     //c.SetParameters(ElVis::WorldPoint(1.8, 1.2, 3.0), ElVis::WorldPoint(0, 0, 1), ElVis::WorldVector(0, 1, 0));
-    c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0, 0, 2.7), ElVis::WorldVector(0, 1, 0));
+    c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0., 0., 2.7), ElVis::WorldVector(0., 1., 0.));
 
     boost::shared_ptr<ElVis::SceneView> view(new ElVis::SceneView());
     view->SetCamera(c);

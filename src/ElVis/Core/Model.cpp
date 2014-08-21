@@ -123,7 +123,7 @@ namespace ElVis
         buffer.SetDimensions(faceBufferSize);
         auto mappedBuffer = buffer.Map();
 
-        size_t localIdx = 0;
+        int localIdx = 0;
         for(size_t i = 0; i < faceBufferSize; ++i)
         {
           if( faceInfoBuffer[i].Type == type )
@@ -238,7 +238,8 @@ namespace ElVis
 
         for(size_t vertexIdx = 0; vertexIdx < numVertices; ++vertexIdx)
         {
-          info.vertexIdx[vertexIdx] = DoGetPlanarFaceVertexIndex(localFaceIdx, vertexIdx);
+          info.vertexIdx[vertexIdx] = 
+            static_cast<unsigned int>(DoGetPlanarFaceVertexIndex(localFaceIdx, vertexIdx));
         }
         if( info.Type == eTriangle )
         {
@@ -257,7 +258,7 @@ namespace ElVis
       auto planarIdxMap = m_PlanarFaceToGlobalIdxMap.Map();
 
       size_t planarIdx = 0;
-      size_t globalIdx = 0;
+      unsigned int globalIdx = 0;
       BOOST_FOREACH(const FaceInfo& faceInfo, m_faceInfo)
       {
         if( faceInfo.Type == ePlanar )
@@ -277,7 +278,7 @@ namespace ElVis
       auto curvedIdxMap = m_CurvedFaceToGlobalIdxMap.Map();
 
       size_t curvedIdx = 0;
-      size_t globalIdx = 0;
+      unsigned int globalIdx = 0;
       BOOST_FOREACH(const FaceInfo& faceInfo, m_faceInfo)
       {
         if( faceInfo.Type == eCurved )
@@ -315,8 +316,8 @@ namespace ElVis
         planarGeometryInstance->setGeometry(m_planarFaceGeometry);
         curvedGeometryInstance->setGeometry(m_curvedFaceGeometry);
 
-        m_planarFaceGeometry->setPrimitiveCount(m_numPlanarFaces);
-        m_curvedFaceGeometry->setPrimitiveCount(m_numCurvedFaces);
+        m_planarFaceGeometry->setPrimitiveCount(static_cast<unsigned int>(m_numPlanarFaces));
+        m_curvedFaceGeometry->setPrimitiveCount(static_cast<unsigned int>(m_numCurvedFaces));
 
         m_planarFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "PlanarFaceBoundingBoxProgram");
         m_curvedFaceBoundingBoxProgram = PtxManager::LoadProgram(GetPTXPrefix(), "CurvedFaceBoundingBoxProgram");

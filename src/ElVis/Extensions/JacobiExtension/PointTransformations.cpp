@@ -61,26 +61,26 @@ namespace ElVis
                 const ElVis::ReferencePoint::DataType& s = p.s();
                 const ElVis::ReferencePoint::DataType& t = p.t();
 
-                ElVis::ReferencePoint::DataType t1 = (1.0-r)*(1.0-s)*(1.0-t);
-                ElVis::ReferencePoint::DataType t2 = (1.0+r)*(1.0-s)*(1.0-t);
-                ElVis::ReferencePoint::DataType t3 = (1.0+r)*(1.0+s)*(1.0-t);
-                ElVis::ReferencePoint::DataType t4 = (1.0-r)*(1.0+s)*(1.0-t);
-                ElVis::ReferencePoint::DataType t5 = (1.0-r)*(1.0-s)*(1.0+t);
-                ElVis::ReferencePoint::DataType t6 = (1.0+r)*(1.0-s)*(1.0+t);
-                ElVis::ReferencePoint::DataType t7 = (1.0+r)*(1.0+s)*(1.0+t);
-                ElVis::ReferencePoint::DataType t8 = (1.0-r)*(1.0+s)*(1.0+t);
+                double t1 = (1.0-r)*(1.0-s)*(1.0-t);
+                double t2 = (1.0+r)*(1.0-s)*(1.0-t);
+                double t3 = (1.0+r)*(1.0+s)*(1.0-t);
+                double t4 = (1.0-r)*(1.0+s)*(1.0-t);
+                double t5 = (1.0-r)*(1.0-s)*(1.0+t);
+                double t6 = (1.0+r)*(1.0-s)*(1.0+t);
+                double t7 = (1.0+r)*(1.0+s)*(1.0+t);
+                double t8 = (1.0-r)*(1.0+s)*(1.0+t);
 
-                ElVis::ReferencePoint::DataType x = .125 * (t1*hex.vertex(0).x() + t2*hex.vertex(1).x() +
+                double x = .125 * (t1*hex.vertex(0).x() + t2*hex.vertex(1).x() +
                     t3*hex.vertex(2).x() + t4*hex.vertex(3).x() +
                     t5*hex.vertex(4).x() + t6*hex.vertex(5).x() +
                     t7*hex.vertex(6).x() + t8*hex.vertex(7).x());
 
-                ElVis::ReferencePoint::DataType y = .125 * (t1*hex.vertex(0).y() + t2*hex.vertex(1).y() +
+                double y = .125 * (t1*hex.vertex(0).y() + t2*hex.vertex(1).y() +
                     t3*hex.vertex(2).y() + t4*hex.vertex(3).y() +
                     t5*hex.vertex(4).y() + t6*hex.vertex(5).y() +
                     t7*hex.vertex(6).y() + t8*hex.vertex(7).y());
 
-                ElVis::ReferencePoint::DataType z = .125 * (t1*hex.vertex(0).z() + t2*hex.vertex(1).z() +
+                double z = .125 * (t1*hex.vertex(0).z() + t2*hex.vertex(1).z() +
                     t3*hex.vertex(2).z() + t4*hex.vertex(3).z() +
                     t5*hex.vertex(4).z() + t6*hex.vertex(5).z() +
                     t7*hex.vertex(6).z() + t8*hex.vertex(7).z());
@@ -96,9 +96,9 @@ namespace ElVis
 
                 if( t != 1 )
                 {
-                    ElVis::ReferencePoint::DataType a = 2.0*(r+1.0)/(1.0-t) - 1.0;
-                    ElVis::ReferencePoint::DataType b = s;
-                    ElVis::ReferencePoint::DataType c = t;
+                    double a = 2.0*(r+1.0)/(1.0-t) - 1.0;
+                    double b = s;
+                    double c = t;
 
                     return ElVis::TensorPoint(a,b,c);
                 }
@@ -108,7 +108,7 @@ namespace ElVis
                     // Pick a tensor point on the corresponding
                     // face.
                     // So just pick a.
-                    return ElVis::TensorPoint(0.0, s, t);
+                    return ElVis::TensorPoint(static_cast<ElVis::ReferencePoint::DataType>(0.0), s, t);
                 }
             }
 
@@ -118,9 +118,9 @@ namespace ElVis
                 const ElVis::ReferencePoint::DataType& b = p.b();
                 const ElVis::ReferencePoint::DataType& c = p.c();
 
-                ElVis::ReferencePoint::DataType r = (1.0+a)/2.0 * (1.0-c) - 1.0;
-                ElVis::ReferencePoint::DataType s = b;
-                ElVis::ReferencePoint::DataType t = c;
+                double r = (1.0+a)/2.0 * (1.0-c) - 1.0;
+                double s = b;
+                double t = c;
 
                 return ElVis::ReferencePoint(r,s,t);
             }
@@ -132,22 +132,22 @@ namespace ElVis
                 const ElVis::ReferencePoint::DataType& s = p.s();
                 const ElVis::ReferencePoint::DataType& t = p.t();
 
-                ElVis::ReferencePoint::DataType t1 = -(r+t)*(1.-s);
-                ElVis::ReferencePoint::DataType t2 = (1.+r)*(1.-s);
-                ElVis::ReferencePoint::DataType t3 = (1.+r)*(1.+s);
-                ElVis::ReferencePoint::DataType t4 = -(r+t)*(1.+s);
-                ElVis::ReferencePoint::DataType t5 = (1.-s)*(1.+t);
-                ElVis::ReferencePoint::DataType t6 = (1.+s)*(1.+t);
+                double t1 = -(r+t)*(1.-s);
+                double t2 = (1.+r)*(1.-s);
+                double t3 = (1.+r)*(1.+s);
+                double t4 = -(r+t)*(1.+s);
+                double t5 = (1.-s)*(1.+t);
+                double t6 = (1.+s)*(1.+t);
 
-                ElVis::ReferencePoint::DataType x = .25 * (t1*prism.vertex(0).x() + t2*prism.vertex(1).x() +
+                double x = .25 * (t1*prism.vertex(0).x() + t2*prism.vertex(1).x() +
                     t3*prism.vertex(2).x() + t4*prism.vertex(3).x() +
                     t5*prism.vertex(4).x() + t6*prism.vertex(5).x());
 
-                ElVis::ReferencePoint::DataType y = .25 * (t1*prism.vertex(0).y() + t2*prism.vertex(1).y() +
+                double y = .25 * (t1*prism.vertex(0).y() + t2*prism.vertex(1).y() +
                     t3*prism.vertex(2).y() + t4*prism.vertex(3).y() +
                     t5*prism.vertex(4).y() + t6*prism.vertex(5).y());
 
-                ElVis::ReferencePoint::DataType z = .25 * (t1*prism.vertex(0).z() + t2*prism.vertex(1).z() +
+                double z = .25 * (t1*prism.vertex(0).z() + t2*prism.vertex(1).z() +
                     t3*prism.vertex(2).z() + t4*prism.vertex(3).z() +
                     t5*prism.vertex(4).z() + t6*prism.vertex(5).z());
 
@@ -160,11 +160,11 @@ namespace ElVis
                 const ElVis::ReferencePoint::DataType& s = p.s();
                 const ElVis::ReferencePoint::DataType& t = p.t();
 
-                ElVis::ReferencePoint::DataType c = t;
+                double c = t;
                 if( t != 1.0 )
                 {
-                    ElVis::ReferencePoint::DataType b = 2.0*(s+1.0)/(1.0-t) - 1.0;
-                    ElVis::ReferencePoint::DataType a = 2.0*(r+1.0)/(1.0-t) - 1.0;
+                    double b = 2.0*(s+1.0)/(1.0-t) - 1.0;
+                    double a = 2.0*(r+1.0)/(1.0-t) - 1.0;
 
                     return ElVis::TensorPoint(a,b,c);
                 }
@@ -181,9 +181,9 @@ namespace ElVis
                 const ElVis::ReferencePoint::DataType& b = p.b();
                 const ElVis::ReferencePoint::DataType& c = p.c();
 
-                ElVis::ReferencePoint::DataType r = (1.0+a)*(1.0-c)/2.0 - 1.0;
-                ElVis::ReferencePoint::DataType s = (1.0+b)*(1.0-c)/2.0 - 1.0;
-                ElVis::ReferencePoint::DataType t = c;
+                double r = (1.0+a)*(1.0-c)/2.0 - 1.0;
+                double s = (1.0+b)*(1.0-c)/2.0 - 1.0;
+                double t = c;
 
                 return ElVis::ReferencePoint(r,s,t);
             }
@@ -217,9 +217,9 @@ namespace ElVis
                 const ElVis::ReferencePoint::DataType& s = p.s();
                 const ElVis::ReferencePoint::DataType& t = p.t();
 
-                ElVis::ReferencePoint::DataType c = t;
-                ElVis::ReferencePoint::DataType b = 0.0;
-                ElVis::ReferencePoint::DataType a = 0.0;
+                double c = t;
+                double b = 0.0;
+                double a = 0.0;
 
                 if( t != 1.0 )
                 {
@@ -240,9 +240,9 @@ namespace ElVis
                 const ElVis::ReferencePoint::DataType& b = p.b();
                 const ElVis::ReferencePoint::DataType& c = p.c();
 
-                ElVis::ReferencePoint::DataType r = ( (1.0+a)*(1.0-b) )/4.0 * (1.0-c) - 1.0;
-                ElVis::ReferencePoint::DataType s = (1.0+b)/2.0 * (1.0-c) - 1.0;
-                ElVis::ReferencePoint::DataType t = c;
+                double r = ( (1.0+a)*(1.0-b) )/4.0 * (1.0-c) - 1.0;
+                double s = (1.0+b)/2.0 * (1.0-c) - 1.0;
+                double t = c;
 
                 return ElVis::ReferencePoint(r,s,t);
             }

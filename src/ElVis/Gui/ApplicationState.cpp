@@ -282,9 +282,9 @@ namespace ElVis
                     m_faceSampler.reset(new SampleFaceObject(faceObject));
                     m_primaryRayModule->AddObject(m_faceSampler);
 
-                    boost::shared_ptr<TwoDPrimaryElements> twoDObject(new TwoDPrimaryElements(GetScene()));
-                    boost::shared_ptr<TwoDPrimaryElementsPrimaryObject> wrapper(new TwoDPrimaryElementsPrimaryObject(twoDObject));
-                    m_primaryRayModule->AddObject(wrapper);
+            boost::shared_ptr<TwoDPrimaryElements> twoDObject(new TwoDPrimaryElements(GetScene()));
+            boost::shared_ptr<TwoDPrimaryElementsPrimaryObject> wrapper(new TwoDPrimaryElementsPrimaryObject(twoDObject));
+            m_primaryRayModule->AddObject(wrapper);
 
         }
 

@@ -30,6 +30,7 @@
 #define ELVIS_RAY_GENERATOR_PROGRAM_H
 
 #include <optixu/optixpp.h>
+#include <limits>
 
 namespace ElVis
 {
@@ -38,7 +39,7 @@ namespace ElVis
         public:
             ELVIS_EXPORT RayGeneratorProgram() :
                 Program(),
-                Index(-1)
+                Index(std::numeric_limits<unsigned int>::max())
             {
             }
 
@@ -57,10 +58,10 @@ namespace ElVis
                 return *this;
             }
 
-            bool IsValid() const { return Index != -1; }
+            bool IsValid() const { return Index != std::numeric_limits<unsigned int>::max(); }
 
             optixu::Program Program;
-            int Index;
+            unsigned int Index;
 
         private:
             

@@ -135,7 +135,7 @@ namespace ElVis
 
         group = context->createGeometryGroup();
         int idx = 0;
-        group->setChildCount(twoDGroups.size());
+        group->setChildCount(static_cast<unsigned int>(twoDGroups.size()));
 
         boost::for_each(twoDGroups, 
           (boost::lambda::bind(&optixu::GeometryGroupObj::setChild, group.get(), idx, boost::lambda::_1), ++idx));

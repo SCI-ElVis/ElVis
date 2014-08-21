@@ -115,7 +115,7 @@ namespace ElVis
                 {
                     BOOST_FOREACH(boost::shared_ptr<Polyhedron> iter, m_volume->IterateElementsOfType<T>() )
                     {
-                        result += iter->basisCoefficients().size();
+                        result += static_cast<unsigned int>(iter->basisCoefficients().size());
                     }
                 }
                 return result;
@@ -207,7 +207,7 @@ namespace ElVis
 
                         // Coefficgeometryients
                         coefficientIndicesData[curElementId] = curCoefficientIndex;
-                        unsigned int numCoefficients = element->basisCoefficients().size();
+                        unsigned int numCoefficients = static_cast<unsigned int>(element->basisCoefficients().size());
                         if( m_numberOfModes > 0 )
                         {
                             numCoefficients = element->NumberOfCoefficientsForOrder(m_numberOfModes-1);
