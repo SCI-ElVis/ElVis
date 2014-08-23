@@ -49,6 +49,11 @@ IF( OptiX_FOUND )
         SET(ELVIS_CUDA_INCLUDE ${CUDA_TOOLKIT_INCLUDE} ${CUDA_SAMPLE_DIR}/common/inc)
     ENDIF()
 
+    get_filename_component(path_to_optix "${optix_LIBRARY}" PATH)
+    #set_property( DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY 
+     #             LINK_DIRECTORIES ${path_to_optix} )
+    set( CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_RPATH} ${path_to_optix} )
+
 # Add some useful default arguments to the nvcc flags.  This is an example of how we use
 # PASSED_FIRST_CONFIGURE.  Once you have configured, this variable is TRUE and following
 # block of code will not be executed leaving you free to edit the values as much as you
@@ -86,8 +91,8 @@ if(NOT OPTIX_PASSED_FIRST_CONFIGURE)
 
 endif(NOT OPTIX_PASSED_FIRST_CONFIGURE)
 
-SET(OPTIX_PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
-MARK_AS_ADVANCED(OPTIX_PASSED_FIRST_CONFIGURE)
+set(OPTIX_PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
+mark_as_advanced(OPTIX_PASSED_FIRST_CONFIGURE)
 
 #########################################################
 # OPTIX_add_sample_executable
@@ -127,8 +132,10 @@ function(ADD_OPTIX_EXECUTABLE target_name ptx_dir)
   target_link_libraries( ${target_name}
     #sutil
     optix
+    ${optix_LIBRARY}
     ${optix_rpath}
     )
+
 endfunction()
 
 #########################################################
@@ -169,12 +176,12 @@ function(ADD_OPTIX_LIBRARY target_name ptx_dir)
   # Here is where we create the rule to make the executable.  We define a target name and
   # list all the source files used to create the target.  In addition we also pass along
   # the cmake_options parsed out of the arguments.
-  ADD_LIBRARY(${target_name} SHARED
+  add_library(${target_name} SHARED
     ${source_files}
     #${generated_files}
     ${cmake_options}
     )
-
+  
   # Most of the samples link against the sutil library and the optix library.  Here is the
   # rule that specifies this linkage.
   target_link_libraries( ${target_name}
@@ -182,6 +189,7 @@ function(ADD_OPTIX_LIBRARY target_name ptx_dir)
     optix
     ${optix_rpath}
     )
+    
 endfunction()
 
 ENDIF()

@@ -1,1 +1,3 @@
 GenerateQTests(  )
+
+GenerateBoostTests(  )

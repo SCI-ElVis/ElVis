@@ -49,15 +49,17 @@
 #include <ElVis/Core/DynamicLib.h>
 #include <ElVis/Core/ElVisConfig.h>
 
-#define png_infopp_NULL (png_infopp)NULL
-#define int_p_NULL (int*)NULL
-
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
 #include <boost/bind.hpp>
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
+
+#define png_infopp_NULL (png_infopp)NULL
+#ifndef int_p_NULL
+#define int_p_NULL (int*)NULL
+#endif
 
 namespace
 {

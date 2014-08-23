@@ -49,11 +49,13 @@
 #include <ElVis/Core/Timer.h>
 #include <stdio.h>
 
-#define png_infopp_NULL (png_infopp)NULL
-//#define int_p_NULL (int*)NULL
-
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
+
+#define png_infopp_NULL (png_infopp)NULL
+#ifndef int_p_NULL
+#define int_p_NULL (int*)NULL
+#endif
 
 namespace ElVis
 {

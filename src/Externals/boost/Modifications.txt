@@ -13,3 +13,5 @@ To allow for this boost package to be a sub project, a few minor modifications w
 (5)python/converter/builtin_converters.hpp modified to work properly with Python3.
 
 (6) Added process from unapproved projects
+
+(7) Fixed compiler warnings
