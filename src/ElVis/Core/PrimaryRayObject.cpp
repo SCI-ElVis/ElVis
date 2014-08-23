@@ -31,6 +31,7 @@
 #include <ElVis/Core/SceneView.h>
 
 #include <boost/bind.hpp>
+#include <boost/typeof/typeof.hpp>
 
 namespace ElVis
 {

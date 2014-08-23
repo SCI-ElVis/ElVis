@@ -54,6 +54,7 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/typeof/typeof.hpp>
 
 #include <QDir>
 

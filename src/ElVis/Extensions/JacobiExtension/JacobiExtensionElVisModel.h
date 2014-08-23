@@ -50,6 +50,7 @@
 
 #include <map>
 #include <set>
+#include <boost/typeof/typeof.hpp>
 
 namespace ElVis
 {
