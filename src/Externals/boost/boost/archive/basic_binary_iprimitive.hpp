@@ -165,7 +165,7 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load_binary(
             archive_exception(archive_exception::input_stream_error)
         );
     // note: an optimizer should eliminate the following for char files
-    BOOST_ASSERT(count % sizeof(Elem) <= boost::integer_traits<std::streamsize>::const_max);
+    BOOST_ASSERT(count % sizeof(Elem) <= (std::size_t)boost::integer_traits<std::streamsize>::const_max);
     s = static_cast<std::streamsize>(count % sizeof(Elem));
     if(0 < s){
 //        if(is.fail())

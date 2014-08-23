@@ -61,10 +61,35 @@ ADD_SUBDIRECTORY(tinyxml)
 ##################################################
 
 MESSAGE(STATUS "Configuring boost")
-FIND_PACKAGE( Boost 1.39.0 COMPONENTS system filesystem serialization thread program_options )
+FIND_PACKAGE( Boost COMPONENTS unit_test_framework system filesystem serialization thread program_options )
 IF( Boost_FOUND )
   SET(BOOST_LIBRARY ${Boost_LIBRARIES} CACHE INTERNAL "Boost library name." FORCE)
 ELSE()
+  MESSAGE(STATUS "Missing at least one of: unit_test_framework system filesystem serialization thread program_options" )
+  MESSAGE(STATUS "Compiling boost from src/Externals/boost" )
+
+  UNSET( Boost_DIR CACHE )
+  UNSET( Boost_INCLUDE_DIR CACHE )
+  UNSET( Boost_LIBRARY_DIR CACHE )
+ 
+  UNSET( Boost_SYSTEM_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_SYSTEM_LIBRARY_RELEASE CACHE )
+  
+  UNSET( Boost_FILESYSTEM_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_FILESYSTEM_LIBRARY_RELEASE CACHE )
+
+  UNSET( Boost_SERIALIZATION_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_SERIALIZATION_LIBRARY_RELEASE CACHE )
+  
+  UNSET( Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE CACHE )
+
+  UNSET( Boost_THREAD_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_THREAD_LIBRARY_RELEASE CACHE )
+  
+  UNSET( Boost_UNIT_TEST_FRAMEWORK_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_UNIT_TEST_FRAMEWORK_LIBRARY_RELEASE CACHE )
+
   ADD_SUBDIRECTORY(boost)
 ENDIF()
 

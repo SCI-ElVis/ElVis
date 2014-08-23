@@ -32,7 +32,8 @@
 # THIS CMAKEFILE GENERATES A SIMPLE BOOST LIBRARY THAT
 # IS STATICALLY LINKED.
 
-
+#Need to unset the vesrion due to the previous attempt to find boost
+UNSET( Boost_VERSION )
 
 ###########################################
 # Boost project
@@ -145,6 +146,28 @@ SET(BOOST_SRCS
   libs/serialization/src/xml_woarchive.cpp
 
   libs/system/src/error_code.cpp  
+  
+  libs/test/src/compiler_log_formatter.cpp
+  libs/test/src/cpp_main.cpp
+  libs/test/src/debug.cpp
+  libs/test/src/exception_safety.cpp
+  libs/test/src/execution_monitor.cpp
+  libs/test/src/framework.cpp
+  libs/test/src/interaction_based.cpp
+  libs/test/src/logged_expectations.cpp
+  libs/test/src/plain_report_formatter.cpp
+  libs/test/src/progress_monitor.cpp
+  libs/test/src/results_collector.cpp
+  libs/test/src/results_reporter.cpp
+  libs/test/src/test_main.cpp
+  libs/test/src/test_tools.cpp
+  libs/test/src/unit_test_log.cpp
+  libs/test/src/unit_test_main.cpp
+  libs/test/src/unit_test_monitor.cpp
+  libs/test/src/unit_test_parameters.cpp
+  libs/test/src/unit_test_suite.cpp
+  libs/test/src/xml_log_formatter.cpp
+  libs/test/src/xml_report_formatter.cpp
 )
 
 IF(BUILD_WITH_PYTHON)
