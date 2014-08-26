@@ -15,8 +15,8 @@ fi
 USERNAME=$1
 EMAIL=$2
 BRANCH=$USERNAME/develop
-REPO_PATH=https://github.com/SCI-ElVis/ElVis.git
-REPO=ssh://$REPO_PATH
+REPO_PATH="https://github.com/SCI-ElVis/ElVis.git"
+REPO=$REPO_PATH
 REMOTE=SCI-ElVis
 
 if [ $# == 3 ]; then
