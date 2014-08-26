@@ -1,0 +1,20 @@
+
+.DEFAULT_GOAL := default
+
+#flags = debug release
+#compilers = gnu intel clang gnu443 gnu482
+include builds.make
+
+dirs=$(foreach flag, $(flags),$(foreach comp, $(compilers),$(flag)_$(comp)))
+
+.PHONY: $(dirs)
+$(dirs):
+	$(MAKE) -C $@ --no-print-directory $(MAKECMDGOALS)
+
+default: $(dirs)
+
+$(MAKECMDGOALS): $(dirs)
+	
+ifeq ($(MAKECMDGOALS),)
+-include coverage/Makefile
+endif

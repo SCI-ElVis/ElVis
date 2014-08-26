@@ -1,0 +1,411 @@
+<title>${project.name}</title>
+
+<!-- This groovy script gets copied into JENKINS_HOME/email-templates by SANS_Commit.sh -->
+
+<STYLE>
+  body table, td, th, p, h1, h2 {
+  margin:0;
+  font:normal normal 100% Georgia, Serif;
+  background-color: #ffffff;
+  }
+  h1, h2 {
+  border-bottom:dotted 1px #999999;
+  padding:5px;
+  margin-top:10px;
+  margin-bottom:10px;
+  color: #000000;
+  font: normal bold 130% Georgia,Serif;
+  background-color:#f0f0f0;
+  }
+  tr.gray {
+  background-color:#f0f0f0;
+  }
+  h2 {
+  padding:5px;
+  margin-top:5px;
+  margin-bottom:5px;
+  font: italic bold 110% Georgia,Serif;
+  }
+  .bg2 {
+  color:black;
+  background-color:#E0E0E0;
+  font-size:110%
+  }
+  th {
+  font-weight: bold;
+  }
+  tr, td, th {
+  padding:2px;
+  }
+  td.test_passed {
+  color:blue;
+  }
+  td.test_failed {
+  color:red;
+  }
+  td.test_skipped {
+  color:grey;
+  }
+  .console {
+  font: normal normal 90% Courier New, monotype;
+  padding:0px;
+  margin:0px;
+  }
+  div.content, div.header {
+  background: #ffffff;
+  border: dotted
+  1px #666;
+  margin: 2px;
+  content: 2px;
+  padding: 2px;
+  }
+  table.border, th.border, td.border {
+  border: 1px solid black;
+  border-collapse:collapse;
+  }
+</STYLE>
+<BODY>
+<%
+
+import  hudson.Util
+import  hudson.Functions
+import  hudson.model.Result;
+import  hudson.matrix.MatrixBuild
+import  hudson.matrix.MatrixRun
+import  hudson.matrix.MatrixConfiguration
+import  hudson.matrix.MatrixProject
+import  hudson.matrix.Combination
+import  hudson.plugins.emailext.plugins.content.ScriptContentBuildWrapper
+import  java.util.regex.Matcher
+import  java.util.regex.Pattern
+
+
+if (build.result == Result.SUCCESS) {
+  result_img = "static/e59dfe28/images/32x32/blue.gif"
+} else if (build.result == Result.FAILURE) {
+  result_img = "static/e59dfe28/images/32x32/red.gif"
+} else {
+  result_img = "static/e59dfe28/images/32x32/yellow.gif"
+}
+
+if (build.builtOnStr == '') {
+  built_on = 'master'
+} else {
+  built_on = build.builtOnStr
+}
+
+def matrix_build = build
+def runs = matrix_build.getExactRuns()
+
+hudson.matrix.MatrixProject matrix_project = project
+def matrix_axis = matrix_project.getAxes()
+
+%>
+
+<div class="header">
+  <!-- GENERAL INFO -->
+  <table>
+    <tr class="gray">
+      <td align="right">
+        <img src="${rooturl}${result_img}" />
+      </td>
+      <td valign="center">
+        <b style="font-size: 200%;">BUILD ${build.result}</b>
+      </td>
+    </tr>
+    <tr>
+      <td>Build URL</td>
+      <td>
+        <a href="${rooturl}${build.url}">${rooturl}${build.url}</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Project:</td>
+      <td>${project.name}</td>
+    </tr>
+    <tr>
+      <td>Date of build:</td>
+      <td>${it.timestampString}</td>
+    </tr>
+    <tr>
+      <td>Build duration:</td>
+      <td>${build.durationString}</td>
+    </tr>
+    <tr>
+      <td>Build cause:</td>
+      <td>
+      <% for (hudson.model.Cause cause : build.causes) { %>
+         ${cause.shortDescription}
+      <% } %>
+      </td>
+    </tr>
+    <% if (build.description != null) { %>
+      <tr>
+        <td>Build description:</td>
+        <td>${build.description}</td>
+      </tr>
+    <% } %>
+    <tr>
+      <td>Built on:</td>
+      <td> ${built_on} </td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- CHANGES TEMPLATE -->
+<div class="content">
+<% if (build.changeSet != null) { %>
+<%   boolean hadChanges = false %>
+<%   hudson.scm.ChangeLogSet cs = build.getChangeSet() %>
+  <a href="${rooturl}${build.url}/changes">
+    <h1>Changes</h1>
+  </a>
+  <% for (hudson.scm.ChangeLogSet.Entry entry : cs) { %>
+  <%   hadChanges = true %>
+    <h2>${entry.msgAnnotated}</h2>
+    <p>by <em>${entry.author}</em></p>
+    <table>
+    <% for (hudson.scm.ChangeLogSet.AffectedFile p : entry.affectedFiles) { %>
+      <tr>
+        <td width="10%"> ${p.editType.name}</td>
+        <td>
+          <tt>${p.path}</tt>
+        </td>
+      </tr>
+    <% } %>
+    </table>
+  <% } %>
+  <% if (hadChanges == false) { %>
+    <p>No Changes</p>
+  <% } %>
+<% } %>
+</div>
+
+
+
+<!-- RESULTS TEMPLATE -->
+
+<%
+for (hudson.matrix.MatrixRun build : runs) {
+  hudson.plugins.emailext.plugins.content.ScriptContentBuildWrapper it = new hudson.plugins.emailext.plugins.content.ScriptContentBuildWrapper(build)
+
+
+  if (build.result == Result.SUCCESS) {
+    result_img = "static/e59dfe28/images/16x16/blue.gif"
+  } else if (build.result == Result.FAILURE) {
+    result_img = "static/e59dfe28/images/16x16/red.gif"
+  } else {
+    result_img = "static/e59dfe28/images/16x16/yellow.gif"
+  }
+
+  //Get the log lines if there is a failure. This is used both for cobertura and console output
+  def lines = []
+  build.getLog().split('\n').each() { line -> lines << line }
+  lines.unique()
+%>
+
+<div class="content">
+
+  <h1>
+    <a href="${rooturl}${build.url}">
+      <td align="right">
+        <img src="${rooturl}${result_img}" />
+      </td>
+      <td valign="center">
+        <b>${build}</b>
+      </td>
+    </a>
+  </h1>
+
+
+  <!-- COBERTURA TEMPLATE -->
+  <% if (it.coberturaAction != null) { %>
+    <% coberturaResult = it.coberturaAction.result %>
+      <% if( coberturaResult != null ) { %>
+        <% 
+           //Parse the log file to see if there were failures, because I can't seem to find a better way
+           def coberturaFailure = false
+           if(build.result != Result.SUCCESS) { 
+             if( build.getLog() =~ /Code coverage enforcement failed.*/ ) { coberturaFailure = true }
+           }
+           if( coberturaFailure ) {
+             border = "border test_failed" 
+             lines.each() { line -> 
+               if( line =~ /\bLines's health.*/ ) { 
+                 title = "Coverage Failure: " + line
+               }
+             }
+           } else { 
+             border = "border" 
+             title = "Coverage Report" 
+             lines.each() { line -> 
+               if( line =~ /\bLines's new health.*/ ) { 
+                 title += ": " + line
+               }
+             }
+           } 
+        %>
+        <div class="content">
+          <a href="${rooturl}${build.url}cobertura">
+            <h1>${title}</h1>
+          </a>
+          <table class="border">
+            <tr>
+              <% coberturaResult.metrics.each() { metric -> %>
+                <th class="${border}">${metric.name}</th>
+              <% } %>
+            </tr>
+            <tr>
+              <% coberturaResult.metrics.each() { metric -> %>
+                <td class="${border}" data="${coberturaResult.getCoverage(metric).percentageFloat}">
+                  ${coberturaResult.getCoverage(metric).percentage}% (${coberturaResult.getCoverage(metric)})
+                </td>
+              <% } %>
+            </tr>
+          </table>
+       </div>
+    <% } %>
+  <% } %>
+
+
+  <!-- JUnit TEMPLATE -->
+  <% def junitResultList = it.JUnitTestResult %>
+  <% if( junitResultList.isEmpty()!=true) { %>
+    <div class="content">
+      <a href="${rooturl}${build.url}testReport">
+        <h2>Tests</h2>
+      </a>
+      <table class="border">
+        <tr>
+          <th class="border">Failed</th>
+          <th class="border">Passed</th>
+          <th class="border">Total</th>
+        </tr>
+        <% it.JUnitTestResult.each() { junitResult -> %>
+          <% //junitResult.getChildren().each() { packageResult -> %>
+          <% junitResult.each() { packageResult -> %>
+            <tr>
+              <td class="border test_failed">${packageResult.getFailCount()}</td>
+              <td class="border test_passed">${packageResult.getPassCount()}</td>
+              <td class="border">
+                <b>${packageResult.getPassCount()+packageResult.getFailCount()+packageResult.getSkipCount()}</b>
+              </td>
+            </tr>
+            <% packageResult.getFailedTests().each() { failed_test -> 
+
+                valgrind = it.getAction("org.jenkinsci.plugins.valgrind.ValgrindBuildAction")
+                if( valgrind != null ) {
+                  PackageName = ""
+                  testurl = valgrind.getUrlName() 
+                } else {
+                  PackageName = failed_test.getPackageName() + "."
+                  testurl = "testReport/" + failed_test.getUrl() 
+                } 
+            %>
+
+            <tr>
+              <td class="test_failed" colspan="4">
+                <a href="${rooturl}${build.url}${testurl}">
+                  <tt>${PackageName}${failed_test.getName()}</tt>
+                </a>
+              </td>
+            </tr>
+            <% } %>
+          <% } %>
+        <% } %>
+      </table>
+      <br />
+    </div>
+  <% } %>
+
+
+  <!-- CONSOLE OUTPUT -->
+  <% if(build.result != Result.SUCCESS) { 
+ 
+       //def lines = []
+       //build.getLog().split('\n').each() { line -> lines << line }
+       //lines.unique()
+       def showConsole = false
+       if( build.getLog() =~ /\b(CMake Error|(error|warning)\s*[LT]\d{3}|error:|warning:|warning\s*\#|undefined reference).*/ ) { showConsole = true }
+  %>
+  <% if( showConsole ) { %>
+    <div class="content">
+  <% } %>
+
+    <% first = true %>
+    <% lines.each() { line -> %>
+      <% if( line =~ /\bCMake Error.*/ ) { %>
+        <% if( first ) { %>
+          <a href="${rooturl}${build.url}parsed_console">
+            <h2>CMake Errors</h2>
+          </a>
+          <% first = false %>
+        <% } %>
+      <TR><TD class="console">${org.apache.commons.lang.StringEscapeUtils.escapeHtml(line)}<br></TD></TR>
+      <% } %>
+    <% } %>
+
+    <% first = true %>
+    <% lines.each() { line -> %>
+      <% if( line =~ /\b(error|warning)\s*[LT]\d{3}.*/ ) { %>
+        <% if( first ) { %>
+          <a href="${rooturl}${build.url}parsed_console">
+            <h2>Vera++ Warnings/Errors</h2>
+          </a>
+          <% first = false %>
+        <% } %>
+      <TR><TD class="console">${org.apache.commons.lang.StringEscapeUtils.escapeHtml(line)}<br></TD></TR>
+      <% } %>
+    <% } %>
+
+    <% first = true %>
+    <% lines.each() { line -> %>
+      <% if( line =~ /\b(warning:|warning\s\#).*/ ) { %>
+        <% if( first ) { %>
+          <a href="${rooturl}${build.url}parsed_console">
+            <h2>Compiler Warnings</h2>
+          </a>
+          <% first = false %>
+        <% } %>
+        <TR><TD class="console">${org.apache.commons.lang.StringEscapeUtils.escapeHtml(line)}<br></TD></TR>
+      <% } %>
+    <% } %>
+
+    <% first = true %>
+    <% lines.each() { line -> %>
+      <% if( line =~ /\berror:.*/ ) { %>
+        <% if( first ) { %>
+          <a href="${rooturl}${build.url}parsed_console">
+            <h2>Compiler Errors</h2>
+          </a>
+          <% first = false %>
+        <% } %>
+        <TR><TD class="console">${org.apache.commons.lang.StringEscapeUtils.escapeHtml(line)}<br></TD></TR>
+      <% } %>
+    <% } %>
+
+    <% first = true %>
+    <% lines.each() { line -> %>
+      <% if( line =~ /\bundefined reference.*/ ) { %>
+        <% if( first ) { %>
+          <a href="${rooturl}${build.url}parsed_console">
+            <h2>Link Errors</h2>
+          </a>
+          <% first = false %>
+        <% } %>
+        <TR><TD class="console">${org.apache.commons.lang.StringEscapeUtils.escapeHtml(line)}<br></TD></TR>
+      <% } %>
+    <% } %>
+    <% if( showConsole ) { %>
+      </div>
+    <% } %>
+  <% } %>
+
+<!-- End of each build -->
+</div>
+
+<% } %>
+
+</BODY>
+
