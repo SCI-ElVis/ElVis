@@ -1,6 +1,6 @@
 <title>${project.name}</title>
 
-<!-- This groovy script gets copied into JENKINS_HOME/email-templates by SANS_Commit.sh -->
+<!-- This groovy script gets copied into JENKINS_HOME/email-templates by ElVis_Commit.sh -->
 
 <STYLE>
   body table, td, th, p, h1, h2 {
