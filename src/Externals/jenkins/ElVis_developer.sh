@@ -15,8 +15,8 @@ fi
 USERNAME=$1
 EMAIL=$2
 BRANCH=$USERNAME/develop
-REPO_PATH="https://github.com/SCI-ElVis/ElVis.git"
-REPO=$REPO_PATH
+REPO_PATH=github.com/SCI-ElVis/ElVis.git
+REPO=https://$USERNAME@$REPO_PATH
 REMOTE=SCI-ElVis
 
 if [ $# == 3 ]; then
@@ -46,7 +46,7 @@ if (git status --porcelain > /dev/null 2>&1); then
     fi
   done < <(git status --porcelain)
 
-  #Check for the correct remote and change the name to REMOTE
+  #Check for the correct remote and change the name to $REMOTE
   let remote_found=0
   for remote in `git remote show`; do
     if [[ "`git config remote.$remote.url`" == *"$REPO_PATH"* ]]; then
@@ -59,14 +59,14 @@ if (git status --porcelain > /dev/null 2>&1); then
   done
   if (( ! remote_found )); then
     echo
-    echo "Could not find a remote with URL:$REPO"
+    echo "Could not find a remote with URL:$REPO_PATH"
     echo "This does not appear to be an ElVis git repo. Aborting."
     echo
     exit 1
   fi
 
   #Just make sure everything is up to date
-  git fetch || git_error
+  git fetch $REMOTE || git_error
 
   if (git branch | grep "$BRANCH"$ --quiet); then
     #The developers branch already exists, so just check it out
