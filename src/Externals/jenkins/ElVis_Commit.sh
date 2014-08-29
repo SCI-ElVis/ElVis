@@ -10,14 +10,19 @@ cd $cmakedir
 
 source $WORKSPACE/src/Externals/jenkins/cmake_jenkins.sh
 
-#Qt testing requires an X-server to work. 
-Xephyr :42 -ac -screen 1920x1200 >/dev/null 2>&1 &
-sleep 5
-DISPLAY=:42 icewm >/dev/null 2>&1 &
-
 make
 make unit_build
-DISPLAY=:42 make check
+
+#Qt testing requires an X-server to work. 
+Xvfb :42 -ac -screen 1920x1200 >/dev/null 2>&1 &
+sleep 5
+export DISPLAY=:42
+icewm >/dev/null 2>&1 &
+sleep 5
+
+make check
+
+kill `cat /tmp/.X42-lock`
 
 if [[ $builddir == *"coverage"* ]]; then
   make coverage_info
