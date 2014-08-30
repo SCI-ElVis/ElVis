@@ -14,10 +14,11 @@ make
 make unit_build
 
 #Qt testing requires an X-server to work. 
-Xvfb :42 -ac -screen 1920x1200 >/dev/null 2>&1 &
+Xvfb :42 -ac -screen 1920x1200  &
 sleep 5
 export DISPLAY=:42
-icewm >/dev/null 2>&1 &
+#icewm >/dev/null 2>&1 &
+icewm  &
 sleep 5
 
 make check
