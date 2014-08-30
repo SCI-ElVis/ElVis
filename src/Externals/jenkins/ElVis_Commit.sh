@@ -29,7 +29,7 @@ sleep 5
 icewm >/dev/null 2>&1 &
 sleep 5
 
-make check
+make check CTESTARGS="-T Test"
 
 kill `cat /tmp/.X${DNUM}-lock`
 
