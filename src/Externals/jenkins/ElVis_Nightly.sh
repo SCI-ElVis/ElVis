@@ -10,7 +10,7 @@ cd $cmakedir
 
 source $WORKSPACE/src/Externals/jenkins/cmake_jenkins.sh
 
-cmake -DVALGRIND_EXTRA_FLAGS="--track-origins=yes;--xml=yes;--xml-file=$cmakedir/unit/valgrind.%p.memcheck.xml" \
+cmake -DVALGRIND_EXTRA_FLAGS="--track-origins=yes;--xml=yes;--xml-file=$cmakedir/valgrind.%p.memcheck.xml" \
       $WORKSPACE/src
 
 if [[ $builddir == "debug" ]]; then
