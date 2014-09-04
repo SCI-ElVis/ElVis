@@ -34,7 +34,7 @@ if [[ $builddir == *"debug"* ]]; then
   make MemAndStackCheck CTESTARGS="-T Test"
 else
   #This will check dynamic memory
-  make memheck CTESTARGS="-T Test"
+  make memcheck CTESTARGS="-T Test"
 fi
 
 kill `cat /tmp/.X${DNUM}-lock`
