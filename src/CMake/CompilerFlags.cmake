@@ -3,7 +3,7 @@
 # Default compiler flags, these can be modified under
 # the advanced options using ccmake
 #==================================================
-IF( NOT DEFINED PASSED_FIRST_CONFIGURE )
+IF( NOT PASSED_FIRST_CONFIGURE )
 
   #===============================
   # Set the build type to release by default, but debug if the binary directory contains the name debug

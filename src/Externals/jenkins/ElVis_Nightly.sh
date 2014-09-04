@@ -8,7 +8,7 @@ rm -rf $WORKSPACE/build
 mkdir -p $cmakedir
 cd $cmakedir
 
-source $WORKSPACE/scripts/jenkins/jenkins_env.sh
+source $WORKSPACE/src/Externals/jenkins/cmake_jenkins.sh
 
 cmake -DVALGRIND_EXTRA_FLAGS="--track-origins=yes;--xml=yes;--xml-file=$cmakedir/unit/valgrind.%p.memcheck.xml" \
       $WORKSPACE
@@ -29,5 +29,12 @@ sleep 5
 icewm >/dev/null 2>&1 &
 sleep 5
 
-#This will check both dynamic and static memory
-make MemAndStackCheck CTESTARGS="-T Test"
+if [[ $builddir == *"debug"* ]]; then
+  #This will check both dynamic and static memory
+  make MemAndStackCheck CTESTARGS="-T Test"
+else
+  #This will check dynamic memory
+  make memheck CTESTARGS="-T Test"
+fi
+
+kill `cat /tmp/.X${DNUM}-lock`
