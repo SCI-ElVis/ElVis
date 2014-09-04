@@ -23,7 +23,7 @@ if(CUDA_FOUND AND NOT CUDA_HAVE_GPU)
     message(STATUS "Checking CUDA compute capability.")
     try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
         ${CMAKE_BINARY_DIR} 
-        ${CMAKE_SOURCE_DIR}/cuda_compute_capability.c
+        ${CMAKE_SOURCE_DIR}/CMake/cuda_compute_capability.c
         CMAKE_FLAGS 
         -DINCLUDE_DIRECTORIES:STRING=${CUDA_TOOLKIT_INCLUDE}
         -DLINK_LIBRARIES:STRING=${CUDA_CUDART_LIBRARY}
@@ -338,9 +338,11 @@ INSTALL(FILES ${ELVIS_MATH_HEADERS}
 
 
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in
-               ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
+#CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/ElVisConfig.cmake.in
+#               ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
                
 SET (CORE_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "core build path")
 
 MESSAGE(STATUS "CORE: ${CUDA_GENERATE_CODE}")
+
+ADD_SUBDIRECTORY( unitCore )

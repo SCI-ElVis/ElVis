@@ -1,0 +1,22 @@
+#ok /not really/
+
+# list of errors here...
+error /error:/
+error /error\s[LT]\d{3}:/
+error /\*\*\*Failed/
+error /undefined reference/
+error /CMake Error/
+error /Code coverage enforcement failed/
+error /Line's health/
+
+# list of warnings here...
+warning /warning:/
+warning /warning\s#/
+warning /warning\s[LT]\d{3}:/
+
+# create a quick access link to lines in the report containing 'INFO'
+#info /INFO/
+
+# each line containing 'make' represents the start of a section for grouping errors and warnings found after the line.
+# also creates a quick access link.
+start /^\+\smake\s/
