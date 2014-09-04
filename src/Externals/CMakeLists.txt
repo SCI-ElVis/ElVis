@@ -63,7 +63,12 @@ ADD_SUBDIRECTORY(tinyxml)
 MESSAGE(STATUS "Configuring boost")
 FIND_PACKAGE( Boost COMPONENTS unit_test_framework system filesystem serialization thread program_options )
 IF( Boost_FOUND )
-  SET(BOOST_LIBRARY ${Boost_LIBRARIES} CACHE INTERNAL "Boost library name." FORCE)
+  SET(BOOST_LIBRARY ${Boost_LIBRARIES} CACHE INTERNAL "Boost library name." FORCE) 
+  
+  # allow the parent CMakeLists to see the result of finding boost.
+  SET( Boost_FOUND ${Boost_FOUND} PARENT_SCOPE)
+  SET( Boost_MAJOR_VERSION ${Boost_MAJOR_VERSION} PARENT_SCOPE)
+  SET( Boost_MINOR_VERSION ${Boost_MINOR_VERSION} PARENT_SCOPE)
 ELSE()
   MESSAGE(STATUS "Missing at least one of: unit_test_framework system filesystem serialization thread program_options" )
   MESSAGE(STATUS "Compiling boost from src/Externals/boost" )

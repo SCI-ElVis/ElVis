@@ -31,6 +31,7 @@
 #include <ElVis/Core/PtxManager.h>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <limits>
 
 namespace ElVis

@@ -31,7 +31,7 @@
 
 #include <ElVis/Core/Plugin.h>
 #include <ElVis/Core/Util.hpp>
-
+#include <boost/typeof/typeof.hpp>
 namespace ElVis
 {
     const std::string Plugin::GetNameFunctionName("GetPluginName");
