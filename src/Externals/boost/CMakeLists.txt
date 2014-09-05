@@ -229,7 +229,7 @@ SET(BOOST_LIBRARY boost CACHE INTERNAL "Boost library name." FORCE)
 ###########################################
 # Include directory of zlib
 
-SET(BOOST_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR} 
+SET(Boost_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR} 
     CACHE INTERNAL "Boost include directories." FORCE)
 INCLUDE_DIRECTORIES(${BOOST_INCLUDE})
 INCLUDE_DIRECTORIES(${SCI_CRYPTO_INCLUDE})

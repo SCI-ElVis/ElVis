@@ -28,7 +28,7 @@ SET( CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/bin )
 PROJECT(ElVis)
 
 ENABLE_TESTING()
-SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/CMake)
 
 # Set the default build to Release.  Note this doesn't do anything for the VS
 # default build target which defaults to Debug when you first start it.
@@ -87,7 +87,7 @@ SET(GLUT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Externals/glut/include)
 INCLUDE_DIRECTORIES( 
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
-    ${BOOST_INCLUDE}
+    ${Boost_INCLUDE_DIR}
     ${GLEW_INCLUDE}
     ${GLUT_INCLUDE_DIR}
   # Cuda includes must appear after other GL includes to prevent accidentally
@@ -267,3 +267,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #Generate a unit tests target that runs all the unit tests in a single executable
 #This must be the last thing generated
 ADD_ELVIS_BOOST_TEST_OBJECTS( unit ALL_BOOST_UNIT_OBJECTS ElVisCore )
+
+
+# A custom target for debugging cmake
+ADD_CUSTOM_TARGET( debug_cmake COMMAND ${CMAKE_COMMAND} -Wdev --warn-uninitialized WORKSPACE ${CMAKE_BINARY_DIR} )
