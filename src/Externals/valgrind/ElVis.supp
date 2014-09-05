@@ -1,8 +1,14 @@
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:calloc
+   ...
    obj:/usr/lib/nvidia-331/libGL.so.331.62
    ...
 }
 
+{
+   <SUSE shared library problems>
+   Memcheck:Leak
+   ...
+   obj:/lib64/ld-2.18.so
+}
