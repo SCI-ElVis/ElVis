@@ -76,10 +76,10 @@ namespace ElVis
     void Color::SetBlue(double value) { m_blue = static_cast<float>(value); OnColorChanged(*this); }
     void Color::SetAlpha(double value) { m_alpha = static_cast<float>(value); OnColorChanged(*this);}
 
-    void Color::SetRed(int value) { m_red = (float)value/255.0; OnColorChanged(*this);}
-    void Color::SetGreen(int value) { m_green = (float)value/255.0; OnColorChanged(*this);}
-    void Color::SetBlue(int value) { m_blue = (float)value/255.0; OnColorChanged(*this);}
-    void Color::SetAlpha(int value) { m_alpha = (float)value/255.0; OnColorChanged(*this);}
+    void Color::SetRed(int value) { m_red = value/255.0f; OnColorChanged(*this);}
+    void Color::SetGreen(int value) { m_green = value/255.0f; OnColorChanged(*this);}
+    void Color::SetBlue(int value) { m_blue = value/255.0f; OnColorChanged(*this);}
+    void Color::SetAlpha(int value) { m_alpha = value/255.0f; OnColorChanged(*this);}
 
     Color operator+(const Color& lhs, const Color& rhs)
     {

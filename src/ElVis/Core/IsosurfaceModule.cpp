@@ -124,7 +124,7 @@ namespace ElVis
         ReadFloatVector("Nodes.txt", nodes);
         m_gaussLegendreNodesBuffer.SetContext(context);
         m_gaussLegendreNodesBuffer.SetDimensions(nodes.size());
-        BOOST_AUTO(nodeData, m_gaussLegendreNodesBuffer.Map());
+        auto nodeData = m_gaussLegendreNodesBuffer.Map();
         std::copy(nodes.begin(), nodes.end(), nodeData.get());
       }
 
@@ -134,7 +134,7 @@ namespace ElVis
         ReadFloatVector("Weights.txt", weights);
         m_gaussLegendreWeightsBuffer.SetContext(context);
         m_gaussLegendreWeightsBuffer.SetDimensions(weights.size());
-        BOOST_AUTO(data, m_gaussLegendreWeightsBuffer.Map());
+        auto data = m_gaussLegendreWeightsBuffer.Map();
         std::copy(weights.begin(), weights.end(), data.get());
       }
 
@@ -144,7 +144,7 @@ namespace ElVis
         ReadFloatVector("MonomialConversionTables.txt", monomialCoversionData);
         m_monomialConversionTableBuffer.SetContext(context);
         m_monomialConversionTableBuffer.SetDimensions(monomialCoversionData.size());
-        BOOST_AUTO(data, m_monomialConversionTableBuffer.Map());
+        auto data = m_monomialConversionTableBuffer.Map();
         std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data.get());
       }
       m_isovalueBuffer.SetContext(context);
@@ -172,12 +172,12 @@ namespace ElVis
       if( m_isovalueBufferSize != m_isovalues.size()   )
       {
         m_isovalueBuffer.SetDimensions(m_isovalues.size());
-        m_isovalueBufferSize = m_isovalues.size();
+        m_isovalueBufferSize = static_cast<unsigned int>(m_isovalues.size());
       }
 
       if( !m_isovalues.empty() )
       {
-          BOOST_AUTO(isovalueData, m_isovalueBuffer.Map());
+          auto isovalueData = m_isovalueBuffer.Map();
           std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
       }
   }

@@ -285,7 +285,7 @@ namespace ElVis
 
         if( !m_colorBuffer.Initialized() ) return;
 
-        BOOST_AUTO(colorBuffer, m_colorBuffer.Map());
+        auto colorBuffer = m_colorBuffer.Map();
 
         if( !colorBuffer ) return;
 
@@ -399,7 +399,7 @@ namespace ElVis
     {
         if( m_depthBuffer.Initialized() )
         {
-            BOOST_AUTO(data, m_depthBuffer.Map());
+            auto data = m_depthBuffer.Map();
             for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i] = 1.0f;
@@ -411,7 +411,7 @@ namespace ElVis
     {
         if( m_colorBuffer.Initialized() )
         {
-            BOOST_AUTO(data, m_colorBuffer.Map());
+            auto data = m_colorBuffer.Map();
             for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i].x = 255;
@@ -486,7 +486,7 @@ namespace ElVis
             SetRasterPositionToLowerLeftCorner();
     
             glDrawBuffer(GL_BACK);
-            BOOST_AUTO(colorData, m_colorBuffer.Map());
+            auto colorData = m_colorBuffer.Map();
             glDrawPixels(GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, (void*)colorData.get());
 
             //GLenum error = glGetError();
@@ -641,7 +641,7 @@ namespace ElVis
 
     RayGeneratorProgram SceneView::AddRayGenerationProgram(const std::string& programName)
     {
-        std::map<std::string, RayGeneratorProgram>::iterator found = m_rayGenerationPrograms.find(programName);
+        auto found = m_rayGenerationPrograms.find(programName);
         if( found != m_rayGenerationPrograms.end() )
         {
             return (*found).second;
@@ -651,11 +651,11 @@ namespace ElVis
 
         optixu::Context m_context = GetScene()->GetContext();
         result.Program = PtxManager::LoadProgram(m_context, GetPTXPrefix(), programName.c_str());
-        result.Index = m_rayGenerationPrograms.size();
+        result.Index = static_cast<unsigned int>(m_rayGenerationPrograms.size());
 
         m_rayGenerationPrograms[programName] = result;
 
-        m_context->setEntryPointCount(m_rayGenerationPrograms.size());
+        m_context->setEntryPointCount(static_cast<unsigned int>(m_rayGenerationPrograms.size()));
         m_context->setRayGenerationProgram(result.Index, result.Program);
         return result;
     }

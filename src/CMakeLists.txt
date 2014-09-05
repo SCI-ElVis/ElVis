@@ -58,7 +58,6 @@ INCLUDE(CMake/CompilerFlags.cmake)
 
 INCLUDE(CMake/SetupOptiX.cmake)
 INCLUDE(CMake/UnitTest.cmake)
-
 ADD_SUBDIRECTORY(Externals)
 
 IF( NOT PASSED_FIRST_CONFIGURE )
@@ -120,11 +119,19 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
 
     #SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
-    #get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
-    #IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
-    #    SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
-    #ENDIF()
-    #IF( CMAKE_COMPILER_IS_GNUCXX )
+    get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
+    IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
+        SET(ADDITIONAL_COMPILE_FLAGS "")
+    ENDIF()
+    
+    IF( CMAKE_COMPILER_IS_GNUCXX )
+        set(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -std=c++0x")
+	IF( Boost_FOUND )
+	  IF( ${Boost_MAJOR_VERSION} LESS 2 AND
+	      ${Boost_MINOR_VERSION} LESS 51)
+	    add_definitions(-DBOOST_NO_SCOPED_ENUMS)
+	  ENDIF() 
+	ENDIF()
     #    # Some versions of gcc can't handle -g3, but it is set by a cuda
     #    # CMakeLists
     #    SET(STR1 " ")
@@ -136,7 +143,7 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     #    STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
     #    STRING(REPLACE "-g" "" STR4 ${STR3} )
     #    SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
-    #ENDIF()
+    ENDIF()
 
     #IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
         # The static libraries must be compiled with position independent code
@@ -144,9 +151,9 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     #    SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
     #ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     
-    #IF( ADDITIONAL_COMPILE_FLAGS )
-    #    SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
-    #ENDIF()
+    IF( ADDITIONAL_COMPILE_FLAGS )
+        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
+    ENDIF()
 
     IF( MSVC )
         # Disable the warnings about duplicate copy/assignment methods

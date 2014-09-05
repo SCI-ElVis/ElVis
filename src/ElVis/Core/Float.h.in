@@ -90,7 +90,7 @@ __device__ __forceinline__ ElVisFloat2 MakeFloat2(const optix::size_t2& value)
 
 
 #if ELVIS_USE_DOUBLE_PRECISION == 0
-	
+  
     __device__ __forceinline__ ElVisFloat3 MakeFloat3(const ElVisFloat4& f)
     {
         return make_float3(f.x, f.y, f.z);
@@ -107,111 +107,111 @@ __device__ __forceinline__ ElVisFloat2 MakeFloat2(const optix::size_t2& value)
     }
 
     __device__ __forceinline__ ElVisFloat3 MakeFloat3(const float3& f)
-	{
-		return f;
-	}
-		
+  {
+    return f;
+  }
+    
     __device__ __forceinline__ float3 ConvertToFloat3(const ElVisFloat3& f)
-	{
-		return f;
-	}
-	
+  {
+    return f;
+  }
+  
     __device__ __forceinline__ float3 ConvertToFloat3(const ElVisFloat4& f)
-	{
-		return make_float3(f);
-	}
-	
-	__device__ __forceinline__ ElVisFloat Sqrtf(const ElVisFloat& f)
-	{
+  {
+    return make_float3(f);
+  }
+  
+  __device__ __forceinline__ ElVisFloat Sqrtf(const ElVisFloat& f)
+  {
         #if defined(__CUDACC__)
             return __fsqrt_rn(f);
         #else
             return sqrt(f);
         #endif
-	}
+  }
 
 
 
 #else
-	
+  
 
     __device__ __forceinline__ ElVisFloat3 MakeFloat3(const ElVisFloat4& f)
     {
-		ElVisFloat3 result;
-		result.x = f.x;
-		result.y = f.y;
-		result.z = f.z;
+    ElVisFloat3 result;
+    result.x = f.x;
+    result.y = f.y;
+    result.z = f.z;
         return result;
     }
     
     __device__ __forceinline__ ElVisFloat3 MakeFloat3(const double& x, const double& y, const double& z)
     {
         ElVisFloat3 result;
-		result.x = x;
-		result.y = y;
-		result.z = z;
+    result.x = x;
+    result.y = y;
+    result.z = z;
         return result;
     }
     
     __device__ __forceinline__ ElVisFloat4 MakeFloat4(const double& x, const double& y, const double& z, const double& w)
     {
         ElVisFloat4 result;
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		result.w = w;
+    result.x = x;
+    result.y = y;
+    result.z = z;
+    result.w = w;
         return result;
     }
     
     __device__ __forceinline__ ElVisFloat3 MakeFloat3(const float3& f)
-	{
-		ElVisFloat3 result;
-		result.x = static_cast<ElVisFloat>(f.x);
-		result.y = static_cast<ElVisFloat>(f.y);
-		result.z = static_cast<ElVisFloat>(f.z);
+  {
+    ElVisFloat3 result;
+    result.x = static_cast<ElVisFloat>(f.x);
+    result.y = static_cast<ElVisFloat>(f.y);
+    result.z = static_cast<ElVisFloat>(f.z);
         return result;
-	}
-	
+  }
+  
     __device__ __forceinline__ ElVisFloat dot(const ElVisFloat4& a, const ElVisFloat4& b)
-	{
-		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-	}
+  {
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+  }
 
     __device__ __forceinline__ ElVisFloat dot(const ElVisFloat3& a, const ElVisFloat3& b)
-	{
-		return a.x * b.x + a.y * b.y + a.z * b.z;
-	}
-	
+  {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+  }
+  
     __device__ __forceinline__ ElVisFloat3 operator*(const ElVisFloat3& lhs, const ElVisFloat& rhs)
-	{
-		return MakeFloat3(lhs.x*rhs, lhs.y*rhs, lhs.z*rhs);
-	}
-	
+  {
+    return MakeFloat3(lhs.x*rhs, lhs.y*rhs, lhs.z*rhs);
+  }
+  
     __device__ __forceinline__ ElVisFloat3 operator*(const ElVisFloat& lhs, const ElVisFloat3& rhs)
-	{
-		return rhs*lhs;
-	}
-	
+  {
+    return rhs*lhs;
+  }
+  
     __device__ __forceinline__ ElVisFloat3 normalize(const ElVisFloat3& v)
-	{
-		ElVisFloat invLen = 1.0 / sqrt(dot(v, v));
-		return v * invLen;
-	}
-	
+  {
+    ElVisFloat invLen = 1.0 / sqrt(dot(v, v));
+    return v * invLen;
+  }
+  
     __device__ __forceinline__ ElVisFloat3 cross(const ElVisFloat3& a, const ElVisFloat3& b)
-	{
-		return MakeFloat3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
-	}
+  {
+    return MakeFloat3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
+  }
 
     __device__ __forceinline__ ElVisFloat3 operator+(const ElVisFloat3& lhs, const ElVisFloat3& rhs)
-	{
-		return MakeFloat3(lhs.x+rhs.x, lhs.y+rhs.y, lhs.z+rhs.z);
-	}
-	
+  {
+    return MakeFloat3(lhs.x+rhs.x, lhs.y+rhs.y, lhs.z+rhs.z);
+  }
+  
     __device__ __forceinline__ ElVisFloat3 operator-(const ElVisFloat3& lhs, const ElVisFloat3& rhs)
-	{
-		return MakeFloat3(lhs.x-rhs.x, lhs.y-rhs.y, lhs.z-rhs.z);
-	}
+  {
+    return MakeFloat3(lhs.x-rhs.x, lhs.y-rhs.y, lhs.z-rhs.z);
+  }
 
     __device__ __forceinline__ ElVisFloat3 operator+(const ElVisFloat3& lhs, const ElVisFloat& rhs)
     {
@@ -224,27 +224,29 @@ __device__ __forceinline__ ElVisFloat2 MakeFloat2(const optix::size_t2& value)
     }
 
     __device__ __forceinline__ ElVisFloat3 fminf(const ElVisFloat3& a, const ElVisFloat3& b)
-	{
-		return MakeFloat3(fminf(a.x,b.x), fminf(a.y,b.y), fminf(a.z,b.z));
-	}
-	
-	
-	
+    {
+      return MakeFloat3(fminf(a.x,b.x), fminf(a.y,b.y), fminf(a.z,b.z));
+    }
+  
     __device__ __forceinline__ ElVisFloat3 fmaxf(const ElVisFloat3& a, const ElVisFloat3& b)
-	{
-		return MakeFloat3(fmaxf(a.x,b.x), fmaxf(a.y,b.y), fmaxf(a.z,b.z));
-	}
-	
+    {
+      return MakeFloat3(fmaxf(a.x,b.x), fmaxf(a.y,b.y), fmaxf(a.z,b.z));
+    }
+  
     __device__ __forceinline__ float3 ConvertToFloat3(const ElVisFloat3& f)
-	{
-		return make_float3(f.x, f.y, f.z);
-	}
-	
+    {
+      return make_float3(static_cast<float>(f.x), 
+        static_cast<float>(f.y), 
+        static_cast<float>(f.z));
+    }
+  
     __device__ __forceinline__ float3 ConvertToFloat3(const ElVisFloat4& f)
-	{
-		return make_float3(f.x, f.y, f.z);
-	}
-	
+    {
+      return make_float3(static_cast<float>(f.x), 
+        static_cast<float>(f.y), 
+        static_cast<float>(f.z));
+    }
+  
     __device__ __forceinline__ ElVisFloat2 operator+(const ElVisFloat2& a, const ElVisFloat2& b)
     {
         return MakeFloat2(a.x + b.x, a.y + b.y);
@@ -266,10 +268,10 @@ __device__ __forceinline__ ElVisFloat2 MakeFloat2(const optix::size_t2& value)
     }
 
     __device__ __forceinline__ ElVisFloat3 operator*(const ElVisFloat3& a, const ElVisFloat3& b)
-	{
-		return MakeFloat3(a.x * b.x, a.y * b.y, a.z * b.z);
-	}
-	
+    {
+      return MakeFloat3(a.x * b.x, a.y * b.y, a.z * b.z);
+    }
+  
     __device__ __forceinline__ ElVisFloat2 operator*(const ElVisFloat2& lhs, const ElVisFloat& rhs)
     {
         return MakeFloat2(lhs.x*rhs, lhs.y*rhs);
@@ -301,25 +303,25 @@ __device__ __forceinline__ ElVisFloat2 MakeFloat2(const optix::size_t2& value)
     }
 
     __device__ __forceinline__ ElVisFloat clamp(const ElVisFloat& f, const ElVisFloat& a, const ElVisFloat& b)
-	{
-		return fmaxf(a, fminf(f, b));
-	}
+  {
+    return fmaxf(a, fminf(f, b));
+  }
 
     __device__ __forceinline__ ElVisFloat3 clamp(const ElVisFloat3& f, const ElVisFloat& a, const ElVisFloat& b)
-	{
-		return MakeFloat3(clamp(f.x, a, b), clamp(f.y, a, b), clamp(f.z, a, b));
-	}
-	
-	__device__ __forceinline__ ElVisFloat Sqrtf(const ElVisFloat& f)
-	{
+  {
+    return MakeFloat3(clamp(f.x, a, b), clamp(f.y, a, b), clamp(f.z, a, b));
+  }
+  
+  __device__ __forceinline__ ElVisFloat Sqrtf(const ElVisFloat& f)
+  {
         #if defined(__CUDACC__)
             return __dsqrt_rn(f);
         #else
             return sqrt(f);
         #endif
-	}
+  }
 
-	
+  
 #endif
 
 __device__ __forceinline__ void operator+=(volatile ElVisFloat3& lhs, const volatile ElVisFloat3& rhs)
@@ -360,15 +362,24 @@ struct DefaultFloat<ElVisFloat3>
     __device__ __forceinline__ static ElVisFloat3 GetValue() { return MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0)); }
 };
 
+__device__ __forceinline__ double Fabsf(const double& value)
+{
+    return fabs(value);
+}
 
-__device__ __forceinline__ ElVisFloat Fabsf(const ElVisFloat& value)
+__device__ __forceinline__ float Fabsf(const float& value)
 {
     return fabsf(value);
 }
 
-__device__ __forceinline__ ElVisFloat3 Fabsf(const ElVisFloat3& value)
+__device__ __forceinline__ float3 Fabsf(const float3& value)
 {
-    return MakeFloat3(fabsf(value.x), fabsf(value.y), fabsf(value.z));
+    return make_float3(fabsf(value.x), fabsf(value.y), fabsf(value.z));
+}
+
+__device__ __forceinline__ double3 Fabsf(const double3& value)
+{
+    return make_double3(fabs(value.x), fabs(value.y), fabs(value.z));
 }
 
 __device__ __forceinline__ bool operator==(const ElVisFloat4& lhs, const ElVisFloat4& rhs)

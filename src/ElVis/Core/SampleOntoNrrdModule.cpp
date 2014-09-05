@@ -116,7 +116,7 @@ namespace ElVis
                 context->launch(Program.Index, n.x, n.y);
                 std::cout << "Done sampling." << std::endl;
 
-                BOOST_AUTO(data, sampleBuffer.Map());
+                auto data = sampleBuffer.Map();
                 for(unsigned int i = 0; i < n.x*n.y; ++i)
                 {
                     convertBuffer[i] = data[i];

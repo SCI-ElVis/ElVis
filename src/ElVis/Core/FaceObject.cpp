@@ -139,7 +139,7 @@ namespace ElVis
             return;
         }
 
-        BOOST_AUTO(model, view->GetScene()->GetModel());
+        auto model = view->GetScene()->GetModel();
 
         group = context->createGeometryGroup();
 

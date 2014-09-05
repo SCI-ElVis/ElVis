@@ -608,8 +608,8 @@ namespace ElVis
 
     // NOTE: Element 0,1 is wrong in Foley and Van Dam, Pg 227!
     // TODO - Double sin/cos?
-    ElVisFloat sintheta=sinf(radians);
-    ElVisFloat costheta=cosf(radians);
+    ElVisFloat sintheta=sinf(static_cast<float>(radians));
+    ElVisFloat costheta=cosf(static_cast<float>(radians));
     ElVisFloat ux=axis.x;
     ElVisFloat uy=axis.y;
     ElVisFloat uz=axis.z;

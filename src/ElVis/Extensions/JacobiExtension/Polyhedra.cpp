@@ -508,7 +508,10 @@ namespace ElVis
 
         ElVis::TensorVector Polyhedron::calculateScalarFunctionTensorGradient(const ElVis::TensorPoint& p)
         {
-            return ElVis::TensorVector(df_da(p), df_db(p), df_dc(p));
+            return ElVis::TensorVector(
+              static_cast<ElVis::TensorVector::value_type>(df_da(p)), 
+              static_cast<ElVis::TensorVector::value_type>(df_db(p)), 
+              static_cast<ElVis::TensorVector::value_type>(df_dc(p)));
         }
 
         ElVis::WorldVector Polyhedron::calculateScalarFunctionWorldGradient(const ElVis::TensorPoint& tp)

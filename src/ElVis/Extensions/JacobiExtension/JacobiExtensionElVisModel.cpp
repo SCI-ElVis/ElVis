@@ -99,10 +99,10 @@ namespace ElVis
             std::set<WorldPoint, bool(*)(const WorldPoint&, const WorldPoint&)> verticesLookupMap(closePointLessThan);
             for(unsigned int i = 0; i < m_volume->numElements(); i++)
             {
-                BOOST_AUTO(element, m_volume->getElement(i));
+                auto element = m_volume->getElement(i);
                 for(unsigned int j = 0; j < element->numVertices(); ++j)
                 {
-                    BOOST_AUTO(vertex, element->vertex(j));
+                    auto vertex = element->vertex(j);
                     if( verticesLookupMap.find(vertex) == verticesLookupMap.end() )
                     {
                         verticesLookupMap.insert(vertex);
@@ -123,7 +123,7 @@ namespace ElVis
               JacobiFace& value = (*iter).second;
               for(unsigned int i = 0; i < 4; ++i)
               {
-                BOOST_AUTO(iter, std::find_if(m_vertices.begin(), m_vertices.end(), boost::bind(closePointEqual, _1, key.p[i])));
+                auto iter = std::find_if(m_vertices.begin(), m_vertices.end(), boost::bind(closePointEqual, _1, key.p[i]));
                 value.planarInfo.vertexIdx[i] = std::distance(m_vertices.begin(), iter);
               }
             }
@@ -131,7 +131,7 @@ namespace ElVis
             for(std::map<JacobiFaceKey, JacobiFace>::const_iterator iter = faceLookupMap.begin();
                 iter != faceLookupMap.end(); ++iter)
             {
-              BOOST_AUTO(face, (*iter).second);
+              auto face = (*iter).second;
               face.info.widenExtents();
               m_faces.push_back(face);
             }
@@ -144,7 +144,7 @@ namespace ElVis
 
         unsigned int JacobiExtensionModel::DoGetNumberOfElements() const
         {
-            return m_volume->numElements();
+            return static_cast<unsigned int>(m_volume->numElements());
         }
 
         int JacobiExtensionModel::DoGetNumFields() const

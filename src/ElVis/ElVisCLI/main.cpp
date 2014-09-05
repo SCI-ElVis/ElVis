@@ -61,64 +61,31 @@
 #define int_p_NULL (int*)NULL
 #endif
 
-//
-//void ConvertToRGB(double h, double s, double v, double& r, double& g, double& b)
-//{
-//	h /= 60.0;			// sector 0 to 5
-//	int i = floor( h );
-//	float f = h - i;			// factorial part of h
-//	float p = v * ( 1 - s );
-//	float q = v * ( 1 - s * f );
-//	float t = v * ( 1 - s * ( 1 - f ) );
-//
-//    
-//	switch( i ) 
-//    {
-//    case 0:
-//			r = v;
-//			g = t;
-//			b = p;
-//			break;
-//    case 1:
-//			r = q;
-//			g = v;
-//			b = p;
-//			break;
-//    case 2:
-//			r = p;
-//			g = v;
-//			b = t;
-//			break;
-//    case 3:
-//			r = p;
-//			g = q;
-//			b = v;
-//			break;
-//    case 4:
-//			r = t;
-//			g = p;
-//			b = v;
-//			break;
-//    default:		// case 5:
-//			r = v;
-//			g = p;
-//			b = q;
-//			break;
-//    }
-//}
-//
-
-void PrintUsage()
+namespace
 {
-    std::cerr << "Usage: ElVisCLI --TestName <testname> --ModelPath <path> --Width <int> --Height <int> ..." << std::endl;
-    exit(1);
-}
 
-void TestParam(boost::program_options::variables_map& vm, const char* p)
-{
-    if( vm.count(p) == 0 ) PrintUsage();
-}
+  void PrintUsage()
+  {
+      std::cerr << "Usage: ElVisCLI --TestName <testname> --ModelPath <path> --Width <int> --Height <int> ..." << std::endl;
+      exit(1);
+  }
 
+  void TestParam(boost::program_options::variables_map& vm, const char* p)
+  {
+      if( vm.count(p) == 0 ) PrintUsage();
+  }
+
+
+  template<typename T>
+  bool testChannel(size_t idx, const T& lhs, const T& rhs)
+  {
+    if( lhs[idx] == rhs[idx] ) return true;
+
+    auto dist = std::max(lhs[idx], rhs[idx]) -
+      std::min(lhs[idx], rhs[idx]);
+    return dist <= 1;
+  }
+}
 
 int main(int argc, char** argv)
 {
@@ -316,14 +283,26 @@ int main(int argc, char** argv)
         boost::gil::png_read_image(baselinePngPath, baselinePngImage);
         boost::gil::png_read_image(testPngPath, testPngImage);
 
-        if( ! boost::gil::equal_pixels(boost::gil::const_view(baselinePngImage), boost::gil::const_view(testPngImage)) )
+        auto baselineView = boost::gil::const_view(baselinePngImage);
+        auto testView = boost::gil::const_view(testPngImage);
+
+        if( baselineView.width() != testView.width() ||
+            baselineView.height() != testView.height() )
         {
-            std::cout << "Test failed." << std::endl;
-            return 1;
+          return 1;
         }
-        else
+
+        for(size_t j = 0; j < baselineView.height(); ++j)
         {
-            std::cout << "Test succeeded." << std::endl;
+          for(size_t i = 0; i < baselineView.width(); ++i)
+          {
+            auto srcPixel = baselineView(i, j);
+            auto testPixel = testView(i,j);
+            auto pixelText = testChannel(0, srcPixel, testPixel) &&
+              testChannel(1, srcPixel, testPixel) &&
+              testChannel(2, srcPixel, testPixel);
+            if( !pixelText ) return 1;
+          }
         }
     }
 

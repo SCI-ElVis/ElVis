@@ -119,6 +119,7 @@ namespace ElVis
     {
         public:
             typedef Vector<DataType, space> ThisType;
+            typedef DataType value_type;
             boost::signals2::signal< void (const ThisType&) > OnVectorChanged;
 
         public:
@@ -228,12 +229,12 @@ namespace ElVis
             iterator begin() { return GetRawPtr(); }
             iterator end() { return GetRawPtr() + this->GetDimension(); }
             
-            const DataType& operator()(unsigned int i) const
+            const DataType& operator()(size_t i) const
             {
                 return m_data[i];
             }
 
-            const DataType& operator[](unsigned int i) const
+            const DataType& operator[](size_t i) const
             {
                 return m_data[i];
             }
@@ -278,21 +279,24 @@ namespace ElVis
                 return (*this)(2);
             }
 
-            void SetX(const DataType& val)
+            template<typename T>
+            void SetX(const T& val)
             {
-                m_data[0] = val;
+                m_data[0] = static_cast<DataType>(val);
                 OnVectorChanged(*this);
             }
 
-            void SetY(const DataType& val)
+            template<typename T>
+            void SetY(const T& val)
             {
-                m_data[1] = val;
+                m_data[1] = static_cast<DataType>(val);
                 OnVectorChanged(*this);
             }
 
-            void SetZ(const DataType& val)
+            template<typename T>
+            void SetZ(const T& val)
             {
-                m_data[2] = val;
+                m_data[2] = static_cast<DataType>(val);
                 OnVectorChanged(*this);
             }
             
@@ -372,19 +376,19 @@ namespace ElVis
             std::vector<DataType> m_data;
     };
     
-	template<typename DataType, typename space>
-	std::ostream& operator<<(std::ostream& os, const Vector<DataType, space>& rhs)
-	{
-		for(size_t i = 0; i < rhs.GetDimension(); ++i)
-		{
-			if( i > 0 )
-			{
-				os << ", ";
-			}
-			os << rhs[i];
-		}
-		return os;
-	}
+  template<typename DataType, typename space>
+  std::ostream& operator<<(std::ostream& os, const Vector<DataType, space>& rhs)
+  {
+    for(size_t i = 0; i < rhs.GetDimension(); ++i)
+    {
+      if( i > 0 )
+      {
+        os << ", ";
+      }
+      os << rhs[i];
+    }
+    return os;
+  }
 
     template<typename DataType, typename space>
     std::istream& operator>>(std::istream& is, Vector<DataType, space>& obj)
@@ -398,24 +402,24 @@ namespace ElVis
         return is;
     }
 
-	template<typename DataType, typename space>
-	bool operator==(const Vector<DataType, space>& lhs, const Vector<DataType, space>& rhs)
-	{
-		if( lhs.GetDimension() != rhs.GetDimension() ) return false;
+  template<typename DataType, typename space>
+  bool operator==(const Vector<DataType, space>& lhs, const Vector<DataType, space>& rhs)
+  {
+    if( lhs.GetDimension() != rhs.GetDimension() ) return false;
 
-		for(unsigned int i = 0; i < lhs.GetDimension(); ++i)
-		{
-			if( lhs[i] != rhs[i] ) return false;
-		}
+    for(unsigned int i = 0; i < lhs.GetDimension(); ++i)
+    {
+      if( lhs[i] != rhs[i] ) return false;
+    }
 
-		return true;
-	}
+    return true;
+  }
     
     template<typename DataType, typename dim, typename space>
     Vector<DataType, space> createVectorFromPoints(const Point<DataType, dim, space>& source,
                                                    const Point<DataType, dim, space>& dest)
     {
-		    Vector<DataType, space> result(dim::Value);
+        Vector<DataType, space> result(dim::Value);
         for(unsigned int i = 0; i < dim::Value; ++i)
         {
             result[i] = dest[i]-source[i];
@@ -554,7 +558,7 @@ namespace ElVis
     }
 
 
-	template<typename DataType, typename space>
+  template<typename DataType, typename space>
     void Add(Vector<DataType, space>& result,
            const Vector<DataType, space>& lhs,
            const Vector<DataType, space>& rhs)
@@ -629,7 +633,7 @@ namespace ElVis
 
 
 
-	template<typename ResultDataType, typename InputDataType, typename space>
+  template<typename ResultDataType, typename InputDataType, typename space>
     void Divide(Vector<ResultDataType, space>& result,
            const Vector<InputDataType, space>& lhs,
            const double& rhs)
@@ -645,7 +649,7 @@ namespace ElVis
     
     template<typename ResultDataType, typename space>
     void DivideEqual(Vector<ResultDataType, space>& result,
-					 const double& rhs)
+           const double& rhs)
     {
         ResultDataType* r_buf = result.GetRawPtr();
         for(unsigned int i = 0; i < result.GetDimension(); ++i)
@@ -665,7 +669,7 @@ namespace ElVis
     }
 
 
-	template<typename ResultDataType, typename InputDataType, typename space>
+  template<typename ResultDataType, typename InputDataType, typename space>
     void Multiply(Vector<ResultDataType, space>& result,
                   const Vector<InputDataType, space>& lhs,
                   const double& rhs)
@@ -673,15 +677,15 @@ namespace ElVis
         ResultDataType* r_buf = result.GetRawPtr();
         typename boost::add_const<InputDataType>::type* lhs_buf = lhs.GetRawPtr();
         
-        for(unsigned int i = 0; i < lhs.GetDimension(); ++i)
+        for(size_t i = 0; i < lhs.GetDimension(); ++i)
         {
-            r_buf[i] = lhs_buf[i] * rhs;
+            r_buf[i] = static_cast<ElVisFloat>(lhs_buf[i] * rhs);
         }
     }
     
     template<typename ResultDataType, typename space>
     void MultiplyEqual(Vector<ResultDataType, space>& result,
-					   const double& rhs)
+             const double& rhs)
     {
         ResultDataType* r_buf = result.GetRawPtr();
         for(unsigned int i = 0; i < result.GetDimension(); ++i)
@@ -700,45 +704,45 @@ namespace ElVis
         return result;
     }
 
-	template<typename ResultDataType, typename InputDataType, typename space>
+  template<typename ResultDataType, typename InputDataType, typename space>
     void Multiply(Vector<ResultDataType, space>& result,
-				  const double& lhs,   
-			      const Vector<InputDataType, space>& rhs)
+          const double& lhs,   
+            const Vector<InputDataType, space>& rhs)
     {
-		Multiply(result, rhs, lhs);
+    Multiply(result, rhs, lhs);
     }
         
     template<typename DataType, typename space>
     Vector<DataType, space>
-	Multiply(const double& lhs,
-			 const Vector<DataType, space>& rhs)
+  Multiply(const double& lhs,
+       const Vector<DataType, space>& rhs)
     {
-		return Multiply(rhs, lhs);
+    return Multiply(rhs, lhs);
     }
 
-	template<typename DataType, typename space>
-	Vector<DataType, space> operator+(const Vector<DataType, space>& lhs, const Vector<DataType, space>& rhs)
-	{
-		return Add(lhs, rhs);
-	}
+  template<typename DataType, typename space>
+  Vector<DataType, space> operator+(const Vector<DataType, space>& lhs, const Vector<DataType, space>& rhs)
+  {
+    return Add(lhs, rhs);
+  }
 
-	template<typename DataType, typename space>
-	Vector<DataType, space> operator-(const Vector<DataType, space>& lhs, const Vector<DataType, space>& rhs)
-	{
-		return Subtract(lhs, rhs);
-	}
+  template<typename DataType, typename space>
+  Vector<DataType, space> operator-(const Vector<DataType, space>& lhs, const Vector<DataType, space>& rhs)
+  {
+    return Subtract(lhs, rhs);
+  }
 
-	template<typename DataType, typename space>
-	Vector<DataType, space> operator*(double lhs, const Vector<DataType, space>& rhs)
-	{
-		return Multiply(lhs, rhs);
-	}
+  template<typename DataType, typename space>
+  Vector<DataType, space> operator*(double lhs, const Vector<DataType, space>& rhs)
+  {
+    return Multiply(lhs, rhs);
+  }
 
-	template<typename DataType, typename space>
-	Vector<DataType, space> operator*(const Vector<DataType, space>& lhs, double rhs)
-	{
-		return Multiply(lhs, rhs);
-	}
+  template<typename DataType, typename space>
+  Vector<DataType, space> operator*(const Vector<DataType, space>& lhs, double rhs)
+  {
+    return Multiply(lhs, rhs);
+  }
 
     typedef Vector<ElVisFloat, WorldSpace> WorldVector;
     typedef Vector<ElVisFloat, ReferenceSpace> ReferenceVector;

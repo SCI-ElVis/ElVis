@@ -79,7 +79,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     cylinder->GetTransformationMatrix()[10] = .41f;
    
     
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -131,7 +131,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     //c.SetParameters(ElVis::WorldPoint(6, 0, 3.5), ElVis::WorldPoint(0, 0, 3.5), ElVis::WorldVector(0, 1, 0));
 
     //c.SetParameters(ElVis::WorldPoint(1.8, 1.2, 3.0), ElVis::WorldPoint(0, 0, 1), ElVis::WorldVector(0, 1, 0));
-    c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0, 0, 2.7), ElVis::WorldVector(0, 1, 0));
+    c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0., 0., 2.7), ElVis::WorldVector(0., 1., 0.));
 
     boost::shared_ptr<ElVis::SceneView> view(new ElVis::SceneView());
     view->SetCamera(c);
@@ -307,7 +307,7 @@ int GenericCLIInterface(int argc, char** argv,
     scene->SetEnableOptixTrace(trace);
     scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
 
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);

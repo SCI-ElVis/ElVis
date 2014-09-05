@@ -54,6 +54,7 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/typeof/typeof.hpp>
 
 #include <QDir>
 
@@ -146,13 +147,13 @@ namespace ElVis
             {
                 // On output, write the path to the model.  If possible, make
                 // it relative to the execution directory for maximum portability.
-                BOOST_AUTO(path, m_model->GetPath());
+                auto path = m_model->GetPath();
 
                 QDir dir;
                 std::string relativeModelPath = dir.relativeFilePath(QString(path.c_str())).toStdString();
                 ar & BOOST_SERIALIZATION_NVP(relativeModelPath);
 
-                BOOST_AUTO(pluginName, m_model->GetPlugin()->GetName());
+                auto pluginName = m_model->GetPlugin()->GetName();
                 ar & BOOST_SERIALIZATION_NVP(pluginName);
             }
 

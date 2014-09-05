@@ -60,8 +60,8 @@ namespace ElVis
         breakpoints.SetDimensions(m_breakpoints.size());
         values.SetContext(context);
         values.SetDimensions(m_breakpoints.size());
-        BOOST_AUTO(breakpointData, breakpoints.Map());
-        BOOST_AUTO(valueData,values.Map());
+        auto breakpointData = breakpoints.Map();
+        auto valueData = values.Map();
 
         int index = 0;
         for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
