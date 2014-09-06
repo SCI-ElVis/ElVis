@@ -53,11 +53,15 @@ IF( QT4_FOUND )
 ENDIF()
 
 SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake )
-#Need to set compiler flags first
-INCLUDE(CMake/CompilerFlags.cmake)
 
 INCLUDE(CMake/SetupOptiX.cmake)
+
+#Need to set compiler flags after SetupOptix
+INCLUDE(CMake/CompilerFlags.cmake)
+
+#Need to create unit tests after compiler flags have been set
 INCLUDE(CMake/UnitTest.cmake)
+
 ADD_SUBDIRECTORY(Externals)
 
 IF( NOT PASSED_FIRST_CONFIGURE )
@@ -119,13 +123,13 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
 
     #SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
-    get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
-    IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
-        SET(ADDITIONAL_COMPILE_FLAGS "")
-    ENDIF()
+    #get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
+    #IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
+    #    SET(ADDITIONAL_COMPILE_FLAGS "")
+    #ENDIF()
     
     IF( CMAKE_COMPILER_IS_GNUCXX )
-        set(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -std=c++0x")
+    #    set(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -std=c++0x")
 	IF( Boost_FOUND )
 	  IF( ${Boost_MAJOR_VERSION} LESS 2 AND
 	      ${Boost_MINOR_VERSION} LESS 51)
@@ -151,9 +155,9 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     #    SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
     #ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     
-    IF( ADDITIONAL_COMPILE_FLAGS )
-        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
-    ENDIF()
+    #IF( ADDITIONAL_COMPILE_FLAGS )
+    #    SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
+    #ENDIF()
 
     IF( MSVC )
         # Disable the warnings about duplicate copy/assignment methods
@@ -276,5 +280,6 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 ADD_ELVIS_BOOST_TEST_OBJECTS( unit ALL_BOOST_UNIT_OBJECTS ElVisCore )
 
 
-# A custom target for debugging cmake
+#Custom targets for debugging cmake
 ADD_CUSTOM_TARGET( debug_cmake COMMAND ${CMAKE_COMMAND} -Wdev --warn-uninitialized WORKSPACE ${CMAKE_BINARY_DIR} )
+ADD_CUSTOM_TARGET( debug_trace_cmake COMMAND ${CMAKE_COMMAND} -Wdev --warn-uninitialized --trace WORKSPACE ${CMAKE_BINARY_DIR} )

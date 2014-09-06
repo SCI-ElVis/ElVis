@@ -211,7 +211,7 @@ namespace ElVis
         if( !m_initializationComplete )
         {
 
-            if( m_PerformVolumeRendering.Index == -1 )
+            if( !m_PerformVolumeRendering.IsValid() )
             {
               m_PerformVolumeRendering = view->AddRayGenerationProgram("PerformVolumeRendering");
             }

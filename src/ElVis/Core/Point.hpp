@@ -224,7 +224,7 @@ namespace ElVis
             void SetX(const T& val)
             {
                 BOOST_STATIC_ASSERT(dim::Value >= 1);
-                if( m_data[0] == val ) return;
+                if( m_data[0] == static_cast<DataType>(val) ) return;
                 m_data[0] = static_cast<DataType>(val);
                 OnPointChanged(*this);
                 OnXChanged(static_cast<DataType>(val));
@@ -234,7 +234,7 @@ namespace ElVis
             void SetY(const T& val)
             {
                 BOOST_STATIC_ASSERT(dim::Value >= 2);
-                if( m_data[1] == val ) return;
+                if( m_data[1] == static_cast<DataType>(val) ) return;
                 m_data[1] = static_cast<DataType>(val);
                 OnPointChanged(*this);
                 OnYChanged(static_cast<DataType>(val));
@@ -244,7 +244,7 @@ namespace ElVis
             void SetZ(const T& val)
             {
                 BOOST_STATIC_ASSERT(dim::Value >= 2);
-                if( m_data[2] == val ) return;
+                if( m_data[2] == static_cast<DataType>(val) ) return;
                 m_data[2] = static_cast<DataType>(val);
                 OnPointChanged(*this);
                 OnZChanged(static_cast<DataType>(val));

@@ -113,7 +113,7 @@ namespace ElVis
       std::cout << "Isourface setup." << std::endl;
       optixu::Context context = view->GetContext();
 
-      if( m_FindIsosurface.Index == -1 )
+      if( !m_FindIsosurface.IsValid() )
       {
         m_FindIsosurface = view->AddRayGenerationProgram("FindIsosurface");
       }

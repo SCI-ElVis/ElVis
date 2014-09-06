@@ -278,7 +278,7 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
     m_volumeRenderingModule->SetCompositingStepSize(h);
     m_volumeRenderingModule->SetEpsilon(epsilon);
     scene->SetEnableOptixTrace(trace);
-    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
+    scene->SetOptixTracePixelIndex(ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
 
     m_volumeRenderingModule->SetRenderIntegrationType(renderIntegrationType);
     m_volumeRenderingModule->SetEnableEmptySpaceSkipping(enableEmptySpaceSkipping);
@@ -440,7 +440,7 @@ int VolumeRenderSphereForVerification(int argc, char** argv, boost::shared_ptr<E
     m_volumeRenderingModule->SetCompositingStepSize(h);
     m_volumeRenderingModule->SetEpsilon(epsilon);
     scene->SetEnableOptixTrace(trace);
-    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
+    scene->SetOptixTracePixelIndex(ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
     m_volumeRenderingModule->SetRenderIntegrationType(renderIntegrationType);
 
     std::cout << "Track number of samples: " << (trackNumSamples ? "Yes" : "No") << std::endl;

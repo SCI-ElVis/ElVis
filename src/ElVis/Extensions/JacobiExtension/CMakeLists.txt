@@ -91,9 +91,6 @@ source_group("" FILES ${JACOBI_EXTENSION_SOURCES} ${JACOBI_EXTENSION_OPTIX_HEADE
 # Create Libraries
 #################################3
 
-LINK_DIRECTORIES(
-    ${Boost_LIBRARY_DIRS}
-)
 #ADD_DEFINITIONS(-DGLEW_STATIC)
 
 # Need to use ADD_OPTIX_LIBRARY so the .cu files get routed to nvcc.

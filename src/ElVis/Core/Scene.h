@@ -120,8 +120,8 @@ namespace ElVis
             ELVIS_EXPORT void SetEnableOptixTrace(bool newValue);
             ELVIS_EXPORT bool GetEnableOptixTrace() const { return m_enableOptiXTrace; }
 
-            ELVIS_EXPORT void SetOptixTracePixelIndex(const Point<int, TwoD>& newValue);
-            ELVIS_EXPORT const Point<int, TwoD>& GetOptixTracePixelIndex() const { return m_optixTraceIndex; }
+            ELVIS_EXPORT void SetOptixTracePixelIndex(const Point<unsigned int, TwoD>& newValue);
+            ELVIS_EXPORT const Point<unsigned int, TwoD>& GetOptixTracePixelIndex() const { return m_optixTraceIndex; }
 
             ELVIS_EXPORT void SetOptixTraceBufferSize(int newValue);
             ELVIS_EXPORT int GetOptixTraceBufferSize() const { return m_optiXTraceBufferSize; }
@@ -209,7 +209,7 @@ namespace ElVis
 
             bool m_enableOptiXTrace;
             int m_optiXTraceBufferSize;
-            Point<int, TwoD> m_optixTraceIndex;
+            Point<unsigned int, TwoD> m_optixTraceIndex;
 
             bool m_optixDataDirty;
             bool m_tracePixelDirty;

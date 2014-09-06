@@ -292,9 +292,9 @@ int main(int argc, char** argv)
           return 1;
         }
 
-        for(size_t j = 0; j < baselineView.height(); ++j)
+        for(int j = 0; j < baselineView.height(); ++j)
         {
-          for(size_t i = 0; i < baselineView.width(); ++i)
+          for(int i = 0; i < baselineView.width(); ++i)
           {
             auto srcPixel = baselineView(i, j);
             auto testPixel = testView(i,j);

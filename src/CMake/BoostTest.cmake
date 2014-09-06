@@ -104,7 +104,7 @@ MACRO( GenerateBoostTests )
         SET_TESTS_PROPERTIES( ${UNIT_TEST}_stackcheck PROPERTIES LABELS ElVisStackCheck )
         
         #A list of all the unit test objects in this folder
-        SET( BOOST_UNIT_TEST_OBJECTS ${BOOST_UNIT_TEST_OBJECTS} $<TARGET_OBJECTS:${UNIT_TEST}_OBJECT> )
+        LIST( APPEND BOOST_UNIT_TEST_OBJECTS $<TARGET_OBJECTS:${UNIT_TEST}_OBJECT> )
       ENDIF()
     ENDIF()
   ENDFOREACH()
@@ -114,6 +114,7 @@ MACRO( GenerateBoostTests )
   ADD_ELVIS_BOOST_TEST_OBJECTS( ${FOLDER_TEST} BOOST_UNIT_TEST_OBJECTS ${ARGN} )
   ADD_DEPENDENCIES( check_build ${FOLDER_TEST}_build )
 
+  #This creates a warinig "uninitialized variable 'ALL_BOOST_UNIT_OBJECTS'", but I can't fix the warining without breaking the functionality
   #Automatically build up a list of all unit test objects for the 'unit' target
   SET( ALL_BOOST_UNIT_OBJECTS ${ALL_BOOST_UNIT_OBJECTS} ${BOOST_UNIT_TEST_OBJECTS} CACHE INTERNAL "All the unit tets objects" FORCE )
  

@@ -17,7 +17,7 @@ IF( UNIT_SKIP )
 ENDIF()
 
 #Add any qtest specific flags here
-SET( QTEST_TEST_FLAGS )
+SET( QTEST_TEST_FLAGS "" )
 
 #QT libraries used to QTest
 SET(QTEST_LIBS 

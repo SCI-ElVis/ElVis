@@ -146,11 +146,11 @@ namespace ElVis
             {
                 m_pointInfo = info;
 
-                if( info.Pixel.x() != m_intPropertyManager->value(m_pixelXProperty) )
+                if( (int)info.Pixel.x() != m_intPropertyManager->value(m_pixelXProperty) )
                 {
                     m_intPropertyManager->setValue(m_pixelXProperty, info.Pixel.x());
                 }
-                if( info.Pixel.y() != m_intPropertyManager->value(m_pixelYProperty) )
+                if( (int)info.Pixel.y() != m_intPropertyManager->value(m_pixelYProperty) )
                 {
                     m_intPropertyManager->setValue(m_pixelYProperty, info.Pixel.y());
                 }

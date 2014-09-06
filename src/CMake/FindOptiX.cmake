@@ -146,6 +146,8 @@ g rpath, the copy of optixu next to optix will be used during loading instead of
     #set( _optixu_rpath "-Wl,-rpath,${_optixu_path_to_optix}" )
   endif()           
   set( optix_rpath ${_optixu_rpath} ${_optix_rpath} )
+else()
+  set( optix_rpath "" )
 endif()             
 
 

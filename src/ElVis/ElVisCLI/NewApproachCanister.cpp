@@ -305,7 +305,7 @@ int GenericCLIInterface(int argc, char** argv,
     }
 
     scene->SetEnableOptixTrace(trace);
-    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
+    scene->SetOptixTracePixelIndex(ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
 
     auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;

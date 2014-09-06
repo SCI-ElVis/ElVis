@@ -392,7 +392,7 @@ namespace ElVis
         OnEnableTraceChanged(newValue);
     }
 
-    void Scene::SetOptixTracePixelIndex(const Point<int, TwoD>& newValue)
+    void Scene::SetOptixTracePixelIndex(const Point<unsigned int, TwoD>& newValue)
     {
         if( m_optixTraceIndex == newValue ) return;
 

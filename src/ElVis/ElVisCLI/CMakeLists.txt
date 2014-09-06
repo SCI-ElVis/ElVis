@@ -35,7 +35,6 @@ INCLUDE_DIRECTORIES(
     ${ZLIB_INCLUDE}
 )
 
-add_definitions(${PNG_DEFINITIONS})
 add_definitions(-DQT_NO_KEYWORDS)
 
 SET(HEADERS
@@ -56,12 +55,10 @@ ADD_ELVIS_EXECUTABLE(${ProjectName} ${HEADERS} ${SOURCES} )
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 
 TARGET_LINK_LIBRARIES(${ProjectName} 
-    ${OPENGL_LIBRARIES}
+#    ${OPENGL_LIBRARIES} #CMake says this is not set on Linux, maybe on Windows or Apple?
     ElVisCore
-    ${QT_QTCORE_LIBRARY}
+    ${QT_LIBRARIES}
     ${QT_QTOPENGL_LIBRARY}
-    ${QT_QTGUI_LIBRARY}
-    ${QT_MAIN_LIBRARY}
     ${GLUT_glut_LIBRARY}
     ${PNG_LIBRARY}
 )
