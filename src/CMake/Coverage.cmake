@@ -51,7 +51,7 @@ IF( BUILD_TYPE AND BUILD_TYPE MATCHES "COVERAGE" )
                      COMMAND ${CMAKE_COMMAND} -E echo "Generating tracefile ${COVERAGE_INFO}..."
                      COMMAND ${LCOV} ${LCOV_FLAGS}
                      COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*_?test.*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
-                     COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*Externals*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
+                     COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*/Externals/*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
                      COMMAND ${LCOV} --summary ${COVERAGE_INFO} ${BRANCH_COVERAGE}
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
   
@@ -61,7 +61,7 @@ IF( BUILD_TYPE AND BUILD_TYPE MATCHES "COVERAGE" )
                        COMMAND ${CMAKE_COMMAND} -E echo "Generating tracefile ${COVERAGE_INFO}..."
                        COMMAND ${LCOV} ${LCOV_FLAGS}
                        COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*_?test.*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
-                       COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*Externals*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
+                       COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*/Externals/*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
                        COMMAND ${CMAKE_COMMAND} -E echo "Generating html documents in ${HTMLDIR}..."
                        COMMAND ${GENHTML} ${GENHTML_FLAGS} 
                        COMMAND ${LCOV} --summary ${COVERAGE_INFO} ${BRANCH_COVERAGE}
@@ -77,7 +77,7 @@ IF( BUILD_TYPE AND BUILD_TYPE MATCHES "COVERAGE" )
     ADD_CUSTOM_TARGET( ${COVERAGE_NAME}
                        COMMAND ${CMAKE_COMMAND} -E echo "Generating tracefile ${COVERAGE_INFO}..."
                        COMMAND ${LCOV} ${LCOV_FLAGS}
-                       COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*Externals*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
+                       COMMAND ${LCOV} --remove ${COVERAGE_INFO} "*/Externals/*" -q --output-file ${COVERAGE_INFO} ${BRANCH_COVERAGE}
                        COMMAND ${CMAKE_COMMAND} -E echo "Generating html documents in ${HTMLDIR}..."
                        COMMAND ${GENHTML}  ${GENHTML_FLAGS} 
                        COMMAND ${LCOV} --summary ${COVERAGE_INFO} ${BRANCH_COVERAGE}
