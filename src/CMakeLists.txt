@@ -132,8 +132,10 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     #    set(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -std=c++0x")
 	IF( Boost_FOUND )
 	  IF( ${Boost_MAJOR_VERSION} LESS 2 AND
-	      ${Boost_MINOR_VERSION} LESS 54)
-	    add_definitions(-DBOOST_NO_SCOPED_ENUMS)
+	      ${Boost_MINOR_VERSION} LESS 51)
+	    ADD_DEFINITIONS(-DBOOST_NO_SCOPED_ENUMS)
+	  ELSE()
+	    ADD_DEFINITIONS(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 	  ENDIF() 
 	ENDIF()
     #    # Some versions of gcc can't handle -g3, but it is set by a cuda
