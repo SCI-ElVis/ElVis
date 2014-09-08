@@ -2,17 +2,17 @@ SET(ProjectName "JacobiExtension")
 SET(ExtensionPath ElVis/Extensions/${ProjectName})
 ADD_DEFINITIONS(-DJACOBI_EXTENSION_EXPORTS)
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in 
-               ${CMAKE_BINARY_DIR}/ElVis/Extensions/JacobiExtension/JacobiExtensionPTXConfig.cpp @ONLY)
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in 
-               ${CMAKE_BINARY_DIR}/ElVis/Extensions/JacobiExtension/JacobiExtensionPTXConfig.h @ONLY)
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
                ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu @ONLY)
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in 
+               ${CMAKE_BINARY_DIR}/ElVis/Extensions/${ProjectName}/${ProjectName}PTXConfig.cpp @ONLY)
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in 
+               ${CMAKE_BINARY_DIR}/ElVis/Extensions/${ProjectName}/${ProjectName}PTXConfig.h @ONLY)
 
 SET(JACOBI_EXTENSION_SOURCES 
   ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu
-  ${CMAKE_BINARY_DIR}/ElVis/Extensions/JacobiExtension/JacobiExtensionPTXConfig.cpp
-  ${CMAKE_BINARY_DIR}/ElVis/Extensions/JacobiExtension/JacobiExtensionPTXConfig.h
+  ${CMAKE_BINARY_DIR}/ElVis/Extensions/${ProjectName}/${ProjectName}PTXConfig.cpp
+  ${CMAKE_BINARY_DIR}/ElVis/Extensions/${ProjectName}/${ProjectName}PTXConfig.h
   CastAndFilterIterator.hpp
   Common.cu
   Declspec.h
@@ -85,7 +85,7 @@ SET(JACOBI_EXTENSION_OPTIX_HEADER_ONLY
     PrismCommon.cu
 )
 SET_SOURCE_FILES_PROPERTIES(${JACOBI_EXTENSION_OPTIX_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
-source_group("" FILES ${JACOBI_EXTENSION_SOURCES} ${JACOBI_EXTENSION_OPTIX_HEADER_ONLY})
+SOURCE_GROUP("" FILES ${JACOBI_EXTENSION_SOURCES} ${JACOBI_EXTENSION_OPTIX_HEADER_ONLY})
 
 #################################3
 # Create Libraries

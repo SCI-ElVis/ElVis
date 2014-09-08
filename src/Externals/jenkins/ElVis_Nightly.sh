@@ -29,6 +29,9 @@ sleep 5
 icewm >/dev/null 2>&1 &
 sleep 5
 
+make
+make install
+
 if [[ $builddir == *"debug"* ]]; then
   #This will check both dynamic and static memory
   make MemAndStackCheck CTESTARGS="-T Test"

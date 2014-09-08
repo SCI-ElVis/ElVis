@@ -11,6 +11,7 @@ cd $cmakedir
 source $WORKSPACE/src/Externals/jenkins/cmake_jenkins.sh
 
 make
+make install
 make unit_build
 
 if [[ $builddir == "debug" ]]; then
