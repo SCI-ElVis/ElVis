@@ -243,7 +243,7 @@ namespace ElVis
             template<typename T>
             void SetZ(const T& val)
             {
-                BOOST_STATIC_ASSERT(dim::Value >= 2);
+                BOOST_STATIC_ASSERT(dim::Value >= 3);
                 if( m_data[2] == static_cast<DataType>(val) ) return;
                 m_data[2] = static_cast<DataType>(val);
                 OnPointChanged(*this);

@@ -36,9 +36,11 @@ ENDIF()
 
 IF( NOT WIN32 AND VALGRIND_EXEC )
 
-  SET( VALGRIND_FLAGS --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=50 --error-exitcode=1 --gen-suppressions=all )
+  SET( VALGRIND_FLAGS --tool=memcheck --sim-hints=lax-ioctls --leak-check=yes --show-reachable=yes --num-callers=50 --error-exitcode=1 --gen-suppressions=all )
   SET( VALGRIND_FLAGS ${VALGRIND_FLAGS} --suppressions=${CMAKE_SOURCE_DIR}/Externals/valgrind/ElVis.supp )
   SET( VALGRIND_FLAGS ${VALGRIND_FLAGS} --suppressions=${CMAKE_SOURCE_DIR}/Externals/valgrind/Qt.supp )
+  SET( VALGRIND_FLAGS ${VALGRIND_FLAGS} --suppressions=${CMAKE_SOURCE_DIR}/Externals/valgrind/OptiX.supp )
+  SET( VALGRIND_FLAGS ${VALGRIND_FLAGS} --suppressions=${CMAKE_SOURCE_DIR}/Externals/valgrind/glut.supp )
   IF( APPLE )
     SET( VALGRIND_FLAGS ${VALGRIND_FLAGS} --suppressions=${CMAKE_SOURCE_DIR}/Externals/valgrind/OSX.supp )
   ENDIF()

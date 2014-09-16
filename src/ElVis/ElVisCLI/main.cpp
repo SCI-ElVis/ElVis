@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     }
 
 
-    
+
     TestParam(vm, testNameLabel);
     TestParam(vm, modelPathLabel);
     TestParam(vm, widthLabel);
@@ -249,7 +249,8 @@ int main(int argc, char** argv)
     }
     if( result != 0 )
     {
-        return result;
+       std::cout << "Test failure... result = " << result << std::endl;
+       return result;
     }
 
     if( vm.count(compareFileLabel) == 1 )
@@ -276,7 +277,7 @@ int main(int argc, char** argv)
         }
 
         std::cout << "Comparing " << baselinePngPath << " with " << testPngPath << std::endl;
-        
+
         boost::gil::rgba8_image_t baselinePngImage;
         boost::gil::rgba8_image_t testPngImage;
 
@@ -289,6 +290,7 @@ int main(int argc, char** argv)
         if( baselineView.width() != testView.width() ||
             baselineView.height() != testView.height() )
         {
+          std::cout << "Test failure... Width and Height do not match..." << std::endl;
           return 1;
         }
 
@@ -301,10 +303,15 @@ int main(int argc, char** argv)
             auto pixelText = testChannel(0, srcPixel, testPixel) &&
               testChannel(1, srcPixel, testPixel) &&
               testChannel(2, srcPixel, testPixel);
-            if( !pixelText ) return 1;
+            if( !pixelText )
+            {
+              std::cout << "Test failure... Pixels do not match..." << std::endl;
+              return 1;
+            }
           }
         }
     }
 
+    std::cout << "Done! result = " << result << std::endl;
     return result;
 }

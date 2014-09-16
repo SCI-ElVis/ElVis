@@ -70,11 +70,6 @@ namespace ElVis
     {
         m_optixTraceIndex.SetX(0);
         m_optixTraceIndex.SetY(0);
-        m_optixTraceIndex.SetZ(-1);
-
-        // For some reason in gcc, setting this in the constructor initialization list
-        // doesn't work.
-        m_optixDataDirty = true;
     }
 
     Scene::~Scene()

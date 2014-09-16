@@ -62,7 +62,7 @@ namespace ElVis
             std::cout << "Exception loading file." << std::endl;
         }
 
-        //TODO: So is there sothing smarter to do here...
+        //TODO: So is there something smarter to do here...
         return optixu::Program();
     }
 

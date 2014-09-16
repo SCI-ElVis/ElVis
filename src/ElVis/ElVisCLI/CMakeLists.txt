@@ -77,16 +77,19 @@ SET( REG_DEPEND ${ProjectName} )
 #==============================================================================
 # This is the 'regcheck' targets that run all the regression tests
 ADD_CUSTOM_TARGET( regcheck
+                   COMMAND ${CMAKE_MAKE_PROGRAM} install
                    COMMAND ${CMAKE_CTEST_COMMAND} --timeout 3600 --output-on-failure -L ElVisRegCheck $(CTESTARGS)
                    DEPENDS ${REG_DEPEND}
                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 ADD_CUSTOM_TARGET( regcheck_memcheck
+                   COMMAND ${CMAKE_MAKE_PROGRAM} install
                    COMMAND ${CMAKE_CTEST_COMMAND} --timeout 86400 --output-on-failure -L ElVisRegMemCheck $(CTESTARGS)
                    DEPENDS ${REG_DEPEND}
                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 ADD_CUSTOM_TARGET( regcheck_stackcheck
+                   COMMAND ${CMAKE_MAKE_PROGRAM} install
                    COMMAND ${CMAKE_CTEST_COMMAND} --timeout 86400 --output-on-failure -L ElVisRegStackCheck $(CTESTARGS)
                    DEPENDS ${REG_DEPEND}
                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -105,14 +108,15 @@ MACRO( ADD_ELVIS_REGTEST REGNAME )
   SET_TESTS_PROPERTIES( ${REGNAME} PROPERTIES LABELS ElVisRegCheck )
 
   # Create a target so the test can be run indivindually
-  ADD_CUSTOM_TARGET( ${REGNAME} 
+  ADD_CUSTOM_TARGET( ${REGNAME}
                      COMMAND ${ProjectName} ${ARGN}
-                     DEPENDS ${ProjectName}
+                     DEPENDS ${REG_DEPEND} 
                      WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
 
   # The memory checking command
   SET( REG_MEMCHECK   ${VALGRIND_COMMAND}   $<TARGET_FILE:${ProjectName}> ${ARGN} )
   SET( REG_STACKCHECK ${STACKCHECK_COMMAND} $<TARGET_FILE:${ProjectName}> ${ARGN} )
+  SET( REG_CUDAMEMCHECK cuda-memcheck --leak-check full   $<TARGET_FILE:${ProjectName}> ${ARGN} )
   
   # Add the ctest memcheck
   ADD_TEST( NAME ${REGNAME}_memcheck
@@ -121,9 +125,9 @@ MACRO( ADD_ELVIS_REGTEST REGNAME )
   SET_TESTS_PROPERTIES( ${REGNAME}_memcheck PROPERTIES LABELS ElVisRegMemCheck )
 
   # Add the indivindual memcheck target
-  ADD_CUSTOM_TARGET( ${REGNAME}_memcheck 
+  ADD_CUSTOM_TARGET( ${REGNAME}_memcheck
                      COMMAND ${REG_MEMCHECK}
-                     DEPENDS ${REG_DEPEND}
+                     DEPENDS ${REG_DEPEND} 
                      WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
 
   # Add the ctest stackcheck
@@ -133,9 +137,21 @@ MACRO( ADD_ELVIS_REGTEST REGNAME )
   SET_TESTS_PROPERTIES( ${REGNAME}_stackcheck PROPERTIES LABELS ElVisRegStackCheck )
 
   # Add the indivindual stackcheck target
-  ADD_CUSTOM_TARGET( ${REGNAME}_stackcheck 
+  ADD_CUSTOM_TARGET( ${REGNAME}_stackcheck
                      COMMAND ${REG_STACKCHECK}
-                     DEPENDS ${REG_DEPEND}
+                     DEPENDS ${REG_DEPEND} 
+                     WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+
+  # Add the ctest memcheck
+  ADD_TEST( NAME ${REGNAME}_cudamemcheck
+            COMMAND ${REG_CUDAMEMCHECK}
+            WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+  SET_TESTS_PROPERTIES( ${REGNAME}_cudamemcheck PROPERTIES LABELS ElVisRegMemCheck )
+
+  # Add the indivindual memcheck target
+  ADD_CUSTOM_TARGET( ${REGNAME}_cudamemcheck
+                     COMMAND ${REG_CUDAMEMCHECK}
+                     DEPENDS ${REG_DEPEND} 
                      WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
 
 ENDMACRO()
@@ -144,7 +160,8 @@ ENDMACRO()
 
 IF( ELVIS_ENABLE_JACOBI_EXTENSION )
     #GET_PROPERTY(JacobiExtensionPath TARGET JacobiExtension PROPERTY RELEASE_LOCATION)
-    SET( JacobiExtensionPath $<TARGET_FILE:JacobiExtension> )  
+    SET( JacobiExtensionPath $<TARGET_FILE:JacobiExtension> )
+    
     ADD_ELVIS_REGTEST( BulletCutSurfaceP2 
         --TestName CutSurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"

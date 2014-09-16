@@ -1,14 +1,38 @@
 {
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   ...
-   obj:/usr/lib/nvidia-331/libGL.so.331.62
-   ...
-}
-
-{
    <SUSE shared library problems>
    Memcheck:Leak
    ...
    obj:/lib64/ld-2.18.so
+}
+
+{
+   <This is a known problem that really needs to be fixed....>
+   Memcheck:Leak
+   ...
+   fun:LoadModel
+   ...
+}
+
+{
+   <This is a result of the LoadModel known memory leak....>
+   Memcheck:Leak
+   ...
+   fun:*ElVis*Plugin*
+   ...
+}
+
+{
+   <This is a result of the LoadModel known memory leak....>
+   Memcheck:Leak
+   fun:_Znwm
+   fun:main
+}
+
+{
+   <Not sure why program options is leaking...>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   ...
+   fun:*boost*program_options*basic_command_line_parser*
+   fun:main
 }
