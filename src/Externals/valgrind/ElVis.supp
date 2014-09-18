@@ -31,7 +31,6 @@
 {
    <Not sure why program options is leaking...>
    Memcheck:Leak
-   match-leak-kinds: indirect
    ...
    fun:*boost*program_options*basic_command_line_parser*
    fun:main
