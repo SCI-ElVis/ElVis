@@ -54,7 +54,6 @@
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   match-leak-kinds: possible
    ...
    obj:*/liboptix.so*
    fun:rtProgramCreateFromPTXFile
@@ -136,7 +135,6 @@
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   match-leak-kinds: possible
    ...
    obj:*/liboptix.so*
    fun:rtAccelerationSetBuilder
@@ -164,7 +162,6 @@
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   match-leak-kinds: possible
    ...
    obj:*/liboptix.so*
    fun:rtContextSetPrintBufferSize
