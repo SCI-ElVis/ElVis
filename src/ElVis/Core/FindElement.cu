@@ -54,7 +54,7 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
 
     if( payload_v.FaceReferecePointIsValid )
     {
-        ELVIS_PRINTF("Calling reference point aware face normal (%f, %f)\n",
+        ELVIS_PRINTF("FindElementFromFace: Calling reference point aware face normal (%f, %f)\n",
                      payload_v.FaceReferencePoint.x, payload_v.FaceReferencePoint.y);
         GetFaceNormal(pointOnFace, payload_v.FaceReferencePoint, payload_v.FaceId, faceNormal);
     }
@@ -63,14 +63,27 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
         GetFaceNormal(pointOnFace, payload_v.FaceId, faceNormal);
     }
 
-    ElVisFloat3 vectorToPointOnFace = pointOnFace -p ;//p - pointOnFace;
+    ElVisFloat3 vectorToPointOnFace = normalize( pointOnFace - p ) ;//p - pointOnFace;
+
+    //Normalize the vectors before computing the dot product
+    faceNormal = normalize(faceNormal);
 
     ElVisFloat d = dot(faceNormal, vectorToPointOnFace);
 
-    ELVIS_PRINTF("FindElementFromFace: Face Id %d, Normal (%f, %f, %f), point on face (%f, %f, %f) Vector (%f, %f, %f) dot %f (positive inside)\n", payload_v.FaceId.Value,
+    ELVIS_PRINTF("FindElementFromFace: Face Id %d, dot %2.15f (positive inside)\n", payload_v.FaceId.Value, d);
+    ELVIS_PRINTF("FindElementFromFace: Inside id %d and tpye %d, outside id %d and type %d\n",
+                 GetFaceInfo(payload_v.FaceId).CommonElements[0].Id,
+                 GetFaceInfo(payload_v.FaceId).CommonElements[0].Type,
+                 GetFaceInfo(payload_v.FaceId).CommonElements[1].Id,
+                 GetFaceInfo(payload_v.FaceId).CommonElements[1].Type);
+    ELVIS_PRINTF("FindElementFromFace: Ray direction (%2.15f, %2.15f, %2.15f)\n",direction.x, direction.y, direction.z);
+    ELVIS_PRINTF("FindElementFromFace: Normal (%2.15f, %2.15f, %2.15f), point on face (%2.15f, %2.15f, %2.15f)\n",
                  faceNormal.x, faceNormal.y, faceNormal.z,
-                 pointOnFace.x, pointOnFace.y, pointOnFace.z,
-                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z, d);
+                 pointOnFace.x, pointOnFace.y, pointOnFace.z);
+    ELVIS_PRINTF("FindElementFromFace: Vector (%2.15f, %2.15f, %2.15f), point in elem (%2.15f, %2.15f, %2.15f)\n",
+                 vectorToPointOnFace.x, vectorToPointOnFace.y, vectorToPointOnFace.z,
+                 p.x, p.y, p.z);
+
     //ELVIS_PRINTF("FindElementFromFace: Face buffer size: %d\n", FaceInfoBuffer.size());
      
 //    ELVIS_PRINTF("FindElement: Inside Element %d and type %d and outside element %d and type %d\n",
@@ -94,11 +107,6 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
     findElementPayload.elementType = id.Type;
     //findElementPayload.IntersectionPoint = pointOnFace;
     //ELVIS_PRINTF("FindElementFromFace: Element Id %d and Type %d\n", id.Id, id.Type);
-    ELVIS_PRINTF("FindElementFromFace: Inside id %d and tpye %d, outside id %d and type %d\n",
-                 GetFaceInfo(payload_v.FaceId).CommonElements[0].Id,
-                 GetFaceInfo(payload_v.FaceId).CommonElements[0].Type,
-                 GetFaceInfo(payload_v.FaceId).CommonElements[1].Id,
-                 GetFaceInfo(payload_v.FaceId).CommonElements[1].Type);
     return findElementPayload;
 }
 
@@ -110,11 +118,15 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
     // problem, but it does make it less likely to occur.
     ElVisFloat3 direction = MakeFloat3(ray.direction);
 
+    //Assume that a 2D model is only on a z constant plane.
+    if( ModelDimension == 2 ) direction.z = 0;
+
+    ELVIS_PRINTF("FindElementFromFace: direction (%f, %f, %f)\n", direction.x, direction.y, direction.z);
     ELVIS_PRINTF("FindElementFromFace: Looking for element that encloses point (%f, %f, %f)\n", p.x, p.y, p.z);
 
     VolumeRenderingPayload payload_v = FindNextFaceIntersection(p, direction);
    
-    ELVIS_PRINTF("FindElementFromFace: First 1 Found %d T %f id %d\n", payload_v.FoundIntersection,
+    ELVIS_PRINTF("FindElementFromFace: First one Found %d T %f id %d\n", payload_v.FoundIntersection,
         payload_v.IntersectionT, payload_v.FaceId.Value);
 
     ElementFinderPayload findElementPayload = findElementFromFace(p, direction, payload_v);

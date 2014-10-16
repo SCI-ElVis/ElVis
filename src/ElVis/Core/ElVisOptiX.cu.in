@@ -38,7 +38,11 @@
 ELVIS_DEVICE ElVisError GetNumberOfVerticesForPlanarFace(PlanarFaceIdx planarFaceIdx, int& result)
 {
     ElVis::PlanarFaceInfo info = PlanarFaceInfoBuffer[planarFaceIdx.Value];
-    if( info.Type == ElVis::eTriangle ) 
+    if( info.Type == ElVis::eSegment ) 
+    {
+      result = 2;
+    }
+    else if( info.Type == ElVis::eTriangle ) 
     {
       result = 3;
     }

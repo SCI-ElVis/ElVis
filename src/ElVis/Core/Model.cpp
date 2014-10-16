@@ -228,7 +228,11 @@ namespace ElVis
 
         PlanarFaceInfo info;
         auto numVertices = GetNumberOfVerticesForPlanarFace(localFaceIdx);
-        if( numVertices == 3 )
+        if( numVertices == 2 )
+        {
+          info.Type = eSegment;
+        }
+        else if( numVertices == 3 )
         {
           info.Type = eTriangle;
         }
@@ -242,7 +246,12 @@ namespace ElVis
           info.vertexIdx[vertexIdx] = 
             static_cast<unsigned int>(DoGetPlanarFaceVertexIndex(localFaceIdx, vertexIdx));
         }
-        if( info.Type == eTriangle )
+        if( info.Type == eSegment )
+        {
+          info.vertexIdx[2] = info.vertexIdx[0];
+          info.vertexIdx[3] = info.vertexIdx[1];
+        }
+        else if( info.Type == eTriangle )
         {
           info.vertexIdx[3] = info.vertexIdx[2];
         }
