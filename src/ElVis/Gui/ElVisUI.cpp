@@ -337,8 +337,8 @@ namespace ElVis
             double y_mid = (maxExtent.y() + minExtent.y())/2.0;
             double z_mid = (maxExtent.z() + minExtent.z())/2.0;
 
-            // Default to a cut plane that spans the volume with a normal (1,0,0).
-            WorldPoint normal(1.0, 0.0, 0.0);
+            // Default to a cut plane that spans the volume with a normal (0,0,1).
+            WorldPoint normal(0.0, 0.0, 1.0);
             WorldPoint p(x_mid, y_mid, z_mid);
             boost::shared_ptr<ElVis::Plane> cutPlane(new ElVis::Plane(normal, p));
 

@@ -85,6 +85,9 @@ rtDeclareVariable(rtObject, CurvedFaceGroup, ,);
 // turned on.
 rtDeclareVariable(rtObject, faceGroup, , );
 
+//The dimensionality of the model, i.e. 2D or 3D
+rtDeclareVariable(int, ModelDimension, , );
+
 rtDeclareVariable(ElVisFloat3, normal, attribute normal_vec, );
 
 rtDeclareVariable(int, FieldId, , );

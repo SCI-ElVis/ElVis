@@ -192,9 +192,9 @@ __device__ __forceinline__ bool FindBoxEntranceAndExit(const float3& origin, con
     ElVisFloat3 parameters[] = {p0, p1};
     int sign[] = { direction.x < 0, direction.y < 0, direction.z < 0 };
 
-    ElVisFloat xinv = MAKE_FLOAT(1.0)/direction.x;
-    ElVisFloat yinv = MAKE_FLOAT(1.0)/direction.y;
-    ElVisFloat zinv = MAKE_FLOAT(1.0)/direction.z;
+    ElVisFloat xinv = direction.x == 0 ? ELVIS_FLOAT_MAX : MAKE_FLOAT(1.0)/direction.x;
+    ElVisFloat yinv = direction.y == 0 ? ELVIS_FLOAT_MAX : MAKE_FLOAT(1.0)/direction.y;
+    ElVisFloat zinv = direction.z == 0 ? ELVIS_FLOAT_MAX : MAKE_FLOAT(1.0)/direction.z;
 
     tmin = (parameters[sign[0]].x - origin.x) * xinv;
     tmax = (parameters[1-sign[0]].x - origin.x) * xinv;

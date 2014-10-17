@@ -85,6 +85,7 @@ namespace ElVis
 
     enum TwoDElementType
     {
+      eSegment,
       eTriangle,
       eQuad
     };
