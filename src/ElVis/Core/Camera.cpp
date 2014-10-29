@@ -232,6 +232,7 @@ namespace ElVis
 
         m_eye = m_eye + findPointAlongVector(dir, 2.0);
         m_lookAt = m_lookAt + findPointAlongVector(dir, 2.0);
+        OnCameraChanged();
     }
     
     WorldVector Camera::GetNormalizedU() const
@@ -439,6 +440,7 @@ namespace ElVis
         } 
         else 
         {
+            v.z *= -1.0f; //Project drag points on sphere front, not rear.
             ElVisFloat h = 1.0f/(1.0f + e);
             ElVisFloat mtx[16];
             mtx[0] = e + h * v.x * v.x;
