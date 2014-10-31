@@ -456,11 +456,6 @@ namespace ElVis
 
         void SceneViewWidget::mouseMoveEvent(QMouseEvent* event)
         {
-            if( event->modifiers() & Qt::ShiftModifier )
-            {
-                return;
-            }
-
             bool rotateMode = false;
             bool zoomMode = false;
             bool panMode = false;
