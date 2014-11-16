@@ -71,7 +71,7 @@ int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> mode
     scene->SetModel(model);
 
 
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -147,9 +147,9 @@ int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> mode
 int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c)
 {
     glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(100, 100);
-	glutCreateWindow("fake");
+  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+  glutInitWindowSize(100, 100);
+  glutCreateWindow("fake");
 
     const char* integrationTypeLabel = "IntegrationType";
     const char* breakpointLabel = "Breakpoints";
@@ -255,7 +255,7 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
     scene->SetModel(model);
 
 
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -278,7 +278,7 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
     m_volumeRenderingModule->SetCompositingStepSize(h);
     m_volumeRenderingModule->SetEpsilon(epsilon);
     scene->SetEnableOptixTrace(trace);
-    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
+    scene->SetOptixTracePixelIndex(ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
 
     m_volumeRenderingModule->SetRenderIntegrationType(renderIntegrationType);
     m_volumeRenderingModule->SetEnableEmptySpaceSkipping(enableEmptySpaceSkipping);
@@ -340,9 +340,9 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
 int VolumeRenderSphereForVerification(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c)
 {
     glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(100, 100);
-	glutCreateWindow("fake");
+  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+  glutInitWindowSize(100, 100);
+  glutCreateWindow("fake");
 
     const char* integrationTypeLabel = "IntegrationType";
     const char* breakpointLabel = "Breakpoints";
@@ -440,7 +440,7 @@ int VolumeRenderSphereForVerification(int argc, char** argv, boost::shared_ptr<E
     m_volumeRenderingModule->SetCompositingStepSize(h);
     m_volumeRenderingModule->SetEpsilon(epsilon);
     scene->SetEnableOptixTrace(trace);
-    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
+    scene->SetOptixTracePixelIndex(ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
     m_volumeRenderingModule->SetRenderIntegrationType(renderIntegrationType);
 
     std::cout << "Track number of samples: " << (trackNumSamples ? "Yes" : "No") << std::endl;

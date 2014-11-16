@@ -45,7 +45,6 @@ namespace ElVis
     {
         public:
             ELVIS_EXPORT LightingModule();
-            ELVIS_EXPORT LightingModule(const LightingModule& rhs);
             ELVIS_EXPORT virtual ~LightingModule();
             
         protected:
@@ -61,6 +60,7 @@ namespace ElVis
             virtual std::string DoGetName() const  { return "Lighting Module"; }
 
         private:
+            ELVIS_EXPORT LightingModule(const LightingModule& rhs);
             const LightingModule& operator=(const LightingModule& rhs);            
             RayGeneratorProgram m_program;
     };

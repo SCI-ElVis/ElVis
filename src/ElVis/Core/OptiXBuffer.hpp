@@ -105,15 +105,13 @@ namespace ElVis
 
             T operator()(size_t x, size_t y)
             {
-                T result;
-
                 if( x < m_width && y < m_height )
                 {
                     boost::shared_array<T> buf = Map();
-                    result = buf[y*m_width + x];
+                    return buf[y*m_width + x];
                 }
 
-                return result;
+                return T();
             }
 
         private:

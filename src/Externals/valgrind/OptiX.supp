@@ -1,0 +1,169 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:/usr/lib/nvidia-331/libGL.so.331.62
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextCreate
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextCreate
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextCompile
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextLaunch2D
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextCompile
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtProgramCreateFromPTXFile
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtBufferMap
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:start_thread
+   fun:clone
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtDeviceGetDeviceCount
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextCreate
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtGeometryGroupSetChildCount
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtGroupSetChildCount
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtTransformCreate
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtAccelerationSetTraverser
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtAccelerationSetBuilder
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextSetPrintEnabled
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtGeometryInstanceSetMaterialCount
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:*/liboptix.so*
+   fun:rtContextSetPrintBufferSize
+   ...
+}

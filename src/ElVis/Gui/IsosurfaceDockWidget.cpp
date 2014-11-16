@@ -58,7 +58,7 @@ namespace ElVis
             m_list->setSortingEnabled(true);
             m_list->setSelectionMode(QAbstractItemView::SingleSelection);
             setObjectName("IsosurfaceDockWidget");
-            QScrollArea* m_scrollArea = new QScrollArea();
+            //QScrollArea* m_scrollArea = new QScrollArea();
 
             if (m_appData->GetIsosurfaceModule() )
             {

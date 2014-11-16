@@ -54,11 +54,11 @@ namespace ElVis
             ELVIS_EXPORT void AddIsovalue(ElVisFloat newVal);
             ELVIS_EXPORT void RemoveIsovalue(ElVisFloat newVal);
 
-            ELVIS_EXPORT int GetTreatElementBoundariesAsDiscontinuous() const;
-            ELVIS_EXPORT void SetTreatElementBoundariesAsDiscontinuous(int value);
+            ELVIS_EXPORT bool GetTreatElementBoundariesAsDiscontinuous() const;
+            ELVIS_EXPORT void SetTreatElementBoundariesAsDiscontinuous(bool value);
 
-            ELVIS_EXPORT int GetMatchVisual3Contours() const;
-            ELVIS_EXPORT void SetMatchVisual3Contours(int newValue);
+            ELVIS_EXPORT bool GetMatchVisual3Contours() const;
+            ELVIS_EXPORT void SetMatchVisual3Contours(bool newValue);
 
             boost::signals2::signal<void (ElVisFloat)> OnIsovalueAdded;
             boost::signals2::signal<void (ElVisFloat)> OnIsovalueRemoved;
@@ -88,8 +88,8 @@ namespace ElVis
             RayGeneratorProgram m_sampleRayProgram;
             RayGeneratorProgram m_markPixelProgram;
             bool m_dirty;
-            int m_treatElementBoundariesAsDiscontinuous;
-            int m_matchVisual3Contours;
+            bool m_treatElementBoundariesAsDiscontinuous;
+            bool m_matchVisual3Contours;
 
     };
 }

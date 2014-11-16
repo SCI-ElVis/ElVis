@@ -94,10 +94,10 @@ namespace ElVis
             optixu::Context context = view->GetContext();
             assert(context);
 
-            int numSurfaces = m_objects.size();
+            auto numSurfaces = m_objects.size();
 
             assert(m_group);
-            m_group->setChildCount(numSurfaces);
+            m_group->setChildCount(static_cast<unsigned int>(numSurfaces));
 
             int curChild = 0;
             for(std::vector<boost::shared_ptr<PrimaryRayObject> >::const_iterator iter = m_objects.begin(); iter != m_objects.end(); ++iter)
@@ -121,7 +121,7 @@ namespace ElVis
                 else
                 {
                     --numSurfaces;
-                    m_group->setChildCount(numSurfaces);
+                    m_group->setChildCount(static_cast<unsigned int>(numSurfaces));
                 }
 
 

@@ -43,8 +43,8 @@ basic_serializer_map::type_info_pointer_compare::operator()(
 BOOST_ARCHIVE_DECL(bool) 
 basic_serializer_map::insert(const basic_serializer * bs){
     // attempt to insert serializer into it's map
-    const std::pair<map_type::iterator, bool> result =
-        m_map.insert(bs);
+    //const std::pair<map_type::iterator, bool> result =
+    //    m_map.insert(bs);
     // the following is commented out - rather than being just
     // deleted as a reminder not to try this.
 

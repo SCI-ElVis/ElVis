@@ -141,7 +141,7 @@ namespace ElVis
   {
     PX_Parameter *Parameter = m_pxa->Parameter;
     if(Parameter == NULL){
-      printf("Parameter is NULL :( wtf?\n");
+      printf("Parameter is NULL\n");
       exit(1);
     }
     /* WARNING this is NOT safe.  But I'm too lazy to give
@@ -292,14 +292,24 @@ namespace ElVis
   void PXModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
   {
     PX_Grid *pg = m_pxa->pg;
-    PX_REAL bBoxDomain[6], domainSize;
+    PX_REAL bBoxDomain[6] = {0}, domainSize;
     int d;
+
+    for(d=0; d<3; d++){
+      min.SetValue(d, 0);
+      max.SetValue(d, 0);
+    }
 
     PXError(PXGetDomainBoundingBox(pg, pg->Dim, bBoxDomain, &domainSize));
 
     for(d=0; d<pg->Dim; d++){
       min.SetValue(d, bBoxDomain[2*d+0]);
       max.SetValue(d, bBoxDomain[2*d+1]);
+    }
+
+    if( pg->Dim == 2){
+      min.SetValue(2, -1);
+      max.SetValue(2,  1);
     }
   }
 
@@ -353,7 +363,11 @@ namespace ElVis
 
   size_t PXModel::DoGetNumberOfVerticesForPlanarFace(size_t localFaceIdx) const
   {
-    if( m_PlanarFaces[localFaceIdx].planarInfo.Type == eTriangle )
+    if( m_PlanarFaces[localFaceIdx].planarInfo.Type == eSegment )
+    {
+      return 2;
+    }
+    else if( m_PlanarFaces[localFaceIdx].planarInfo.Type == eTriangle )
     {
       return 3;
     }
@@ -369,10 +383,19 @@ namespace ElVis
 
   WorldPoint PXModel::DoGetPlanarFaceVertex(size_t vertexIdx) const
   {
-    WorldPoint FaceNode( m_pxa->pg->coordinate[vertexIdx][0],
-                         m_pxa->pg->coordinate[vertexIdx][1],
-                         m_pxa->pg->coordinate[vertexIdx][2] );
-    return FaceNode;
+    if( m_pxa->pg->Dim == 2 ) {
+      WorldPoint FaceNode( m_pxa->pg->coordinate[vertexIdx][0],
+                           m_pxa->pg->coordinate[vertexIdx][1],
+                           0. );
+      return FaceNode;
+    }
+    else {
+      WorldPoint FaceNode( m_pxa->pg->coordinate[vertexIdx][0],
+                           m_pxa->pg->coordinate[vertexIdx][1],
+                           m_pxa->pg->coordinate[vertexIdx][2] );
+      return FaceNode;
+    }
+
   }
 
   size_t PXModel::DoGetPlanarFaceVertexIndex(size_t localFaceIdx, size_t vertexId)
@@ -535,9 +558,11 @@ namespace ElVis
         // pick the element with lowest Q
         if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+          lface = pg->FaceGroup[fgrp].FaceL[face].Face;
         }
         else{
           egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+          lface = pg->FaceGroup[fgrp].FaceR[face].Face;
         }
 
         elemType = pg->ElementGroup[egrp].type;
@@ -737,37 +762,28 @@ namespace ElVis
     }
 
     ElVisFloat bBoxTemp[BBOX_SIZE];
-    ElVisFloat bBoxTempElVis[BBOX_SIZE];
 
-    int geomRank;
     int fgrp, face;
     int egrp, elem, lface;
     int egrpL;
-    int egrpR, elemR;
+    int egrpR;
     int i;
     int qorder;
-    int nbfQ, nbfQFace;
-    int nFaceTotal = 0;
 
     int d;
     int Dim = pg->Dim;
 
-    int orientation;
     enum PXE_Shape elemShape, faceShape;
-    enum PXE_ElementType FaceType, elemType, elemTypeR, baseFaceType, localFaceType;
-    //int maxnbfQ;
+    enum PXE_ElementType FaceType, elemType, elemTypeR;
 
-    //PX_REAL *nodeCoord;
-    //nodeCoord = (PX_REAL*) malloc(maxnbfQ*(Dim+1)*sizeof(PX_REAL));
-    //PX_REAL *phiQ = nodeCoord + maxnbfQ*Dim;
+//    PX_REAL bBoxDomain[6] = {0}, domainSize;
+//    PXError(PXGetDomainBoundingBox(pg, pg->Dim, bBoxDomain, &domainSize));
 
-
-    int nodesOnFace[36];
+    int nodesOnFace[36] = {0};
     int nNodesOnFace;
     PX_REAL nvec[3] = {0,0,0};
     PX_REAL xface[2] = {0,0};
     std::vector<int> CurvedNodeMap(pg->nNode,0);
-    int nCurvedNodes = 0;
 
     for(fgrp=0; fgrp<pg->nFaceGroup; fgrp++){
       for(face=0; face<pg->FaceGroup[fgrp].nFace; face++){
@@ -781,7 +797,7 @@ namespace ElVis
 
 
         egrpL = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
-        if ( unlikely((pg->FaceGroup[fgrp].FaceGroupFlag==PXE_BoundaryFG)|| (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_EmbeddedBoundaryFG)) ){
+        if ( unlikely((pg->FaceGroup[fgrp].FaceGroupFlag==PXE_BoundaryFG) || (pg->FaceGroup[fgrp].FaceGroupFlag==PXE_EmbeddedBoundaryFG)) ){
           egrpR = egrpL;
         }
         else{ // not a boundary face so we have a face on the Right side
@@ -817,33 +833,30 @@ namespace ElVis
         FaceInfo info;
         FaceNodeInfo planarInfo(nNodesOnFace);
 
-        for( d = 0; d < Dim; d++)
+        for( d = 0; d < 3; d++)
         {
           bBoxTemp[2*d+0] =  std::numeric_limits<double>::max();
           bBoxTemp[2*d+1] = -std::numeric_limits<double>::max();
         }
 
         for(i=0; i < nNodesOnFace; i++){
-          WorldPoint FaceNode( pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][0],
-                               pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][1],
-                               pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][2] );
-
-
           planarInfo.vertexIdx[i] = pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]];
 
           for( d = 0; d < Dim; d++)
           {
-            bBoxTemp[2*d+0] = MIN(bBoxTemp[2*d+0], FaceNode[d]);
-            bBoxTemp[2*d+1] = MAX(bBoxTemp[2*d+1], FaceNode[d]);
+            bBoxTemp[2*d+0] = MIN(bBoxTemp[2*d+0], pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][d]);
+            bBoxTemp[2*d+1] = MAX(bBoxTemp[2*d+1], pg->coordinate[pg->ElementGroup[egrp].Node[elem][nodesOnFace[i]]][d]);
           }
         }
 
-        if( PXE_UniformTriangleQ1 <= FaceType && FaceType <= PXE_UniformTriangleQ5 ) planarInfo.Type = eTriangle;
+
+        if( PXE_UniformSegmentQ1 <= FaceType && FaceType <= PXE_SpectralSegmentQ5 ) planarInfo.Type = eSegment;
+        else if( PXE_UniformTriangleQ1 <= FaceType && FaceType <= PXE_UniformTriangleQ5 ) planarInfo.Type = eTriangle;
         else if( (PXE_UniformQuadQ1  <= FaceType && FaceType <= PXE_UniformQuadQ5 ) ||
             (PXE_SpectralQuadQ1 <= FaceType && FaceType <= PXE_SpectralQuadQ5)) planarInfo.Type = eQuad;
         else
         {
-          printf("UNKNOWN FaceType=%d\n", FaceType);
+          printf("UNKNOWN FaceType = %d\n", FaceType);
           assert(0);
         }
 
@@ -860,6 +873,13 @@ namespace ElVis
         info.MaxExtent.y = bBoxTemp[2*1+1];
         info.MaxExtent.z = bBoxTemp[2*2+1];
 
+        //Set a reasonable bound when in 2D
+        if( Dim == 2 )
+        {
+          info.MinExtent.z = -1;
+          info.MaxExtent.z =  1;
+        }
+
         //Expand the bounding box to account for curved elements
         //ElVisFloat3 FaceSize = 1.1*(info.MaxExtent - info.MinExtent);
 
@@ -871,11 +891,19 @@ namespace ElVis
         info.CommonElements[0].Type = (int) elemType;
         if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) )
         {
-          egrpR = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
-          elemR = pg->FaceGroup[fgrp].FaceR[face].Element;
-          elemTypeR = pg->ElementGroup[egrpR].type;
+          //Make sure to swap L and R appropriately
+          if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+            egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
+            elem  = pg->FaceGroup[fgrp].FaceR[face].Element;
+          }
+          else{
+            egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
+            elem  = pg->FaceGroup[fgrp].FaceL[face].Element;
+          }
 
-          info.CommonElements[1].Id = m_egrp2GlobalElemIndex[egrpR] + elemR;
+          elemTypeR = pg->ElementGroup[egrp].type;
+
+          info.CommonElements[1].Id = m_egrp2GlobalElemIndex[egrp] + elem;
           info.CommonElements[1].Type = (int) elemTypeR;
 
         }else{
@@ -883,7 +911,7 @@ namespace ElVis
           info.CommonElements[1].Type = -1;
         }
 
-        //printf("elem0=%d, elem1=%d\n", info.CommonElements[0].Id, info.CommonElements[1].Id);
+        //printf("(elem0=%d, elem1=%d) (type0=%d, type1=%d)\n", info.CommonElements[0].Id, info.CommonElements[1].Id, elemType, elemTypeR);
 
         m_FaceInfos.push_back(info);
         if( info.Type == ePlanar )
@@ -892,6 +920,11 @@ namespace ElVis
           //PXGeomNormal(pg, egrp, elem, lface, xface, nvec);
 
           WorldVector normal(nvec[0], nvec[1], nvec[2]);
+
+          if (pg->ElementGroup[egrpL].type > pg->ElementGroup[egrpR].type)
+            for( d=0; d<3; d++)
+              nvec[d] = -nvec[d];
+
           normal /= normal.Magnitude();
 
           m_PlanarFaces.push_back( PXPlanarFace(normal, info, planarInfo ) );

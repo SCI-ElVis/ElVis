@@ -7,8 +7,10 @@
 #  PROJECTX_LIBRARY      - Link these to use PROJECTX
 #   
 
-SET(PROJECTX_DIR /home CACHE PATH "ProjectX Directory")
-#SET(LEDA_DIR /home CACHE PATH "LEDA Directory")
+SET(PROJECTX_DIR $ENV{PX_DIR} CACHE PATH "ProjectX Source Directory")
+SET(PROJECTX_ARC $ENV{PX_ARC} CACHE PATH "ProjectX Build")
+
+SET(PX_BUILD_DIR ${PROJECTX_DIR}/platforms/${PROJECTX_ARC} )
 
 if( UNIX AND NOT APPLE )
   # header files
@@ -17,43 +19,39 @@ if( UNIX AND NOT APPLE )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_FUNDAMENTALS
                  NAMES PXFundamentals
-                 PATHS ${PROJECTX_DIR}/lib )
+                 PATHS ${PX_BUILD_DIR}/lib )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_REFERENCE
                  NAMES PXReference
-                 PATHS ${PROJECTX_DIR}/lib )
+                 PATHS ${PX_BUILD_DIR}/lib )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_GRID
                  NAMES PXGrid
-                 PATHS ${PROJECTX_DIR}/lib )
+                 PATHS ${PX_BUILD_DIR}/lib )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_CUTCELL3D
                  NAMES PXCutCell3d
-                 PATHS ${PROJECTX_DIR}/lib )
+                 PATHS ${PX_BUILD_DIR}/lib )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_COMPRESSIBLE
                  NAMES PXCompressible
-                 PATHS ${PROJECTX_DIR}/lib )
+                 PATHS ${PX_BUILD_DIR}/lib )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_PX
                  NAMES PX
-                 PATHS ${PROJECTX_DIR}/lib )
-
-#  FIND_LIBRARY( PROJECTX_LIBRARY_PXSHIT
-#                 NAMES PXShit
-#                 PATHS ${PROJECTX_DIR}/lib )
+                 PATHS ${PX_BUILD_DIR}/lib )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_LINEARSOLVER
                 NAMES PXLinearSolver
-                PATHS ${PROJECTX_DIR}/lib )
+                PATHS ${PX_BUILD_DIR}/lib )
 
   FIND_LIBRARY( PROJECTX_LIBRARY_ADAPT
                 NAMES PXAdaptMechanics
-                PATHS ${PROJECTX_DIR}/lib )
+                PATHS ${PX_BUILD_DIR}/lib )
 
-  FIND_LIBRARY( CGNS_LIBRARY
-                 NAMES cgns
-                 PATHS ${PROJECTX_DIR}/lib )
+#  FIND_LIBRARY( CGNS_LIBRARY
+#                 NAMES cgns
+#                 PATHS ${PX_BUILD_DIR}/lib )
 
 
   FIND_LIBRARY( UMFPACK_LIBRARY 
@@ -73,7 +71,7 @@ if( UNIX AND NOT APPLE )
 
 IF (PROJECTX_INCLUDE_DIR AND PROJECTX_LIBRARIES)
    SET(PROJECTX_FOUND TRUE)
-    SET( PROJECTX_LIBRARY_DIR ${PROJECTX_DIR}/lib )
+    SET( PROJECTX_LIBRARY_DIR ${PX_BUILD_DIR}/lib )
 ELSE (PROJECTX_INCLUDE_DIR AND PROJECTX_LIBRARIES)
    SET( PROJECTX_FOUND FALSE )
    SET( PROJECTX_LIBRARY_DIR )

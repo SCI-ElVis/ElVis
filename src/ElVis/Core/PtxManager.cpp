@@ -61,6 +61,9 @@ namespace ElVis
         {
             std::cout << "Exception loading file." << std::endl;
         }
+
+        //TODO: So is there something smarter to do here...
+        return optixu::Program();
     }
 
     optixu::Program PtxManager::LoadProgram(const std::string& prefix, const std::string& programName)

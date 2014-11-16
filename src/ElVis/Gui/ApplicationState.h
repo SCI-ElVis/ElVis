@@ -87,7 +87,7 @@ namespace ElVis
             WorldPoint IntersectionPoint;
             WorldPoint Normal;
             bool Valid;
-            Point<int, TwoD> Pixel;
+            Point<unsigned int, TwoD> Pixel;
             int ElementId;
             int ElementTypeId;
             ElVisFloat Scalar;

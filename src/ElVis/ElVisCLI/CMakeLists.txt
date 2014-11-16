@@ -35,7 +35,6 @@ INCLUDE_DIRECTORIES(
     ${ZLIB_INCLUDE}
 )
 
-add_definitions(${PNG_DEFINITIONS})
 add_definitions(-DQT_NO_KEYWORDS)
 
 SET(HEADERS
@@ -56,12 +55,10 @@ ADD_ELVIS_EXECUTABLE(${ProjectName} ${HEADERS} ${SOURCES} )
 SET_PROPERTY(TARGET ${ProjectName} PROPERTY FOLDER "Core")
 
 TARGET_LINK_LIBRARIES(${ProjectName} 
-    ${OPENGL_LIBRARIES}
+#    ${OPENGL_LIBRARIES} #CMake says this is not set on Linux, maybe on Windows or Apple?
     ElVisCore
-    ${QT_QTCORE_LIBRARY}
+    ${QT_LIBRARIES}
     ${QT_QTOPENGL_LIBRARY}
-    ${QT_QTGUI_LIBRARY}
-    ${QT_MAIN_LIBRARY}
     ${GLUT_glut_LIBRARY}
     ${PNG_LIBRARY}
 )
@@ -74,9 +71,98 @@ IF( MSVC )
 ENDIF()
 SET(BaselineDir ${CMAKE_SOURCE_DIR}/../Testing/${ELVIS_FLOAT}/${CMAKE_HOST_SYSTEM_NAME})
 
+#All regression test dependencies
+SET( REG_DEPEND ${ProjectName} )
+
+#==============================================================================
+# This is the 'regcheck' targets that run all the regression tests
+ADD_CUSTOM_TARGET( regcheck
+                   COMMAND ${CMAKE_MAKE_PROGRAM} install
+                   COMMAND ${CMAKE_CTEST_COMMAND} --timeout 3600 --output-on-failure -L ElVisRegCheck $(CTESTARGS)
+                   DEPENDS ${REG_DEPEND}
+                   WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+
+ADD_CUSTOM_TARGET( regcheck_memcheck
+                   COMMAND ${CMAKE_MAKE_PROGRAM} install
+                   COMMAND ${CMAKE_CTEST_COMMAND} --timeout 86400 --output-on-failure -L ElVisRegMemCheck $(CTESTARGS)
+                   DEPENDS ${REG_DEPEND}
+                   WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+
+ADD_CUSTOM_TARGET( regcheck_stackcheck
+                   COMMAND ${CMAKE_MAKE_PROGRAM} install
+                   COMMAND ${CMAKE_CTEST_COMMAND} --timeout 86400 --output-on-failure -L ElVisRegStackCheck $(CTESTARGS)
+                   DEPENDS ${REG_DEPEND}
+                   WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+
+ADD_COVERAGE( regcheck_coverage regcheck )
+
+
+#==============================================================================
+# Creates a regression test
+MACRO( ADD_ELVIS_REGTEST REGNAME )
+
+  # Add the test to ctest
+  ADD_TEST( NAME ${REGNAME}
+            COMMAND ${ProjectName} ${ARGN}
+            WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+  SET_TESTS_PROPERTIES( ${REGNAME} PROPERTIES LABELS ElVisRegCheck )
+
+  # Create a target so the test can be run indivindually
+  ADD_CUSTOM_TARGET( ${REGNAME}
+                     COMMAND ${ProjectName} ${ARGN}
+                     DEPENDS ${REG_DEPEND} 
+                     WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+
+  # The memory checking command
+  SET( REG_MEMCHECK   ${VALGRIND_COMMAND}   $<TARGET_FILE:${ProjectName}> ${ARGN} )
+  SET( REG_STACKCHECK ${STACKCHECK_COMMAND} $<TARGET_FILE:${ProjectName}> ${ARGN} )
+  SET( REG_CUDAMEMCHECK cuda-memcheck --leak-check full   $<TARGET_FILE:${ProjectName}> ${ARGN} )
+  
+  # Add the ctest memcheck
+  ADD_TEST( NAME ${REGNAME}_memcheck
+            COMMAND ${REG_MEMCHECK}
+            WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+  SET_TESTS_PROPERTIES( ${REGNAME}_memcheck PROPERTIES LABELS ElVisRegMemCheck )
+
+  # Add the indivindual memcheck target
+  ADD_CUSTOM_TARGET( ${REGNAME}_memcheck
+                     COMMAND ${REG_MEMCHECK}
+                     DEPENDS ${REG_DEPEND} 
+                     WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+
+  # Add the ctest stackcheck
+  ADD_TEST( NAME ${REGNAME}_stackcheck
+            COMMAND ${REG_STACKCHECK}
+            WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+  SET_TESTS_PROPERTIES( ${REGNAME}_stackcheck PROPERTIES LABELS ElVisRegStackCheck )
+
+  # Add the indivindual stackcheck target
+  ADD_CUSTOM_TARGET( ${REGNAME}_stackcheck
+                     COMMAND ${REG_STACKCHECK}
+                     DEPENDS ${REG_DEPEND} 
+                     WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+
+  # Add the ctest memcheck
+  ADD_TEST( NAME ${REGNAME}_cudamemcheck
+            COMMAND ${REG_CUDAMEMCHECK}
+            WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+  SET_TESTS_PROPERTIES( ${REGNAME}_cudamemcheck PROPERTIES LABELS ElVisRegMemCheck )
+
+  # Add the indivindual memcheck target
+  ADD_CUSTOM_TARGET( ${REGNAME}_cudamemcheck
+                     COMMAND ${REG_CUDAMEMCHECK}
+                     DEPENDS ${REG_DEPEND} 
+                     WORKING_DIRECTORY ${ELVIS_BIN_DIR} )
+
+ENDMACRO()
+
+
+
 IF( ELVIS_ENABLE_JACOBI_EXTENSION )
-    GET_PROPERTY(JacobiExtensionPath TARGET JacobiExtension PROPERTY RELEASE_LOCATION)
-    ADD_TEST(NAME BulletCutSurfaceP2 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} 
+    #GET_PROPERTY(JacobiExtensionPath TARGET JacobiExtension PROPERTY RELEASE_LOCATION)
+    SET( JacobiExtensionPath $<TARGET_FILE:JacobiExtension> )
+    
+    ADD_ELVIS_REGTEST( BulletCutSurfaceP2 
         --TestName CutSurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
         --Module ${JacobiExtensionPath}
@@ -84,9 +170,10 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Height 1000
         --OutFile BulletCutSurfaceP2
         --CompareFile "${BaselineDir}/BulletCutSurfaceP2Baseline"
-    )
+    ) 
 
-    ADD_TEST(NAME BulletCutSurfaceP2WithFaces WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+    ADD_ELVIS_REGTEST( BulletCutSurfaceP2WithFaces 
+        --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
         --Module ${JacobiExtensionPath}
         --Width 1000
@@ -102,7 +189,8 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CutPlanePoint 0.0 -1.0 0.0
     )
 
-    ADD_TEST(NAME BulletCutSurfaceP3 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName CutSurfaceBullet
+    ADD_ELVIS_REGTEST( BulletCutSurfaceP3 
+        --TestName CutSurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
         --Module ${JacobiExtensionPath}
         --Width 1000
@@ -111,7 +199,8 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CompareFile "${BaselineDir}/BulletCutSurfaceP3Baseline"
     )
 
-    ADD_TEST(NAME VolumeRenderBulletFull WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
+    ADD_TEST( VolumeRenderBulletFull 
+        --TestName VolumeRenderBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
         --Module ${JacobiExtensionPath}
         --RenderIntegrationType 0
@@ -122,7 +211,8 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CompareFile "${BaselineDir}/VolumeRenderBulletFullBaseline"
     )
 
-    ADD_TEST(NAME VolumeRenderBulletRiemann WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
+    ADD_ELVIS_REGTEST(VolumeRenderBulletRiemann 
+        --TestName VolumeRenderBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
         --Module ${JacobiExtensionPath}
         --RenderIntegrationType 0
@@ -133,7 +223,8 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CompareFile "${BaselineDir}/VolumeRenderBulletRiemannBaseline"
     )
 
-    ADD_TEST(NAME VolumeRenderBulletTrapezoidal WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName VolumeRenderBullet
+    ADD_ELVIS_REGTEST(VolumeRenderBulletTrapezoidal 
+        --TestName VolumeRenderBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
         --Module ${JacobiExtensionPath}
         --RenderIntegrationType 0
@@ -144,7 +235,8 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CompareFile "${BaselineDir}/VolumeRenderBulletTrapezoidalBaseline"
     )
 
-    ADD_TEST(NAME IsosurfaceBullet1 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName IsosurfaceBullet
+    ADD_ELVIS_REGTEST(IsosurfaceBullet1
+        --TestName IsosurfaceBullet
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
         --Module ${JacobiExtensionPath}
         --Width 1152  --Height 672
@@ -156,8 +248,11 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
 ENDIF()
 
 IF( ELVIS_ENABLE_ProjectX_EXTENSION )
-    GET_PROPERTY(PXExtensionPath TARGET ProjectXExtension PROPERTY RELEASE_LOCATION)
-    ADD_TEST(NAME OneraWingSurface WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+    #GET_PROPERTY(PXExtensionPath TARGET ProjectXExtension PROPERTY RELEASE_LOCATION)
+    SET( PXExtensionPath $<TARGET_FILE:ProjectXExtension> )
+    
+    ADD_ELVIS_REGTEST(OneraWingSurface 
+        --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Onera_wing_M0p84_AA3p06_Euler_P2_100000DOF_P2_a06_Primal_3.pxa"
         --Module ${PXExtensionPath}
         --Width 785
@@ -173,9 +268,11 @@ IF( ELVIS_ENABLE_ProjectX_EXTENSION )
 ENDIF()
 
 IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
-    GET_PROPERTY(ExtensionPath TARGET NektarPlusPlusExtension PROPERTY RELEASE_LOCATION)
+    #GET_PROPERTY(ExtensionPath TARGET NektarPlusPlusExtension PROPERTY RELEASE_LOCATION)
+    SET( ExtensionPath $<TARGET_FILE:NektarPlusPlusExtension> )
     
-    ADD_TEST(NAME NektarPlusPlusColorMapSphere WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+    ADD_ELVIS_REGTEST( NektarPlusPlusColorMapSphere 
+        --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset2.xml"
         --Module ${ExtensionPath}
         --Width 1024    --Height 1024    --OutFile NektarPlusPlusColorMapSphere
@@ -188,7 +285,8 @@ IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
         --CompareFile "${BaselineDir}/NektarPlusPlusColorMapSphereBaseline"
     )
 
-    ADD_TEST(NAME NektarPlusPlusVolumeRenderSphere_Type5 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+    ADD_ELVIS_REGTEST( NektarPlusPlusVolumeRenderSphere_Type5 
+        --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset3.xml"    --Width 1024    --Height 1024    --OutFile NektarPlusPlusVolumeRenderSphere_Type1
         --VolumeRenderingModuleEnabled 1
         --IntegrationType 0
@@ -199,7 +297,8 @@ IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
         --CompareFile "${BaselineDir}/NektarPlusPlusVolumeRenderSphere_Type1Baseline"
     )
 
-    ADD_TEST(NAME NektarPlusPlusVolumeRenderSphere_Type6 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+    ADD_ELVIS_REGTEST(NektarPlusPlusVolumeRenderSphere_Type6 
+        --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset3.xml"    --Width 1024    --Height 1024
         --Module ${ExtensionPath}
         --VolumeRenderingModuleEnabled 1
@@ -212,7 +311,8 @@ IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )
         --CompareFile "${BaselineDir}/NektarPlusPlusVolumeRenderSphere_Type1_h.1Baseline"
     )
         
-    ADD_TEST(NAME NektarPlusPlusVolumeRenderSphere_Type1_h01 WORKING_DIRECTORY ${ELVIS_BIN_DIR} COMMAND ${ProjectName} --TestName Generic
+    ADD_ELVIS_REGTEST( NektarPlusPlusVolumeRenderSphere_Type1_h01 
+        --TestName Generic
         --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Hex_01_01_01_03Modes_x2_Offset3.xml"    --Width 1024    --Height 1024
         --Module ${ExtensionPath}
         --VolumeRenderingModuleEnabled 1

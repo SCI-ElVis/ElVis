@@ -79,7 +79,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     cylinder->GetTransformationMatrix()[10] = .41f;
    
     
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -131,7 +131,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     //c.SetParameters(ElVis::WorldPoint(6, 0, 3.5), ElVis::WorldPoint(0, 0, 3.5), ElVis::WorldVector(0, 1, 0));
 
     //c.SetParameters(ElVis::WorldPoint(1.8, 1.2, 3.0), ElVis::WorldPoint(0, 0, 1), ElVis::WorldVector(0, 1, 0));
-    c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0, 0, 2.7), ElVis::WorldVector(0, 1, 0));
+    c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0., 0., 2.7), ElVis::WorldVector(0., 1., 0.));
 
     boost::shared_ptr<ElVis::SceneView> view(new ElVis::SceneView());
     view->SetCamera(c);
@@ -278,7 +278,12 @@ int GenericCLIInterface(int argc, char** argv,
     }
 
     #ifdef __GNUC__
-    system("nvidia-smi");
+    int ierr = system("nvidia-smi");
+    if( ierr != 0 )
+    {
+      std::cout << "Failed to make the system call 'nvidia-smi'" << std::endl;
+      return 1;
+    }
     #endif
 
     bool trace = false;
@@ -300,9 +305,9 @@ int GenericCLIInterface(int argc, char** argv,
     }
 
     scene->SetEnableOptixTrace(trace);
-    scene->SetOptixTracePixelIndex(ElVis::Point<int, ElVis::TwoD>(tracex, tracey));
+    scene->SetOptixTracePixelIndex(ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
 
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -377,7 +382,7 @@ int GenericCLIInterface(int argc, char** argv,
         boost::shared_ptr<ElVis::FaceObject> faceObject(new ElVis::FaceObject(scene));
         boost::shared_ptr<ElVis::SampleFaceObject> obj(new ElVis::SampleFaceObject(faceObject));
         primaryRayModule->AddObject(obj);
-        for(int i = 0; i < boundarySurfaces.size(); ++i)
+        for(std::size_t i = 0; i < boundarySurfaces.size(); ++i)
         {
             std::vector<int> faceIds;
             std::string boundaryName;
@@ -397,7 +402,7 @@ int GenericCLIInterface(int argc, char** argv,
         boost::shared_ptr<ElVis::FaceObject> faceObject(new ElVis::FaceObject(scene));
         boost::shared_ptr<ElVis::SampleFaceObject> obj(new ElVis::SampleFaceObject(faceObject));
         primaryRayModule->AddObject(obj);
-        for(int i = 0; i < faces.size(); ++i)
+        for(std::size_t i = 0; i < faces.size(); ++i)
         {
             obj->EnableFace(faces[i]);
         }
@@ -498,7 +503,11 @@ int GenericCLIInterface(int argc, char** argv,
         ElVis::Stat runtimeStats(times, std::numeric_limits<ElVisFloat>::max(), numTests-1, .95);
         std::cout << "Average Time Per Run: " << runtimeStats.Mean << std::endl;
         #ifdef __GNUC__
-        system("nvidia-smi");
+        if( system("nvidia-smi") )
+        {
+          std::cout << "Filed to make system call 'nvidia-smi'" << std::endl;
+          return 1;
+        }
         #endif
 
     }

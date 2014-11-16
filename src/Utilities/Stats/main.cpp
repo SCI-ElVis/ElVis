@@ -35,6 +35,7 @@
 #include <string>
 #include <ElVis/Core/Cuda.h>
 #include <stdlib.h>
+#include <stdexcept>
 
 class BinaryFile
 {
@@ -55,9 +56,15 @@ class BinaryFile
                 throw error;
             }
 
-            fread(&width, sizeof(unsigned int), 1, filePtr);
-            fread(&height, sizeof(unsigned int), 1, filePtr);
-            fread(&numSamples, sizeof(int), 1, filePtr);
+            if( fread(&width, sizeof(unsigned int), 1, filePtr) != 1 )
+              throw std::runtime_error("Failed to read data.");
+
+            if( fread(&height, sizeof(unsigned int), 1, filePtr) != 1 )
+              throw std::runtime_error("Failed to read data.");
+
+            if( fread(&numSamples, sizeof(int), 1, filePtr) != 1 )
+              throw std::runtime_error("Failed to read data.");
+
             std::cout << "File has size " << width << ", " << height << std::endl;
             std::cout << "Generated with " << numSamples << " samples." << std::endl;
             std::cout << "%%%%%%%%%%%%%%%%%%%%" << std::endl;
@@ -88,7 +95,10 @@ class DensityFile : public BinaryFile
         void Read()
         {
             data = new ElVisFloat[width*height];
-            fread(data, sizeof(ElVisFloat), width*height, filePtr);
+            if( fread(data, sizeof(ElVisFloat), width*height, filePtr) != width*height )
+            {
+              throw std::runtime_error("Failed to read data.");
+            }
         }
 
         static void CalculateInfinityError(const DensityFile& lhs, const DensityFile& rhs)
@@ -100,9 +110,9 @@ class DensityFile : public BinaryFile
                 throw error;
             }
 
-            unsigned int maxRow;
-            unsigned int maxCol;
-            unsigned int maxIndex;
+            unsigned int maxRow = 0;
+            unsigned int maxCol = 0;
+            unsigned int maxIndex = 0;
             ElVisFloat maxError = -1.0;
 
             for(unsigned int row = 0; row < lhs.height; ++row)
@@ -150,7 +160,8 @@ class ColorFile : public BinaryFile
         void Read()
         {
             data = new ElVisFloat3[width*height];
-            fread(data, sizeof(ElVisFloat3), width*height, filePtr);
+            if( fread(data, sizeof(ElVisFloat3), width*height, filePtr) != width*height )
+              throw std::runtime_error("Failed to read data.");
         }
 
         static void CalculateErrors(const ColorFile& lhs, const ColorFile& rhs, std::ostream& maxErrorFile, std::ostream& rmseFile)
@@ -171,11 +182,15 @@ class ColorFile : public BinaryFile
             maxError.z = -1.0;
 
             ElVisFloat maxDistance = -1;
-            unsigned int distanceRow;
-            unsigned int distanceCol;
-            unsigned int distanceIndex;
+            unsigned int distanceRow = 0;
+            unsigned int distanceCol = 0;
+            unsigned int distanceIndex = 0;
 
             ElVisFloat mse = 0.0;
+
+            maxIndex.x = 0;
+            maxIndex.y = 0;
+            maxIndex.z = 0;
 
             for(unsigned int row = 0; row < lhs.height; ++row)
             {

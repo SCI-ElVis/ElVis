@@ -56,7 +56,7 @@ __device__ void FaceBoundingBox(int globalFaceIdx, float result[6])
     ElVisFloat3 p0 = FaceInfoBuffer[globalFaceIdx].MinExtent;
     ElVisFloat3 p1 = FaceInfoBuffer[globalFaceIdx].MaxExtent;
 
-    //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n", 
+    //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n",
     //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
     aabb->m_min = make_float3(p0.x, p0.y, p0.z);
     aabb->m_max = make_float3(p1.x, p1.y, p1.z);

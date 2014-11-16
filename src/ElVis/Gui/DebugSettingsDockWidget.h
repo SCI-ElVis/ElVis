@@ -79,7 +79,7 @@ namespace ElVis
                 PointInfo m_pointInfo;
                 QtGroupPropertyManager* m_groupPropertyManager;
                 QtProperty* m_optixProperties;
-                Property<int>* m_optixStackSizeProperty;
+                Property<int>* m_optixTraceBufferSizeProperty;
                 Property<bool>* m_enableTraceProperty;
                 QtProperty* m_pixelXProperty;
                 QtProperty* m_pixelYProperty;

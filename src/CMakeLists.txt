@@ -1,7 +1,7 @@
 IF( APPLE )
   CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
 ELSE()
-  CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8 FATAL_ERROR)
 ENDIF()
 
 # As of CMake 2.6 policies were introduced in order to provide a mechanism for
@@ -22,18 +22,21 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 #ENDIF()
 #SET(CMAKE_INSTALL_PREFIX_SET ON CACHE INTERNAL "")
 
+#Add the bin directory to the rpath
+SET( CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/bin )
+            
 PROJECT(ElVis)
 
 ENABLE_TESTING()
-SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/CMake)
 
 # Set the default build to Release.  Note this doesn't do anything for the VS
 # default build target which defaults to Debug when you first start it.
-IF(NOT CMAKE_BUILD_TYPE AND NOT PASSED_FIRST_CONFIGURE)
-  SET(CMAKE_BUILD_TYPE "Release" CACHE STRING
-      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
-ENDIF()
+#IF(NOT CMAKE_BUILD_TYPE AND NOT PASSED_FIRST_CONFIGURE)
+#  SET(CMAKE_BUILD_TYPE "Release" CACHE STRING
+#      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+#      FORCE)
+#ENDIF()
 
 SET(ELVIS_VERSION 0.1.1)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/bin ELVIS_BIN_DIR)
@@ -43,16 +46,22 @@ FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/lib ELVIS_LIB_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/include ELVIS_INCLUDE_DIR)
 FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/ColorMaps ELVIS_COLOR_MAP_DIR)
 
-IF( NOT QT4_FOUND )
-    FIND_PACKAGE(Qt4)
-ENDIF() 
+FIND_PACKAGE(Qt4 REQUIRED)
 
 IF( QT4_FOUND )
-    include(${QT_USE_FILE})
+    INCLUDE(${QT_USE_FILE})
 ENDIF()
 
+SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake )
 
-INCLUDE(SetupOptiX.cmake)
+INCLUDE(CMake/SetupOptiX.cmake)
+
+#Need to set compiler flags after SetupOptix
+INCLUDE(CMake/CompilerFlags.cmake)
+
+#Need to create unit tests after compiler flags have been set
+INCLUDE(CMake/UnitTest.cmake)
+
 ADD_SUBDIRECTORY(Externals)
 
 IF( NOT PASSED_FIRST_CONFIGURE )
@@ -66,9 +75,6 @@ IF( NOT PASSED_FIRST_CONFIGURE )
     
     SET(CUDA_BUILD_CUBIN ON CACHE BOOL "" FORCE)
 ENDIF() 
-#INCLUDE(CheckComputeCapability.cmake)
-#MESSAGE(STATUS "CUDA COMPUTE ${CUDA_COMPUTE_CAPABILITY}")
-
 
 OPTION(ELVIS_USE_DOUBLE_PRECISION "Use double precision value in GPU code.")
 OPTION(ELVIS_ENABLE_PRINTF "Enable the use of ELVIS_PRINTF in device code.")
@@ -84,7 +90,7 @@ SET(GLUT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Externals/glut/include)
 INCLUDE_DIRECTORIES( 
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
-    ${BOOST_INCLUDE}
+    ${Boost_INCLUDE_DIR}
     ${GLEW_INCLUDE}
     ${GLUT_INCLUDE_DIR}
   # Cuda includes must appear after other GL includes to prevent accidentally
@@ -92,8 +98,6 @@ INCLUDE_DIRECTORIES(
   ${OptiX_INCLUDE}
   ${ELVIS_CUDA_INCLUDE}
 )
-
-
 
 
 IF(ELVIS_USE_DOUBLE_PRECISION)
@@ -118,34 +122,44 @@ MACRO(SET_ELVIS_TARGET_PROPERTIES name)
     SET_TARGET_PROPERTIES(${name} PROPERTIES MINSIZEREL_POSTFIX -ms)
     SET_TARGET_PROPERTIES(${name} PROPERTIES RELWITHDEBINFO_POSTFIX -rg)
 
-    SET(ADDITIONAL_COMPILE_FLAGS "")
-    get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
-    IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
-        SET(ADDITIONAL_COMPILE_FLAGS "")
-    ENDIF()
+    #SET(ADDITIONAL_COMPILE_FLAGS "-Werror -Wall")
+    #get_target_property(ADDITIONAL_COMPILE_FLAGS ${name} COMPILE_FLAGS)
+    #IF( ${ADDITIONAL_COMPILE_FLAGS} STREQUAL "ADDITIONAL_COMPILE_FLAGS-NOTFOUND" )
+    #    SET(ADDITIONAL_COMPILE_FLAGS "")
+    #ENDIF()
+    
     IF( CMAKE_COMPILER_IS_GNUCXX )
-        # Some versions of gcc can't handle -g3, but it is set by a cuda
-        # CMakeLists
-        SET(STR1 " ")
-        SET(STR2 " ")
-        STRING(REPLACE "-g3" "" STR1 ${CMAKE_CXX_FLAGS_DEBUG} )
-        STRING(REPLACE "-g" "" STR2 ${STR1} )
-        SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+    #    set(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -std=c++0x")
+	IF( Boost_FOUND )
+	  IF( ${Boost_MAJOR_VERSION} LESS 2 AND
+	      ${Boost_MINOR_VERSION} LESS 51)
+	    ADD_DEFINITIONS(-DBOOST_NO_SCOPED_ENUMS)
+	  ELSE()
+	    ADD_DEFINITIONS(-DBOOST_NO_CXX11_SCOPED_ENUMS)
+	  ENDIF() 
+	ENDIF()
+    #    # Some versions of gcc can't handle -g3, but it is set by a cuda
+    #    # CMakeLists
+    #    SET(STR1 " ")
+    #    SET(STR2 " ")
+    #    STRING(REPLACE "-g3" "" STR1 ${CMAKE_CXX_FLAGS_DEBUG} )
+    #    STRING(REPLACE "-g" "" STR2 ${STR1} )
+    #    SET(CMAKE_CXX_FLAGS_DEBUG "${STR2} -g" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
   
-        STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
-        STRING(REPLACE "-g" "" STR4 ${STR3} )
-        SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
+    #    STRING(REPLACE "-g3" "" STR3 ${CMAKE_CXX_FLAGS_RELEASE} )
+    #    STRING(REPLACE "-g" "" STR4 ${STR3} )
+    #    SET(CMAKE_CXX_FLAGS_RELEASE "${STR4}" CACHE STRING "Semi-colon delimit multiple arguments." FORCE)
     ENDIF()
 
-    IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    #IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
         # The static libraries must be compiled with position independent code
         # on 64 bit Linux.
-        SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
-    ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    #    SET(ADDITIONAL_COMPILE_FLAGS "${ADDITIONAL_COMPILE_FLAGS} -fPIC")
+    #ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     
-    IF( ADDITIONAL_COMPILE_FLAGS )
-        SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
-    ENDIF()
+    #IF( ADDITIONAL_COMPILE_FLAGS )
+    #    SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_COMPILE_FLAGS})
+    #ENDIF()
 
     IF( MSVC )
         # Disable the warnings about duplicate copy/assignment methods
@@ -224,13 +238,13 @@ SET(PROJECTS
   Utilities
 )
 
-SUBDIRS(${PROJECTS})
+ADD_SUBDIRECTORY(${PROJECTS})
 
 if(APPLE)	
     set(CMAKE_EXE_LINKER_FLAGS "-F/Library/Frameworks -framework CUDA")
 endif(APPLE)
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVisConfig.cmake.in 
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/ElVisConfig.cmake.in 
                ${CMAKE_BINARY_DIR}/ElVisConfig.cmake @ONLY)
 
 INSTALL(FILES ${CMAKE_BINARY_DIR}/ElVisConfig.cmake 
@@ -243,10 +257,10 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/../ColorMaps/Grayscale.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/diverging257.cmap
               DESTINATION ${ELVIS_COLOR_MAP_DIR})
 
-if(WIN32)
+IF(WIN32)
     INSTALL(FILES ${PROJECT_SOURCE_DIR}/Externals/glut/release/glut64.dll
               DESTINATION ${ELVIS_BIN_DIR}) 
-endif()
+ENDIF()
 # Set after the first configure pass is done, and can be used to set default values for 
 # variables that users should be able to modify.
 SET(PASSED_FIRST_CONFIGURE ON CACHE BOOL INTERNAL)
@@ -260,5 +274,14 @@ MARK_AS_ADVANCED(PASSED_FIRST_CONFIGURE)
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+
+#------------------------------------------------------------------------------
+#Generate a unit tests target that runs all the unit tests in a single executable
+#This must be the last thing generated
+ADD_ELVIS_BOOST_TEST_OBJECTS( unit ALL_BOOST_UNIT_OBJECTS ElVisCore )
+
+
+#Custom targets for debugging cmake
+ADD_CUSTOM_TARGET( debug_cmake COMMAND ${CMAKE_COMMAND} -Wdev --warn-uninitialized WORKSPACE ${CMAKE_BINARY_DIR} )
+ADD_CUSTOM_TARGET( debug_trace_cmake COMMAND ${CMAKE_COMMAND} -Wdev --warn-uninitialized --trace WORKSPACE ${CMAKE_BINARY_DIR} )

@@ -49,11 +49,13 @@
 #include <ElVis/Core/Timer.h>
 #include <stdio.h>
 
-#define png_infopp_NULL (png_infopp)NULL
-#define int_p_NULL (int*)NULL
-
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
+
+#define png_infopp_NULL (png_infopp)NULL
+#ifndef int_p_NULL
+#define int_p_NULL (int*)NULL
+#endif
 
 namespace ElVis
 {
@@ -85,17 +87,17 @@ namespace ElVis
         m_depthBits(24),
         m_rayGenerationPrograms(),
         m_allRenderModules(),
+        m_scalarFieldIndex(0),
         m_passedInitialOptixSetup(false),
         m_faceIntersectionToleranceDirty(true),
         m_faceIntersectionTolerance(1e-5),
         m_headlightColor(82.0/255.0, 82.0/255.0, 82.0/255.0),
         m_headlightColorIsDirty(true),
-        m_backgroundColorIsDirty(true),
         m_enableOptiXExceptions(true),
         m_exceptionProgram(),
         //m_backgroundColor(0.0, 0.0, 0.0)
         m_backgroundColor(1.0, 1.0, 1.0),
-        m_scalarFieldIndex(0),
+        m_backgroundColorIsDirty(true),
         m_projectionType(ePerspective)
     {
         m_projectionType.OnDirtyFlagChanged.connect(boost::bind(&SceneView::HandleSynchedObjectChanged<SceneViewProjection>, this, _1));
@@ -140,7 +142,7 @@ namespace ElVis
         }
     }
 
-    void SceneView::Resize(int width, int height) 
+    void SceneView::Resize(unsigned int width, unsigned int height)
     {
         if( width == m_width && height == m_height ) 
         {
@@ -283,7 +285,7 @@ namespace ElVis
 
         if( !m_colorBuffer.Initialized() ) return;
 
-        BOOST_AUTO(colorBuffer, m_colorBuffer.Map());
+        auto colorBuffer = m_colorBuffer.Map();
 
         if( !colorBuffer ) return;
 
@@ -397,8 +399,8 @@ namespace ElVis
     {
         if( m_depthBuffer.Initialized() )
         {
-            BOOST_AUTO(data, m_depthBuffer.Map());
-            for(int i = 0; i < GetWidth()*GetHeight(); ++i)
+            auto data = m_depthBuffer.Map();
+            for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i] = 1.0f;
             }
@@ -409,8 +411,8 @@ namespace ElVis
     {
         if( m_colorBuffer.Initialized() )
         {
-            BOOST_AUTO(data, m_colorBuffer.Map());
-            for(int i = 0; i < GetWidth()*GetHeight(); ++i)
+            auto data = m_colorBuffer.Map();
+            for(unsigned int i = 0; i < GetWidth()*GetHeight(); ++i)
             {
                 data[i].x = 255;
                 data[i].y = 255;
@@ -484,7 +486,7 @@ namespace ElVis
             SetRasterPositionToLowerLeftCorner();
     
             glDrawBuffer(GL_BACK);
-            BOOST_AUTO(colorData, m_colorBuffer.Map());
+            auto colorData = m_colorBuffer.Map();
             glDrawPixels(GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, (void*)colorData.get());
 
             //GLenum error = glGetError();
@@ -530,7 +532,6 @@ namespace ElVis
         catch(...)
         {
            std::cout << "Caught exception in display buffers." << std::endl;
-           int a = 0;
         }
     }
 
@@ -580,7 +581,7 @@ namespace ElVis
             // similar to what we do with the ray generation programs.
             m_context->setRayTypeCount(3);
 
-            unsigned int memAlloc = 0;
+            //unsigned int memAlloc = 0;
             
             // Setup various buffers the modules can use.
             // TODO - making the color and depth buffers INPUT/OUTPUT slows thing down
@@ -590,24 +591,24 @@ namespace ElVis
             m_colorBuffer.SetDimensions(GetWidth(), GetHeight());
             m_rawColorBuffer.SetContext(m_context);
             m_rawColorBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int colorBuf = GetWidth() * GetHeight() * 4;
+            //unsigned int colorBuf = GetWidth() * GetHeight() * 4;
             
             m_depthBuffer.SetContext(m_context);
             m_depthBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int depthBuffSize = GetWidth() * GetHeight() * sizeof(float);
+            //unsigned int depthBuffSize = GetWidth() * GetHeight() * sizeof(float);
             
             m_sampleBuffer.SetContext(m_context);
             m_sampleBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int sampleBufferSize = GetWidth() * GetHeight() * sizeof(float);
+            //unsigned int sampleBufferSize = GetWidth() * GetHeight() * sizeof(float);
             
             m_normalBuffer.SetContext(m_context);
             m_normalBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int normalBufferSize = GetWidth() * GetHeight() * sizeof(float)*3;
+            //unsigned int normalBufferSize = GetWidth() * GetHeight() * sizeof(float)*3;
             
             
             m_intersectionBuffer.SetContext(m_context);
             m_intersectionBuffer.SetDimensions(GetWidth(), GetHeight());
-            unsigned int intersectionSize = GetWidth() * GetHeight() * sizeof(float)*3;
+            //unsigned int intersectionSize = GetWidth() * GetHeight() * sizeof(float)*3;
 
             m_elementIdBuffer.SetContext(m_context);
             m_elementIdBuffer.SetDimensions(GetWidth(), GetHeight());
@@ -640,7 +641,7 @@ namespace ElVis
 
     RayGeneratorProgram SceneView::AddRayGenerationProgram(const std::string& programName)
     {
-        std::map<std::string, RayGeneratorProgram>::iterator found = m_rayGenerationPrograms.find(programName);
+        auto found = m_rayGenerationPrograms.find(programName);
         if( found != m_rayGenerationPrograms.end() )
         {
             return (*found).second;
@@ -650,11 +651,11 @@ namespace ElVis
 
         optixu::Context m_context = GetScene()->GetContext();
         result.Program = PtxManager::LoadProgram(m_context, GetPTXPrefix(), programName.c_str());
-        result.Index = m_rayGenerationPrograms.size();
+        result.Index = static_cast<unsigned int>(m_rayGenerationPrograms.size());
 
         m_rayGenerationPrograms[programName] = result;
 
-        m_context->setEntryPointCount(m_rayGenerationPrograms.size());
+        m_context->setEntryPointCount(static_cast<unsigned int>(m_rayGenerationPrograms.size()));
         m_context->setRayGenerationProgram(result.Index, result.Program);
         return result;
     }

@@ -49,9 +49,6 @@
 #include <ElVis/Core/DynamicLib.h>
 #include <ElVis/Core/ElVisConfig.h>
 
-#define png_infopp_NULL (png_infopp)NULL
-#define int_p_NULL (int*)NULL
-
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
 #include <boost/bind.hpp>
@@ -59,64 +56,36 @@
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 
-//
-//void ConvertToRGB(double h, double s, double v, double& r, double& g, double& b)
-//{
-//	h /= 60.0;			// sector 0 to 5
-//	int i = floor( h );
-//	float f = h - i;			// factorial part of h
-//	float p = v * ( 1 - s );
-//	float q = v * ( 1 - s * f );
-//	float t = v * ( 1 - s * ( 1 - f ) );
-//
-//    
-//	switch( i ) 
-//    {
-//    case 0:
-//			r = v;
-//			g = t;
-//			b = p;
-//			break;
-//    case 1:
-//			r = q;
-//			g = v;
-//			b = p;
-//			break;
-//    case 2:
-//			r = p;
-//			g = v;
-//			b = t;
-//			break;
-//    case 3:
-//			r = p;
-//			g = q;
-//			b = v;
-//			break;
-//    case 4:
-//			r = t;
-//			g = p;
-//			b = v;
-//			break;
-//    default:		// case 5:
-//			r = v;
-//			g = p;
-//			b = q;
-//			break;
-//    }
-//}
-//
+#define png_infopp_NULL (png_infopp)NULL
+#ifndef int_p_NULL
+#define int_p_NULL (int*)NULL
+#endif
 
-void PrintUsage()
+namespace
 {
-    std::cerr << "Usage: ElVisCLI --TestName <testname> --ModelPath <path> --Width <int> --Height <int> ..." << std::endl;
-    exit(1);
-}
 
-void TestParam(boost::program_options::variables_map& vm, const char* p)
-{
-    if( vm.count(p) == 0 ) PrintUsage();
-}
+  void PrintUsage()
+  {
+      std::cerr << "Usage: ElVisCLI --TestName <testname> --ModelPath <path> --Width <int> --Height <int> ..." << std::endl;
+      exit(1);
+  }
 
+  void TestParam(boost::program_options::variables_map& vm, const char* p)
+  {
+      if( vm.count(p) == 0 ) PrintUsage();
+  }
+
+
+  template<typename T>
+  bool testChannel(size_t idx, const T& lhs, const T& rhs)
+  {
+    if( lhs[idx] == rhs[idx] ) return true;
+
+    auto dist = std::max(lhs[idx], rhs[idx]) -
+      std::min(lhs[idx], rhs[idx]);
+    return dist <= 1;
+  }
+}
 
 int main(int argc, char** argv)
 {
@@ -190,7 +159,7 @@ int main(int argc, char** argv)
     }
 
 
-    
+
     TestParam(vm, testNameLabel);
     TestParam(vm, modelPathLabel);
     TestParam(vm, widthLabel);
@@ -280,7 +249,8 @@ int main(int argc, char** argv)
     }
     if( result != 0 )
     {
-        return result;
+       std::cout << "Test failure... result = " << result << std::endl;
+       return result;
     }
 
     if( vm.count(compareFileLabel) == 1 )
@@ -307,23 +277,41 @@ int main(int argc, char** argv)
         }
 
         std::cout << "Comparing " << baselinePngPath << " with " << testPngPath << std::endl;
-        
+
         boost::gil::rgba8_image_t baselinePngImage;
         boost::gil::rgba8_image_t testPngImage;
 
         boost::gil::png_read_image(baselinePngPath, baselinePngImage);
         boost::gil::png_read_image(testPngPath, testPngImage);
 
-        if( ! boost::gil::equal_pixels(boost::gil::const_view(baselinePngImage), boost::gil::const_view(testPngImage)) )
+        auto baselineView = boost::gil::const_view(baselinePngImage);
+        auto testView = boost::gil::const_view(testPngImage);
+
+        if( baselineView.width() != testView.width() ||
+            baselineView.height() != testView.height() )
         {
-            std::cout << "Test failed." << std::endl;
-            return 1;
+          std::cout << "Test failure... Width and Height do not match..." << std::endl;
+          return 1;
         }
-        else
+
+        for(int j = 0; j < baselineView.height(); ++j)
         {
-            std::cout << "Test succeeded." << std::endl;
+          for(int i = 0; i < baselineView.width(); ++i)
+          {
+            auto srcPixel = baselineView(i, j);
+            auto testPixel = testView(i,j);
+            auto pixelText = testChannel(0, srcPixel, testPixel) &&
+              testChannel(1, srcPixel, testPixel) &&
+              testChannel(2, srcPixel, testPixel);
+            if( !pixelText )
+            {
+              std::cout << "Test failure... Pixels do not match..." << std::endl;
+              return 1;
+            }
+          }
         }
     }
 
+    std::cout << "Done! result = " << result << std::endl;
     return result;
 }

@@ -68,10 +68,10 @@ namespace ElVis
             ELVIS_EXPORT virtual ~SceneView();
 
             ELVIS_EXPORT Timer Draw();
-            ELVIS_EXPORT void Resize(int width, int height);
+            ELVIS_EXPORT void Resize(unsigned int width, unsigned int height);
 
-            ELVIS_EXPORT int GetWidth() const { return m_width; }
-            ELVIS_EXPORT int GetHeight() const { return m_height; }
+            ELVIS_EXPORT unsigned int GetWidth() const { return m_width; }
+            ELVIS_EXPORT unsigned int GetHeight() const { return m_height; }
 
             ELVIS_EXPORT void SetScene(boost::shared_ptr<Scene> value) { m_scene = value; }
             ELVIS_EXPORT boost::shared_ptr<Scene> GetScene() const { return m_scene; }
@@ -211,8 +211,8 @@ namespace ElVis
             }
 
             boost::shared_ptr<Scene> m_scene;
-            int m_width;
-            int m_height;
+            unsigned int m_width;
+            unsigned int m_height;
             boost::shared_ptr<Camera> m_viewSettings;
 
             OptiXBuffer<uchar4> m_colorBuffer;

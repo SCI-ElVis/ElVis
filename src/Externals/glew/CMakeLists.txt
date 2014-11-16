@@ -55,7 +55,7 @@ ENDIF(WIN32)
 SET(GLEW_LIBRARY glew CACHE INTERNAL "Glew library name." FORCE)
 SET(GLEW_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "Public Glew include directories." FORCE)
 
-SET (GLEW_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "glew build path")
+SET(GLEW_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "glew build path")
 
 ###########################################
 # Add the sources needed for the project

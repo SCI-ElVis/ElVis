@@ -54,6 +54,7 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/typeof/typeof.hpp>
 
 #include <QDir>
 
@@ -63,8 +64,8 @@ namespace ElVis
     class Light;
     class HostTransferFunction;
 
-    /// \brief The scene represents the data to be visualized, independent 
-    /// of the specific visualization algorithms.  OptiX data structures can 
+    /// \brief The scene represents the data to be visualized, independent
+    /// of the specific visualization algorithms.  OptiX data structures can
     /// be included in the scene.
     class Scene : public boost::enable_shared_from_this<Scene>
     {
@@ -100,7 +101,7 @@ namespace ElVis
 
             ELVIS_EXPORT const Color& AmbientLightColor() const { return m_ambientLightColor; }
             ELVIS_EXPORT void SetAmbientLightColor(const Color& value) ;
-                        
+
             ELVIS_EXPORT void SetModel(boost::shared_ptr<Model> value) { m_model = value; OnModelChanged(value); }
             ELVIS_EXPORT boost::shared_ptr<Model> GetModel() const { return m_model; }
 
@@ -119,8 +120,8 @@ namespace ElVis
             ELVIS_EXPORT void SetEnableOptixTrace(bool newValue);
             ELVIS_EXPORT bool GetEnableOptixTrace() const { return m_enableOptiXTrace; }
 
-            ELVIS_EXPORT void SetOptixTracePixelIndex(const Point<int, TwoD>& newValue);
-            ELVIS_EXPORT const Point<int, TwoD>& GetOptixTracePixelIndex() const { return m_optixTraceIndex; }
+            ELVIS_EXPORT void SetOptixTracePixelIndex(const Point<unsigned int, TwoD>& newValue);
+            ELVIS_EXPORT const Point<unsigned int, TwoD>& GetOptixTracePixelIndex() const { return m_optixTraceIndex; }
 
             ELVIS_EXPORT void SetOptixTraceBufferSize(int newValue);
             ELVIS_EXPORT int GetOptixTraceBufferSize() const { return m_optiXTraceBufferSize; }
@@ -141,23 +142,23 @@ namespace ElVis
             Scene& operator=(const Scene& rhs);
 
             template<typename Archive>
-            void do_serialize(Archive& ar, const unsigned int version, 
+            void do_serialize(Archive& ar, const unsigned int version,
                 typename boost::enable_if<typename Archive::is_saving>::type* p = 0)
             {
-                // On output, write the path to the model.  If possible, make 
+                // On output, write the path to the model.  If possible, make
                 // it relative to the execution directory for maximum portability.
-                BOOST_AUTO(path, m_model->GetPath());
+                auto path = m_model->GetPath();
 
                 QDir dir;
                 std::string relativeModelPath = dir.relativeFilePath(QString(path.c_str())).toStdString();
-                ar & BOOST_SERIALIZATION_NVP(relativeModelPath);   
+                ar & BOOST_SERIALIZATION_NVP(relativeModelPath);
 
-                BOOST_AUTO(pluginName, m_model->GetPlugin()->GetName());
+                auto pluginName = m_model->GetPlugin()->GetName();
                 ar & BOOST_SERIALIZATION_NVP(pluginName);
             }
 
             template<typename Archive>
-            void do_serialize(Archive& ar, const unsigned int version, 
+            void do_serialize(Archive& ar, const unsigned int version,
                 typename boost::enable_if<typename Archive::is_loading>::type* p = 0)
             {
                 // On input, if there is a model defined, load it.  We will need the
@@ -171,7 +172,7 @@ namespace ElVis
                     throw new std::runtime_error("Can't load state with a model already loaded.");
                 }
 
-                
+
                 m_optixDataDirty = true;
                 m_tracePixelDirty = true;
                 m_enableTraceDirty = true;
@@ -208,15 +209,15 @@ namespace ElVis
 
             bool m_enableOptiXTrace;
             int m_optiXTraceBufferSize;
-            Point<int, TwoD> m_optixTraceIndex;
-            
+            Point<unsigned int, TwoD> m_optixTraceIndex;
+
             bool m_optixDataDirty;
             bool m_tracePixelDirty;
             bool m_enableTraceDirty;
 
             // Optix variables and programs for use in the newton intersection program.
-            optixu::Program m_faceBoundingBoxProgram;
             optixu::Program m_faceIntersectionProgram;
+            optixu::Program m_faceBoundingBoxProgram;
             OptiXBuffer<FaceInfo> m_faceIdBuffer;
             optixu::Acceleration m_faceAcceleration;
     };

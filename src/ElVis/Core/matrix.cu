@@ -36,7 +36,7 @@
 #include <ElVis/Core/Float.cu>
 
 #define MATRIX_ACCESS(m,i,j) m[i*N+j]
-#define MAT_DECL template <unsigned int M, unsigned int N>
+#define MAT_DECL template <unsigned int M, unsigned int N> RT_HOSTDEVICE
 
 // This matrix class is a direct copy of the OptiX matrix class, modified to 
 // use ElVisFloat instead of float.
@@ -50,7 +50,7 @@ namespace ElVis
 
   template <unsigned int M, unsigned int N> class Matrix;
 
-  template <unsigned int M> Matrix<M,M>& operator*=(Matrix<M,M>& m1, const Matrix<M,M>& m2);
+  template <unsigned int M> RT_HOSTDEVICE Matrix<M,M>& operator*=(Matrix<M,M>& m1, const Matrix<M,M>& m2);
   MAT_DECL Matrix<M,N>& operator-=(Matrix<M,N>& m1, const Matrix<M,N>& m2);
   MAT_DECL Matrix<M,N>& operator+=(Matrix<M,N>& m1, const Matrix<M,N>& m2);
   MAT_DECL Matrix<M,N>& operator*=(Matrix<M,N>& m1, ElVisFloat f);
@@ -62,7 +62,8 @@ namespace ElVis
   MAT_DECL Matrix<M,N> operator*(ElVisFloat f, const Matrix<M,N>& m);
   MAT_DECL typename Matrix<M,N>::floatM operator*(const Matrix<M,N>& m, const typename Matrix<M,N>::floatN& v );
   MAT_DECL typename Matrix<M,N>::floatN operator*(const typename Matrix<M,N>::floatM& v, const Matrix<M,N>& m);
-  template<unsigned int M, unsigned int N, unsigned int R> Matrix<M,R> operator*(const Matrix<M,N>& m1, const Matrix<N,R>& m2);
+  template<unsigned int M, unsigned int N, unsigned int R>
+  RT_HOSTDEVICE Matrix<M,R> operator*(const Matrix<M,N>& m1, const Matrix<N,R>& m2);
 
 
   // Partial specializations to make matrix vector multiplication more efficient
@@ -607,8 +608,8 @@ namespace ElVis
 
     // NOTE: Element 0,1 is wrong in Foley and Van Dam, Pg 227!
     // TODO - Double sin/cos?
-    ElVisFloat sintheta=sinf(radians);
-    ElVisFloat costheta=cosf(radians);
+    ElVisFloat sintheta=sinf(static_cast<float>(radians));
+    ElVisFloat costheta=cosf(static_cast<float>(radians));
     ElVisFloat ux=axis.x;
     ElVisFloat uy=axis.y;
     ElVisFloat uz=axis.z;

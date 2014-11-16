@@ -36,7 +36,7 @@
 #include <QObject>
 #include <boost/function.hpp>
 #include <boost/signals2.hpp>
-#include <boost/signals/connection.hpp>
+#include <boost/signals2/connection.hpp>
 #include <boost/bind.hpp>
 
 namespace ElVis

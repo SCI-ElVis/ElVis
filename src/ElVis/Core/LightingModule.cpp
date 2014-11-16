@@ -36,10 +36,6 @@ namespace ElVis
         m_program()
     {
     }
-        
-    LightingModule::LightingModule(const LightingModule& rhs)
-    {
-    }
 
     LightingModule::~LightingModule()
     {
@@ -48,9 +44,9 @@ namespace ElVis
     void LightingModule::DoRender(SceneView* view)
     {
         optixu::Context context = view->GetContext();
-        boost::timer timer;
+        //boost::timer timer;
         context->launch(m_program.Index, view->GetWidth(), view->GetHeight());
-        double elapsed = timer.elapsed();
+        //double elapsed = timer.elapsed();
         //printf("Render time for lighting: %e\n", elapsed);
     }
 

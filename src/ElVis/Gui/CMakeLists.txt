@@ -61,14 +61,11 @@ SET(Headers
     ElVis.qss
 )
 
-# Allows interoperability between boost::signals and qt signals.
-add_definitions(-DQT_NO_KEYWORDS)
-
 ADD_ELVIS_EXECUTABLE(${Project} 
     ${Sources} 
     ${Headers}
     ${QT_QOBJECT_HEADERS}
-    ${QT_PROCESSED_UI_HEADERS}
+    #${QT_PROCESSED_UI_HEADERS}
     #${QT_PROCESSED_UI_SOURCE}
     ${QT_PROCESSED_MOC_SOURCE}
 )
@@ -91,3 +88,4 @@ TARGET_LINK_LIBRARIES(${Project}
     ${TinyXML_Library}
 )
 
+ADD_SUBDIRECTORY( unitGui )

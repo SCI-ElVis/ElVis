@@ -49,7 +49,7 @@ class CastAndFilterIterator
             {
                 boost::shared_ptr<DerivedType> AsDerived =
                     boost::dynamic_pointer_cast<DerivedType>(e);
-                return AsDerived;
+                return (bool)AsDerived;
             }
         };
 

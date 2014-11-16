@@ -108,7 +108,7 @@ namespace ElVis
         if( !m_material.get() ) 
         {
             optixu::Context context = view->GetContext();
-            BOOST_AUTO( model, m_scene->GetModel());
+            auto model = m_scene->GetModel();
             m_material = model->Get2DPrimaryGeometryMaterial(view);
         }
         return m_material;
@@ -118,7 +118,7 @@ namespace ElVis
                 optixu::Transform& transform, optixu::GeometryGroup& group)
     {
         optixu::Context context = view->GetContext();
-        BOOST_AUTO( model, m_scene->GetModel());
+        auto model = m_scene->GetModel();
 
         if( m_group.get() )
         {
@@ -135,7 +135,7 @@ namespace ElVis
 
         group = context->createGeometryGroup();
         int idx = 0;
-        group->setChildCount(twoDGroups.size());
+        group->setChildCount(static_cast<unsigned int>(twoDGroups.size()));
 
         boost::for_each(twoDGroups, 
           (boost::lambda::bind(&optixu::GeometryGroupObj::setChild, group.get(), idx, boost::lambda::_1), ++idx));

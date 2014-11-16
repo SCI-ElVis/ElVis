@@ -81,14 +81,14 @@ namespace Jacobi
 
         if( n == 1 )
         {
-            return .5*((double)a-(double)b+((double)a+(double)b+2.0)*x);
+            return static_cast<DataType>(.5*((double)a-(double)b+((double)a+(double)b+2.0)*x));
         }
 
         DataType result(0.0);
         double apb = a + b;
 
         DataType polyn2(1.0);
-        DataType polyn1 = 0.5*( (double)a - (double)b + ((double)a + (double)b + 2.0)*x);
+        DataType polyn1 = static_cast<DataType>(0.5*( (double)a - (double)b + ((double)a + (double)b + 2.0)*x));
         double alpha = a;
         double beta = b;
         for(int k = 2; k <= n; ++k)
@@ -102,10 +102,10 @@ namespace Jacobi
             a3 /= a1;
             a4 /= a1;
 
-            DataType t1 = a4*polyn2;
-            DataType t2 = (a2+a3*x);
-            DataType t3 = t2*polyn1;
-            result = (a2 + a3*x)*polyn1 - a4*polyn2;
+            //DataType t1 = a4*polyn2;
+            //DataType t2 = (a2+a3*x);
+            //DataType t3 = t2*polyn1;
+            result = static_cast<DataType>((a2 + a3*x)*polyn1 - a4*polyn2);
 
             polyn2 = polyn1;
             polyn1 = result;
@@ -120,7 +120,7 @@ namespace Jacobi
     {
         if( n != 0 )
         {
-            return .5*(n+a+b+1)*P(n-1, a+1, b+1, x);
+            return static_cast<DataType>(.5*(n+a+b+1)*P(n-1, a+1, b+1, x));
         }
         return 0;
     }
@@ -130,7 +130,7 @@ namespace Jacobi
     {
         if( n >= 2 )
         {
-            return .25*(n+a+b+1)*(n+a+b+2)*P(n-2, a+2, b+2, x);
+            return static_cast<DataType>(.25*(n+a+b+1)*(n+a+b+2)*P(n-2, a+2, b+2, x));
         }
         return DataType(0);
     }

@@ -49,7 +49,7 @@ namespace ElVis
             m_pointInfo(),
             m_groupPropertyManager(new QtGroupPropertyManager()),
             m_optixProperties(0),
-            m_optixStackSizeProperty(0),
+            m_optixTraceBufferSizeProperty(0),
             m_enableTraceProperty(0),
             m_pixelXProperty(0),
             m_pixelYProperty(0),
@@ -105,11 +105,11 @@ namespace ElVis
             //////////////////////
             // Optix stack size.
             //////////////////////
-            m_optixStackSizeProperty = new Property<int>("Print Buffer Size", boost::bind(&Scene::SetOptixTraceBufferSize, scene.get(), _1),
+            m_optixTraceBufferSizeProperty = new Property<int>("Print Buffer Size", boost::bind(&Scene::SetOptixTraceBufferSize, scene.get(), _1),
                                                          boost::bind(&Scene::GetOptixTraceBufferSize, scene.get()),
                                                          scene->OnOptixPrintBufferSizeChanged);
-            m_optixStackSizeProperty->SetupPropertyManagers(m_browser);
-            m_optixProperties->addSubProperty(m_optixStackSizeProperty->GetProperty());
+            m_optixTraceBufferSizeProperty->SetupPropertyManagers(m_browser);
+            m_optixProperties->addSubProperty(m_optixTraceBufferSizeProperty->GetProperty());
 
             /////////////////////////////
             // Element Id
@@ -146,11 +146,11 @@ namespace ElVis
             {
                 m_pointInfo = info;
 
-                if( info.Pixel.x() != m_intPropertyManager->value(m_pixelXProperty) )
+                if( (int)info.Pixel.x() != m_intPropertyManager->value(m_pixelXProperty) )
                 {
                     m_intPropertyManager->setValue(m_pixelXProperty, info.Pixel.x());
                 }
-                if( info.Pixel.y() != m_intPropertyManager->value(m_pixelYProperty) )
+                if( (int)info.Pixel.y() != m_intPropertyManager->value(m_pixelYProperty) )
                 {
                     m_intPropertyManager->setValue(m_pixelYProperty, info.Pixel.y());
                 }

@@ -52,12 +52,12 @@ int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> m
         glutCreateWindow("fake");
 
     ElVis::Camera c;
-    c.SetParameters(ElVis::WorldPoint(.5, .5, 1.2), ElVis::WorldPoint(.5, .5, 0), ElVis::WorldVector(0, 1, 0));
+    c.SetParameters(ElVis::WorldPoint(.5, .5, 1.2), ElVis::WorldPoint(.5, .5, 0.), ElVis::WorldVector(0., 1., 0.));
 
     boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
 
-    BOOST_AUTO(l, boost::make_shared<ElVis::PointLight>());
+    auto l = boost::make_shared<ElVis::PointLight>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);
@@ -83,17 +83,17 @@ int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> m
     view->AddRenderModule(primaryRayModule);
 
     boost::shared_ptr<ElVis::Triangle> triangle1(new ElVis::Triangle());
-    triangle1->SetP0(ElVis::WorldPoint(0, 0, .5));
-    triangle1->SetP1(ElVis::WorldPoint(1, 0, .5));
-    triangle1->SetP2(ElVis::WorldPoint(1, 1, .5));
+    triangle1->SetP0(ElVis::WorldPoint(0., 0., .5));
+    triangle1->SetP1(ElVis::WorldPoint(1., 0., .5));
+    triangle1->SetP2(ElVis::WorldPoint(1., 1., .5));
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t1Sampler(new ElVis::SampleVolumeSamplerObject(triangle1));
     primaryRayModule->AddObject(t1Sampler);
 
 
     boost::shared_ptr<ElVis::Triangle> triangle2(new ElVis::Triangle());
-    triangle2->SetP0(ElVis::WorldPoint(1, 1, .5));
-    triangle2->SetP1(ElVis::WorldPoint(0, 1, .5));
-    triangle2->SetP2(ElVis::WorldPoint(0, 0, .5));
+    triangle2->SetP0(ElVis::WorldPoint(1., 1., .5));
+    triangle2->SetP1(ElVis::WorldPoint(0., 1., .5));
+    triangle2->SetP2(ElVis::WorldPoint(0., 0., .5));
     boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t2Sampler(new ElVis::SampleVolumeSamplerObject(triangle2));
     primaryRayModule->AddObject(t2Sampler);
 

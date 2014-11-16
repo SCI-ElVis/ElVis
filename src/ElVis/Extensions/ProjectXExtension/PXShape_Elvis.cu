@@ -78,7 +78,7 @@ URL:    http://raphael.mit.edu
 #define GEOM_USE_P0 1
 #define GEOM_USE_P1 1
 #define GEOM_USE_P2 1
-#define GEOM_USE_P3 0
+#define GEOM_USE_P3 1
 #define GEOM_USE_P4 0
 #define GEOM_USE_P5 0
 
@@ -244,6 +244,7 @@ PXShapeHierarch1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     return 0;
 #endif
   default:
+    ALWAYS_PRINTF("PXShapeHierarch1d: Unknown order $d ", porder);
     return -1;
   }
 } // ShapeHierarch1d
@@ -254,11 +255,8 @@ PXShapeHierarch1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 template <typename DT> ELVIS_DEVICE int
 PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
-  DT x;
-  DT x2;
 
-  
-  x = xref[0];
+  DT x = xref[0];
 
   switch ( porder ) {
 #if GEOM_USE_P0  
@@ -268,20 +266,25 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
 #endif
 #if GEOM_USE_P1
   case 1:
+  {
     phi[0] = 1.0 - x;
     phi[1] = x;
     return 0;
+  }
 #endif
 #if GEOM_USE_P2
   case 2:
-    x2=x*x;
+  {
+    DT x2=x*x;
     phi[0] = 1.0 - 3.0*x + 2.0*x2;
     phi[1] =       4.0*x - 4.0*x2;
     phi[2] =     - 1.0*x + 2.0*x2;
     return 0;
+  }
 #endif
 #if GEOM_USE_P3
   case 3:
+  {
     DT x2=x*x;
     DT x3=x2*x;
     phi[0] =  1.0 - 5.5*x +  9.0*x2 -  4.5*x3;
@@ -289,6 +292,7 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
     phi[2] =      - 4.5*x + 18.0*x2 - 13.5*x3;
     phi[3] =        1.0*x -  4.5*x2 +  4.5*x3;
     return 0;
+  }
 #endif
 #if GEOM_USE_P4
   case 4:
@@ -317,6 +321,7 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
     return 0;
 #endif
   default:
+    ALWAYS_PRINTF("PXShapeUniformLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -328,32 +333,38 @@ template <typename DT> ELVIS_DEVICE int
 PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
   DT x;
-  DT xx;
   
   x = xref[0];
 
   switch ( porder ) {
 #if GEOM_USE_P0
   case 0:
+  {
     phi[ 0] = 1.0;
     return 0;
+  }
 #endif
 #if GEOM_USE_P1
   case 1:
+  {
     phi[ 0] = 1.0-x;
     phi[ 1] = x;
     return 0;
+  }
 #endif
 #if GEOM_USE_P2
   case 2:
-    xx = x*x;
+  {
+    DT xx = x*x;
     phi[0] = 1.0 - 3.0*x + 2.0*xx;
     phi[1] =       4.0*x - 4.0*xx;
     phi[2] =     - 1.0*x + 2.0*xx;    
     return 0;
+  }
 #endif
 #if GEOM_USE_P3
   case 3:
+  {
     DT xx = x*x;
     DT xxx = xx*x;
     phi[0] = ( 3.0 - 19.0*x + 32.0*xx - 16.0*xxx)*ONETHIRD;
@@ -361,6 +372,7 @@ PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTR
     phi[2] = (     -  8.0*x + 40.0*xx - 32.0*xxx)*ONETHIRD;
     phi[3] = (        3.0*x - 16.0*xx + 16.0*xxx)*ONETHIRD;
     return 0;
+  }
 #endif
 #if GEOM_USE_P4
   case 4:
@@ -392,6 +404,7 @@ PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTR
     return 0;
 #endif
   default:
+    ALWAYS_PRINTF("PXShapeSpectralLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 } 
@@ -404,7 +417,6 @@ template <typename DT> ELVIS_DEVICE int
 PXShapeHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
   DT x, y;
-  DT xx, xy, yy;
 
   x = xref[0];
   y = xref[1];
@@ -429,7 +441,7 @@ PXShapeHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 #endif
 #if GEOM_USE_P3 && GEOM_USE_P2 && GEOM_USE_P1  
   if (porder >= 3){
-    xy=x*y;
+    DT xy=x*y;
     
     phi[6] = -xy*SQUAREROOT10*(y-x);
     phi[7] = -(-1.0+x+y)*y*SQUAREROOT10*(-1.0+x+2.0*y);
@@ -440,9 +452,9 @@ PXShapeHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 #endif
 #if GEOM_USE_P4 && GEOM_USE_P3 && GEOM_USE_P2 && GEOM_USE_P1
   if (porder >= 4){
-    yy=y*y;
-    xy=x*y;
-    xx=x*x;
+    DT yy=y*y;
+    DT xy=x*y;
+    DT xx=x*x;
     
     phi[10] = -xy*SQUAREROOT14*(5.0*yy-10.0*xy+5.0*xx-1.0)*0.25;
     phi[11] = (-1.0+x+y)*y*SQUAREROOT14*(4.0-10.0*x-20.0*y+5.0*xx+20.0*xy+20.0*yy)*0.25;
@@ -454,9 +466,9 @@ PXShapeHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 #endif
 #if GEOM_USE_P5 && GEOM_USE_P4 && GEOM_USE_P3 && GEOM_USE_P2 && GEOM_USE_P1
   if (porder >= 5){
-    yy=y*y;
-    xy=x*y;
-    xx=x*x;
+    DT yy=y*y;
+    DT xy=x*y;
+    DT xx=x*x;
 
     phi[15] = -0.75*xy*SQUAREROOT2*(7.0*yy-14.0*xy+7.0*xx-3.0)*(y-x);
     phi[16] = -0.75*(-1.0+x+y)*y*SQUAREROOT2*(4.0-14.0*x-28.0*y+7.0*xx+28.0*xy+28.0*yy)*(-1.0+x+2.0*y);
@@ -468,9 +480,9 @@ PXShapeHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
   }
 #endif
 
-  //if (porder >= 6){
+  ALWAYS_PRINTF("PXShapeHierarch2d: Unknown order $d ", porder);
   return -1;
- // }
+
 } // PXShapeHierarch2d
 
 
@@ -480,7 +492,7 @@ template <typename DT> ELVIS_DEVICE int
 PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 {
   DT     x,         y;
-  DT    xx,    xy,    yy;
+  //DT    xx,    xy,    yy;
   //DT   xxx,   xxy,   xyy,   yyy;
   //DT  xxxx,  xxxy,  xxyy,  xyyy,  yyyy;
   //DT xxxxx, xxxxy, xxxyy, xxyyy, xyyyy;
@@ -493,21 +505,26 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
   switch (porder) {
 #if GEOM_USE_P0    
   case 0:
+  {
     phi[0] = 1.0;
     return 0;
+  }
 #endif
 #if GEOM_USE_P1
   case 1:
+  {
     phi[0] = 1-x-y;
     phi[1] =   x  ;
     phi[2] =     y;
     return 0;
+  }
 #endif
 #if GEOM_USE_P2
   case 2:
-    xx=x*x;
-    xy=x*y;
-    yy=y*y;
+  {
+    DT xx=x*x;
+    DT xy=x*y;
+    DT yy=y*y;
     
     phi[0] = 1.0-3.0*x-3.0*y+2.0*xx+4.0*xy+2.0*yy;
     phi[1] = -x+2.0*xx;
@@ -516,16 +533,18 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     phi[4] = 4.0*y-4.0*xy-4.0*yy;
     phi[5] = 4.0*x-4.0*xx-4.0*xy;
     return 0;
+  }
 #endif
 #if GEOM_USE_P3
   case 3:
-    xx=x*x;
-    xy=x*y;
-    yy=y*y;
-    xxx=xx*x;
-    xxy=xx*y;
-    xyy=xy*y;
-    yyy=yy*y;
+  {
+    DT xx=x*x;
+    DT xy=x*y;
+    DT yy=y*y;
+    DT xxx=xx*x;
+    DT xxy=xx*y;
+    DT xyy=xy*y;
+    DT yyy=yy*y;
     
     phi[0] = 1.0-5.5*x-5.5*y +9.0*xx+18.0*xy +9.0*yy -4.5*xxx-13.5*xxy-13.5*xyy -4.5*yyy;
     phi[1] =         x       -4.5*xx                 +4.5*xxx;
@@ -538,6 +557,7 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     phi[8] =    -4.5*x      +18.0*xx +4.5*xy        -13.5*xxx-13.5*xxy;
     phi[9] =                         27.0*xy                 -27.0*xxy-27.0*xyy;
     return 0;
+  }
 #endif
 #if GEOM_USE_P4	   
   case 4:
@@ -642,6 +662,7 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     return 0;
 #endif
   default:
+    ALWAYS_PRINTF("PXShapeLagrange2d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -1288,33 +1309,42 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
   switch ( porder ) {
 #if GEOM_USE_P0    
   case 0:
+  {
     gphi[0] = 0.0;
     return 0;
+  }
 #endif
 #if GEOM_USE_P1
   case 1:
+  {
     gphi[0] = -1.0;
     gphi[1] = 1.0;
     return 0;
+  }
 #endif
 #if GEOM_USE_P2
   case 2:
+  {
     gphi[0] = -3.0 + 4.0*x;
     gphi[1] =  4.0 - 8.0*x;
     gphi[2] = -1.0 + 4.0*x;
     return 0;
+  }
 #endif
 #if GEOM_USE_P3
   case 3:
+  {
     DT xx = x*x;
     gphi[0] = -5.5 + 18.0*x - 13.5*xx;
     gphi[1] =  9.0 - 45.0*x + 40.5*xx;
     gphi[2] = -4.5 + 36.0*x - 40.5*xx;
     gphi[3] =  1.0 -  9.0*x + 13.5*xx;
     return 0;
+  }
 #endif
 #if GEOM_USE_P4
   case 4:
+  {
     DT xx = x*x;
     DT xxx = xx*x;
     gphi[0] = ( - 25.0 + 140.0*x - 240.0*xx + 128.0*xxx )*ONETHIRD;
@@ -1323,9 +1353,11 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
     gphi[3] = (   16.0 - 224.0*x + 672.0*xx - 512.0*xxx )*ONETHIRD;
     gphi[4] = ( -  3.0 +  44.0*x - 144.0*xx + 128.0*xxx )*ONETHIRD;   
     return 0;
+  }
 #endif
 #if GEOM_USE_P5
   case 5:
+  {
     DT xx = x*x;
     DT xxx = xx*x;
     DT xxxx = xxx*x;
@@ -1336,8 +1368,10 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
     gphi[4] = ( - 150.0 + 3050.0*x - 15375.0*xx + 27500.0*xxx -15625.0*xxxx ) * ONETWENTYFOURTH;
     gphi[5] = (    24.0 -  500.0*x +  2625.0*xx -  5000.0*xxx + 3125.0*xxxx ) * ONETWENTYFOURTH;
     return 0;
+  }
 #endif
   default:
+    ALWAYS_PRINTF("PXGradientsUniformLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -1355,35 +1389,44 @@ PXGradientsSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * R
   switch ( porder ) {
 #if GEOM_USE_P0
   case 0:
+  {
     gphi[0] = 0.0;
     return 0;
+  }
 #endif
 #if GEOM_USE_P1
   case 1:
+  {
     gphi[0] = -1.0;
     gphi[1] = 1.0;
     return 0;
+  }
 #endif
 #if GEOM_USE_P2
   case 2:
+  {
     gphi[0] = -3.0 + 4.0*x;
     gphi[1] =  4.0 - 8.0*x;
     gphi[2] = -1.0 + 4.0*x;
     return 0;
+  }
 #endif
 #if GEOM_USE_P3
   case 3:
-    xx=x*x;
+  {
+    DT xx=x*x;
     gphi[0] = ( - 19.0 + 64.0*x - 48.0*xx)*ONETHIRD;
     gphi[1] = (   24.0 -112.0*x + 96.0*xx)*ONETHIRD;
     gphi[2] = ( -  8.0 + 80.0*x - 96.0*xx)*ONETHIRD;
     gphi[3] = (    3.0 - 32.0*x + 48.0*xx)*ONETHIRD;
     return 0;
+  }
 #endif
 #if GEOM_USE_P4
   case 4:
-    xx=x*x;
-    xxx=xx*x;
+  {
+    DT xx=x*x;
+    DT xxx=xx*x;
     gphi[ 0] = - 11.0 + 68.0*x - 120.0*xx + 64.0*xxx;
     gphi[ 1] = 4.0*(2.0+SQUAREROOT2) - (24.0*SQUAREROOT2+80.0)*x + ( 24.0*SQUAREROOT2+192.0)*xx - 128.0*xxx;
     gphi[ 2] = -4.0 + 72.0*x - 192.0*xx + 128.0*xxx;
@@ -1391,12 +1434,14 @@ PXGradientsSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * R
     gphi[ 4] = -1.0 + 20.0*x - 72.0*xx + 64.0*xxx;
  
     return 0;
+  }
 #endif
 #if GEOM_USE_P5
   case 5:
-    xx=x*x;
-    xxx=xx*x;
-    xxxx=xxx*x;
+  {
+    DT xx=x*x;
+    DT xxx=xx*x;
+    DT xxxx=xxx*x;
     
     gphi[0] = - 17.0 + 166.4*x - 508.8*xx + 614.4*xxx - 256.0*xxxx;
     gphi[1] = 4.0*(SQUAREROOT5+3.0) - (40.0*SQUAREROOT5+184.0)*x + ( 86.4*SQUAREROOT5+739.2)*xx - (51.2*SQUAREROOT5+1075.2)*xxx + 512.0*xxxx;
@@ -1405,9 +1450,11 @@ PXGradientsSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * R
     gphi[4] = 0.8*(SQUAREROOT5-5.0) - (20.8*SQUAREROOT5-116.8)*x - (-67.2*SQUAREROOT5+585.6)*xx - (51.2*SQUAREROOT5- 972.8)*xxx - 512.0*xxxx;
     gphi[5] =  1.0 - 32.0*x + 201.6*xx - 409.6*xxx + 256.0*xxxx;
     return 0;
+  }
 #endif
 
   default:
+    ALWAYS_PRINTF("PXGradientsSpectralLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -1491,8 +1538,10 @@ PXGradientsHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT 
     gphi[n+20] =  -40.0*x*x*x*y*SQUAREROOT7*SQUAREROOT3+50.0*y*SQUAREROOT7*SQUAREROOT3*x*x-37.5*x*x*y*y*SQUAREROOT7*SQUAREROOT3-14.0*x*y*SQUAREROOT7*SQUAREROOT3+22.5*y*y*SQUAREROOT7*SQUAREROOT3*x-10.0*x*y*y*y*SQUAREROOT7*SQUAREROOT3+20.0*x*x*x*SQUAREROOT7*SQUAREROOT3-12.0*x*x*SQUAREROOT7*SQUAREROOT3+2.0*x*SQUAREROOT7*SQUAREROOT3-10.0*x*x*x*x*SQUAREROOT7*SQUAREROOT3;
   }
 #endif 
-  if (porder >= 6)
+  if (porder >= 6) {
+    ALWAYS_PRINTF("PXGradientsHierarch2d: Unknown order $d ", porder);
     return -1;
+  }
 
   return 0;
 
@@ -1650,6 +1699,7 @@ PXGradientsLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT 
     return 0;
 #endif
   default:
+    ALWAYS_PRINTF("PXGradientsLagrange2d: Unknown order $d ", porder);
     return -1;
   }
 } // PXGradientsLagrange2d
@@ -3057,6 +3107,21 @@ PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
   /*                             Switch over Order                                        */
   /****************************************************************************************/
   switch (order) {   
+  case PXE_LagrangeP0:
+  case PXE_LagrangeP1:
+  case PXE_LagrangeP2:
+  case PXE_LagrangeP3:
+  case PXE_LagrangeP4:
+  case PXE_LagrangeP5:
+      ( PXShapeLagrange2d<DT>(porder, xref, phi) );
+      return PX_NO_ERROR;
+  case PXE_HierarchP1:
+  case PXE_HierarchP2:
+  case PXE_HierarchP3:
+  case PXE_HierarchP4:
+  case PXE_HierarchP5:
+      ( PXShapeHierarch2d(porder, xref, phi) );
+      return PX_NO_ERROR;
   case PXE_Lagrange3dP0:
   case PXE_Lagrange3dP1: 
   case PXE_Lagrange3dP2: 
@@ -3089,7 +3154,7 @@ PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
     ( PXShapeHexSpectralLagrange3d<DT>(porder, xref, phi) );
     return PX_NO_ERROR;
   default:
-    ELVIS_PRINTF("Unknown order = %d\n", order);
+    ELVIS_PRINTF("PXShapeElem: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -3114,7 +3179,22 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
   /****************************************************************************************/
   /*                             Switch over Order                                        */
   /****************************************************************************************/
-  switch (order) {   
+  switch (order) {
+  case PXE_LagrangeP0:
+  case PXE_LagrangeP1:
+  case PXE_LagrangeP2:
+  case PXE_LagrangeP3:
+  case PXE_LagrangeP4:
+  case PXE_LagrangeP5:
+      ( PXShapeLagrange2d<DT>(porder, xref, phi) );
+      return PX_NO_ERROR;
+   case PXE_HierarchP1:
+   case PXE_HierarchP2:
+   case PXE_HierarchP3:
+   case PXE_HierarchP4:
+   case PXE_HierarchP5:
+       ( PXShapeHierarch2d(porder, xref, phi) );
+       return PX_NO_ERROR;
   case PXE_Lagrange3dP0:
   case PXE_Lagrange3dP1: 
   case PXE_Lagrange3dP2: 
@@ -3147,7 +3227,7 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
     ( PXShapeHexSpectralLagrange3d<DT>(porder, xref, phi) );
     return PX_NO_ERROR;
   default:
-    ELVIS_PRINTF("Unknown order = %d\n", order);
+    ELVIS_PRINTF("PXShapeElem_Solution: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -3190,13 +3270,13 @@ PXShapeFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
   case PXE_SpectralLagrange1dP5:
     ( PXShapeSpectralLagrange1d<DT>(porder, xref, phi) );
     return PX_NO_ERROR;
-  /* case PXE_Hierarch1dP1: */
-  /* case PXE_Hierarch1dP2: */
-  /* case PXE_Hierarch1dP3: */
-  /* case PXE_Hierarch1dP4: */
-  /* case PXE_Hierarch1dP5: */
-  /*   ( PXShapeHierarch1d(porder, xref, phi) ); */
-  /*   return PX_NO_ERROR; */
+   case PXE_Hierarch1dP1:
+   case PXE_Hierarch1dP2:
+   case PXE_Hierarch1dP3:
+   case PXE_Hierarch1dP4:
+   case PXE_Hierarch1dP5:
+     ( PXShapeHierarch1d(porder, xref, phi) );
+     return PX_NO_ERROR;
   case PXE_LagrangeP0:
   case PXE_LagrangeP1:
   case PXE_LagrangeP2: 
@@ -3205,13 +3285,13 @@ PXShapeFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
   case PXE_LagrangeP5:
     ( PXShapeLagrange2d<DT>(porder, xref, phi) );
     return PX_NO_ERROR;
-  /* case PXE_HierarchP1: */
-  /* case PXE_HierarchP2: */
-  /* case PXE_HierarchP3:  */
-  /* case PXE_HierarchP4:  */
-  /* case PXE_HierarchP5:  */
-  /*   ( PXShapeHierarch2d(porder, xref, phi) ); */
-  /*   return PX_NO_ERROR; */
+   case PXE_HierarchP1:
+   case PXE_HierarchP2:
+   case PXE_HierarchP3:
+   case PXE_HierarchP4:
+   case PXE_HierarchP5:
+     ( PXShapeHierarch2d(porder, xref, phi) );
+     return PX_NO_ERROR;
   case PXE_QuadUniformLagrangeP0:
   case PXE_QuadUniformLagrangeP1:
   case PXE_QuadUniformLagrangeP2: 
@@ -3229,7 +3309,7 @@ PXShapeFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
     ( PXShapeQuadSpectralLagrange2d<DT>(porder, xref, phi) );
     return PX_NO_ERROR;
   default:
-    //ELVIS_PRINTF("Unknown order = %d\n", order);
+    ALWAYS_PRINTF("PXShapeFace: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -3357,6 +3437,30 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   /*                             Switch over Order                                        */
   /****************************************************************************************/
   switch (order) {
+  case PXE_LagrangeP0:
+  case PXE_LagrangeP1:
+  case PXE_LagrangeP2:
+  case PXE_LagrangeP3:
+  case PXE_LagrangeP4:
+  case PXE_LagrangeP5:
+    ( PXGradientsLagrange2d<DT>(porder, xref, gphi) );
+    return PX_NO_ERROR;
+  case PXE_QuadUniformLagrangeP0:
+  case PXE_QuadUniformLagrangeP1:
+  case PXE_QuadUniformLagrangeP2:
+  case PXE_QuadUniformLagrangeP3:
+  case PXE_QuadUniformLagrangeP4:
+  case PXE_QuadUniformLagrangeP5:
+    ( PXGradientsQuadUniformLagrange2d<DT>(porder, xref, gphi) );
+    return PX_NO_ERROR;
+  case PXE_QuadSpectralLagrangeP0:
+  case PXE_QuadSpectralLagrangeP1:
+  case PXE_QuadSpectralLagrangeP2:
+  case PXE_QuadSpectralLagrangeP3:
+  case PXE_QuadSpectralLagrangeP4:
+  case PXE_QuadSpectralLagrangeP5:
+    ( PXGradientsQuadSpectralLagrange2d<DT>(porder, xref, gphi) );
+    return PX_NO_ERROR;
   case PXE_Lagrange3dP0:
   case PXE_Lagrange3dP1: 
   case PXE_Lagrange3dP2: 
@@ -3365,14 +3469,13 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_Lagrange3dP5: 
       ( PXGradientsLagrange3d<DT>(porder, xref, gphi) );
       return PX_NO_ERROR;
-  /* case PXE_Hierarch3dP1:  */
-  /* case PXE_Hierarch3dP2:  */
-  /* case PXE_Hierarch3dP3:  */
-  /* case PXE_Hierarch3dP4:  */
-  /* case PXE_Hierarch3dP5: */
-  /*     ( PXGradientsHierarch3d(porder, xref, gphi) ); */
-  /*     return PX_NO_ERROR; */
-      /*
+   case PXE_Hierarch3dP1:
+   case PXE_Hierarch3dP2:
+   case PXE_Hierarch3dP3:
+   case PXE_Hierarch3dP4:
+   case PXE_Hierarch3dP5:
+       ( PXGradientsHierarch3d(porder, xref, gphi) );
+       return PX_NO_ERROR;
   case PXE_HexUniformLagrangeP0:
   case PXE_HexUniformLagrangeP1:
   case PXE_HexUniformLagrangeP2: 
@@ -3389,10 +3492,10 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
   case PXE_HexSpectralLagrangeP5:
     ( PXGradientsHexSpectralLagrange3d<DT>(porder, xref, gphi) );
     return PX_NO_ERROR;
-    */
+
    default:
-     ELVIS_PRINTF("********* Unknown order = %d ***********\n", order);
-    return PXErrorDebug(PX_BAD_INPUT);
+     ALWAYS_PRINTF("PXGradientsElem: Unknown order = %d\n", order);
+     return PXErrorDebug(PX_BAD_INPUT);
   }
 
 }
@@ -3420,32 +3523,32 @@ PXGradientsElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RE
   case PXE_Lagrange3dP5: 
       ( PXGradientsLagrange3d_Solution<DT>(porder, xref, gphi) );
       return PX_NO_ERROR;
-  /* case PXE_Hierarch3dP1:  */
-  /* case PXE_Hierarch3dP2:  */
-  /* case PXE_Hierarch3dP3:  */
-  /* case PXE_Hierarch3dP4:  */
-  /* case PXE_Hierarch3dP5: */
-  /*     ( PXGradientsHierarch3d(porder, xref, gphi) ); */
-  /*     return PX_NO_ERROR; */
-  /* case PXE_HexUniformLagrangeP0: */
-  /* case PXE_HexUniformLagrangeP1: */
-  /* case PXE_HexUniformLagrangeP2:  */
-  /* case PXE_HexUniformLagrangeP3: */
-  /* case PXE_HexUniformLagrangeP4: */
-  /* case PXE_HexUniformLagrangeP5: */
-  /*   ( PXGradientsHexUniformLagrange3d<DT>(porder, xref, gphi) ); */
-  /*   return PX_NO_ERROR; */
-  /* case PXE_HexSpectralLagrangeP0: */
-  /* case PXE_HexSpectralLagrangeP1: */
-  /* case PXE_HexSpectralLagrangeP2:  */
-  /* case PXE_HexSpectralLagrangeP3: */
-  /* case PXE_HexSpectralLagrangeP4: */
-  /* case PXE_HexSpectralLagrangeP5: */
-  /*   ( PXGradientsHexSpectralLagrange3d<DT>(porder, xref, gphi) ); */
-  /*   return PX_NO_ERROR; */
+   case PXE_Hierarch3dP1:
+   case PXE_Hierarch3dP2:
+   case PXE_Hierarch3dP3:
+   case PXE_Hierarch3dP4:
+   case PXE_Hierarch3dP5:
+       ( PXGradientsHierarch3d(porder, xref, gphi) );
+       return PX_NO_ERROR;
+   case PXE_HexUniformLagrangeP0:
+   case PXE_HexUniformLagrangeP1:
+   case PXE_HexUniformLagrangeP2:
+   case PXE_HexUniformLagrangeP3:
+   case PXE_HexUniformLagrangeP4:
+   case PXE_HexUniformLagrangeP5:
+     ( PXGradientsHexUniformLagrange3d<DT>(porder, xref, gphi) );
+     return PX_NO_ERROR;
+   case PXE_HexSpectralLagrangeP0:
+   case PXE_HexSpectralLagrangeP1:
+   case PXE_HexSpectralLagrangeP2:
+   case PXE_HexSpectralLagrangeP3:
+   case PXE_HexSpectralLagrangeP4:
+   case PXE_HexSpectralLagrangeP5:
+     ( PXGradientsHexSpectralLagrange3d<DT>(porder, xref, gphi) );
+     return PX_NO_ERROR;
    default:
-     //ELVIS_PRINTF("Unknown order = %d\n", order);
-    return PXErrorDebug(PX_BAD_INPUT);
+     ALWAYS_PRINTF("PXGradientsElem_Solution: Unknown order = %d\n", order);
+     return PXErrorDebug(PX_BAD_INPUT);
   }
 
 }
@@ -3523,7 +3626,7 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
     return PX_NO_ERROR;
 
    default:
-    ELVIS_PRINTF("PXGradientsFace: Unknown order = %d\n", order);
+    ALWAYS_PRINTF("PXGradientsFace: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -3742,7 +3845,7 @@ LinearSimplexGlob2Ref(ElVisFloat const * RESTRICT vertices, PX_REAL const * REST
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
-  return PX_NO_ERROR;
+  //return PX_NO_ERROR;
 }
 
 

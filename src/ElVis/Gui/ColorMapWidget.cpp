@@ -62,7 +62,7 @@ namespace ElVis
             QWidget* widget = new QWidget();
 
             // Left showing files.
-            QWidget* fileWidget = new QWidget();
+            //QWidget* fileWidget = new QWidget();
             m_fileLayout->addWidget(m_listOfColorMaps, 0, 0, 1, 2);
             m_fileLayout->addWidget(m_loadColorMapButton, 1, 0);
             m_fileLayout->addWidget(m_saveColorMapButton, 1, 1);
@@ -99,7 +99,7 @@ namespace ElVis
             m_editorLayout->addWidget(m_colorMapEditor, 0, 0);
             m_editorLayout->addWidget(m_selectedColorBrowser, 1, 0);
 
-            QWidget* editorWidget = new QWidget();
+            //QWidget* editorWidget = new QWidget();
             //editorWidget->setLayout(m_editorLayout);
 
             // Combine it all.
@@ -143,7 +143,7 @@ namespace ElVis
             if( m_rect->GetTransferFunction() && 
                 selectedPoint != m_rect->GetTransferFunction()->GetBreakpoints().end() )
             {
-                BOOST_AUTO(transferFunction, m_rect->GetTransferFunction());
+                auto transferFunction = m_rect->GetTransferFunction();
                 transferFunction->SetBreakpoint(selectedPoint, m_selectedColor);
                 m_rect->ForceUpdate();
             }

@@ -131,7 +131,6 @@ PXFaceNormalReferenceGivenGradients( int nnode, PX_REAL const *gphi,
 
   default:
     return PXError(PX_CODE_FLOW_ERROR);
-    break;
   }
 
   return PX_NO_ERROR;

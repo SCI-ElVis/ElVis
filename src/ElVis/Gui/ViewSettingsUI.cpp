@@ -37,9 +37,9 @@ namespace ElVis
         ViewSettingsUI::ViewSettingsUI(boost::shared_ptr<ApplicationState> appData) :
             QDockWidget("View Settings"),
             m_appData(appData),
+            m_browser(0),
             m_cameraPropertyManager(new CameraPropertyManager()),
             m_cameraProperty(0),
-            m_browser(0),
             m_layout(0),
             m_groupPropertyManager(new QtGroupPropertyManager()),
             m_intPropertyManager(new QtIntPropertyManager()),
@@ -107,7 +107,7 @@ namespace ElVis
         void ViewSettingsUI::HandleProjectionChangedInGui(QtProperty* prop, int value)
         {
             SceneViewProjection newProjectionType = static_cast<SceneViewProjection>(value);
-            BOOST_AUTO(view, m_appData->GetSurfaceSceneView());
+            auto view = m_appData->GetSurfaceSceneView();
             if( view && view->GetProjectionType() != newProjectionType )
             {
                 view->SetProjectionType(newProjectionType);

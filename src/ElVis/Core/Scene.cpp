@@ -55,7 +55,7 @@ namespace ElVis
         m_model(),
         m_context(0),
         m_allPrimaryObjects(),
-        m_optixStackSize(8000),
+        m_optixStackSize(10000),
         m_colorMaps(),
         m_enableOptiXTrace(true),
         m_optiXTraceBufferSize(100000),
@@ -70,11 +70,6 @@ namespace ElVis
     {
         m_optixTraceIndex.SetX(0);
         m_optixTraceIndex.SetY(0);
-        m_optixTraceIndex.SetZ(-1);
-
-        // For some reason in gcc, setting this in the constructor initialization list
-        // doesn't work.
-        m_optixDataDirty = true;
     }
 
     Scene::~Scene()
@@ -148,8 +143,8 @@ namespace ElVis
                 std::cout << "Total Lights: " << m_allLights.size() << std::endl;
                 for(std::list<boost::shared_ptr<Light> >::iterator iter = m_allLights.begin(); iter != m_allLights.end(); ++iter)
                 {
-                    BOOST_AUTO(asDirectional, boost::dynamic_pointer_cast<DirectionalLight>(*iter));
-                    BOOST_AUTO(asPointLight, boost::dynamic_pointer_cast<PointLight>(*iter));
+                    auto asDirectional = boost::dynamic_pointer_cast<DirectionalLight>(*iter);
+                    auto asPointLight = boost::dynamic_pointer_cast<PointLight>(*iter);
 
                     if( asDirectional )
                     {
@@ -196,6 +191,7 @@ namespace ElVis
                     GetModel()->CalculateExtents();
                     SetFloat(m_context["VolumeMinExtent"], GetModel()->MinExtent());
                     SetFloat(m_context["VolumeMaxExtent"], GetModel()->MaxExtent());
+                    m_context["ModelDimension"]->setInt(GetModel()->GetModelDimension());
 
                     // Version 2.0 Interface.
                     GetModel()->CopyToOptiX(m_context);
@@ -234,7 +230,7 @@ namespace ElVis
         }
 
         //std::cout << "PrintBufferSize " << m_context->getPrintBufferSize() << " ElVis size " << m_optiXTraceBufferSize << std::endl;
-        if( m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
+        if( (int)m_context->getPrintBufferSize() != m_optiXTraceBufferSize )
         {
             m_context->setPrintBufferSize(m_optiXTraceBufferSize);
         }
@@ -275,7 +271,7 @@ namespace ElVis
         }
 
         tinyxml::TiXmlHandle docHandle(&doc);
-        tinyxml::TiXmlNode* node = 0;
+        //tinyxml::TiXmlNode* node = 0;
         tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ColorMap");
 
         if( !rootElement )
@@ -285,7 +281,7 @@ namespace ElVis
         }
 
         const char* name = rootElement->Attribute("name");
-        const char* colorSpace = rootElement->Attribute("space");
+        //const char* colorSpace = rootElement->Attribute("space");
 
         if( !name )
         {
@@ -311,7 +307,7 @@ namespace ElVis
 
         while( pointElement )
         {
-            float scalar, r, g, b, o;
+            float scalar = 0, r = 0, g = 0, b = 0, o = 0;
             int scalarResult = pointElement->QueryFloatAttribute("x", &scalar);
             int rResult = pointElement->QueryFloatAttribute("r", &r);
             int gResult = pointElement->QueryFloatAttribute("g", &g);
@@ -392,7 +388,7 @@ namespace ElVis
         OnEnableTraceChanged(newValue);
     }
 
-    void Scene::SetOptixTracePixelIndex(const Point<int, TwoD>& newValue)
+    void Scene::SetOptixTracePixelIndex(const Point<unsigned int, TwoD>& newValue)
     {
         if( m_optixTraceIndex == newValue ) return;
 

@@ -31,7 +31,7 @@
 
 #include <ElVis/Core/Plugin.h>
 #include <ElVis/Core/Util.hpp>
-
+#include <boost/typeof/typeof.hpp>
 namespace ElVis
 {
     const std::string Plugin::GetNameFunctionName("GetPluginName");
@@ -76,7 +76,7 @@ namespace ElVis
 
     boost::shared_ptr<ElVis::Model> Plugin::LoadModel(const std::string& name)
     {
-        BOOST_AUTO(rawPtr, m_loadModelFunction(name.c_str()));
+        auto rawPtr = m_loadModelFunction(name.c_str());
         rawPtr->SetPlugin(shared_from_this());
 
         // We want to return a shared ptr to maintain consistency across ElVis,

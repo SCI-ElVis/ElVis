@@ -508,7 +508,10 @@ namespace ElVis
 
         ElVis::TensorVector Polyhedron::calculateScalarFunctionTensorGradient(const ElVis::TensorPoint& p)
         {
-            return ElVis::TensorVector(df_da(p), df_db(p), df_dc(p));
+            return ElVis::TensorVector(
+              static_cast<ElVis::TensorVector::value_type>(df_da(p)), 
+              static_cast<ElVis::TensorVector::value_type>(df_db(p)), 
+              static_cast<ElVis::TensorVector::value_type>(df_dc(p)));
         }
 
         ElVis::WorldVector Polyhedron::calculateScalarFunctionWorldGradient(const ElVis::TensorPoint& tp)
@@ -692,7 +695,7 @@ namespace ElVis
         {
             static int exact = 0;
             static int runs = 0;
-            static int tolerance = 0;
+            //static int tolerance = 0;
             static int iteration = 0;
             static int adjust = 0;
 
@@ -710,7 +713,7 @@ namespace ElVis
 
             int numIterations = 0;
             const int MAX_ITERATIONS = 10000;
-            bool done = false;
+            //bool done = false;
             do
             {
                 ElVis::WorldPoint f = transformReferenceToWorld(result) - p;
@@ -741,7 +744,7 @@ namespace ElVis
                 if( result == tempResult )
                 {
                     ++adjust;
-                    done = true;
+                    //done = true;
                 }
 
                 result = tempResult;
@@ -1086,7 +1089,7 @@ namespace ElVis
             double tempMin = std::numeric_limits<double>::max();
             double tempMax = -std::numeric_limits<double>::max();
 
-            const int numDivisions = 10;
+            const unsigned int numDivisions = 10;
             double h = 2.0/numDivisions;
 
             for(unsigned int i = 0; i < numDivisions; ++i)

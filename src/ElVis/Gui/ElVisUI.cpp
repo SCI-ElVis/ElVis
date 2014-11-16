@@ -337,8 +337,8 @@ namespace ElVis
             double y_mid = (maxExtent.y() + minExtent.y())/2.0;
             double z_mid = (maxExtent.z() + minExtent.z())/2.0;
 
-            // Default to a cut plane that spans the volume with a normal (1,0,0).
-            WorldPoint normal(1.0, 0.0, 0.0);
+            // Default to a cut plane that spans the volume with a normal (0,0,1).
+            WorldPoint normal(0.0, 0.0, 1.0);
             WorldPoint p(x_mid, y_mid, z_mid);
             boost::shared_ptr<ElVis::Plane> cutPlane(new ElVis::Plane(normal, p));
 
@@ -405,7 +405,7 @@ namespace ElVis
             UpdateRecentFileActions();
 
             m_settings->beginGroup("OptiX");
-            m_appData->GetScene()->SetOptixStackSize(m_settings->value(OptixStackSize, 2000).toInt());
+            m_appData->GetScene()->SetOptixStackSize(m_settings->value(OptixStackSize, m_appData->GetScene()->GetOptixStackSize() ).toInt());
             m_settings->endGroup();
 
         }
@@ -482,9 +482,9 @@ namespace ElVis
             this->setDockOptions(QMainWindow::AnimatedDocks);
             this->setDockOptions(QMainWindow::AllowTabbedDocks);
 
-            QDockWidget::DockWidgetFeatures features =
-                QDockWidget::DockWidgetMovable|
-                QDockWidget::DockWidgetFloatable;
+            //QDockWidget::DockWidgetFeatures features =
+            //    QDockWidget::DockWidgetMovable|
+            //    QDockWidget::DockWidgetFloatable;
 
             m_sceneItems = new SceneItemsDockWidget(m_appData, this, 0);
             this->addDockWidget(Qt::LeftDockWidgetArea, m_sceneItems);
@@ -545,7 +545,7 @@ namespace ElVis
         {
             int maxCharacters = 0;
             m_fieldComboBox->clear();
-            for(unsigned int i = 0; i < model->GetNumFields(); ++i)
+            for(int i = 0; i < model->GetNumFields(); ++i)
             {
                 FieldInfo info = model->GetFieldInfo(i);
                 m_fieldComboBox->addItem(QString(info.Name.c_str()), QVariant(info.Id));
@@ -785,18 +785,18 @@ namespace ElVis
         void addElement(const std::string& elementName, tinyxml::TiXmlNode* parentNode, 
             const T& value)
         {
-            BOOST_AUTO(childElement, new tinyxml::TiXmlElement(elementName.c_str()));
+            auto childElement = new tinyxml::TiXmlElement(elementName.c_str());
             parentNode->LinkEndChild(childElement);
 
             std::string asStr = boost::lexical_cast<std::string>(value);
-            BOOST_AUTO(text, new tinyxml::TiXmlText(asStr.c_str()));
+            auto text = new tinyxml::TiXmlText(asStr.c_str());
             childElement->LinkEndChild(text);
         }
 
         template<typename T>
         T getElement(const std::string& elementName, tinyxml::TiXmlNode* parentNode)
         {
-            BOOST_AUTO(childElement, parentNode->FirstChildElement(elementName.c_str()));
+            auto childElement = parentNode->FirstChildElement(elementName.c_str());
             std::string text = childElement->GetText();
             return boost::lexical_cast<T>(text);
         }
@@ -822,11 +822,11 @@ namespace ElVis
             QStringList::Iterator it = list.begin();
             QString fileName = *it;
 
-            BOOST_AUTO(pScene, m_appData->GetSurfaceSceneView()->GetScene());
+            auto pScene = m_appData->GetSurfaceSceneView()->GetScene();
             std::ofstream outFile(fileName.toStdString().c_str());
             boost::archive::xml_oarchive oa(outFile);
-            ElVis::Scene& scene = *pScene;
-            BOOST_AUTO(pSceneView, m_appData->GetSurfaceSceneView());
+            //ElVis::Scene& scene = *pScene;
+            auto pSceneView = m_appData->GetSurfaceSceneView();
             oa << BOOST_SERIALIZATION_NVP(pSceneView);
             outFile.close();
 
@@ -892,11 +892,11 @@ namespace ElVis
             }
 
             tinyxml::TiXmlHandle docHandle(&doc);
-            tinyxml::TiXmlNode* node = 0;
+            //tinyxml::TiXmlNode* node = 0;
             tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ElVisSettings");
 
             // Camera
-            BOOST_AUTO(cameraElement, rootElement->FirstChildElement("Camera"));
+            auto cameraElement = rootElement->FirstChildElement("Camera");
             boost::shared_ptr<Camera> camera = m_appData->GetSurfaceSceneView()->GetViewSettings();
             ElVis::WorldPoint eye;
             ElVis::WorldPoint lookAt;

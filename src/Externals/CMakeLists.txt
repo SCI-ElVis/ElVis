@@ -64,10 +64,40 @@ ADD_SUBDIRECTORY(tinyxml)
 #ADD_SUBDIRECTORY(boost)
 
 MESSAGE(STATUS "Configuring boost")
-FIND_PACKAGE( Boost 1.39.0 COMPONENTS system filesystem serialization thread program_options )
+FIND_PACKAGE( Boost COMPONENTS unit_test_framework system filesystem serialization thread program_options )
 IF( Boost_FOUND )
-  SET(BOOST_LIBRARY ${Boost_LIBRARIES} CACHE INTERNAL "Boost library name." FORCE)
+  SET(BOOST_LIBRARY ${Boost_LIBRARIES} CACHE INTERNAL "Boost library name." FORCE) 
+  
+  # allow the parent CMakeLists to see the result of finding boost.
+  SET( Boost_FOUND ${Boost_FOUND} PARENT_SCOPE)
+  SET( Boost_MAJOR_VERSION ${Boost_MAJOR_VERSION} PARENT_SCOPE)
+  SET( Boost_MINOR_VERSION ${Boost_MINOR_VERSION} PARENT_SCOPE)
 ELSE()
+  MESSAGE(STATUS "Missing at least one of: unit_test_framework system filesystem serialization thread program_options" )
+  MESSAGE(STATUS "Compiling boost from src/Externals/boost" )
+
+  UNSET( Boost_DIR CACHE )
+  UNSET( Boost_INCLUDE_DIR CACHE )
+  UNSET( Boost_LIBRARY_DIR CACHE )
+ 
+  UNSET( Boost_SYSTEM_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_SYSTEM_LIBRARY_RELEASE CACHE )
+  
+  UNSET( Boost_FILESYSTEM_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_FILESYSTEM_LIBRARY_RELEASE CACHE )
+
+  UNSET( Boost_SERIALIZATION_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_SERIALIZATION_LIBRARY_RELEASE CACHE )
+  
+  UNSET( Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE CACHE )
+
+  UNSET( Boost_THREAD_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_THREAD_LIBRARY_RELEASE CACHE )
+  
+  UNSET( Boost_UNIT_TEST_FRAMEWORK_LIBRARY_DEBUG CACHE )
+  UNSET( Boost_UNIT_TEST_FRAMEWORK_LIBRARY_RELEASE CACHE )
+
   ADD_SUBDIRECTORY(boost)
 ENDIF()
 
