@@ -32,6 +32,10 @@ sleep 5
 
 make check CTESTARGS="-T Test"
 
+if [[ $buildnode == "cleopatra.sci.utah.edu" ]]; then
+  /usr/local/VirtualGL/bin/vglrun make regcheck CTESTARGS="-T Test"
+fi
+
 kill `cat /tmp/.X${DNUM}-lock`
 
 if [[ $builddir == *"coverage"* ]]; then
