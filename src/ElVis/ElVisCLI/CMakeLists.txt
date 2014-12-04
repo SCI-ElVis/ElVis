@@ -235,16 +235,16 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --CompareFile "${BaselineDir}/VolumeRenderBulletTrapezoidalBaseline"
     )
 
-    ADD_ELVIS_REGTEST(IsosurfaceBullet1
-        --TestName IsosurfaceBullet
-        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
-        --Module ${JacobiExtensionPath}
-        --Width 1152  --Height 672
-        --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
-        --OutFile IsosurfaceBullet1
-        --Isovalues 0.0
-        --CompareFile "${BaselineDir}/IsosurfaceBullet1Baseline"
-    )
+#    ADD_ELVIS_REGTEST(IsosurfaceBullet1
+#        --TestName IsosurfaceBullet
+#        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P2.dat"
+#        --Module ${JacobiExtensionPath}
+#        --Width 1152  --Height 672
+#        --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
+#        --OutFile IsosurfaceBullet1
+#        --Isovalues 0.0
+#        --CompareFile "${BaselineDir}/IsosurfaceBullet1Baseline"
+#    )
 ENDIF()
 
 IF( ELVIS_ENABLE_ProjectX_EXTENSION )
