@@ -257,7 +257,7 @@ ELVIS_DEVICE WorldPoint TransformPrismReferenceToWorld(const ElVisFloat4* prismV
     return MakeFloat3(x, y, z);
 }
 
-ELVIS_DEVICE ReferencePoint TransformPrismWorldToReference(const ElVisFloat4* prismVertexBuffer, int prismId, const WorldPoint& p)
+ELVIS_DEVICE ElVisError TransformPrismWorldToReference(const ElVisFloat4* prismVertexBuffer, int prismId, const WorldPoint& p, ReferencePoint& result)
 {
     int runs = 0;
 
@@ -265,17 +265,9 @@ ELVIS_DEVICE ReferencePoint TransformPrismWorldToReference(const ElVisFloat4* pr
 
     ++runs;
 
-    //if( launch_index.x == 593 &&
-    //            launch_index.y == 966)
-    //{
-    //    ELVIS_PRINTF("##### Launch (%d, %d) Id = %d.  World Point = (%e, %e, %e)\n",
-    //        launch_index.x, launch_index.y, Id,
-    //        p.x, p.y, p.z);
-    //}
-
     // So we first need an initial guess.  We can probably make this smarter, but
     // for now let's go with 0,0,0.
-    ReferencePoint result = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+    result = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
     ElVisFloat inverse[9];
 
     int numIterations = 0;
@@ -283,48 +275,17 @@ ELVIS_DEVICE ReferencePoint TransformPrismWorldToReference(const ElVisFloat4* pr
     do
     {
         WorldPoint f = TransformPrismReferenceToWorld(prismVertexBuffer, prismId, result) - p;
-        //if( launch_index.x == 593 &&
-        //            launch_index.y == 966)
-        //{
-        //    ELVIS_PRINTF("Launch (%d, %d) Id = %d Iter %d.  f = (%e, %e, %e)\n",
-        //        launch_index.x, launch_index.y, Id,
-        //        numIterations,
-        //        f.x, f.y, f.z);
-        //}
 
         CalculateInversePrismJacobian(prismVertexBuffer, prismId, result, inverse);
-
-        //if( launch_index.x == 593 &&
-        //            launch_index.y == 966)
-        //{
-        //    ELVIS_PRINTF("(%e, %e, %e)\n(%e, %e, %e)\n(%e, %e, %e)\n",
-        //        inverse[0], inverse[1], inverse[2],
-        //        inverse[3], inverse[4], inverse[5],
-        //        inverse[6], inverse[7], inverse[8]
-        //        );
-        //}
 
         ElVisFloat r_adjust = (inverse[0]*f.x + inverse[1]*f.y + inverse[2]*f.z);
         ElVisFloat s_adjust = (inverse[3]*f.x + inverse[4]*f.y + inverse[5]*f.z);
         ElVisFloat t_adjust = (inverse[6]*f.x + inverse[7]*f.y + inverse[8]*f.z);
 
-        //if( launch_index.x == 593 &&
-        //            launch_index.y == 966)
-        //{
-        //    ELVIS_PRINTF("Launch (%d, %d) Id = %d Iter %d.  Adjustments = (%e, %e, %e)\n",
-        //        launch_index.x, launch_index.y, Id,
-        //        numIterations,
-        //        r_adjust, s_adjust, t_adjust);
-        //}
-
-        ////cout << "Point to transform to reference: " << p << endl;
-        ////cout << "F: " << f << endl;
-        ////cout << "Result: " << transformReferenceToWorld(result) << endl;
-
         bool test = fabsf(r_adjust) < tolerance;
         test &= fabsf(s_adjust) < tolerance;
         test &= fabsf(t_adjust) < tolerance;
-        if( test ) return result;
+        if( test ) return eNoError;
 
         ReferencePoint pointAdjust = MakeFloat3(r_adjust, s_adjust, t_adjust);
 
@@ -335,21 +296,10 @@ ELVIS_DEVICE ReferencePoint TransformPrismWorldToReference(const ElVisFloat4* pr
         if( result.x == tempResult.x && result.y == tempResult.y && result.z == tempResult.z )
         {
             //ELVIS_PRINTF("Finished because adjustment is too small.\n");
-            return result;
+            return eNoError;
         }
 
         result = tempResult;
-
-
-        //WorldPoint inversePoint = TransformPrismReferenceToWorld(prismId, result);
-        ////if( launch_index.x == 593 &&
-        ////            launch_index.y == 966)
-        ////{
-        ////    ELVIS_PRINTF("Launch (%d, %d) Id = %d Iter %d.  inversePoint = (%e, %e, %e)\n",
-        ////        launch_index.x, launch_index.y, Id,
-        ////        numIterations,
-        ////        inversePoint.x, inversePoint.y, inversePoint.z);
-        ////}
 
         //if( p.x == inversePoint.x &&
         //    p.y == inversePoint.y &&
@@ -369,19 +319,42 @@ ELVIS_DEVICE ReferencePoint TransformPrismWorldToReference(const ElVisFloat4* pr
         ++numIterations;
     }
     while( numIterations < MAX_ITERATIONS);
-    //if( numIterations == MAX_ITERATIONS )
-    //{
-    //    ELVIS_PRINTF("Hit max iterations.\n");
-    //}
 
-    return result;
+    if( numIterations >= MAX_ITERATIONS )
+    {
+        return eConvergenceFailure;
+    }
+    else
+    {
+        return eNoError;
+    }
 }
 
-ELVIS_DEVICE TensorPoint TransformPrismWorldToTensor(const ElVisFloat4* prismVertexBuffer, int prismId, const WorldPoint& p)
+ELVIS_DEVICE ElVisError TransformPrismWorldToTensor(const ElVisFloat4* prismVertexBuffer, int prismId, const WorldPoint& p, TensorPoint& result)
 {
-    ReferencePoint ref = TransformPrismWorldToReference(prismVertexBuffer, prismId, p);
-    TensorPoint result = TransformPrismReferenceToTensor(ref);
-    return result;
+    ReferencePoint ref;
+    ElVisError e = TransformPrismWorldToReference(prismVertexBuffer, prismId, p, ref);
+    if( e != eNoError )
+    {
+        return e;
+    }
+
+    result = TransformPrismReferenceToTensor(ref);
+
+    bool hasConvergenceFailure =
+            result.x < MAKE_FLOAT(-1.1) ||
+            result.x > MAKE_FLOAT(1.1) ||
+            result.y < MAKE_FLOAT(-1.1) ||
+            result.y > MAKE_FLOAT(1.1) ||
+            result.z < MAKE_FLOAT(-1.1) ||
+            result.z > MAKE_FLOAT(1.1);
+
+    if( hasConvergenceFailure )
+    {
+        e = eConvergenceFailure;
+    }
+
+    return e;
 }
 
 
