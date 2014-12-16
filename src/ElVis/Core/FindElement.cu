@@ -126,6 +126,8 @@ __device__ __forceinline__  bool findElementFromFace(const ElVisFloat3& p, const
                          id, type, refPoint.x, refPoint.y, refPoint.z);
             rFindElementPayload.elementId = ids[i].Id;
             rFindElementPayload.elementType = ids[i].Type;
+            rFindElementPayload.ReferenceIntersectionPoint = refPoint;
+            rFindElementPayload.ReferencePointType = ElVis::eReferencePointIsValid;
             return true;
         }
         else
