@@ -347,13 +347,13 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     ElVisError err;
     do
     {
-        ELVIS_PRINTF("FindClosestRoot: Current guess (%f, %f, %f).\n", result.x, result.y, result.z);
+        //ELVIS_PRINTF("FindClosestRoot: Current guess (%f, %f, %f).\n", result.x, result.y, result.z);
         WorldPoint f = func(result);
 
         fprime(result, J);
         Invert(J, inverse);
 
-        ELVIS_PRINTF("FindClosestRoot: f (%f, %f, %f)\n", f.x, f.y, f.z);
+//        ELVIS_PRINTF("FindClosestRoot: f (%f, %f, %f)\n", f.x, f.y, f.z);
 //        ELVIS_PRINTF("J[0] (%f, %f, %f)\n", J[0], J[1], J[2]);
 //        ELVIS_PRINTF("J[1] (%f, %f, %f)\n", J[3], J[4], J[5]);
 //        ELVIS_PRINTF("J[2] (%f, %f, %f)\n", J[6], J[7], J[8]);
@@ -373,7 +373,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
 //        ELVIS_PRINTF("Adjust %f, %f, %f\n", r_adjust, s_adjust, t_adjust);
         err = adjustNewtonStepToKeepReferencePointOnFace( curvedFaceIdx, result );
 
-        ELVIS_PRINTF("FindClosestRoot: step (%f, %f, %f), err=%d.\n", step.x, step.y, step.z, err);
+//        ELVIS_PRINTF("FindClosestRoot: step (%f, %f, %f), err=%d.\n", step.x, step.y, step.z, err);
 
         bool test = fabsf(step.x) < tolerance;
         test &= fabsf(step.y) < tolerance;
@@ -382,7 +382,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
 
         if( test )
         {
-            ELVIS_PRINTF("FindClosestRoot: Converged to (%f, %f, %f).\n", result.x, result.y, result.z);
+//            ELVIS_PRINTF("FindClosestRoot: Converged to (%f, %f, %f).\n", result.x, result.y, result.z);
             out[0].Set(result.x, result.x);
             out[1].Set(result.y, result.y);
             out[2].Set(result.z, result.z);
@@ -417,7 +417,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     }
     while( numIterations < MAX_ITERATIONS);
 
-    ELVIS_PRINTF("FindClosestRoot: Exiting no root.\n");
+//    ELVIS_PRINTF("FindClosestRoot: Exiting no root.\n");
     out[0].Set(result.x, result.x);
     out[1].Set(result.y, result.y);
     out[2].Set(result.z, result.z);
