@@ -74,6 +74,7 @@ RT_PROGRAM void CylinderIntersect( int primIdx )
       {
         normal = MakeFloat3(intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
         normalize(normal);
+        ELVIS_PRINTF("CylinderIntersect: (%f, %f, %f)\n", intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
         rtReportIntersection(0);
       }
     }
@@ -103,6 +104,7 @@ RT_PROGRAM void CylinderIntersect( int primIdx )
         // 
         normal = MakeFloat3(intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
         normalize(normal);
+        ELVIS_PRINTF("CylinderIntersect: (%f, %f, %f)\n", intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
         rtReportIntersection(0);
       }
     }
@@ -119,6 +121,7 @@ RT_PROGRAM void CylinderIntersect( int primIdx )
       if(  rtPotentialIntersection( t3 ) ) 
       {    
         normal = MakeFloat3(cap0.x, cap0.y, cap0.z);
+        ELVIS_PRINTF("CylinderIntersect: (%f, %f, %f)\n", intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
         rtReportIntersection(0);
       }
     }
@@ -135,6 +138,7 @@ RT_PROGRAM void CylinderIntersect( int primIdx )
       if(  rtPotentialIntersection( t4 ) ) 
       {   
         normal = MakeFloat3(cap1.x, cap1.y, cap1.z);
+        ELVIS_PRINTF("CylinderIntersect: (%f, %f, %f)\n", intersectionPoint.x, intersectionPoint.y, MAKE_FLOAT(0.0));
         rtReportIntersection(0);
       }
     }

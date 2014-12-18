@@ -81,13 +81,16 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& result)
 {
     ElVisError returnVal = eNoError;
+
+    if( elementId < 0 ) return eInvalidElementId;
+
     if( elementType == 0 )
     {
-        result = TransformWorldToTensor(&HexVertexBuffer[0], elementId, wp);
+        returnVal = TransformWorldToTensor(&HexVertexBuffer[0], elementId, wp, result);
     }
     else if( elementType == 1 )
     {
-        result = TransformPrismWorldToTensor(&PrismVertexBuffer[0],elementId, wp);
+        returnVal = TransformPrismWorldToTensor(&PrismVertexBuffer[0],elementId, wp, result);
     }
     else
     {
