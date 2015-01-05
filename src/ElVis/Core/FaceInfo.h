@@ -87,7 +87,8 @@ namespace ElVis
     {
       eSegment,
       eTriangle,
-      eQuad
+      eQuad,
+      eInvalid
     };
 
     struct PlanarFaceInfo

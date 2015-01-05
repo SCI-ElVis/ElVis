@@ -132,7 +132,7 @@ __device__ __forceinline__  bool findElementFromFace(const ElVisFloat3& p, const
         }
         else
         {
-            //ELVIS_PRINTF("FindElementFromFace: Invalid reference inversion for Element %d and Type %d\n", id, type);
+            ELVIS_PRINTF("FindElementFromFace: Invalid reference inversion for Element %d and Type %d\n", id, type);
         }
     }
 

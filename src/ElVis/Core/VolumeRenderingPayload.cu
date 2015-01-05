@@ -44,6 +44,7 @@ struct VolumeRenderingPayload
         ElementTypeId = 0;
         IntersectionT = MAKE_FLOAT(-1.0);
         FaceId.Value = -1;
+        FaceReferencePoint = MakeFloat2(ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX);
         FaceReferecePointIsValid = false;
     }
 

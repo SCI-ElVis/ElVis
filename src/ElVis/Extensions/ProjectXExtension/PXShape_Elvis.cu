@@ -826,6 +826,7 @@ PXShapeHierarch3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
   return -1;
 } // PXShapeHierarch3d
 
+#if GEOM_USE_P0 || SOLN_USE_P0
 /******************************************************************/
 //   FUNCTION Definition: PXShapeLagrange3d_P0
 template <typename DT> ELVIS_DEVICE void
@@ -833,7 +834,9 @@ PXShapeLagrange3d_P0(const int porder, const DT * RESTRICT xref, DT * RESTRICT p
 {
   phi[0] = 1.0;
 }
+#endif
 
+#if GEOM_USE_P1 || SOLN_USE_P1
 /******************************************************************/
 //   FUNCTION Definition: PXShapeLagrange3d_P1
 template <typename DT> ELVIS_DEVICE void
@@ -850,7 +853,9 @@ PXShapeLagrange3d_P1(const int porder, const DT * RESTRICT xref, DT * RESTRICT p
   phi[2] = y;
   phi[3] = z;
 }
+#endif
 
+#if GEOM_USE_P2 || SOLN_USE_P2
 /******************************************************************/
 //   FUNCTION Definition: PXShapeLagrange3d_P2
 template <typename DT> ELVIS_DEVICE void
@@ -873,7 +878,9 @@ PXShapeLagrange3d_P2(const int porder, const DT * RESTRICT xref, DT * RESTRICT p
   phi[8] = 4.0*y*z;
   phi[9] = -z+2.0*z*z;
 }
+#endif
 
+#if GEOM_USE_P3 || SOLN_USE_P3
 /******************************************************************/
 //   FUNCTION Definition: PXShapeLagrange3d_P3
 template <typename DT> ELVIS_DEVICE void
@@ -906,7 +913,9 @@ PXShapeLagrange3d_P3(const int porder, const DT * RESTRICT xref, DT * RESTRICT p
   phi[18] = -4.5*z*y+13.5*z*z*y;
   phi[19] = z-4.5*z*z+4.5*z*z*z;
 }
+#endif
 
+#if GEOM_USE_P4 || SOLN_USE_P4
 /******************************************************************/
 //   FUNCTION Definition: PXShapeLagrange3d_P4
 template <typename DT> ELVIS_DEVICE void
@@ -954,7 +963,9 @@ PXShapeLagrange3d_P4(const int porder, const DT * RESTRICT xref, DT * RESTRICT p
   phi[33] = 128.0*ONETHIRD*z*z*z*y-32.0*z*z*y+16.0*ONETHIRD*z*y;
   phi[34] = -z+32.0*ONETHIRD*z*z*z*z+22.0*ONETHIRD*z*z-16.0*z*z*z;
 }
+#endif
 
+#if GEOM_USE_P5 || SOLN_USE_P5
 /******************************************************************/
 //   FUNCTION Definition: PXShapeLagrange3d_P5
 template <typename DT> ELVIS_DEVICE void
@@ -1032,6 +1043,7 @@ PXShapeLagrange3d_P5(const int porder, const DT * RESTRICT xref, DT * RESTRICT p
   phi[55] = z-125.0/12.0*z*z+875.0/24.0*z*z*z-625.0/12.0*z*z*z*z+625.0/24.0*z*z*z*z*z;
 
 }
+#endif
 
 /******************************************************************/
 //   FUNCTION Definition: PXShapeLagrange3d
@@ -1927,19 +1939,22 @@ PXGradientsHierarch3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT 
   return 0;
 }
 
+#if GEOM_USE_P0 || SOLN_USE_P0
 /******************************************************************/
 //   FUNCTION Definition: PXGradientsLagrange3d_P0
-template <typename DT> ELVIS_DEVICE int
+template <typename DT> ELVIS_DEVICE void
 PXGradientsLagrange3d_P0(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   gphi[0] = 0.0;
   gphi[1] = 0.0;
   gphi[2] = 0.0;
 }
+#endif
 
+#if GEOM_USE_P1 || SOLN_USE_P1
 /******************************************************************/
 //   FUNCTION Definition: PXGradientsLagrange3d_P1
-template <typename DT> ELVIS_DEVICE int
+template <typename DT> ELVIS_DEVICE void
 PXGradientsLagrange3d_P1(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   gphi[0] = -1.0;
@@ -1955,10 +1970,12 @@ PXGradientsLagrange3d_P1(const int porder, const DT * RESTRICT xref, DT * RESTRI
   gphi[10] = 0.0;
   gphi[11] = 1.0;
 }
+#endif
 
+#if GEOM_USE_P2 || SOLN_USE_P2
 /******************************************************************/
 //   FUNCTION Definition: PXGradientsLagrange3d_P2
-template <typename DT> ELVIS_DEVICE int
+template <typename DT> ELVIS_DEVICE void
 PXGradientsLagrange3d_P2(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   DT x, y, z;
@@ -1998,10 +2015,12 @@ PXGradientsLagrange3d_P2(const int porder, const DT * RESTRICT xref, DT * RESTRI
   gphi[28] = 4.0*y;
   gphi[29] = -1.0+4.0*z;
 }
+#endif
 
+#if GEOM_USE_P3 || SOLN_USE_P3
 /******************************************************************/
 //   FUNCTION Definition: PXGradientsLagrange3d_P3
-template <typename DT> ELVIS_DEVICE int
+template <typename DT> ELVIS_DEVICE void
 PXGradientsLagrange3d_P3(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   DT x, y, z;
@@ -2071,10 +2090,12 @@ PXGradientsLagrange3d_P3(const int porder, const DT * RESTRICT xref, DT * RESTRI
   gphi[58] = -4.5*y+27.0*z*y;
   gphi[59] = 1.0-9.0*z+13.5*z*z;
 }
+#endif
 
+#if GEOM_USE_P4 || SOLN_USE_P4
 /******************************************************************/
 //   FUNCTION Definition: PXGradientsLagrange3d_P4
-template <typename DT> ELVIS_DEVICE int
+template <typename DT> ELVIS_DEVICE void
 PXGradientsLagrange3d_P4(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   DT x, y, z;
@@ -2189,10 +2210,12 @@ PXGradientsLagrange3d_P4(const int porder, const DT * RESTRICT xref, DT * RESTRI
   gphi[103] = 128.0*z*z*y-64.0*z*y+16.0*ONETHIRD*y;
   gphi[104] = -1.0+128.0*ONETHIRD*z*z*z+44.0*ONETHIRD*z-48.0*z*z;
 }
+#endif
 
+#if GEOM_USE_P5 || SOLN_USE_P5
 /******************************************************************/
 //   FUNCTION Definition: PXGradientsLagrange3d_P5
-template <typename DT> ELVIS_DEVICE int
+template <typename DT> ELVIS_DEVICE void
 PXGradientsLagrange3d_P5(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
   DT x, y, z;
@@ -2370,6 +2393,7 @@ PXGradientsLagrange3d_P5(const int porder, const DT * RESTRICT xref, DT * RESTRI
   gphi[166] = 3125.0*ONESIXTH*z*z*z*y+1375.0/12.0*z*y-25.0*0.25*y-1875.0*0.25*z*z*y;
   gphi[167] = 1.0-125.0*ONESIXTH*z+875.0/8.0*z*z-625.0*ONETHIRD*z*z*z+3125.0/24.0*z*z*z*z;
 }
+#endif
 
 /******************************************************************/
 //   FUNCTION Definition: PXGradientsLagrange3d
@@ -2765,7 +2789,7 @@ PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
  
 }
 
-#if 0
+
 /******************************************************************/
 //   FUNCTION Definition: PXShapeElem_Solution
 template <typename DT> ELVIS_DEVICE int
@@ -2815,6 +2839,7 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
   /* case PXE_Hierarch3dP5: */
   /*     ( PXShapeHierarch3d(porder, xref, phi) ); */
   /*     return PX_NO_ERROR; */
+/*
   case PXE_HexUniformLagrangeP0:
   case PXE_HexUniformLagrangeP1:
   case PXE_HexUniformLagrangeP2:
@@ -2831,13 +2856,14 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
   case PXE_HexSpectralLagrangeP5:
     ( PXShapeHexSpectralLagrange3d<DT>(porder, xref, phi) );
     return PX_NO_ERROR;
+*/
   default:
     ELVIS_PRINTF("PXShapeElem_Solution: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
 }
-#endif
+
 
 /******************************************************************/
 //   FUNCTION Definition: PXShape2
@@ -3244,62 +3270,6 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
 }
 
 
-/******************************************************************/
-//   FUNCTION Definition: PXMatrixDetInverse2
-template <typename DT> ELVIS_DEVICE void
-PXMatrixDetInverse2(DT const * RESTRICT jac, DT * RESTRICT J, DT * RESTRICT ijac)
-{
-  DT JJ;
-  
-  /* Compute Determinant */
-  JJ = jac[0]*jac[3] - jac[2]*jac[1];
-
-  /* Set Determinant */
-  if (J != NULL)
-    *J = JJ;
-
-  /* Set inverse */
-  if (ijac != NULL){
-    ijac[0] =  jac[3]/JJ;
-    ijac[1] = -jac[1]/JJ;
-    ijac[2] = -jac[2]/JJ;
-    ijac[3] =  jac[0]/JJ;
-  }
-}
-
-
-/******************************************************************/
-//   FUNCTION Definition: PXMatrixDetInverse3
-template <typename DT> ELVIS_DEVICE void
-PXMatrixDetInverse3(DT const * RESTRICT jac, DT * RESTRICT J, DT * RESTRICT ijac)
-{
-
-  DT JJ, JJ1;
-  
-  JJ = jac[0]*jac[4]*jac[8]
-      +jac[1]*jac[5]*jac[6]
-      +jac[2]*jac[3]*jac[7]
-      -jac[6]*jac[4]*jac[2]
-      -jac[7]*jac[5]*jac[0]
-      -jac[8]*jac[3]*jac[1];
-
-  if (J != NULL)
-    *J = JJ;
-  
-  if (ijac != NULL){
-    JJ1 = 1.0/JJ;
-    ijac[0] = (jac[4]*jac[8]-jac[5]*jac[7])*JJ1;
-    ijac[1] = (jac[7]*jac[2]-jac[8]*jac[1])*JJ1;
-    ijac[2] = (jac[1]*jac[5]-jac[2]*jac[4])*JJ1;
-    ijac[3] = (jac[5]*jac[6]-jac[3]*jac[8])*JJ1;
-    ijac[4] = (jac[8]*jac[0]-jac[6]*jac[2])*JJ1;
-    ijac[5] = (jac[2]*jac[3]-jac[0]*jac[5])*JJ1;
-    ijac[6] = (jac[3]*jac[7]-jac[4]*jac[6])*JJ1;
-    ijac[7] = (jac[6]*jac[1]-jac[7]*jac[0])*JJ1;
-    ijac[8] = (jac[0]*jac[4]-jac[1]*jac[3])*JJ1;
-  }
-}
-
 
 /******************************************************************/
 //   FUNCTION Definition: PXPhysicalGradients
@@ -3385,80 +3355,6 @@ PXPhysicalGradientsGivenGradients(enum PXE_SolutionOrder order, int nbf, DT cons
 /*   } */
 /*   return PX_NO_ERROR; */
 }
-
-
-/******************************************************************/
-//   FUNCTION Definition: LinearSimplexGlob2Ref
-ELVIS_DEVICE int
-LinearSimplexGlob2Ref(ElVisFloat const * RESTRICT vertices, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref)
-{
-  PX_REAL Jac[9];    // Transformation Jacobian
-  //PX_REAL J;         // Jacobian Determinant
-  PX_REAL iJac[9];   // Inverse of Jacobian
-  ElVisFloat const * x0;       // Coordinates on Node0
-
-  /* Set x0 to node 0 */
-  x0 = vertices;
-  
-  /* /\* Form Jacobian Matrix *\/ */
-  /* for (i=0; i<Dim; i++) */
-  /*   for (j=0; j<Dim; j++) */
-  /*     Jac[i*Dim+j] = vertices[(1+j)*Dim+i]-x0[i]; */
-  
-  /* Get inverse of Jacobian Matrix */
-  switch (Dim) {    
-  case 1: 
-    iJac[0] = 1.0/(vertices[1]-vertices[0]);
-    xref[0] = iJac[0]*(xglobal[0] - vertices[0]);
-    return PX_NO_ERROR;
-  case 2: 
-    Jac[0] = vertices[2 + 0] - x0[0];
-    Jac[1] = vertices[4 + 0] - x0[0];
-    Jac[2] = vertices[2 + 1] - x0[1];
-    Jac[3] = vertices[4 + 1] - x0[1];
-
-    PXMatrixDetInverse2<PX_REAL>(Jac, NULL, iJac); 
-
-    /* Compute Reference Coordinates */
-    /* matrix-vec product: iJac*(xglobal - x0) */
-    //j=0;
-    xref[0] = iJac[0*2 + 0]*(xglobal[0] - x0[0]) + iJac[0*2 + 1]*(xglobal[1] - x0[1]);
-    xref[1] = iJac[1*2 + 0]*(xglobal[0] - x0[0]) + iJac[1*2 + 1]*(xglobal[1] - x0[1]);
-    return PX_NO_ERROR;
-  case 3: 
-    Jac[0] = vertices[3 + 0] - x0[0];
-    Jac[1] = vertices[6 + 0] - x0[0];
-    Jac[2] = vertices[9 + 0] - x0[0];
-    Jac[3] = vertices[3 + 1] - x0[1];
-    Jac[4] = vertices[6 + 1] - x0[1];
-    Jac[5] = vertices[9 + 1] - x0[1];
-    Jac[6] = vertices[3 + 2] - x0[2];
-    Jac[7] = vertices[6 + 2] - x0[2];
-    Jac[8] = vertices[9 + 2] - x0[2];
-
-    PXMatrixDetInverse3<PX_REAL>(Jac, NULL, iJac); 
-
-    /* Compute Reference Coordinates */
-    /* matrix-vec product: iJac*(xglobal - x0) */
-    //j=0;
-    xref[0] = iJac[0*3 + 0]*(xglobal[0] - x0[0]) + 
-              iJac[0*3 + 1]*(xglobal[1] - x0[1]) +
-              iJac[0*3 + 2]*(xglobal[2] - x0[2]);
-    xref[1] = iJac[1*3 + 0]*(xglobal[0] - x0[0]) + 
-              iJac[1*3 + 1]*(xglobal[1] - x0[1]) +
-              iJac[1*3 + 2]*(xglobal[2] - x0[2]);
-    xref[2] = iJac[2*3 + 0]*(xglobal[0] - x0[0]) + 
-              iJac[2*3 + 1]*(xglobal[1] - x0[1]) +
-              iJac[2*3 + 2]*(xglobal[2] - x0[2]);
-    return PX_NO_ERROR;
-  default:
-    ALWAYS_PRINTF("Dim = %d not supported in ProjectX\n", Dim);
-    return PXErrorDebug(PX_BAD_INPUT);
-  }
-
-  //return PX_NO_ERROR;
-}
-
 
 
 #endif //PXSHAPE_ELVIS_C
