@@ -278,12 +278,14 @@ int GenericCLIInterface(int argc, char** argv,
     }
 
     #ifdef __GNUC__
+    #ifndef __clang__
     int ierr = system("nvidia-smi");
     if( ierr != 0 )
     {
       std::cout << "Failed to make the system call 'nvidia-smi'" << std::endl;
       return 1;
     }
+    #endif
     #endif
 
     bool trace = false;
@@ -503,11 +505,13 @@ int GenericCLIInterface(int argc, char** argv,
         ElVis::Stat runtimeStats(times, std::numeric_limits<ElVisFloat>::max(), numTests-1, .95);
         std::cout << "Average Time Per Run: " << runtimeStats.Mean << std::endl;
         #ifdef __GNUC__
+        #ifndef __clang__
         if( system("nvidia-smi") )
         {
           std::cout << "Filed to make system call 'nvidia-smi'" << std::endl;
           return 1;
         }
+        #endif
         #endif
 
     }
