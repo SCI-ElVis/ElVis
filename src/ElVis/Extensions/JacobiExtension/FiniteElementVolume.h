@@ -77,7 +77,7 @@ namespace ElVis
 
 
             JACOBI_EXTENSION_EXPORT FiniteElementVolume();
-            JACOBI_EXTENSION_EXPORT ~FiniteElementVolume();
+            virtual JACOBI_EXTENSION_EXPORT ~FiniteElementVolume();
 
             JACOBI_EXTENSION_EXPORT static bool CanLoadVolume(const char* fileName);
 
