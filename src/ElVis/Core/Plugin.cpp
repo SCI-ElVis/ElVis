@@ -66,8 +66,8 @@ namespace ElVis
             throw UnableToLoadDynamicLibException("Extenstion at " + pluginPath.string() + " does not have " + GetVolumeFileFilterFunctionName);
         }
 
-        m_name = m_getNameFunction();
-        m_volumeFileFilter = m_getVolumeFileFilterFunction();
+        m_name = std::string(m_getNameFunction());
+        m_volumeFileFilter = std::string(m_getVolumeFileFilterFunction());
     }
 
     Plugin::~Plugin()

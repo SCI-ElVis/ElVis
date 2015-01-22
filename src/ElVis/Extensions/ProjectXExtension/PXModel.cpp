@@ -71,9 +71,9 @@ extern "C"{
 
 extern "C"{
   void PadBoundingBox(int dim, ElVisFloat padFactor, ElVisFloat* bBox);
-  std::string GetPluginName();
+  const char* GetPluginName();
   ElVis::Model* LoadModel(const char* path);
-  std::string GetVolumeFileFilter();
+  const char* GetVolumeFileFilter();
   bool CanLoadModel(const char* path);
 
   void PadBoundingBox(int dim, ElVisFloat padFactor, ElVisFloat* bBox){
@@ -103,9 +103,9 @@ extern "C"{
   }
 }
 
-std::string GetPluginName()
+const char* GetPluginName()
 {
-  std::string pluginName("ProjectXPlugin");
+  static const char* pluginName = "ProjectXPlugin";
   return pluginName;
 }
 
@@ -116,9 +116,9 @@ ElVis::Model* LoadModel(const char* path)
   return result;
 }
 
-std::string GetVolumeFileFilter()
+const char* GetVolumeFileFilter()
 {
-  std::string fileExtension("ProjectX PXA (*.pxa)");
+  static const char* fileExtension = "ProjectX PXA (*.pxa)";
   return fileExtension;
 }
 
