@@ -32,7 +32,7 @@
 #ifndef ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_PLUGIN_INTERFACE_H
 #define ELVIS_EXTENSIONS_NEKTAR_PLUS_PLUS_EXTENSION_PLUGIN_INTERFACE_H
 
-#include <ElVis/Extensions/NektarPlusPlusExtension/NektarModelNew.h>
+#include <ElVis/Extensions/NektarPlusPlusExtension/NektarModel.h>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Declspec.h>
 
 extern "C"

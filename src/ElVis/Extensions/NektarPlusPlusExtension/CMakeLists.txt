@@ -1,18 +1,18 @@
 SET(ProjectName "NektarPlusPlusExtension")
 SET(ExtensionPath ElVis/Extensions/${ProjectName})
 
-# TODO - These should be handled by Nektar++Config.cmake
-ADD_DEFINITIONS(-DNEKTAR_PLUS_PLUS_EXTENSION_EXPORTS -DNEKTAR_USING_BLAS -DNEKTAR_USING_LAPACK -DNEKTAR_MEMORY_POOL_ENABLED)
-
 FIND_PACKAGE(Nektar++ REQUIRED NO_MODULE NO_DEFAULT_PATH NO_CMAKE_BUILDS_PATH NO_CMAKE_PACKAGE_REGISTRY)
 
 IF( NEKTAR++_FOUND )
     SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${NEKTAR++_ROOT_DIR} ${CMAKE_MODULE_PATH})
 ENDIF()
 
-# Configure the extension file for the Nektar++ extension.  Since Cuda required all code to be 
-# available at compile time, this step creates an extension specific version of these files that
-# can then be compiled into an extension specific version of ElVis.
+ADD_DEFINITIONS(${NEKTAR++_DEFINITIONS})
+
+# Configure the extension file for the Nektar++ extension.  Since Cuda required
+# all code to be available at compile time, this step creates an extension
+# specific version of these files that can then be compiled into an extension
+# specific version of ElVis.
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.cpp.in 
                ${CMAKE_BINARY_DIR}/ElVis/Extensions/NektarPlusPlusExtension/NektarPlusPlusExtensionPTXConfig.cpp @ONLY)
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in 
@@ -26,14 +26,16 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
 SET(NEKTAR_PLUS_PLUS_EXTENSION_OPTIX_HEADER_ONLY
   ExtensionOptiXInterface.cu
 )
-SET_SOURCE_FILES_PROPERTIES(${NEKTAR_PLUS_PLUS_EXTENSION_OPTIX_HEADER_ONLY} PROPERTIES HEADER_FILE_ONLY ON)
+SET_SOURCE_FILES_PROPERTIES(
+    ${NEKTAR_PLUS_PLUS_EXTENSION_OPTIX_HEADER_ONLY}
+    PROPERTIES HEADER_FILE_ONLY ON)
 
 SET(NEKTAR_PLUS_PLUS_EXTENSION_SOURCES
   ${CMAKE_BINARY_DIR}/ElVis/Extensions/NektarPlusPlusExtension/NektarPlusPlusExtensionPTXConfig.cpp
   ${CMAKE_BINARY_DIR}/ElVis/Extensions/NektarPlusPlusExtension/NektarPlusPlusExtensionPTXConfig.h
   Declspec.h
-  NektarModelNew.cpp
-  NektarModelNew.h
+  NektarModel.cpp
+  NektarModel.h
   PluginInterface.cpp
   PluginInterface.h
   ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu
@@ -63,4 +65,3 @@ INSTALL(TARGETS ${ProjectName} EXPORT ElVisLibraries
   LIBRARY DESTINATION ${ELVIS_BIN_DIR}
   ARCHIVE DESTINATION ${ELVIS_BIN_DIR}  
 )
-
