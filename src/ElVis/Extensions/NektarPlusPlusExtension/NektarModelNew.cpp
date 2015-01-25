@@ -160,7 +160,7 @@ namespace NektarPlusPlusExtension
 
             StdRegions::Orientation orient =
                 boost::dynamic_pointer_cast<SpatialDomains::Geometry3D>(
-                    connectedElmt->at(0)->m_Element)->GetFaceOrient(
+                    connectedElmt->at(0)->m_Element)->GetForient(
                         connectedElmt->at(0)->m_FaceIndx);
             LibUtilities::ShapeType shapeType =
                 boost::dynamic_pointer_cast<SpatialDomains::Geometry3D>(
