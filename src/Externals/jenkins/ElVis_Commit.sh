@@ -18,8 +18,6 @@ make check CTESTARGS="-T Test"
 
 if [[ $buildnode == "cleopatra"* ]]; then
   /usr/local/VirtualGL/bin/vglrun make regcheck CTESTARGS="-T Test"
-elif [[ $buildnode == "dhcp227"* ]]; then
-  make regcheck CTESTARGS="-T Test"
 fi
 
 if [[ $builddir == *"coverage"* ]]; then
