@@ -17,12 +17,10 @@ make unit_build
 make check CTESTARGS="-T Test"
 
 if [[ $buildnode == "cleopatra"* ]]; then
-  echo "DISPLAY=$DISPLAY"
   /usr/local/VirtualGL/bin/vglrun make regcheck CTESTARGS="-T Test"
 fi
 
 if [[ $buildnode == "oci-ubuntu"* ]]; then
-  echo "DISPLAY=$DISPLAY"
   /usr/bin/vglrun make regcheck CTESTARGS="-T Test"
 fi
 
