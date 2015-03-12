@@ -2783,7 +2783,7 @@ PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
     return PX_NO_ERROR;
 */
   default:
-    ELVIS_PRINTF("PXShapeElem: Unknown order = %d\n", order);
+    //ELVIS_PRINTF("PXShapeElem: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -2858,7 +2858,7 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
     return PX_NO_ERROR;
 */
   default:
-    ELVIS_PRINTF("PXShapeElem_Solution: Unknown order = %d\n", order);
+    //ELVIS_PRINTF("PXShapeElem_Solution: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  

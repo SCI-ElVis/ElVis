@@ -52,13 +52,13 @@ RT_PROGRAM void GeneratePrimaryRays()
   normal_buffer[launch_index] = payload.Normal;
   SampleBuffer[launch_index] = payload.scalarValue;
 
-  ELVIS_PRINTF("Origin (%2.15f, %2.15f, %2.15f), Direction (%2.15f, %2.15f, %2.15f)\n",
-    ray.origin.x, ray.origin.y, ray.origin.z,
-    ray.direction.x, ray.direction.y, ray.direction.z);
+//  ELVIS_PRINTF("Origin (%2.15f, %2.15f, %2.15f), Direction (%2.15f, %2.15f, %2.15f)\n",
+//    ray.origin.x, ray.origin.y, ray.origin.z,
+//    ray.direction.x, ray.direction.y, ray.direction.z);
   rtTrace(SurfaceGeometryGroup, ray, payload);   
 
 
-  ELVIS_PRINTF("GeneratePrimaryRays: Normal (%f, %f, %f)\n", payload.Normal.x, payload.Normal.y, payload.Normal.z);
+  //ELVIS_PRINTF("GeneratePrimaryRays: Normal (%f, %f, %f)\n", payload.Normal.x, payload.Normal.y, payload.Normal.z);
   raw_color_buffer[launch_index] = payload.Color;
   color_buffer[launch_index] = ConvertToColor(payload.Color);
   normal_buffer[launch_index] = payload.Normal;

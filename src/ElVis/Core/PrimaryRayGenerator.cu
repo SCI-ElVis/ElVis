@@ -52,7 +52,7 @@ __device__ __forceinline__ optix::Ray GeneratePrimaryRay(const optix::size_t2& s
 
     if( ProjectionType == ElVis::ePerspective )
     {
-        ELVIS_PRINTF("GeneratePrimaryRay: Perspective projection.\n");
+        //ELVIS_PRINTF("GeneratePrimaryRay: Perspective projection.\n");
         ElVisFloat3 ray_origin = eye;
         ElVisFloat3 ray_direction = normalize(d.x*U + d.y*V + W);
 
@@ -68,7 +68,7 @@ __device__ __forceinline__ optix::Ray GeneratePrimaryRay(const optix::size_t2& s
     }
     else
     {
-        ELVIS_PRINTF("GeneratePrimaryRay: Orthographic projection.\n");
+        //ELVIS_PRINTF("GeneratePrimaryRay: Orthographic projection.\n");
         ElVisFloat3 newEye = eye + near*W + d.x*U + d.y*V;
         ElVisFloat3 dir = normalize(W);
         optix::Ray ray = optix::make_Ray(ConvertToFloat3(newEye), ConvertToFloat3(dir), rayTypeId, tolerance, RT_DEFAULT_MAX);

@@ -411,14 +411,14 @@ __device__ void ConvertToMonomial(unsigned int order, ElVisFloat* monomialConver
 
 __device__ void PrintMatrix(SquareMatrix& m)
 {
-  for(unsigned int row = 0; row < m.GetSize(); ++row)
-  {
-    for(unsigned int column = 0; column < m.GetSize(); ++column)
-    {
-      ELVIS_PRINTF("%2.15f, ", m(row, column));
-    }
-    ELVIS_PRINTF("\n");
-  }
+//  for(unsigned int row = 0; row < m.GetSize(); ++row)
+//  {
+//    for(unsigned int column = 0; column < m.GetSize(); ++column)
+//    {
+//      ELVIS_PRINTF("%2.15f, ", m(row, column));
+//    }
+//    ELVIS_PRINTF("\n");
+//  }
 }
 
 rtDeclareVariable(uint, NumIsosurfaces, , );
@@ -431,7 +431,7 @@ rtBuffer<ElVisFloat> MonomialConversionTable;
 __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& origin)
 {
   //if( numIsosurfaces == 0 ) return;
-  ELVIS_PRINTF("Find Isosurface in Segment\n");
+  //ELVIS_PRINTF("Find Isosurface in Segment\n");
   optix::size_t2 screen = color_buffer.size();
 
   int elementId = seg.ElementId;
@@ -444,7 +444,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
   //ElVisFloat d = (b-a);
 
   ElVisFloat bestDepth = depth_buffer[launch_index];
-  ELVIS_PRINTF("FindIsosurfaceInSegment: Best Depth %2.10f and a %2.10f\n", bestDepth, a);
+  //ELVIS_PRINTF("FindIsosurfaceInSegment: Best Depth %2.10f and a %2.10f\n", bestDepth, a);
   //    if( bestDepth <= a )
   //    {
   //        if( traceEnabled )
@@ -477,7 +477,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
 
 
 
-    ELVIS_PRINTF("Searching for isovalue %f\n", SurfaceIsovalues[isosurfaceId]);
+    //ELVIS_PRINTF("Searching for isovalue %f\n", SurfaceIsovalues[isosurfaceId]);
 
 
     // Project onto a polynomial along the ray.
@@ -524,21 +524,21 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
 
 
 
-    ELVIS_PRINTF("Reduced order %d\n", reducedOrder );
+    //ELVIS_PRINTF("Reduced order %d\n", reducedOrder );
 
 
     ConvertToMonomial(reducedOrder, &MonomialConversionTable[0], polynomialCoefficients, monomialCoefficients);
 
-    ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-      monomialCoefficients[0],
-      monomialCoefficients[1],
-      monomialCoefficients[2],
-      monomialCoefficients[3],
-      monomialCoefficients[4],
-      monomialCoefficients[5],
-      monomialCoefficients[6],
-      monomialCoefficients[7],
-      monomialCoefficients[8]);
+//    ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+//      monomialCoefficients[0],
+//      monomialCoefficients[1],
+//      monomialCoefficients[2],
+//      monomialCoefficients[3],
+//      monomialCoefficients[4],
+//      monomialCoefficients[5],
+//      monomialCoefficients[6],
+//      monomialCoefficients[7],
+//      monomialCoefficients[8]);
 
 
     monomialCoefficients[0] -= SurfaceIsovalues[isosurfaceId];
@@ -553,7 +553,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
     balance(h);
 
 
-    ELVIS_PRINTF("After balancing.\n");
+    //ELVIS_PRINTF("After balancing.\n");
     //PrintMatrix(h);
 
     ElVisFloat roots[8];
@@ -564,13 +564,13 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
 
     hqr(h, reducedOrder, roots);
 
-    ELVIS_PRINTF("Roots %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-      roots[0],
-      roots[1],
-      roots[2],
-      roots[3],
-      roots[4],
-      roots[5]);
+//    ELVIS_PRINTF("Roots %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+//      roots[0],
+//      roots[1],
+//      roots[2],
+//      roots[3],
+//      roots[4],
+//      roots[5]);
 
 
     ElVisFloat foundRoot = ELVIS_FLOAT_MAX;
@@ -604,7 +604,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
         FieldId,
         foundIntersectionPoint);
 
-      ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
+      //ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
 
 
       EvaluateNormalOptiX(elementId,

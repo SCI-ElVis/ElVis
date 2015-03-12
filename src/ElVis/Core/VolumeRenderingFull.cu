@@ -522,19 +522,19 @@ namespace ElVis
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Input Array Values: (");
-            for(unsigned int i = 0; i < block_size; ++i)
-            {
-                ELVIS_PRINTF("%f, ", input[i]);
-            }
-            ELVIS_PRINTF(")\n\n");
+//            ELVIS_PRINTF("Input Array Values: (");
+//            for(unsigned int i = 0; i < block_size; ++i)
+//            {
+//                ELVIS_PRINTF("%f, ", input[i]);
+//            }
+//            ELVIS_PRINTF(")\n\n");
 
-            ELVIS_PRINTF("Output Array Values: (");
-            for(unsigned int i = 0; i < block_size; ++i)
-            {
-                ELVIS_PRINTF("%f, ", output[i]);
-            }
-            ELVIS_PRINTF(")\n\n");
+//            ELVIS_PRINTF("Output Array Values: (");
+//            for(unsigned int i = 0; i < block_size; ++i)
+//            {
+//                ELVIS_PRINTF("%f, ", output[i]);
+//            }
+//            ELVIS_PRINTF(")\n\n");
         }
 
         if(block_size >   1) { if (threadIdx.x >=   1) { val = output[threadIdx.x -   1] + val; } __syncthreads(); output[threadIdx.x] = val; __syncthreads(); }
@@ -552,12 +552,12 @@ namespace ElVis
 
         if(traceEnabled)
         {
-            ELVIS_PRINTF("Result Array Values: (");
-            for(unsigned int i = 0; i < block_size; ++i)
-            {
-                ELVIS_PRINTF("%f, ", output[i]);
-            }
-            ELVIS_PRINTF(")\n\n");
+//            ELVIS_PRINTF("Result Array Values: (");
+//            for(unsigned int i = 0; i < block_size; ++i)
+//            {
+//                ELVIS_PRINTF("%f, ", output[i]);
+//            }
+//            ELVIS_PRINTF(")\n\n");
         }
     }
 
@@ -819,12 +819,12 @@ namespace ElVis
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Esilon %2.10f\n", epsilon);
-            ELVIS_PRINTF("Number of samples enabled %d\n", (numSamples ? 1: 0));
-            if( numSamples )
-            {
-                ELVIS_PRINTF("Value of samples: %d\n", numSamples[0]);
-            }
+//            ELVIS_PRINTF("Esilon %2.10f\n", epsilon);
+//            ELVIS_PRINTF("Number of samples enabled %d\n", (numSamples ? 1: 0));
+//            if( numSamples )
+//            {
+//                ELVIS_PRINTF("Value of samples: %d\n", numSamples[0]);
+//            }
         }
         uint2 screen;
         screen.x = gridDim.x * blockDim.x;
@@ -911,19 +911,19 @@ namespace ElVis
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Range of scalar field is (%2.10f, %2.10f)\n", range.GetLow(), range.GetHigh());
-            ELVIS_PRINTF("Origin (%f, %f, %f)\n", origin.x, origin.y, origin.z);
+//            ELVIS_PRINTF("Range of scalar field is (%2.10f, %2.10f)\n", range.GetLow(), range.GetHigh());
+//            ELVIS_PRINTF("Origin (%f, %f, %f)\n", origin.x, origin.y, origin.z);
 
-            ELVIS_PRINTF("Direction (%f, %f, %f)\n", dir.x, dir.y, dir.z);
-            ELVIS_PRINTF("Integration domain [%f, %f]\n", a, b);
+//            ELVIS_PRINTF("Direction (%f, %f, %f)\n", dir.x, dir.y, dir.z);
+//            ELVIS_PRINTF("Integration domain [%f, %f]\n", a, b);
         }
 
         bool densityContainsBreakpoints = transferFunction->RangeContainsAtLeastOneBreakpoint(eDensity, range);
         Interval<ElVisFloat> densityRange = transferFunction->Sample(eDensity, range);
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Density contains breakpoints %d.\n",densityContainsBreakpoints ? 1 : 0 );
-            ELVIS_PRINTF("Density range (%f, %f).\n", densityRange.GetLow(), densityRange.GetHigh());
+//            ELVIS_PRINTF("Density contains breakpoints %d.\n",densityContainsBreakpoints ? 1 : 0 );
+//            ELVIS_PRINTF("Density range (%f, %f).\n", densityRange.GetLow(), densityRange.GetHigh());
         }
 
         if( enableEmptySpaceSkipping )
@@ -933,7 +933,7 @@ namespace ElVis
             {
                 if( traceEnabled )
                 {
-                    ELVIS_PRINTF("Density is identically 0.\n");
+                    //ELVIS_PRINTF("Density is identically 0.\n");
                 }
 
 //                if( renderIntegrationType )
@@ -959,11 +959,11 @@ namespace ElVis
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Color contains breakpoints %d.\n",colorContainsBreakpoints ? 1 : 0 );
-            ELVIS_PRINTF("Red range (%f, %f).\n", redRange.GetLow(), redRange.GetHigh());
-            ELVIS_PRINTF("Green range (%f, %f).\n", greenRange.GetLow(), greenRange.GetHigh());
-            ELVIS_PRINTF("Blue range (%f, %f).\n", blueRange.GetLow(), blueRange.GetHigh());
-            ELVIS_PRINTF("Total Color range (%f, %f).\n", totalColorRange.GetLow(), blueRange.GetHigh());
+//            ELVIS_PRINTF("Color contains breakpoints %d.\n",colorContainsBreakpoints ? 1 : 0 );
+//            ELVIS_PRINTF("Red range (%f, %f).\n", redRange.GetLow(), redRange.GetHigh());
+//            ELVIS_PRINTF("Green range (%f, %f).\n", greenRange.GetLow(), greenRange.GetHigh());
+//            ELVIS_PRINTF("Blue range (%f, %f).\n", blueRange.GetLow(), blueRange.GetHigh());
+//            ELVIS_PRINTF("Total Color range (%f, %f).\n", totalColorRange.GetLow(), blueRange.GetHigh());
         }
 
         // If the color does not contribute, then we can just integrate the density.
@@ -994,7 +994,7 @@ namespace ElVis
             {
                 if( traceEnabled )
                 {
-                    ELVIS_PRINTF("Integrate density alone using adaptive trapezoidal.\n");
+                    //ELVIS_PRINTF("Integrate density alone using adaptive trapezoidal.\n");
                 }
 
                 ElVisFloat result = FieldTrapezoidalIntegration::CompositeIntegration(innerIntegralFunc, f, a, b, n, traceEnabled);
@@ -1006,7 +1006,7 @@ namespace ElVis
             {
                 if( traceEnabled )
                 {
-                    ELVIS_PRINTF("Integrate density alone using gauss-kronrod.\n");
+                    //ELVIS_PRINTF("Integrate density alone using gauss-kronrod.\n");
                 }
 
                 ElVisFloat errorEstimate = MAKE_FLOAT(0.0);
@@ -1037,7 +1037,7 @@ namespace ElVis
                 // Do trapezoidal for outer and inner in lockstep.
                 if( traceEnabled )
                 {
-                    ELVIS_PRINTF("Trapezoidal for outer and inner.\n");
+                    //ELVIS_PRINTF("Trapezoidal for outer and inner.\n");
                 }
 
 //                if( renderIntegrationType )
@@ -1105,7 +1105,7 @@ namespace ElVis
                 // the gauss-kronrod points.  This way we don't have to keep the adaptive structure around.
                 if( traceEnabled )
                 {
-                    ELVIS_PRINTF("Gauss-Kronrod outer, Trapezoidal inner.\n");
+                    //ELVIS_PRINTF("Gauss-Kronrod outer, Trapezoidal inner.\n");
                 }
 
 //                if( renderIntegrationType )

@@ -1217,7 +1217,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     //Residual += RHS[0]*RHS[0] + RHS[1]*RHS[1] + RHS[2]*RHS[2];
     Residual = sqrt(Residual);
 
-    ELVIS_PRINTF("PX PXCurvedGlob2Ref xref = %f, %f, %f | residual = %f\n", xref[0], xref[1], xref[2], Residual);
+    //ELVIS_PRINTF("PX PXCurvedGlob2Ref xref = %f, %f, %f | residual = %f\n", xref[0], xref[1], xref[2], Residual);
 
     // Check Residual Tolerance
     if ( ( Residual < 1.0E-10) && (iter>nLimitedIter) ) {
