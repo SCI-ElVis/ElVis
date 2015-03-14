@@ -91,7 +91,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePo
   PX_REAL xref[2] = {r,s};
 
   if( Idx.Value >= nCurvedFace ) {
-    rtPrintf("############ EvaluateFace Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
+    //rtPrintf("############ EvaluateFace Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
     return eFieldNotDefinedOnFace;
   }
 
@@ -136,7 +136,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
    CurvedFaceIdx Idx = ConvertToCurvedFaceIdx(faceId);
 
    if( Idx.Value >= nCurvedFace ) {
-     rtPrintf("############ EvaluateFaceJacobian Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
+     //rtPrintf("############ EvaluateFaceJacobian Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
      return eFieldNotDefinedOnFace;
    }
 
@@ -521,7 +521,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
   CurvedFaceIdx Idx = ConvertToCurvedFaceIdx(faceId);
 
   if( Idx.Value >= nCurvedFace ) {
-    rtPrintf("############ GetFaceNormal Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
+    //rtPrintf("############ GetFaceNormal Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
     return eFieldNotDefinedOnFace;
   }
 

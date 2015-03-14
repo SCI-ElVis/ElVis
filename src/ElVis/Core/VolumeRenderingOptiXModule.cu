@@ -534,7 +534,7 @@ struct EvaluateFaceFunctor
           result.z += -Origin.z - Direction.z*p.z;
         }
         else
-          rtPrintf("EvaluateFaceFunctor: Unkown ModelDimension=%d", ModelDimension);
+          //rtPrintf("EvaluateFaceFunctor: Unkown ModelDimension=%d", ModelDimension);
 
         return result;
     }
@@ -588,7 +588,9 @@ struct EvaluateFaceJacobianFunctor
           result[8] = -Direction.z;
         }
         else
-          rtPrintf("EvaluateFaceJacobianFunctor: Unkown ModelDimension=%d", ModelDimension);
+        {
+          //rtPrintf("EvaluateFaceJacobianFunctor: Unkown ModelDimension=%d", ModelDimension);
+        }
     }
 
     GlobalFaceIdx FaceId;

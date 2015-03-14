@@ -557,17 +557,17 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
 
 //    if (CoordinateVerbosity==PXE_True){
 
-      ALWAYS_PRINTF("Negative Jacobian found: %e\n",J);
+      //ALWAYS_PRINTF("Negative Jacobian found: %e\n",J);
 
       nodeCoordinates -= Dim*nbf; //reset to beginning of coordinates
 
       /* printf("ERROR: jacobian = %22.15e < 0 \n",J); */
       //ALWAYS_PRINTF("       type = %s\n",PXE_ElementTypeName[type]);
-      ALWAYS_PRINTF("xref = [");
+      //ALWAYS_PRINTF("xref = [");
        for (j=0; j<Dim; j++){
-         ALWAYS_PRINTF(" %22.15e",xref[j]);
+         //ALWAYS_PRINTF(" %22.15e",xref[j]);
        }
-       ALWAYS_PRINTF("];\n");
+       //ALWAYS_PRINTF("];\n");
 //       ALWAYS_PRINTF("ps = [\n");
 //       for (i=0; i<nbf; i++){
 //       	for (j=0; j<Dim; j++){
@@ -642,7 +642,7 @@ PXFaceRef2ElemFaceRefTriangle( int orientation, T const * RESTRICT xface,
     xfacelocal[0] = temp;
     break;
   default:
-    ALWAYS_PRINTF("PXFaceRef2ElemFaceRefTriangle: Invalid rotation: %d\n", rot );
+    //ALWAYS_PRINTF("PXFaceRef2ElemFaceRefTriangle: Invalid rotation: %d\n", rot );
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -706,7 +706,7 @@ PXFaceRef2ElemFaceRefQuad( int orientation, T const * RESTRICT xface,
     xfacelocal[1] = 1.0-temp;
     break;
   default:
-    ALWAYS_PRINTF("PXFaceRef2ElemFaceRefQuad: Invalid orientation: %d\n",orientation);
+    //ALWAYS_PRINTF("PXFaceRef2ElemFaceRefQuad: Invalid orientation: %d\n",orientation);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -739,7 +739,7 @@ PXFaceRef2ElemFaceRef( enum PXE_Shape faceShape, int orientation,
     break;
 
   default:
-    ALWAYS_PRINTF("PXFaceRef2ElemFaceRef: Unkown faceShape = %d", faceShape);
+    //ALWAYS_PRINTF("PXFaceRef2ElemFaceRef: Unkown faceShape = %d", faceShape);
     return PXErrorDebug(PX_CODE_FLOW_ERROR);
   }
 
@@ -804,7 +804,7 @@ PXFace2RefTetOrientation0(int lface, PX_REAL const * RESTRICT xfacelocal, PX_REA
     xref[2] = 0.0;
     return PX_NO_ERROR;
   default:
-    ALWAYS_PRINTF("PXFace2RefTetOrientation0: Invalid lface choice: %d\n",lface);
+    //ALWAYS_PRINTF("PXFace2RefTetOrientation0: Invalid lface choice: %d\n",lface);
     return PX_BAD_INPUT;
   }
 }
@@ -1112,7 +1112,7 @@ LinearSimplexGlob2Ref(enum PXE_Shape Shape, ElVisFloat const * RESTRICT vertices
               iJac[2*3 + 2]*(xglobal[2] - x0[2]);
     break;
   default:
-    ALWAYS_PRINTF("Dim = %d not supported in ProjectX\n", Dim);
+    //ALWAYS_PRINTF("Dim = %d not supported in ProjectX\n", Dim);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -1287,9 +1287,9 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     PXShapeElem(order, qorder, xref, phi );
     PXRef2GlobFromCoordinatesGivenShape2(nbf, Dim, xnodes, xg, phi);
 
-      ELVIS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref: xref = %f, %f, %f\n", xref[0], xref[1], xref[2] );
-      ELVIS_PRINTF("ERROR: xglobal = %f, %f, %f\n", xglobal[0], xglobal[1], xglobal[2] );
-      ELVIS_PRINTF("ERROR: xg@xref = %f, %f, %f\n", xg[0], xg[1], xg[2] );
+      //ELVIS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref: xref = %f, %f, %f\n", xref[0], xref[1], xref[2] );
+      //ELVIS_PRINTF("ERROR: xglobal = %f, %f, %f\n", xglobal[0], xglobal[1], xglobal[2] );
+      //ELVIS_PRINTF("ERROR: xg@xref = %f, %f, %f\n", xg[0], xg[1], xg[2] );
     //}
     return PX_NOT_CONVERGED;
   }

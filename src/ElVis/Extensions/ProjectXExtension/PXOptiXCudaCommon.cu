@@ -66,7 +66,7 @@
 // #define PXErrorReturnSilent(X) (X)
 
 ELVIS_DEVICE void PXErrorReport( const char *file, const int line, const char *call, const int ierr){
-  ELVIS_PRINTF("Error %d has occured.\n File : %s  Line : %d\n Call : %s\n", ierr, file, line, call);
+  //ELVIS_PRINTF("Error %d has occured.\n File : %s  Line : %d\n Call : %s\n", ierr, file, line, call);
   //ELVIS_PRINTF("Error %d has occured.\n Line : %d\n", ierr, line);
 }
 
