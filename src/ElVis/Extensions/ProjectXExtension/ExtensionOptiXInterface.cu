@@ -258,6 +258,8 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
 ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int elementType, const WorldPoint& worldPoint,
                                                           ElVis::ReferencePointParameterType referenceType, ReferencePoint& referencePoint)
 {
+    if( elementId < 0 ) return eInvalidElementId;
+
     //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
     //             elementId, worldPoint.x, worldPoint.y, worldPoint.z);
 

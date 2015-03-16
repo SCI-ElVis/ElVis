@@ -347,13 +347,13 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     ElVisError err;
     do
     {
-        ELVIS_PRINTF("FindClosestRoot: Current guess (%f, %f, %f).\n", result.x, result.y, result.z);
+        //ELVIS_PRINTF("FindClosestRoot: Current guess (%f, %f, %f).\n", result.x, result.y, result.z);
         WorldPoint f = func(result);
 
         fprime(result, J);
         Invert(J, inverse);
 
-        ELVIS_PRINTF("FindClosestRoot: f (%f, %f, %f)\n", f.x, f.y, f.z);
+//        ELVIS_PRINTF("FindClosestRoot: f (%f, %f, %f)\n", f.x, f.y, f.z);
 //        ELVIS_PRINTF("J[0] (%f, %f, %f)\n", J[0], J[1], J[2]);
 //        ELVIS_PRINTF("J[1] (%f, %f, %f)\n", J[3], J[4], J[5]);
 //        ELVIS_PRINTF("J[2] (%f, %f, %f)\n", J[6], J[7], J[8]);
@@ -373,7 +373,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
 //        ELVIS_PRINTF("Adjust %f, %f, %f\n", r_adjust, s_adjust, t_adjust);
         err = adjustNewtonStepToKeepReferencePointOnFace( curvedFaceIdx, result );
 
-        ELVIS_PRINTF("FindClosestRoot: step (%f, %f, %f), err=%d.\n", step.x, step.y, step.z, err);
+//        ELVIS_PRINTF("FindClosestRoot: step (%f, %f, %f), err=%d.\n", step.x, step.y, step.z, err);
 
         bool test = fabsf(step.x) < tolerance;
         test &= fabsf(step.y) < tolerance;
@@ -382,7 +382,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
 
         if( test )
         {
-            ELVIS_PRINTF("FindClosestRoot: Converged to (%f, %f, %f).\n", result.x, result.y, result.z);
+//            ELVIS_PRINTF("FindClosestRoot: Converged to (%f, %f, %f).\n", result.x, result.y, result.z);
             out[0].Set(result.x, result.x);
             out[1].Set(result.y, result.y);
             out[2].Set(result.z, result.z);
@@ -417,7 +417,7 @@ ELVIS_DEVICE bool FindClosestRoot(const F& func, const FPrime& fprime, const Int
     }
     while( numIterations < MAX_ITERATIONS);
 
-    ELVIS_PRINTF("FindClosestRoot: Exiting no root.\n");
+//    ELVIS_PRINTF("FindClosestRoot: Exiting no root.\n");
     out[0].Set(result.x, result.x);
     out[1].Set(result.y, result.y);
     out[2].Set(result.z, result.z);
@@ -738,7 +738,7 @@ ELVIS_DEVICE void TriangleIntersection(GlobalFaceIdx globalFaceIdx, const ElVisF
             {
                 if(  rtPotentialIntersection( t ) )
                 {
-                    //ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", primitiveId, t);
+                    ELVIS_PRINTF("TriangleIntersection: Intersection found with triangle %d at %f\n", globalFaceIdx.Value, t);
                     intersectedFaceGlobalIdx = globalFaceIdx;
                     faceIntersectionReferencePoint.x = MAKE_FLOAT(-2.0);
                     faceIntersectionReferencePoint.y = MAKE_FLOAT(-2.0);
@@ -815,6 +815,7 @@ ELVIS_DEVICE void PlanarFaceIntersectionImpl(PlanarFaceIdx planarFaceIdx)
 //                 p1.x, p1.y, p1.z,
 //                 planarFaceIdx.Value, tmin, tmax);
 
+
     ElVisFloat4 v0, v1;
     GetPlanarFaceVertex(planarFaceIdx, 0, v0);
     GetPlanarFaceVertex(planarFaceIdx, 1, v1);
@@ -871,7 +872,7 @@ RT_PROGRAM void CurvedFaceIntersection(int idx)
 
 RT_PROGRAM void FaceClosestHitProgram()
 {
-    ELVIS_PRINTF("FaceClosestHitProgram: Intersectin %f with face %d\n", closest_t, intersectedFaceGlobalIdx.Value);
+    ELVIS_PRINTF("FaceClosestHitProgram: Intersecting %f with face %d\n", closest_t, intersectedFaceGlobalIdx.Value);
     volumePayload.FoundIntersection = true;
     volumePayload.IntersectionT = closest_t;
     volumePayload.FaceId = intersectedFaceGlobalIdx.Value;
@@ -879,20 +880,21 @@ RT_PROGRAM void FaceClosestHitProgram()
 
     if( faceIntersectionReferencePointIsValid )
     {
-        volumePayload.FaceReferencePoint = faceIntersectionReferencePoint;
-        ELVIS_PRINTF("FaceClosestHitProgram: Has reference point.\n");
+      volumePayload.FaceReferencePoint = faceIntersectionReferencePoint;
+      ELVIS_PRINTF("FaceClosestHitProgram: Has reference point.\n");
     }
     else
     {
-        // We don't know the reference coordinate (because the intersection program didn't
-        // provide them).
-        ELVIS_PRINTF("FaceClosestHitProgram: Don't have reference point.\n");
+      // We don't know the reference coordinate (because the intersection program didn't
+      // provide them).
+      ELVIS_PRINTF("FaceClosestHitProgram: Don't have reference point.\n");
     }
 
     ELVIS_PRINTF("FaceClosestHitProgram: Found %d T %f id %d\n", volumePayload.FoundIntersection,
         volumePayload.IntersectionT, volumePayload.FaceId.Value);
-    ELVIS_PRINTF("FaceClosestHitProgram: FaceReferencePoint (%2.15f, %2.15f)\n", volumePayload.FaceReferencePoint.x,
-                 volumePayload.FaceReferencePoint.y);
+    if( faceIntersectionReferencePointIsValid )
+      ELVIS_PRINTF("FaceClosestHitProgram: FaceReferencePoint (%2.15f, %2.15f)\n", volumePayload.FaceReferencePoint.x,
+                   volumePayload.FaceReferencePoint.y);
 }
 
 struct RiemannIntegration

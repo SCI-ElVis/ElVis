@@ -80,7 +80,8 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
   seg.End = seg.Start + payload.IntersectionT;
   ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
 
-  ElementFinderPayload newApproach = findElementFromFace(origin, rayDirection, payload);
+  ElementFinderPayload newApproach;
+  bool foundElement = findElementFromFace(origin, rayDirection, payload, newApproach);
   ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New approach id %d and type %d\n",
     seg.ElementId, seg.ElementTypeId, newApproach.elementId, newApproach.elementType);
   seg.ElementId = newApproach.elementId;

@@ -39,11 +39,11 @@ namespace ElVis
   struct FaceNodeInfo
   {
   private:
-    FaceNodeInfo() : nNode(0), vertexIdx(NULL) {}
+    FaceNodeInfo() : nNode(0), Type(TwoDElementType::eInvalid), vertexIdx(NULL) {}
 
   public:
-    FaceNodeInfo(const int nNode) : nNode(nNode) { vertexIdx = new unsigned int[nNode]; }
-    FaceNodeInfo(const FaceNodeInfo& Info) : nNode(Info.nNode), vertexIdx(NULL)
+    FaceNodeInfo(const int nNode) : nNode(nNode), Type(TwoDElementType::eInvalid) { vertexIdx = new unsigned int[nNode]; }
+    FaceNodeInfo(const FaceNodeInfo& Info) : nNode(Info.nNode), Type(Info.Type), vertexIdx(NULL)
     {
       vertexIdx = new unsigned int[nNode];
       for(int i = 0; i < nNode; i++) vertexIdx[i] = Info.vertexIdx[i];
@@ -51,6 +51,7 @@ namespace ElVis
     FaceNodeInfo& operator=(const FaceNodeInfo& Info)
     {
       nNode = Info.nNode;
+      Type = Info.Type;
       vertexIdx = new unsigned int[nNode];
       for(int i = 0; i < nNode; i++) vertexIdx[i] = Info.vertexIdx[i];
       return *this;

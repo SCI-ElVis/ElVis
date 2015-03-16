@@ -32,17 +32,25 @@
 #include <ElVis/Core/Float.cu>
 #include "CutSurfacePayloads.cu"
 #include <ElVis/Core/FaceIntersection.cu>
+#include <ElVis/Core/ReferencePointParameter.h>
 
-
-
-__device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisFloat3& p, const ElVisFloat3& direction, const VolumeRenderingPayload& payload_v)
+/// \brief Finds the element that encloses a point based on one of the element's faces.
+/// \param[in] p The point that the element encloses.
+/// \param[in] direction The direction of a ray cast from p to find a face.
+/// \param[in] payload_v The payload that resulted from casting a ray to find a face.
+/// \param[out] rFindElementPayload Populated with the type and element id of the enclosing element.
+/// \returns true if the enclosing element was found, false otherwise.
+///
+/// Due to numerical issues, it is possible for this method to return false even if the point is enclosed by an
+/// element.
+__device__ __forceinline__  bool findElementFromFace(const ElVisFloat3& p, const ElVisFloat3& direction, const VolumeRenderingPayload& payload_v,
+                                                ElementFinderPayload& rFindElementPayload)
 {
-    ElementFinderPayload findElementPayload;
-    findElementPayload.Initialize(p);
+    rFindElementPayload.Initialize(p);
     if( !payload_v.FoundIntersection )
     {
         ELVIS_PRINTF("FindElementFromFace: Did not find element intersection.\n");
-        return findElementPayload;
+        return false;
     }
     else
     {
@@ -92,22 +100,43 @@ __device__ __forceinline__ ElementFinderPayload findElementFromFace(const ElVisF
 //                 FaceInfoBuffer[faceId].CommonElements[1].Id,
 //                 FaceInfoBuffer[faceId].CommonElements[1].Type);
     // The test point is "inside" the element if d >= 0
-    ElVis::ElementId id;
+    ElVis::ElementId ids[2];
     if( d >= 0 )
-    {
-        
-        id = GetFaceInfo(payload_v.FaceId).CommonElements[0];
+    {   
+        ids[0] = GetFaceInfo(payload_v.FaceId).CommonElements[0];
+        ids[1] = GetFaceInfo(payload_v.FaceId).CommonElements[1];
     }
     else
     {
-        id = GetFaceInfo(payload_v.FaceId).CommonElements[1];
+        ids[0] = GetFaceInfo(payload_v.FaceId).CommonElements[1];
+        ids[1] = GetFaceInfo(payload_v.FaceId).CommonElements[0];
     }
     
-    findElementPayload.elementId = id.Id;
-    findElementPayload.elementType = id.Type;
-    //findElementPayload.IntersectionPoint = pointOnFace;
-    //ELVIS_PRINTF("FindElementFromFace: Element Id %d and Type %d\n", id.Id, id.Type);
-    return findElementPayload;
+    for(int i = 0; i < 2; ++i)
+    {
+        ReferencePoint refPoint;
+        ElVisError invertResult = ConvertWorldToReferenceSpaceOptiX(ids[i].Id, ids[i].Type,
+                                                                    p, ElVis::eReferencePointIsInvalid, refPoint);
+        int id = ids[i].Id;
+        int type = ids[i].Type;
+
+        if( invertResult == eNoError )
+        {
+            ELVIS_PRINTF("FindElementFromFace: Valid reference inversion for Element %d and Type %d with inversion (%f, %f, %f)\n",
+                         id, type, refPoint.x, refPoint.y, refPoint.z);
+            rFindElementPayload.elementId = ids[i].Id;
+            rFindElementPayload.elementType = ids[i].Type;
+            rFindElementPayload.ReferenceIntersectionPoint = refPoint;
+            rFindElementPayload.ReferencePointType = ElVis::eReferencePointIsValid;
+            return true;
+        }
+        else
+        {
+            ELVIS_PRINTF("FindElementFromFace: Invalid reference inversion for Element %d and Type %d\n", id, type);
+        }
+    }
+
+    return false;
 }
 
 /// \brief Finds the element enclosing point p
@@ -126,18 +155,19 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
 
     VolumeRenderingPayload payload_v = FindNextFaceIntersection(p, direction);
    
-    ELVIS_PRINTF("FindElementFromFace: First one Found %d T %f id %d\n", payload_v.FoundIntersection,
+    ELVIS_PRINTF("FindElementFromFace: First one Found=%d T=%f id=%d\n", payload_v.FoundIntersection,
         payload_v.IntersectionT, payload_v.FaceId.Value);
 
-    ElementFinderPayload findElementPayload = findElementFromFace(p, direction, payload_v);
-    if( payload_v.FoundIntersection && findElementPayload.elementId == -1 )
+    ElementFinderPayload findElementPayload;
+    bool foundElement = findElementFromFace(p, direction, payload_v, findElementPayload);
+    if( payload_v.FoundIntersection && !foundElement )
     {
         payload_v.Initialize();
         direction = MakeFloat3(-direction.x, -direction.y, -direction.z);
         payload_v = FindNextFaceIntersection(p, direction);
-        ELVIS_PRINTF("FindElementFromFace Try 2: Found %d T %f id %d\n", payload_v.FoundIntersection,
+        ELVIS_PRINTF("FindElementFromFace Try 2: Found=%d T=%f id=%d\n", payload_v.FoundIntersection,
             payload_v.IntersectionT, payload_v.FaceId.Value);
-        findElementPayload = findElementFromFace(p, direction, payload_v);
+        foundElement = findElementFromFace(p, direction, payload_v, findElementPayload);
     }
 
     return findElementPayload;

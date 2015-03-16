@@ -43,7 +43,7 @@ namespace ElVis
 
             Point(const std::string& pointValues)
             {
-                bool result = fromString(pointValues, *this);
+                fromString(pointValues, *this);
             }
 
             template<typename T>
