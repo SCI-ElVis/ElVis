@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<NEKTAR>
+    <Metadata>
+        <Provenance>
+            <GitBranch>refs/heads/feature/cfs-adaptive</GitBranch>
+            <GitSHA1>05c6ded4f9106ae6d7c4b5b355463cd7e95f3b1a</GitSHA1>
+            <Hostname>europa.local</Hostname>
+            <NektarVersion>3.4.0</NektarVersion>
+            <Timestamp>01-Jul-2014 23:04:19</Timestamp>
+        </Provenance>
+    </Metadata>
+    <ELEMENTS FIELDS="u" SHAPE="Hexahedron" BASIS="Modified_A,Modified_A,Modified_A" NUMMODESPERDIR="UNIORDER:5,5,5" ID="0">eJxjYKAKaMAlEe9xPGyuCteBLVNV/Z4af93vri/LyXHuvD26vilQ+V+zD55hMH64f9eTq1MPcu+yRzcvFqp/01OofN2LSnfxiv3kOfuDvfTJhZOUrF/Z6053uPCVZ489g3HQtq6V7XDzYPLNX1+UtjY8tV87adeb2H/b7Dvqi+9UpTbD1DXA9CdMhMjvrNXN2Tytw15FZ8b2d3tDEO6Dmn+nFaL/wb/pEHmdKSst6xUx/EsIoLtvJ9T+MxUo7mOYDJUvvq1nINn0335beP6tW7zP7N9lip++/HQ23N4mqP/cwyDyk69aLjdOumif/zEq5GJMLFzdijKI+QfzIPrTf0aC5dPOsNcoZWwkOT5g4ScAtd+yBhJ+RYKo4WcDlX/RvFH1yuRP9mUT94lcfH3LvpHx38GMLUfg6nKg+gUmQeSNboSFyHYfsd91W3tL/O91cHV2whDzeaH60+5C5HfVMwpd+LqY5PiAxW9HLSR8EoKh7s+ZihK/W6oh8nGtYhkX5Lbvd26+fHDN/9n7xZTN03m218LV3TKD6L/ZCJEPC2fretbRup9vDuMFIdV8hPtMIOYvMILoPzQDIn/g2ZTyHRud7QFdmS8D</ELEMENTS>
+</NEKTAR>
