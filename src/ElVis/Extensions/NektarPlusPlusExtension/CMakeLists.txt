@@ -4,7 +4,7 @@ SET(ExtensionPath ElVis/Extensions/${ProjectName})
 # TODO - These should be handled by Nektar++Config.cmake
 ADD_DEFINITIONS(-DNEKTAR_PLUS_PLUS_EXTENSION_EXPORTS -DNEKTAR_USING_BLAS -DNEKTAR_USING_LAPACK -DNEKTAR_MEMORY_POOL_ENABLED)
 
-FIND_PACKAGE(Nektar++ REQUIRED NO_MODULE NO_DEFAULT_PATH NO_CMAKE_BUILDS_PATH NO_CMAKE_PACKAGE_REGISTRY)
+FIND_PACKAGE(Nektar++ REQUIRED ) #NO_MODULE NO_DEFAULT_PATH NO_CMAKE_BUILDS_PATH NO_CMAKE_PACKAGE_REGISTRY)
 
 IF( NEKTAR++_FOUND )
     SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${NEKTAR++_ROOT_DIR} ${CMAKE_MODULE_PATH})
@@ -19,8 +19,8 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
                ${CMAKE_BINARY_DIR}/ElVis/Extensions/NektarPlusPlusExtension/NektarPlusPlusExtensionPTXConfig.h @ONLY)
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
                ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu @ONLY)
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
-               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu @ONLY)
+#CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
+#               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu @ONLY)
 
 #################################3
 # Nektar++ Extension
