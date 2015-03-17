@@ -68,8 +68,46 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     glutInitWindowSize(100, 100);
     glutCreateWindow("fake");
 
+    const char* traceLabel = "EnableTrace";
+    const char* traceXLabel = "TraceX";
+    const char* traceYLabel = "TraceY";
+
+    boost::program_options::options_description desc("ColorMapBulletNewApproachVolumeSampling");
+    desc.add_options()
+        (traceLabel, boost::program_options::value<int>(), "Enable Trace")
+        (traceXLabel, boost::program_options::value<int>(), "Trace X")
+        (traceYLabel, boost::program_options::value<int>(), "Trace Y")
+        ;
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).style(boost::program_options::command_line_style::allow_long |
+                                                                                                              boost::program_options::command_line_style::long_allow_adjacent).allow_unregistered().run(), vm);
+    boost::program_options::notify(vm);
+
+
+    bool trace = false;
+    if( vm.count(traceLabel) == 1 )
+    {
+        trace = vm[traceLabel].as<int>();
+    }
+
+    int tracex = -1;
+    int tracey = -1;
+    if( vm.count(traceXLabel) == 1)
+    {
+        tracex = vm[traceXLabel].as<int>();
+    }
+
+    if( vm.count(traceYLabel) == 1)
+    {
+        tracey = vm[traceYLabel].as<int>();
+    }
+
     boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
     scene->SetModel(model);
+
+    scene->SetEnableOptixTrace(trace);
+    scene->SetOptixTracePixelIndex(ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
 
     boost::shared_ptr<ElVis::Cylinder> cylinder(new ElVis::Cylinder());
     cylinder->GetTransformationMatrix()[11] = 2.0;

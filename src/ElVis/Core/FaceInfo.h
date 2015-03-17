@@ -85,8 +85,10 @@ namespace ElVis
 
     enum TwoDElementType
     {
+      eSegment,
       eTriangle,
-      eQuad
+      eQuad,
+      eInvalid
     };
 
     struct PlanarFaceInfo

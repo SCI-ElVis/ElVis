@@ -283,6 +283,7 @@ ELVIS_DEVICE ElVisFloat EvaluateField(PX_EgrpData const& egrpData, PX_SolutionOr
 */
   /* evaluate basis */
   PXShapeElem_Solution<PX_REAL>(order, porder, xref, phi);
+  //PXShapeElem<PX_REAL>(order, porder, xref, phi);
 
   //ELVIS_PRINTF("MCG: EvaluateField: fieldId = %d, SOLN_MAX_NBF=%d, nbf=%d\n", fieldId, SOLN_MAX_NBF, nbf);
   ElVisFloat result = MAKE_FLOAT(0.0);

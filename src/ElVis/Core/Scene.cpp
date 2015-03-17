@@ -191,6 +191,7 @@ namespace ElVis
                     GetModel()->CalculateExtents();
                     SetFloat(m_context["VolumeMinExtent"], GetModel()->MinExtent());
                     SetFloat(m_context["VolumeMaxExtent"], GetModel()->MaxExtent());
+                    m_context["ModelDimension"]->setInt(GetModel()->GetModelDimension());
 
                     // Version 2.0 Interface.
                     GetModel()->CopyToOptiX(m_context);

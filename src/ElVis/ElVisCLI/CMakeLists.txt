@@ -265,6 +265,22 @@ IF( ELVIS_ENABLE_ProjectX_EXTENSION )
         --OutFile OneraWingSurface
         --CompareFile "${BaselineDir}/OneraWingSurface"
     )
+
+    ADD_ELVIS_REGTEST(TwoD
+        --TestName Generic
+        --ModelPath "/home/bnelson/Volumes/naca_Euler2d_CurvedAdapt_TEST_P2_a02_Primal_1.pxa"
+        --Module ${PXExtensionPath}
+        --Width 785
+        --Height 535
+        --Eye 0.00525118 0.00488433 0.09911494 --At 0.00324777 0.00500954 -0.00086492 --Up 0.0 1.0 0.0
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml"
+        --ColorMapMin 0.98
+        --ColorMapMax 1.04
+        --CutPlaneNormal 0.0 0.0 1.0
+        --CutPlanePoint 0.0 0.0 0.0
+        --OutFile TwoD
+        --CompareFile "${BaselineDir}/TwoD"
+    )
 ENDIF()
 
 IF( ELVIS_ENABLE_NEKTAR++_EXTENSION )

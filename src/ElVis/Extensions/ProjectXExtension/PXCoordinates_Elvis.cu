@@ -332,6 +332,65 @@ PXProject2RefElement( enum PXE_Shape Shape, PX_REAL * RESTRICT xref )
 
   return PXProject2RefElement(Shape, xref, &nFaceSearch, FaceSearch);
 }
+
+
+/******************************************************************/
+//   FUNCTION Definition: PXMatrixDetInverse2
+template <typename DT> ELVIS_DEVICE void
+PXMatrixDetInverse2(DT const * RESTRICT jac, DT * RESTRICT J, DT * RESTRICT ijac)
+{
+  DT JJ;
+
+  /* Compute Determinant */
+  JJ = jac[0]*jac[3] - jac[2]*jac[1];
+
+  /* Set Determinant */
+  if (J != NULL)
+    *J = JJ;
+
+  /* Set inverse */
+  if (ijac != NULL){
+    ijac[0] =  jac[3]/JJ;
+    ijac[1] = -jac[1]/JJ;
+    ijac[2] = -jac[2]/JJ;
+    ijac[3] =  jac[0]/JJ;
+  }
+}
+
+
+/******************************************************************/
+//   FUNCTION Definition: PXMatrixDetInverse3
+template <typename DT> ELVIS_DEVICE void
+PXMatrixDetInverse3(DT const * RESTRICT jac, DT * RESTRICT J, DT * RESTRICT ijac)
+{
+
+  DT JJ, JJ1;
+
+  JJ = jac[0]*jac[4]*jac[8]
+      +jac[1]*jac[5]*jac[6]
+      +jac[2]*jac[3]*jac[7]
+      -jac[6]*jac[4]*jac[2]
+      -jac[7]*jac[5]*jac[0]
+      -jac[8]*jac[3]*jac[1];
+
+  if (J != NULL)
+    *J = JJ;
+
+  if (ijac != NULL){
+    JJ1 = 1.0/JJ;
+    ijac[0] = (jac[4]*jac[8]-jac[5]*jac[7])*JJ1;
+    ijac[1] = (jac[7]*jac[2]-jac[8]*jac[1])*JJ1;
+    ijac[2] = (jac[1]*jac[5]-jac[2]*jac[4])*JJ1;
+    ijac[3] = (jac[5]*jac[6]-jac[3]*jac[8])*JJ1;
+    ijac[4] = (jac[8]*jac[0]-jac[6]*jac[2])*JJ1;
+    ijac[5] = (jac[2]*jac[3]-jac[0]*jac[5])*JJ1;
+    ijac[6] = (jac[3]*jac[7]-jac[4]*jac[6])*JJ1;
+    ijac[7] = (jac[6]*jac[1]-jac[7]*jac[0])*JJ1;
+    ijac[8] = (jac[0]*jac[4]-jac[1]*jac[3])*JJ1;
+  }
+}
+
+
 /******************************************************************/
 //   FUNCTION Definition: PXRef2GlobFromCoordinates
 ELVIS_DEVICE int
@@ -384,14 +443,14 @@ PXRef2GlobFromCoordinatesGivenShape2(int nbf, int globDim, PX_REAL const * nodeC
 
 
 /******************************************************************/
-//   FUNCTION Definition: PXJacobianElementFromCoordinatesGivenGradient
+//   FUNCTION Definition: PXJacobianElementFromCoordinatesGivenGradient2
 ELVIS_DEVICE int
 PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type, int nbf, PX_REAL const *nodeCoordinates,
                                                PX_REAL const *xref,
                                                PX_REAL *pJ, PX_REAL *ijac,
                                                PX_REAL const *gphi, enum PXE_Boolean const& CoordinateVerbosity)
 {
-  int i,k;
+  int i,j,k;
   PX_REAL J=0.0;
   PX_REAL temp1 = 0.0;
   PX_REAL temp2 = 0.0;
@@ -500,24 +559,24 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
 
       ALWAYS_PRINTF("Negative Jacobian found: %e\n",J);
 
-      /* nodeCoordinates -= Dim*nbf; //reset to beginning of coordinates */
+      nodeCoordinates -= Dim*nbf; //reset to beginning of coordinates
 
       /* printf("ERROR: jacobian = %22.15e < 0 \n",J); */
-      /* printf("       type = %s\n",PXE_ElementTypeName[type]); */
-      /* printf("xref = ["); */
-      /* for (j=0; j<Dim; j++){ */
-      /* 	printf(" %22.15e",xref[j]); */
-      /* } */
-      /* printf("];\n"); */
-      /* printf("ps = [\n"); */
-      /* for (i=0; i<nbf; i++){ */
-      /* 	for (j=0; j<Dim; j++){ */
-      /* 	  printf(" %22.15e",nodeCoordinates[i*Dim+j]); */
-      /* 	} */
-      /* 	printf("\n"); */
-      /* } */
-      /* printf("  ];\n"); */
-      /* printf("plot(ps(:,1),ps(:,2),'g^');\n"); */
+      //ALWAYS_PRINTF("       type = %s\n",PXE_ElementTypeName[type]);
+      ALWAYS_PRINTF("xref = [");
+       for (j=0; j<Dim; j++){
+         ALWAYS_PRINTF(" %22.15e",xref[j]);
+       }
+       ALWAYS_PRINTF("];\n");
+//       ALWAYS_PRINTF("ps = [\n");
+//       for (i=0; i<nbf; i++){
+//       	for (j=0; j<Dim; j++){
+//       	 ALWAYS_PRINTF(" %22.15e",nodeCoordinates[i*Dim+j]);
+//       	}
+//       	ALWAYS_PRINTF("\n");
+//       }
+//       ALWAYS_PRINTF("  ];\n");
+       //printf("plot(ps(:,1),ps(:,2),'g^');\n");
 
 
     return PX_NON_PHYSICAL;
@@ -528,7 +587,20 @@ PXJacobianElementFromCoordinatesGivenGradient2(enum PXE_ElementType const& type,
   return PX_NO_ERROR;
 }
 
+/******************************************************************/
+//   FUNCTION Definition: PXFaceRef2ElemFaceRefEdge
+template <typename T> ELVIS_DEVICE int
+PXFaceRef2ElemFaceRefEdge( int orientation, PX_REAL const * RESTRICT xface,
+             PX_REAL * RESTRICT xfacelocal )
+{
+  xfacelocal[0] = xface[0];
 
+  if (orientation != 0){
+    xfacelocal[0] = 1.0-xfacelocal[0];
+  }
+
+  return PX_NO_ERROR;
+}
 
 /******************************************************************/
 //   FUNCTION Definition: PXFaceRef2ElemFaceRefTriangle
@@ -570,7 +642,7 @@ PXFaceRef2ElemFaceRefTriangle( int orientation, T const * RESTRICT xface,
     xfacelocal[0] = temp;
     break;
   default:
-    ELVIS_PRINTF("Invalid rotation: %d\n", rot );
+    ALWAYS_PRINTF("PXFaceRef2ElemFaceRefTriangle: Invalid rotation: %d\n", rot );
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -634,7 +706,7 @@ PXFaceRef2ElemFaceRefQuad( int orientation, T const * RESTRICT xface,
     xfacelocal[1] = 1.0-temp;
     break;
   default:
-    //ELVIS_PRINTF("Invalid orientation: %d\n",orientation);
+    ALWAYS_PRINTF("PXFaceRef2ElemFaceRefQuad: Invalid orientation: %d\n",orientation);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -650,13 +722,13 @@ PXFaceRef2ElemFaceRef( enum PXE_Shape faceShape, int orientation,
 {
   switch (faceShape) {
   
-  /* case PXE_Shape_Node: */
-  /*   xfacelocal[0] = xface[0]; */
-  /*   break; */
+   case PXE_Shape_Node:
+     xfacelocal[0] = xface[0];
+     break;
 
-  /* case PXE_Shape_Edge: */
-  /*   ( PXFaceRef2ElemFaceRefEdge( orientation, xface, xfacelocal ) ); */
-  /*   break; */
+   case PXE_Shape_Edge:
+     ( PXFaceRef2ElemFaceRefEdge<T>( orientation, xface, xfacelocal ) );
+     break;
 
   case PXE_Shape_Triangle:
     ( PXFaceRef2ElemFaceRefTriangle<T>( orientation, xface, xfacelocal ) );
@@ -666,7 +738,8 @@ PXFaceRef2ElemFaceRef( enum PXE_Shape faceShape, int orientation,
     ( PXFaceRef2ElemFaceRefQuad<T>( orientation, xface, xfacelocal ) );
     break;
 
-  default: 
+  default:
+    ALWAYS_PRINTF("PXFaceRef2ElemFaceRef: Unkown faceShape = %d", faceShape);
     return PXErrorDebug(PX_CODE_FLOW_ERROR);
   }
 
@@ -731,7 +804,7 @@ PXFace2RefTetOrientation0(int lface, PX_REAL const * RESTRICT xfacelocal, PX_REA
     xref[2] = 0.0;
     return PX_NO_ERROR;
   default:
-    ELVIS_PRINTF("Invalid lface choice: %d\n",lface);
+    ALWAYS_PRINTF("PXFace2RefTetOrientation0: Invalid lface choice: %d\n",lface);
     return PX_BAD_INPUT;
   }
 }
@@ -974,27 +1047,116 @@ PXElementCentroidReference( enum PXE_Shape Shape, PX_REAL * RESTRICT xref )
 }
 
 /******************************************************************/
+//   FUNCTION Definition: LinearSimplexGlob2Ref
+ELVIS_DEVICE int
+LinearSimplexGlob2Ref(enum PXE_Shape Shape, ElVisFloat const * RESTRICT vertices, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref)
+{
+  PX_REAL Jac[9];    // Transformation Jacobian
+  //PX_REAL J;         // Jacobian Determinant
+  PX_REAL iJac[9];   // Inverse of Jacobian
+  PX_REAL xrefLin[3] = {0,0,0};
+  ElVisFloat const * x0 = NULL;       // Coordinates on Node0
+
+  /* Set x0 to node 0 */
+  x0 = vertices;
+
+  /* /\* Form Jacobian Matrix *\/ */
+  /* for (i=0; i<Dim; i++) */
+  /*   for (j=0; j<Dim; j++) */
+  /*     Jac[i*Dim+j] = vertices[(1+j)*Dim+i]-x0[i]; */
+
+  /* Get inverse of Jacobian Matrix */
+  switch (Dim) {
+  case 1:
+    iJac[0] = 1.0/(vertices[1]-vertices[0]);
+    xref[0] = iJac[0]*(xglobal[0] - vertices[0]);
+    break;
+  case 2:
+    Jac[0] = vertices[2 + 0] - x0[0];
+    Jac[1] = vertices[4 + 0] - x0[0];
+    Jac[2] = vertices[2 + 1] - x0[1];
+    Jac[3] = vertices[4 + 1] - x0[1];
+
+    PXMatrixDetInverse2<PX_REAL>(Jac, NULL, iJac);
+
+    /* Compute Reference Coordinates */
+    /* matrix-vec product: iJac*(xglobal - x0) */
+    //j=0;
+    xref[0] = iJac[0*2 + 0]*(xglobal[0] - x0[0]) + iJac[0*2 + 1]*(xglobal[1] - x0[1]);
+    xref[1] = iJac[1*2 + 0]*(xglobal[0] - x0[0]) + iJac[1*2 + 1]*(xglobal[1] - x0[1]);
+    break;
+  case 3:
+    Jac[0] = vertices[3 + 0] - x0[0];
+    Jac[1] = vertices[6 + 0] - x0[0];
+    Jac[2] = vertices[9 + 0] - x0[0];
+    Jac[3] = vertices[3 + 1] - x0[1];
+    Jac[4] = vertices[6 + 1] - x0[1];
+    Jac[5] = vertices[9 + 1] - x0[1];
+    Jac[6] = vertices[3 + 2] - x0[2];
+    Jac[7] = vertices[6 + 2] - x0[2];
+    Jac[8] = vertices[9 + 2] - x0[2];
+
+    PXMatrixDetInverse3<PX_REAL>(Jac, NULL, iJac);
+
+    /* Compute Reference Coordinates */
+    /* matrix-vec product: iJac*(xglobal - x0) */
+    //j=0;
+    xref[0] = iJac[0*3 + 0]*(xglobal[0] - x0[0]) +
+              iJac[0*3 + 1]*(xglobal[1] - x0[1]) +
+              iJac[0*3 + 2]*(xglobal[2] - x0[2]);
+    xref[1] = iJac[1*3 + 0]*(xglobal[0] - x0[0]) +
+              iJac[1*3 + 1]*(xglobal[1] - x0[1]) +
+              iJac[1*3 + 2]*(xglobal[2] - x0[2]);
+    xref[2] = iJac[2*3 + 0]*(xglobal[0] - x0[0]) +
+              iJac[2*3 + 1]*(xglobal[1] - x0[1]) +
+              iJac[2*3 + 2]*(xglobal[2] - x0[2]);
+    break;
+  default:
+    ALWAYS_PRINTF("Dim = %d not supported in ProjectX\n", Dim);
+    return PXErrorDebug(PX_BAD_INPUT);
+  }
+
+  for (int d=0; d<Dim; d++)
+    xrefLin[d] = xref[d];
+
+  //Make sure the reference coordinates are inside the element
+  PXErrorReturn( PXProject2RefElement( Shape, xref ) );
+
+  //Compute a residual to see if xref moved back inside the element
+  PX_REAL Residual = 0.0;
+  for(int d=0; d<Dim; d++)
+    Residual += (xrefLin[d]-xref[d])*(xrefLin[d]-xref[d]);
+  Residual = sqrt(Residual);
+
+  if ( Residual > 1.0E-10)
+    return PX_NOT_CONVERGED;
+
+  return PX_NO_ERROR;
+}
+
+/******************************************************************/
 //   FUNCTION Definition: PXGlob2RefFromCoordinates
 ELVIS_DEVICE int
 PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_REAL const * RESTRICT xglobal, PX_REAL * RESTRICT xref, enum PXE_Boolean initialGuessProvided, enum PXE_Boolean CoordinateVerbosity)
 {
   int ierr = PX_NO_ERROR;              // error code
-  int d;
+  int d,d2;
   int node;              // index over the nodes of an element
   int qorder;            // polynomial order of the element
   int nbf;               // number of basis function in the element
-  int iter;              // current interation of the newton solve
-  int nLimitedIter = 5;  // number of interations we limit the update in the newton solve
+  int iter;              // current iteration of the newton solve
+  int nLimitedIter = 5;  // number of iterations we limit the update in the newton solve
   const int maxIter = 200;
   PX_REAL Residual;     // Residual of Newton Solve
   PX_REAL lim = 1.0;    // limit on the newton update - so the first step doesn't take us way out of the reference element
   //PX_REAL Jac[9];       // Transformation Jacobian
-  PX_REAL iJac[9];      // Inverse of Jacobian
-  PX_REAL RHS[3];       // right hand side vector for Newton Solve
-  PX_REAL dxref[3];     // Update in xref for Newton Solve
-  PX_REAL phi[MAX_NBF];  // Basis Functions
-  PX_REAL gphi[DIM3D*MAX_NBF]; // Derivative of Basis Functions wrt reference coordinates
-  PX_REAL xg[3];
+  PX_REAL iJac[9] = {0,0,0,0,0,0,0,0,0};      // Inverse of Jacobian
+  PX_REAL RHS[3] = {0,0,0};       // right hand side vector for Newton Solve
+  PX_REAL xrefold[3] = {0,0,0};     // Previous in xref for Newton Solve
+  PX_REAL dxref[3] = {0,0,0};     // Update in xref for Newton Solve
+  PX_REAL phi[MAX_NBF] = {0};  // Basis Functions
+  PX_REAL gphi[DIM3D*MAX_NBF] = {0}; // Derivative of Basis Functions wrt reference coordinates
+  PX_REAL xg[3] = {0,0,0};
   enum PXE_Boolean ConvergedFlag; // flag indicating if the newton solve has converged
   enum PXE_Shape Shape;           // shape of the basis in this element
   enum PXE_SolutionOrder order;   // interpolation order of a given element type
@@ -1013,14 +1175,13 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
   iter = 0;
 
   // Initialize xref to centroid
-  PXElementCentroidReference( Shape, xref );
-
+  PXErrorReturn( PXElementCentroidReference( Shape, xref ) );
 
   // Starting Newton iteration
   for ( iter = 0; iter < maxIter; iter++) {
 
     // Get Shape functions and gradients
-    PXGradientsElem(order, qorder, xref, gphi );
+    PXErrorReturn( PXGradientsElem(order, qorder, xref, gphi ) );
 
 
     // Jacobian element for current xref
@@ -1029,7 +1190,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     if(ierr != PX_NO_ERROR)
       break;
 
-    PXShapeElem(order, qorder, xref, phi );
+    PXErrorReturn( PXShapeElem(order, qorder, xref, phi ) );
 
     // Initialize RHS and Jacobian
     for (d=0; d<Dim; d++)
@@ -1056,7 +1217,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     //Residual += RHS[0]*RHS[0] + RHS[1]*RHS[1] + RHS[2]*RHS[2];
     Residual = sqrt(Residual);
 
-//    ELVIS_PRINTF("MCG: PXCurvedGlob2Ref xref = %f, %f, %f | residual = %f\n", xref[0], xref[1], xref[2], Residual);
+    ELVIS_PRINTF("PX PXCurvedGlob2Ref xref = %f, %f, %f | residual = %f\n", xref[0], xref[1], xref[2], Residual);
 
     // Check Residual Tolerance
     if ( ( Residual < 1.0E-10) && (iter>nLimitedIter) ) {
@@ -1066,9 +1227,16 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
 
     // Compute State
     //( PXMat_Vec_Mult_Set( iJac, RHS, dxref, Dim, Dim ) );
-    dxref[0] = iJac[0*DIM3D+0]*RHS[0] + iJac[0*DIM3D+1]*RHS[1] + iJac[0*DIM3D+2]*RHS[2];
-    dxref[1] = iJac[1*DIM3D+0]*RHS[0] + iJac[1*DIM3D+1]*RHS[1] + iJac[1*DIM3D+2]*RHS[2];
-    dxref[2] = iJac[2*DIM3D+0]*RHS[0] + iJac[2*DIM3D+1]*RHS[1] + iJac[2*DIM3D+2]*RHS[2];
+//    dxref[0] = iJac[0*DIM3D+0]*RHS[0] + iJac[0*DIM3D+1]*RHS[1] + iJac[0*DIM3D+2]*RHS[2];
+//    dxref[1] = iJac[1*DIM3D+0]*RHS[0] + iJac[1*DIM3D+1]*RHS[1] + iJac[1*DIM3D+2]*RHS[2];
+//    dxref[2] = iJac[2*DIM3D+0]*RHS[0] + iJac[2*DIM3D+1]*RHS[1] + iJac[2*DIM3D+2]*RHS[2];
+
+    for(d=0; d<Dim; d++)
+      dxref[d] = 0;
+
+    for(d=0; d<Dim; d++)
+      for(d2=0; d2<Dim; d2++)
+        dxref[d] += iJac[d*Dim+d2]*RHS[d2];
 
     // limiting - for the first iteration we don't want to take the full step
     if (iter<nLimitedIter){
@@ -1084,7 +1252,21 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
       xref[d] += lim*dxref[d];
 
     //Make sure the reference coordinates are inside the element
-    PXProject2RefElement( Shape, xref );
+    PXErrorReturn( PXProject2RefElement( Shape, xref ) );
+
+    //Compute the difference between the old and projected xref
+    Residual = 0.0;
+    for(d=0; d<Dim; d++)
+      Residual += (xrefold[d]-xref[d])*(xrefold[d]-xref[d]);
+    Residual = sqrt(Residual);
+
+    //Abort if the point is constantly hitting the same point on the edge of the element
+    if ( ( Residual < 1.0E-10) ) {
+      break;
+    }
+
+    for (d=0; d<Dim; d++)
+      xrefold[d] = xref[d];
 
   }// for iter
 
@@ -1132,7 +1314,7 @@ PXGlob2RefFromCoordinates2(PX_ElementTypeData const& elemData, PX_REAL const *xn
   /*----------------------------------------------------------------------------------------*/
   if ((qorder ==  1) && ( (Shape == PXE_Shape_Edge) || (Shape == PXE_Shape_Triangle) || (Shape == PXE_Shape_Tet))) {
     //ELVIS_PRINTF("MCG: PXGlob2RefFromCoordinates2: Linear Element\n");
-    return LinearSimplexGlob2Ref(xnodes, xglobal, xref);
+    return LinearSimplexGlob2Ref(Shape, xnodes, xglobal, xref);
   }
 
   //return LinearSimplexGlob2Ref(xnodes, xglobal, xref);
