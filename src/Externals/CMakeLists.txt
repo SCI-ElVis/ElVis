@@ -101,6 +101,8 @@ ELSE()
   ADD_SUBDIRECTORY(boost)
 ENDIF()
 
+MESSAGE( STATUS "Boost Include ${Boost_INCLUDE_DIR}" )
+
 ##################################################
 # ADDING OptiX
 ##################################################
