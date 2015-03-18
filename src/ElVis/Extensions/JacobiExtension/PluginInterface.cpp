@@ -32,9 +32,9 @@
 #include <ElVis/Extensions/JacobiExtension/PluginInterface.h>
 
 
-std::string GetPluginName()
+const char* GetPluginName()
 {
-    std::string result = "Jacobi";
+    static const char* result = "Jacobi";
     return result;
 }
 
@@ -46,9 +46,9 @@ ElVis::Model* LoadModel(const char* path)
     return result;
 }
 
-std::string GetVolumeFileFilter()
+const char* GetVolumeFileFilter()
 {
-    std::string result = "Jacobi Volumes (*.dat)";
+    static const char* result = "Jacobi Volumes (*.dat)";
     return result;
 }
 

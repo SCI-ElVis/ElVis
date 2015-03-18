@@ -32,9 +32,9 @@
 #include <ElVis/Extensions/NektarPlusPlusExtension/PluginInterface.h>
 #include <boost/filesystem.hpp>
 
-std::string GetPluginName()
+const char* GetPluginName()
 {
-    static std::string result("NektarPlusPlus");
+    static const char* result = "NektarPlusPlus";
     return result;
 }
 
@@ -58,8 +58,8 @@ ElVis::Model* LoadModel(const char* path)
     return result;
 }
 
-std::string GetVolumeFileFilter()
+const char* GetVolumeFileFilter()
 {
-    static std::string result("Nektar Volumes (*.fld *.xml)");
+    static const char* result = "Nektar Volumes (*.fld *.xml)";
     return result;
 }

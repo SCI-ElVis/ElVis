@@ -14,6 +14,7 @@ IF (APPLE) #set the env vars to use the cuda path
     SET(ENV_DYLD $ENV{DYLD_LIBRARY_PATH})
     SET(ENV{PATH} ${CUDA_TOOLKIT_ROOT_DIR}/bin)
     SET(ENV{DYLD_LIBRARY_PATH} ${CUDA_TOOLKIT_ROOT_DIR}/lib)
+    SET(Boost_NO_BOOST_CMAKE ON CACHE INTERNAL "Defaults to ON so ElVis' included Boost is used rather than installed version.")
 ENDIF()
 
 #############################

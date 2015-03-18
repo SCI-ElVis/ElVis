@@ -37,8 +37,8 @@
 
 extern "C"
 {
-    JACOBI_EXTENSION_EXPORT std::string GetPluginName();
+    JACOBI_EXTENSION_EXPORT const char* GetPluginName();
     JACOBI_EXTENSION_EXPORT ElVis::Model* LoadModel(const char* path);
-    JACOBI_EXTENSION_EXPORT std::string GetVolumeFileFilter();
+    JACOBI_EXTENSION_EXPORT const char* GetVolumeFileFilter();
 }
 #endif //ELVIS_EXTENSIONS_JACOBI_EXTENSION_PLUGIN_INTERFACE_H

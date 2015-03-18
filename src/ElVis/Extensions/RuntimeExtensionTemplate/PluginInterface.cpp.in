@@ -32,9 +32,9 @@
 #include <@RUNTIME_EXTENSION_NAME@/PluginInterface.h>
 #include <@RUNTIME_EXTENSION_NAME@/Model.h>
 
-std::string GetPluginName()
+const char* GetPluginName()
 {
-    std::string result("@RUNTIME_EXTENSION_NAME@");
+    static const char* result = "@RUNTIME_EXTENSION_NAME@";
     return result;
 }
 
@@ -44,10 +44,10 @@ ElVis::Model* LoadModel(const char* path)
     return result;
 }
 
-std::string GetVolumeFileFilter()
+const char* GetVolumeFileFilter()
 {
     // TODO - Replace with prefixes for your model.
-    std::string result("@RUNTIME_EXTENSION_NAME@ Models (*.dat)");
+    static const char* result = "@RUNTIME_EXTENSION_NAME@ Models (*.dat)";
     return result;
 }
 

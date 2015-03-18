@@ -39,7 +39,7 @@
 extern "C"
 {
     /// \brief Returns the extension's name.  Used by the ElVis GUI to differentiate between loaded extensions.
-    @RUNTIME_EXTENSION_NAME@_EXPORT std::string GetPluginName();
+    @RUNTIME_EXTENSION_NAME@_EXPORT const char* GetPluginName();
     
     /// \brief Loads a model from the specified location and returns a pointer to that model.
     /// 
@@ -49,7 +49,7 @@ extern "C"
     /// \brief Returns the file name filters used by this extension. 
     ///
     /// The format of this string is that of the file filter in Qt class QFileDialog
-    @RUNTIME_EXTENSION_NAME@_EXPORT std::string GetVolumeFileFilter();
+    @RUNTIME_EXTENSION_NAME@_EXPORT const char* GetVolumeFileFilter();
 }
 
 #endif //ELVIS_EXTENSIONS_@RUNTIME_EXTENSION_NAME@_PLUGIN_INTERFACE_H
