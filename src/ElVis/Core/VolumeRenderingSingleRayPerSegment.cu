@@ -107,8 +107,8 @@ namespace ElVis
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Total segment range: [%2.15f, %2.15f], segment Id %d\n", segmentStart[segmentIndex], segmentEnd[segmentIndex], segmentIndex);
-            ELVIS_PRINTF("D = %2.15f, H = %2.15f, N = %d\n", d, h, n);
+            //ELVIS_PRINTF("Total segment range: [%2.15f, %2.15f], segment Id %d\n", segmentStart[segmentIndex], segmentEnd[segmentIndex], segmentIndex);
+            //ELVIS_PRINTF("D = %2.15f, H = %2.15f, N = %d\n", d, h, n);
         }
 
         // First test for density identically 0.  This means the segment does not contribute at
@@ -190,7 +190,7 @@ namespace ElVis
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Trapezoidal_SingleThreadPerRay: Processing segment id %d\n", segmentIndex);
+            //ELVIS_PRINTF("Trapezoidal_SingleThreadPerRay: Processing segment id %d\n", segmentIndex);
         }
         ElVisFloat accumulatedDensity = densityAccumulator[segmentIndex];
         ElVisFloat3 color = colorAccumulator[segmentIndex];

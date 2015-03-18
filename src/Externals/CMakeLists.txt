@@ -60,6 +60,9 @@ ADD_SUBDIRECTORY(tinyxml)
 # Adding BOOST
 ##################################################
 
+#MESSAGE(STATUS "Configuring boost")
+#ADD_SUBDIRECTORY(boost)
+
 MESSAGE(STATUS "Configuring boost")
 FIND_PACKAGE( Boost COMPONENTS unit_test_framework system filesystem serialization thread program_options )
 IF( Boost_FOUND )

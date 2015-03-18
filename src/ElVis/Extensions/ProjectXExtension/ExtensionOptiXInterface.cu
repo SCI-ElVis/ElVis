@@ -91,7 +91,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePo
   PX_REAL xref[2] = {r,s};
 
   if( Idx.Value >= nCurvedFace ) {
-    rtPrintf("############ EvaluateFace Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
+    //rtPrintf("############ EvaluateFace Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
     return eFieldNotDefinedOnFace;
   }
 
@@ -105,7 +105,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePo
   PXShapeFace<PX_REAL>(faceData->order, faceData->qorder, xref, phi);
 
   //ELVIS_PRINTF("PX EvaluateFace: xref[0]=%f, xref[1]=%f, xreflocal[0]=%f, xreflocal[1]=%f\n",xref[0],xref[1],xreflocal[0],xreflocal[1]);
-  ELVIS_PRINTF("PX EvaluateFace: order=%d qorder=%d xref = (%2.15f, %2.15f)\n",faceData->order, faceData->qorder,xref[0],xref[1]);
+  //ELVIS_PRINTF("PX EvaluateFace: order=%d qorder=%d xref = (%2.15f, %2.15f)\n",faceData->order, faceData->qorder,xref[0],xref[1]);
 
   result.x = 0.0;
   result.y = 0.0;
@@ -120,7 +120,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(GlobalFaceIdx faceId, const FaceReferencePo
       //ELVIS_PRINTF("PX EvaluateFace: phi[%d]=%f\n",i,phi[i]);
   }
 
-  ELVIS_PRINTF("PX EvaluateFace: result = (%2.15f, %2.15f, %2.15f)\n",result.x,result.y,result.z);
+  //ELVIS_PRINTF("PX EvaluateFace: result = (%2.15f, %2.15f, %2.15f)\n",result.x,result.y,result.z);
 
   return eNoError;
 
@@ -136,7 +136,7 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(GlobalFaceIdx faceId, const FaceRef
    CurvedFaceIdx Idx = ConvertToCurvedFaceIdx(faceId);
 
    if( Idx.Value >= nCurvedFace ) {
-     rtPrintf("############ EvaluateFaceJacobian Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
+     //rtPrintf("############ EvaluateFaceJacobian Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
      return eFieldNotDefinedOnFace;
    }
 
@@ -272,8 +272,8 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         int nbfQ = PXEgrpDataBuffer[egrp].elemData.nbf;
         int geomIndexStart = PXEgrpDataBuffer[egrp].egrpGeomCoeffStartIndex;
 
-        ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
-            Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
+        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Dim=%d, geomIndexStart=%d, elem=%d, nbfQ=%d, idx=%d\n",
+        //    Dim, geomIndexStart, elem, nbfQ, geomIndexStart + Dim*elem*nbfQ);
 
         ElVisFloat *localCoord = &PXElemCoordBuffer[geomIndexStart + Dim*elem*nbfQ];
 
@@ -281,18 +281,18 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         PX_REAL xref[3] = {0.,0.,0.}; //Initial guess is overwritten anyways
         int result = PXGlob2RefFromCoordinates2(PXEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
 
-        ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref = (%2.15f, %2.15f, %2.15f)\n", elementId, xref[0], xref[1], xref[2]);
+        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref = (%2.15f, %2.15f, %2.15f)\n", elementId, xref[0], xref[1], xref[2]);
 
         PX_REAL phi[MAX_NBF] = {0};  // Basis Functions
         PX_REAL xg[3] = {0,0,0};
         PXShapeElem(PXEgrpDataBuffer[egrp].elemData.order, PXEgrpDataBuffer[egrp].elemData.qorder, xref, phi );
         PXRef2GlobFromCoordinatesGivenShape2(PXEgrpDataBuffer[egrp].elemData.nbf, Dim, localCoord, xg, phi);
 
-        ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: xglobal = %2.15f, %2.15f, %2.15f\n", xglobal[0], xglobal[1], xglobal[2] );
-        ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: xg@xref = %2.15f, %2.15f, %2.15f\n", xg[0], xg[1], xg[2] );
+        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: xglobal = %2.15f, %2.15f, %2.15f\n", xglobal[0], xglobal[1], xglobal[2] );
+        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: xg@xref = %2.15f, %2.15f, %2.15f\n", xg[0], xg[1], xg[2] );
 
         PXProject2RefElement( PXEgrpDataBuffer[egrp].elemData.shape, xref );
-        ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref[0]=%f, xref[1]=%f, xref[2]=%f\n", elementId, xref[0], xref[1], xref[2]);
+        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref[0]=%f, xref[1]=%f, xref[2]=%f\n", elementId, xref[0], xref[1], xref[2]);
 
         referencePoint.x = xref[0];
         referencePoint.y = xref[1];
@@ -323,11 +323,11 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
                                                                ResultType& result)
 {
 
-    ELVIS_PRINTF("PX SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
-                 elementId, worldPoint.x, worldPoint.y, worldPoint.z);
+    //ELVIS_PRINTF("PX SampleScalarFieldAtReferencePointOptiX: Element Id %d, intersection point (%f, %f, %f)\n",
+    //             elementId, worldPoint.x, worldPoint.y, worldPoint.z);
 
-    ELVIS_PRINTF("PX SampleScalarFieldAtReferencePointOptiX: Element Id %d, reference point (%f, %f, %f)\n",
-                 elementId, referencePoint.x, referencePoint.y, referencePoint.z);
+    //ELVIS_PRINTF("PX SampleScalarFieldAtReferencePointOptiX: Element Id %d, reference point (%f, %f, %f)\n",
+    //             elementId, referencePoint.x, referencePoint.y, referencePoint.z);
 
     int egrp = 0;
     while( elementId > egrp2GlobalElemIndex[egrp+1] ) { egrp++; }
@@ -406,7 +406,7 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceRe
 
   result = PX_NO_ERROR == PXProject2RefElement( faceData->shape, xref );
 
-  ELVIS_PRINTF("PX IsValidFaceCoordinate: r=%2.15f, s=%2.15f, result=%d!\n", r, s, result);
+  //ELVIS_PRINTF("PX IsValidFaceCoordinate: r=%2.15f, s=%2.15f, result=%d!\n", r, s, result);
 
   return eNoError;
 }
@@ -458,7 +458,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
 {
   PlanarFaceIdx planarFaceIdx = ConvertToPlanarFaceIdx(globalFaceIdx);
   //ELVIS_PRINTF("PX GetFaceNormal: Didn't know this was called yet!\n");
-  ELVIS_PRINTF("PX GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[planarFaceIdx.Value].x, PlanarFaceNormalBuffer[planarFaceIdx.Value].y, PlanarFaceNormalBuffer[planarFaceIdx.Value].z);
+  //ELVIS_PRINTF("PX GetFaceNormal: normal=(%f, %f, %f)\n", PlanarFaceNormalBuffer[planarFaceIdx.Value].x, PlanarFaceNormalBuffer[planarFaceIdx.Value].y, PlanarFaceNormalBuffer[planarFaceIdx.Value].z);
   if( planarFaceIdx.Value >= 0 )
   {
     result = MakeFloat3(PlanarFaceNormalBuffer[planarFaceIdx.Value]);
@@ -494,7 +494,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const ElVisFloat3& pointOnFace, GlobalFace
     result.y = nvec2[1];
     result.z = nvec2[2];
 #endif
-    ELVIS_PRINTF("PX GetFaceNormal: CURVED ELEMENTS with Planar elements Didn't know this was called yet! (%f, %f, %f)\n", pointOnFace.x, pointOnFace.y, pointOnFace.x );
+    //ELVIS_PRINTF("PX GetFaceNormal: CURVED ELEMENTS with Planar elements Didn't know this was called yet! (%f, %f, %f)\n", pointOnFace.x, pointOnFace.y, pointOnFace.x );
     result.x = 0;
     result.y = 1;
     result.z = 0;
@@ -513,7 +513,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
 
   return eNoError;
 
-  ELVIS_PRINTF("PX GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
+  //ELVIS_PRINTF("PX GetFaceNormal: CURVED ELEMENTS Didn't know this was called yet!\n");
 */
   PX_REAL xface[2] = {refPoint.x, refPoint.y};
   PX_REAL nvec[3] = {0,0,0};
@@ -521,7 +521,7 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
   CurvedFaceIdx Idx = ConvertToCurvedFaceIdx(faceId);
 
   if( Idx.Value >= nCurvedFace ) {
-    rtPrintf("############ GetFaceNormal Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
+    //rtPrintf("############ GetFaceNormal Idx.Value(%d) >= nCurvedFace(%d)", Idx.Value, nCurvedFace);
     return eFieldNotDefinedOnFace;
   }
 
@@ -565,14 +565,14 @@ ELVIS_DEVICE ElVisError GetFaceNormal(const WorldPoint& pointOnFace, const FaceR
   result.y = nvec[1];
   result.z = nvec[2];
 
-  ELVIS_PRINTF("PX GetFaceNormal: CURVED ELEMENTS normal = (%2.15f, %2.15f, %2.15f), xface = (%2.15f, %2.15f)\n", result.x, result.y, result.z, refPoint.x, refPoint.y);
+  //ELVIS_PRINTF("PX GetFaceNormal: CURVED ELEMENTS normal = (%2.15f, %2.15f, %2.15f), xface = (%2.15f, %2.15f)\n", result.x, result.y, result.z, refPoint.x, refPoint.y);
 
   return eNoError;
 }
 
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementType, int fieldId, const ReferencePoint& refPoint, ElVisFloat3& gradient)
 {
-  ELVIS_PRINTF("PX SampleReferenceGradientOptiX: CURVED ELEMENTS Didn't know this was called yet!\n");
+  //ELVIS_PRINTF("PX SampleReferenceGradientOptiX: CURVED ELEMENTS Didn't know this was called yet!\n");
   gradient.x = 1;
   gradient.y = 0;
   gradient.z = 0;
@@ -582,7 +582,7 @@ ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(int elementId, int elementT
 
 ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(int elementId, int elementType, const ReferencePoint& refPoint, ElVisFloat* J)
 {
-  ELVIS_PRINTF("PX SampleGeometryMappingJacobianOptiX: CURVED ELEMENTS Didn't know this was called yet!\n");
+  //ELVIS_PRINTF("PX SampleGeometryMappingJacobianOptiX: CURVED ELEMENTS Didn't know this was called yet!\n");
   J[0] = 1; J[1] = 0; J[2] = 0;
   J[3] = 0; J[4] = 1; J[5] = 0;
   J[6] = 0; J[7] = 0; J[8] = 1;

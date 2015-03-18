@@ -73,11 +73,11 @@ PXFaceVertex(enum PXE_ElementType type, int lface, int *CornerNodeOnFace, int *n
       CornerNodeOnFace[2] = 1;
       return PX_NO_ERROR;
     default:
-      ELVIS_PRINTF("ERROR: we can't handle lface = %d\n",lface);
+      //ELVIS_PRINTF("ERROR: we can't handle lface = %d\n",lface);
       return PX_BAD_INPUT;
     }
   default:
-    ELVIS_PRINTF("Unknown type = %d\n", type);
+    //ELVIS_PRINTF("Unknown type = %d\n", type);
     return PXError(PX_BAD_INPUT);
   }
 }
@@ -180,7 +180,7 @@ PXDetermineInsideTet(DT const* tetNodes, DT const pt[3], enum PXE_3D_ZeroDTypeOn
       //PXErrorReturn(PX_CODE_FLOW_ERROR);
       return PX_NO_ERROR;
   default:
-    ELVIS_PRINTF("Number of degenerate faces can be at most 3\n");
+    //ELVIS_PRINTF("Number of degenerate faces can be at most 3\n");
     return PX_CODE_FLOW_ERROR;
   }
 }
@@ -430,7 +430,7 @@ PXRootsPoly(PX_REAL * RESTRICT pA, int n, int fixflag, int approxflag,
   /*No unknown coefficients*/
   if(n == 0){
     if(A[0] == 0){
-      ELVIS_PRINTF("This case corresponds to infinitely many solutions!!\n");
+      //ELVIS_PRINTF("This case corresponds to infinitely many solutions!!\n");
       PXErrorReturn(PX_BAD_INPUT);
     }
     else{
@@ -509,7 +509,7 @@ PXRootsPoly(PX_REAL * RESTRICT pA, int n, int fixflag, int approxflag,
 	  xsol[isol] = X;
 	//if R is still large, then just take the root from the polynomial formula
 	/* if (fabs(R) > 1e-7){ */ 
-	/*   ELVIS_PRINTF("Warning, Newton did not converge in root fixing (R = %.10E).\n", R); */
+    /*   //ELVIS_PRINTF("Warning, Newton did not converge in root fixing (R = %.10E).\n", R); */
 	/* } */
       }
       else
@@ -552,7 +552,7 @@ PXSolveQuadraticRoots(PX_REAL* coeff,
   //ELVIS_PRINTF("count = %d\n", count);
 
   if(ierr != PX_NO_ERROR){
-    ELVIS_PRINTF("%.15e %.15e %.15e\n", coeff[0], coeff[1], coeff[2]);
+    //ELVIS_PRINTF("%.15e %.15e %.15e\n", coeff[0], coeff[1], coeff[2]);
     PXErrorReturn(ierr);
   }
 
@@ -767,7 +767,7 @@ PXSolveOneCubicRoot(PX_REAL* coeff, enum PXE_CubicEquation_Type& cubicType,
 
     //check
     if(fabs(res) > 1e-10*tol){
-      ELVIS_PRINTF("Switch to exact precision to solve the cubic equation\n");
+      //ELVIS_PRINTF("Switch to exact precision to solve the cubic equation\n");
     /*   EX_REAL exCoeff[4]; */
     /*   EX_REAL exRoot; */
     
@@ -926,7 +926,7 @@ PXCountSignChange(DT const* sturmSeq, int const& n, int &numSignChange)
   
   //check (can't have two consecutive 0)
   if(firstk > 1){
-    ELVIS_PRINTF("Two consecutive zero's in Sturm sequence?\n");
+    //ELVIS_PRINTF("Two consecutive zero's in Sturm sequence?\n");
     PXErrorReturn(PX_BAD_INPUT);
   }
   
@@ -943,9 +943,9 @@ PXCountSignChange(DT const* sturmSeq, int const& n, int &numSignChange)
     if(sturmSeq[currk] == 0){
       
       if(prevk != currk-1){
-	ELVIS_PRINTF("there are two consecutive zero's!\n");
-	ELVIS_PRINTF("n = %d\n", n);
-	ELVIS_PRINTF("SturmSeq = :\n");
+    //ELVIS_PRINTF("there are two consecutive zero's!\n");
+    //ELVIS_PRINTF("n = %d\n", n);
+    //ELVIS_PRINTF("SturmSeq = :\n");
 	//PXPrintCoeffcients(sturmSeq, n);
 	PXErrorReturn(PX_BAD_INPUT);
       }
@@ -1395,7 +1395,7 @@ PXSetConicLineMultiplicity(enum PXE_QuadraticEquation_Type const& type,
       multiplicity = 1;
       break;
     default: 
-      ELVIS_PRINTF("The quadratic equation type is not recognized\n");
+      //ELVIS_PRINTF("The quadratic equation type is not recognized\n");
       PXErrorReturn(PX_CODE_FLOW_ERROR);
   }
   
@@ -1749,7 +1749,7 @@ PXCheckConic2Lines(ConicSection<PX_REAL> const& conicS, PX_REAL const& tol,
       }
       break;
     default:
-      ELVIS_PRINTF("Unrecognized type\n");
+      //ELVIS_PRINTF("Unrecognized type\n");
       PXErrorReturn(PX_BAD_INPUT);
   }
  
@@ -1820,7 +1820,7 @@ PXConic2Lines(ConicSection<PX_REAL>& conicS)
 
   /*Only works for degenerate conics*/
   if(conicS.degenerate != 1){
-    ELVIS_PRINTF("The conic should be degenerate!\n");
+    //ELVIS_PRINTF("The conic should be degenerate!\n");
     return PXError(PX_BAD_INPUT);
   }
 
@@ -1877,8 +1877,8 @@ PXConic2Lines(ConicSection<PX_REAL>& conicS)
       SignFlipped = true;
       
       if(CC < 0){
-	ELVIS_PRINTF("The arithmetic for sign comparison is not right!\n");
-	ELVIS_PRINTF("%.15e %.15e %.15e %.15e %.15e %.15e\n", AA, BB, CC, DD, EE, FF);
+    //ELVIS_PRINTF("The arithmetic for sign comparison is not right!\n");
+    //ELVIS_PRINTF("%.15e %.15e %.15e %.15e %.15e %.15e\n", AA, BB, CC, DD, EE, FF);
 	return PXError(PX_CODE_FLOW_ERROR);
       }
     }
@@ -1900,9 +1900,9 @@ PXConic2Lines(ConicSection<PX_REAL>& conicS)
 	conicS.f = (EE-temp2)/conicS.b;
       }
       else{
-	ELVIS_PRINTF("The arithmetic for sign comparison is not right!\n");
-	ELVIS_PRINTF("%.15e %.15e %.15e %.15e %.15e %.15e\n", AA, BB, CC, DD, EE, FF);
-	ELVIS_PRINTF("%.15e\n", AA*CC*FF + 2*BB*DD*EE - DD*DD*CC - BB*BB*FF - EE*EE*AA);
+    //ELVIS_PRINTF("The arithmetic for sign comparison is not right!\n");
+    //ELVIS_PRINTF("%.15e %.15e %.15e %.15e %.15e %.15e\n", AA, BB, CC, DD, EE, FF);
+    //ELVIS_PRINTF("%.15e\n", AA*CC*FF + 2*BB*DD*EE - DD*DD*CC - BB*BB*FF - EE*EE*AA);
 	return PXError(PX_CODE_FLOW_ERROR);
       }
     }
@@ -1921,7 +1921,7 @@ PXConic2Lines(ConicSection<PX_REAL>& conicS)
       //don't need to do antyhing
     }
     else{
-      ELVIS_PRINTF("type not correct! %d\n", conicS.type);
+      //ELVIS_PRINTF("type not correct! %d\n", conicS.type);
       return PXError(PX_CODE_FLOW_ERROR);
     }
     
@@ -2273,7 +2273,7 @@ PXConicLineIntersectInReferenceTriangle(ConicSection<DT>& conicS,
 	if(nIntersect == 2){
 	  if(xIntersect[0] == xIntersect[2] && xIntersect[1] == xIntersect[3]){
 	    nIntersect --;
-	    ELVIS_PRINTF("This case should not happen in a real intersection case\n");
+        //ELVIS_PRINTF("This case should not happen in a real intersection case\n");
 	    //because it does not make sense to have crossing lines inside the patch...
 	  }
 	}
@@ -2330,7 +2330,7 @@ PXConicLineIntersectInReferenceTriangle(ConicSection<DT>& conicS,
       }
     }
     else{
-      ELVIS_PRINTF("conicS type is not right! %d\n", conicS.type);
+      //ELVIS_PRINTF("conicS type is not right! %d\n", conicS.type);
       return PXError(PX_BAD_INPUT);
     }
   }
@@ -2383,7 +2383,7 @@ PXConicLineIntersectInReferenceTriangle(ConicSection<DT>& conicS,
 	    ysolBoundary[1] = 1; //y = 1
 	    break;
           default:
-	    ELVIS_PRINTF("boundary of roots is not correct!\n");
+        //ELVIS_PRINTF("boundary of roots is not correct!\n");
 	    return PXError(PX_CODE_FLOW_ERROR);
 	}
   
@@ -2466,7 +2466,7 @@ PXConicLineIntersectInReferenceTriangle(ConicSection<DT>& conicS,
 	}
       }
       else{
-	ELVIS_PRINTF("Number of quadratic roots is not right!\n");
+    //ELVIS_PRINTF("Number of quadratic roots is not right!\n");
 	return PXError(PX_CODE_FLOW_ERROR);
       }
     }
@@ -2526,7 +2526,7 @@ PXConicLineIntersectInReferenceTriangle(ConicSection<DT>& conicS,
 	    xsolBoundary[1] = 1; //x = 1
 	    break;
 	  default:
-	    ELVIS_PRINTF("boundary of roots is not correct!\n");
+        //ELVIS_PRINTF("boundary of roots is not correct!\n");
 	    return PXError(PX_CODE_FLOW_ERROR);
 	}
 		
@@ -2610,7 +2610,7 @@ PXConicLineIntersectInReferenceTriangle(ConicSection<DT>& conicS,
 	}
       }
       else{
-	ELVIS_PRINTF("Number of quadratic roots is not right!\n");
+    //ELVIS_PRINTF("Number of quadratic roots is not right!\n");
 	return PXError(PX_CODE_FLOW_ERROR);
       }
     }//end when aa=0
@@ -2661,7 +2661,7 @@ PXConicDegConicIntersectInReferenceTriangle(ConicSection<DT>& conicS1,
 
   /*Check whether S2 is indeed degenerate*/
   if(conicS2.degenerate != 1){
-    ELVIS_PRINTF("conicS2 has to be degenerate!\n");
+    //ELVIS_PRINTF("conicS2 has to be degenerate!\n");
     return PXError(PX_BAD_INPUT);
   }
  
@@ -2725,7 +2725,7 @@ PXConicDegConicIntersectInReferenceTriangle(ConicSection<DT>& conicS1,
 	for(jRoot = 0; jRoot < nIntersectPrevBranch; jRoot ++){
 	  if(XIntersectBranch[2*kRoot] == XIntersect[2*jRoot] 
 	     && XIntersectBranch[2*kRoot+1] == XIntersect[2*jRoot+1]){
-	    ELVIS_PRINTF("This case should not happen in a real intersection case\n");
+        //ELVIS_PRINTF("This case should not happen in a real intersection case\n");
 	    //because it does not make sense to have crossing lines inside the patch...
 	    multiplicity[jRoot] +=  multiplicityBranch[kRoot];
 	    sameIntersect = PXE_True;
@@ -2864,13 +2864,13 @@ PXConicDegConicIntersectInReferenceTriangle(ConicSection<DT>& conicS1,
       //inifinitely many solutions
       //nIntersect = -1;
       
-      ELVIS_PRINTF("Need implmenetation to determine whether the other conic has parts in the ref triangle\n");
+      //ELVIS_PRINTF("Need implmenetation to determine whether the other conic has parts in the ref triangle\n");
       PXErrorReturn(PX_BAD_INPUT);
 
       break;
     }
     default:
-      ELVIS_PRINTF("conicS2 type has to be lines! BUT type=%d\n",conicS2.type);
+      //ELVIS_PRINTF("conicS2 type has to be lines! BUT type=%d\n",conicS2.type);
       //ELVIS_PRINTF("type = %s\n", PXE_ConicSectionTypeName[conicS2.type]);
       return PXError(PX_BAD_INPUT);
   }
@@ -2911,8 +2911,8 @@ PXConicConicIntersectSpecial(ConicSection<DT>& conicS1, ConicSection<DT>& conicS
   /*If one of the conic is zero*/
   if(conicS1.type == PXE_Conic_ZeroConic 
      || conicS2.type == PXE_Conic_ZeroConic){
-    ELVIS_PRINTF("This case corresponds to a tet edge entirely on the patch\n");
-    ELVIS_PRINTF("Need to implement the function that whether the other conic have parts inside the patch\n");
+    //ELVIS_PRINTF("This case corresponds to a tet edge entirely on the patch\n");
+    //ELVIS_PRINTF("Need to implement the function that whether the other conic have parts inside the patch\n");
     PXErrorReturn(PX_BAD_INPUT);
   }
 
@@ -3075,7 +3075,7 @@ PXConicConicIntersectInReferenceTriangle(ConicSection<DT>& conicS1, ConicSection
 
   if(solved == PXE_False) return PX_NO_ERROR;
   if(cubicType == PXE_Cubic_ConstantZero){
-    ELVIS_PRINTF("This case corresponds to both S1 and S2 being degenerate, should already been handled\n");
+    //ELVIS_PRINTF("This case corresponds to both S1 and S2 being degenerate, should already been handled\n");
     PXErrorReturn(PX_CODE_FLOW_ERROR);
   }    
 
@@ -3162,13 +3162,13 @@ PXConicConicIntersectInReferenceTriangle(ConicSection<DT>& conicS1, ConicSection
     }
     
     if(sameConic == true){
-      ELVIS_PRINTF("Two non-degenerate conics are the same...\n");
-      ELVIS_PRINTF("This case should already be handled with mu that makes S1+muS2 = 0 for any x and y\n");
+      //ELVIS_PRINTF("Two non-degenerate conics are the same...\n");
+      //ELVIS_PRINTF("This case should already be handled with mu that makes S1+muS2 = 0 for any x and y\n");
     }
     else{
-      ELVIS_PRINTF("No plane that contains the given line is degenerate in the reference space of the patch!\n");
-      ELVIS_PRINTF("This should never happen..., but if it does, more development is needed!\n");
-      ELVIS_PRINTF("Possibly the two triangles that define the line are in the same plane...\n");
+      //ELVIS_PRINTF("No plane that contains the given line is degenerate in the reference space of the patch!\n");
+      //ELVIS_PRINTF("This should never happen..., but if it does, more development is needed!\n");
+      //ELVIS_PRINTF("Possibly the two triangles that define the line are in the same plane...\n");
       return PXError(PX_BAD_INPUT);
     }
  
@@ -3316,7 +3316,7 @@ PXIntersectTetEdgeQuadraticFacePredicate(DT const * const lineNode[2],
     }
     
     if(compareDim == -1){
-      ELVIS_PRINTF("The line is zero vector?\n");
+      //ELVIS_PRINTF("The line is zero vector?\n");
       //cout<<lineNode[0][0]<<" "<<lineNode[0][1]<<" "<<lineNode[0][2]<<endl;
       //cout<<lineNode[1][0]<<" "<<lineNode[1][1]<<" "<<lineNode[1][2]<<endl;
       PXErrorReturn(PX_CODE_FLOW_ERROR);

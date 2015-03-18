@@ -244,7 +244,7 @@ PXShapeHierarch1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXShapeHierarch1d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXShapeHierarch1d: Unknown order $d ", porder);
     return -1;
   }
 } // ShapeHierarch1d
@@ -322,7 +322,7 @@ PXShapeUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRI
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXShapeUniformLagrange1d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXShapeUniformLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -403,7 +403,7 @@ PXShapeSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTR
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXShapeSpectralLagrange1d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXShapeSpectralLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 } 
@@ -483,7 +483,7 @@ PXShapeHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
   }
 #endif
 
-  ALWAYS_PRINTF("PXShapeHierarch2d: Unknown order $d ", porder);
+  //ALWAYS_PRINTF("PXShapeHierarch2d: Unknown order $d ", porder);
   return -1;
 
 } // PXShapeHierarch2d
@@ -661,7 +661,7 @@ PXShapeLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXShapeLagrange2d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXShapeLagrange2d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -822,7 +822,7 @@ PXShapeHierarch3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
 #endif
 
   //if (porder >= 6)
-  ALWAYS_PRINTF("PXShapeHierarch3d: Unknown order $d ", porder);
+  //ALWAYS_PRINTF("PXShapeHierarch3d: Unknown order $d ", porder);
   return -1;
 } // PXShapeHierarch3d
 
@@ -1083,7 +1083,7 @@ PXShapeLagrange3d(const int porder, const DT * RESTRICT xref, DT * RESTRICT phi)
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXShapeLagrange3d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXShapeLagrange3d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -1127,7 +1127,7 @@ PXShapeLagrange3d_Solution(const int porder, const DT * RESTRICT xref, DT * REST
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXShapeLagrange3d_Solution: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXShapeLagrange3d_Solution: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -1306,7 +1306,7 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXGradientsUniformLagrange1d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXGradientsUniformLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -1380,7 +1380,7 @@ PXGradientsSpectralLagrange1d(const int porder, const DT * RESTRICT xref, DT * R
 #endif
 
   default:
-    ALWAYS_PRINTF("PXGradientsSpectralLagrange1d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXGradientsSpectralLagrange1d: Unknown order $d ", porder);
     return -1;
   }
 }
@@ -1465,7 +1465,7 @@ PXGradientsHierarch2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT 
   }
 #endif 
   if (porder >= 6) {
-    ALWAYS_PRINTF("PXGradientsHierarch2d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXGradientsHierarch2d: Unknown order $d ", porder);
     return -1;
   }
 
@@ -1625,7 +1625,7 @@ PXGradientsLagrange2d(const int porder, const DT * RESTRICT xref, DT * RESTRICT 
     return 0;
 #endif
   default:
-    ALWAYS_PRINTF("PXGradientsLagrange2d: Unknown order $d ", porder);
+    //ALWAYS_PRINTF("PXGradientsLagrange2d: Unknown order $d ", porder);
     return -1;
   }
 } // PXGradientsLagrange2d
@@ -2783,7 +2783,7 @@ PXShapeElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
     return PX_NO_ERROR;
 */
   default:
-    ELVIS_PRINTF("PXShapeElem: Unknown order = %d\n", order);
+    //ELVIS_PRINTF("PXShapeElem: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -2858,7 +2858,7 @@ PXShapeElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RESTRI
     return PX_NO_ERROR;
 */
   default:
-    ELVIS_PRINTF("PXShapeElem_Solution: Unknown order = %d\n", order);
+    //ELVIS_PRINTF("PXShapeElem_Solution: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -2942,7 +2942,7 @@ PXShapeFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xref, 
     return PX_NO_ERROR;
 */
   default:
-    ALWAYS_PRINTF("PXShapeFace: Unknown order = %d\n", order);
+    //ALWAYS_PRINTF("PXShapeFace: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
  
@@ -3130,7 +3130,7 @@ PXGradientsElem(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
     return PX_NO_ERROR;
     */
    default:
-     ALWAYS_PRINTF("PXGradientsElem: Unknown order = %d\n", order);
+     //ALWAYS_PRINTF("PXGradientsElem: Unknown order = %d\n", order);
      return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -3183,7 +3183,7 @@ PXGradientsElem_Solution(enum PXE_SolutionOrder order, int porder, DT const * RE
   /*   ( PXGradientsHexSpectralLagrange3d<DT>(porder, xref, gphi) ); */
   /*   return PX_NO_ERROR; */
    default:
-     ALWAYS_PRINTF("PXGradientsElem_Solution: Unknown order = %d\n", order);
+     //ALWAYS_PRINTF("PXGradientsElem_Solution: Unknown order = %d\n", order);
      return PXErrorDebug(PX_BAD_INPUT);
   }
 
@@ -3263,7 +3263,7 @@ PXGradientsFace(enum PXE_SolutionOrder order, int porder, DT const * RESTRICT xr
     return PX_NO_ERROR;
 */
    default:
-    ALWAYS_PRINTF("PXGradientsFace: Unknown order = %d\n", order);
+    //ALWAYS_PRINTF("PXGradientsFace: Unknown order = %d\n", order);
     return PXErrorDebug(PX_BAD_INPUT);
   }
 

@@ -57,7 +57,7 @@ struct Segment
 __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDirection)
 {
   optix::size_t2 screen = color_buffer.size();
-  ELVIS_PRINTF("FindNextSegmentAlongRay: Starting t %f \n", seg.Start);
+  //ELVIS_PRINTF("FindNextSegmentAlongRay: Starting t %f \n", seg.Start);
 
   // If we have already encountered an object we don't need to continue along this ray.
   ElVisFloat depth = depth_buffer[launch_index];
@@ -78,12 +78,12 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
   }
 
   seg.End = seg.Start + payload.IntersectionT;
-  ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
+  //ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
 
   ElementFinderPayload newApproach;
   bool foundElement = findElementFromFace(origin, rayDirection, payload, newApproach);
-  ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New approach id %d and type %d\n",
-    seg.ElementId, seg.ElementTypeId, newApproach.elementId, newApproach.elementType);
+//  ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New approach id %d and type %d\n",
+//    seg.ElementId, seg.ElementTypeId, newApproach.elementId, newApproach.elementType);
   seg.ElementId = newApproach.elementId;
   seg.ElementTypeId = newApproach.elementType;
   return true;
@@ -138,13 +138,13 @@ __device__ void ElementTraversal(SegmentFunction& f)
   {
     if( seg.End < MAKE_FLOAT(0.0) )
     {
-      ELVIS_PRINTF("ElementTraversal: Exiting because ray has left volume based on segment end\n");
+      //ELVIS_PRINTF("ElementTraversal: Exiting because ray has left volume based on segment end\n");
       return;
     }
 
     if(ValidateSegment(seg) && f(seg, origin0) )
     {
-      ELVIS_PRINTF("ElementTraversal: Done because segment is valid and function indicates we are done.\n");
+      //ELVIS_PRINTF("ElementTraversal: Done because segment is valid and function indicates we are done.\n");
       return;
     }
 

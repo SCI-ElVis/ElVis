@@ -16,6 +16,7 @@ cmake -DVALGRIND_EXTRA_FLAGS="--track-origins=yes;--xml=yes;--xml-file=$cmakedir
 make
 make install
 
+
 if [[ $builddir == *"debug"* ]]; then
   #This will check both dynamic and static memory
   make MemAndStackCheck CTESTARGS="-T Test"

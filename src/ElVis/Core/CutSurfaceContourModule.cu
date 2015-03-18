@@ -59,8 +59,8 @@ ELVIS_DEVICE void GetPixelOffset(int curx, int cury, int offsetx, int offsety, i
         newIndex.y >= 0 && newIndex.y < color_buffer.size().y )
     {
         uint2 index = make_uint2(newIndex.x, newIndex.y);
-        ELVIS_PRINTF("testing pixel (%d, %d) \n",
-                     newIndex.x, newIndex.y);
+//        ELVIS_PRINTF("testing pixel (%d, %d) \n",
+//                     newIndex.x, newIndex.y);
         id = ElementIdBuffer[index];
         type = ElementTypeBuffer[index];
     }
@@ -81,9 +81,9 @@ RT_PROGRAM void CutSurfaceMeshProgram()
             int type = curPixelType;
 
             GetPixelOffset(launch_index.x, launch_index.y, i, j, id, type);
-            ELVIS_PRINTF("Pixel (%d, %d) has (%d, %d) and adjacent (%d,%d) has (%d, %d)\n",
-                         launch_index.x, launch_index.y, curPixelId, curPixelType,
-                         i, j, id, type);
+//            ELVIS_PRINTF("Pixel (%d, %d) has (%d, %d) and adjacent (%d,%d) has (%d, %d)\n",
+//                         launch_index.x, launch_index.y, curPixelId, curPixelType,
+//                         i, j, id, type);
             if( id >= 0 && type >= 0 )
             {
                 isCrossing |= ((id != curPixelId) || (type != curPixelType));
@@ -107,7 +107,7 @@ RT_PROGRAM void CutSurfaceMeshProgram()
 // raw_color_buffer 
 RT_PROGRAM void SamplePixelCornersRayGenerator()
 {
-    ELVIS_PRINTF("SamplePixelCornersRayGenerator\n");
+    //ELVIS_PRINTF("SamplePixelCornersRayGenerator\n");
     // Note - there are occlusion issues here.
     ElVisFloat2 screen = MakeFloat2(color_buffer.size());
     ElVisFloat2 pixelSize = MAKE_FLOAT(2.0)/screen;
@@ -142,7 +142,7 @@ RT_PROGRAM void ContourMiss()
 
 RT_PROGRAM void MarkContourPixels()
 {
-    ELVIS_PRINTF("MarkContourPixels\n");
+    //ELVIS_PRINTF("MarkContourPixels\n");
     // Corner testing.
     uint2 c0_index = make_uint2(launch_index.x, launch_index.y);
     uint2 c1_index = make_uint2(launch_index.x, launch_index.y);;
@@ -168,7 +168,7 @@ RT_PROGRAM void MarkContourPixels()
             
     if( !allSamplesValid ) return;
     
-    ELVIS_PRINTF("MarkContourPixels: All corners have a sample\n");
+    //ELVIS_PRINTF("MarkContourPixels: All corners have a sample\n");
     for(int isoValueIndex = 0; isoValueIndex < Isovalues.size(); ++isoValueIndex)
     {
         ElVisFloat isovalue = Isovalues[isoValueIndex];
@@ -177,7 +177,7 @@ RT_PROGRAM void MarkContourPixels()
         
         if( lowerThanOneValue && higherThanOneValue )
         {
-            ELVIS_PRINTF("(%d, %d), Isovalue %f and corners %f, %f, %f, %f\n", launch_index.x, launch_index.y, isovalue, c0, c1, c2, c3);
+            //ELVIS_PRINTF("(%d, %d), Isovalue %f and corners %f, %f, %f, %f\n", launch_index.x, launch_index.y, isovalue, c0, c1, c2, c3);
             raw_color_buffer[launch_index] = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
             color_buffer[launch_index] = ConvertToColor(raw_color_buffer[launch_index]);
             normal_buffer[launch_index] = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
@@ -273,7 +273,7 @@ __device__ __forceinline__ ElVisFloat3 CalculateRayDirection(const uint2& pixelI
 // raw_color_buffer 
 RT_PROGRAM void SamplePixelCornersRayGeneratorForCategorization()
 {
-    ELVIS_PRINTF("SamplePixelCornersRayGenerator\n");
+    //ELVIS_PRINTF("SamplePixelCornersRayGenerator\n");
     // Note - there are occlusion issues here.
     ElVisFloat2 screen = MakeFloat2(color_buffer.size());
     ElVisFloat2 pixelSize = MAKE_FLOAT(2.0)/screen;
@@ -551,7 +551,7 @@ rtDeclareVariable(int, MatchVisual3Contours, , );
 
 RT_PROGRAM void CategorizeContourPixels()
 {
-    ELVIS_PRINTF("CategorizeContourPixels\n");
+    //ELVIS_PRINTF("CategorizeContourPixels\n");
     // Corner testing.
     // c0 = lower left corner
     // c1 = lower right corner
@@ -582,7 +582,7 @@ RT_PROGRAM void CategorizeContourPixels()
 
     ElVisFloat3 visual3BackgroundColor = MakeFloat3(MAKE_FLOAT(1.0), MAKE_FLOAT(1.0), MAKE_FLOAT(1.0));
 
-    ELVIS_PRINTF("CategorizeContourPixels: All Samples Valid %d\n", allSamplesValid);
+    //ELVIS_PRINTF("CategorizeContourPixels: All Samples Valid %d\n", allSamplesValid);
     if( !allSamplesValid ) 
     {
         if( MatchVisual3Contours )
@@ -640,11 +640,11 @@ RT_PROGRAM void CategorizeContourPixels()
     {
         bool oneIsovalueIsValid = false;
         int numIsovalues = Isovalues.size();
-        ELVIS_PRINTF("CategorizeContourPixels: Num isovalues: %d\n", numIsovalues);
+        //ELVIS_PRINTF("CategorizeContourPixels: Num isovalues: %d\n", numIsovalues);
         for(int isoValueIndex = 0; isoValueIndex < Isovalues.size(); ++isoValueIndex)
         {
             ElVisFloat isovalue = Isovalues[isoValueIndex];
-            ELVIS_PRINTF("CategorizeContourPixels: testing isovalue: %f\n", isovalue);
+            //ELVIS_PRINTF("CategorizeContourPixels: testing isovalue: %f\n", isovalue);
             bool lowerThanOneValue = (isovalue <= c0) || (isovalue <= c1) || (isovalue <= c2) || (isovalue <= c3);
             bool higherThanOneValue = (isovalue >= c0) || (isovalue >= c1) || (isovalue >= c2) || (isovalue >= c3);
 
@@ -667,17 +667,17 @@ RT_PROGRAM void CategorizeContourPixels()
     else
     {
         int numIsovalues = Isovalues.size();
-        ELVIS_PRINTF("CategorizeContourPixels: Num isovalues: %d\n", numIsovalues);
+        //ELVIS_PRINTF("CategorizeContourPixels: Num isovalues: %d\n", numIsovalues);
         for(int isoValueIndex = 0; isoValueIndex < Isovalues.size(); ++isoValueIndex)
         {
             ElVisFloat isovalue = Isovalues[isoValueIndex];
-            ELVIS_PRINTF("CategorizeContourPixels: testing isovalue: %f\n", isovalue);
+            //ELVIS_PRINTF("CategorizeContourPixels: testing isovalue: %f\n", isovalue);
             bool lowerThanOneValue = (isovalue <= c0) || (isovalue <= c1) || (isovalue <= c2) || (isovalue <= c3);
             bool higherThanOneValue = (isovalue >= c0) || (isovalue >= c1) || (isovalue >= c2) || (isovalue >= c3);
 
             if( lowerThanOneValue && higherThanOneValue )
             {
-                ELVIS_PRINTF("(%d, %d), Isovalue %f and corners %f, %f, %f, %f\n", launch_index.x, launch_index.y, isovalue, c0, c1, c2, c3);
+                //ELVIS_PRINTF("(%d, %d), Isovalue %f and corners %f, %f, %f, %f\n", launch_index.x, launch_index.y, isovalue, c0, c1, c2, c3);
                 // BLACK - contour
                 raw_color_buffer[launch_index] = contourColor;
                 color_buffer[launch_index] = ConvertToColor(raw_color_buffer[launch_index]);
