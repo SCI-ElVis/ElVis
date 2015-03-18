@@ -14,7 +14,7 @@ elif [[ `hostname` == "oci-ubuntu"* ]]; then
 
 elif [[ `hostname` == "dhcp"* ]]; then
 
-  PREFIX="-DCMAKE_PREFIX_PATH=/Users/jenkins/nektar/build/dist/lib64/nektar++-4.0.1/cmake"
+  PREFIX="-DCMAKE_PREFIX_PATH=/Users/jenkins/nektar/build/dist/lib/nektar++-4.0.1/cmake"
 
 else
   echo "Please configure `hostname` in src/Externals/jenkins/cmake_jenkins.sh"
