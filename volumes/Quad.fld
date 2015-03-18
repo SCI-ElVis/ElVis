@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<NEKTAR>
+    <Metadata>
+        <Provenance>
+            <GitBranch>refs/heads/feature/pyramid-precon</GitBranch>
+            <GitSHA1>b4af5a7eee2bb4b693a4ffaf49857ff6f52ed50c</GitSHA1>
+            <Hostname>europa.local</Hostname>
+            <NektarVersion>4.0.1</NektarVersion>
+            <Timestamp>16-Mar-2015 14:22:03</Timestamp>
+        </Provenance>
+    </Metadata>
+    <ELEMENTS FIELDS="u" SHAPE="Quadrilateral" BASIS="Modified_A,Modified_A" NUMMODESPERDIR="UNIORDER:8,8" ID="0">eJzziO1qPVcebOkBoXfeOz336Ua5MMvfP49tUhE8ukerfXLkxahUyxWOTxesUV1gc+tB4H3vTTmWCfMeaZztSN4D0welLdH026Dp34Om3waqHmbvzvqlO7QSJ9200f3Wylvw++CetQuiCxV2HLRRSd6oNH/bHBsNzY8Vd/Z22cTa/kmVMj9kA3MnzL7HLw4fkai+bDP3j5+55Bkzh0ncTo6n3v3cYxDzeb9xpeCB030aYgsKX9lMONB06LfMVXuo+3bC6NdZnGsf8rXuaV1/vvhy4Zc9r1VDciVlDu5JDChbeKv3jo2k1bfZGvu37RG3XZlpUHrMBhYuMP8V+BrFT1nbaQOzz+Jrs88j1xM2Z3uf9WuefGXv/eK/f+qqw3v8BB+dPqy3YT80PHbC6M2G25bUndq4Rzpvo8A3sbc2GZOP+TalHN7DXHQ+UGrN9j3sOyOylsVv27NeePHL/EN79sDiARaeGgudjjqVnLCZB/VfgvSp6qIvp20yoPZlpnxbdsx1854DJ1/abO8ttgcAcucRQQAA</ELEMENTS>
+</NEKTAR>
