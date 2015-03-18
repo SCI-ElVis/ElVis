@@ -69,8 +69,8 @@ RT_PROGRAM void TextureColorMap()
     
     int index = normalized*ColorMapTexture.size();
 
-    ELVIS_PRINTF("Color map index %d\n", index);
-    ELVIS_PRINTF("Min %f, Max %f, scalar %f Normalized %f\n", TextureMinScalar, TextureMaxScalar, scalar, normalized);
+    //ELVIS_PRINTF("Color map index %d\n", index);
+    //ELVIS_PRINTF("Min %f, Max %f, scalar %f Normalized %f\n", TextureMinScalar, TextureMaxScalar, scalar, normalized);
     if( index == ColorMapTexture.size() )
     {
         // TODO - Setup the texture so I don't have this branch.
@@ -80,8 +80,8 @@ RT_PROGRAM void TextureColorMap()
 
     //float4 resultColor = tex1D( t, normalized);
 
-    ELVIS_PRINTF("(%f, %f) - %f to %f give color (%f, %f, %f)\n", TextureMinScalar, TextureMaxScalar, scalar, normalized,
-        resultColor.x, resultColor.y, resultColor.z);
+//    ELVIS_PRINTF("(%f, %f) - %f to %f give color (%f, %f, %f)\n", TextureMinScalar, TextureMaxScalar, scalar, normalized,
+//        resultColor.x, resultColor.y, resultColor.z);
 
     // Set the actual color in the color buffer since we don't 
     // know for sure if the lighting module will be called.

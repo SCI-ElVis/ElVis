@@ -394,14 +394,14 @@ __device__ void ConvertToMonomial(unsigned int order, ElVisFloat* monomialConver
 
 __device__ void PrintMatrix(SquareMatrix& m)
 {
-    for(unsigned int row = 0; row < m.GetSize(); ++row)
-    {
-        for(unsigned int column = 0; column < m.GetSize(); ++column)
-        {
-            ELVIS_PRINTF("%2.15f, ", m(row, column));
-        }
-        ELVIS_PRINTF("\n");
-    }
+//    for(unsigned int row = 0; row < m.GetSize(); ++row)
+//    {
+//        for(unsigned int column = 0; column < m.GetSize(); ++column)
+//        {
+//            ELVIS_PRINTF("%2.15f, ", m(row, column));
+//        }
+//        ELVIS_PRINTF("\n");
+//    }
 }
 
 extern "C" __global__ void CopyToElementId(const int* __restrict__ elementIdBuffer, const int* __restrict__ elementTypeBuffer,
@@ -438,7 +438,7 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
     bool traceEnabled = (pixel.x == trace.x && pixel.y == trace.y && enableTrace);
     if( traceEnabled )
     {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Find Isosurface .\n");
+        //ELVIS_PRINTF("FindIsosurfaceInSegment: Find Isosurface .\n");
     }
 
     uint2 screen;
@@ -458,13 +458,13 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
     int segmentIndex = segmentdIdBuffer[pixelIndex];
     if( traceEnabled )
     {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Segment index %d, pixel index %d\n", segmentIndex, pixelIndex);
+        //ELVIS_PRINTF("FindIsosurfaceInSegment: Segment index %d, pixel index %d\n", segmentIndex, pixelIndex);
     }
     if( segmentEnd[segmentIndex] < MAKE_FLOAT(0.0) )
     {
         if( traceEnabled )
         {
-            ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because ray has left volume based on segment end\n", segmentIndex);
+            //ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because ray has left volume based on segment end\n", segmentIndex);
         }
         return;
     }
@@ -472,13 +472,13 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
     int elementId = segmentElementId[segmentIndex];
     if( traceEnabled )
     {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Element id %d\n", elementId);
+        //ELVIS_PRINTF("FindIsosurfaceInSegment: Element id %d\n", elementId);
     }
     if( elementId == -1 )
     {
         if( traceEnabled )
         {
-            ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because element id is 0\n", segmentIndex);
+            //ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because element id is 0\n", segmentIndex);
         }
         return;
     }
@@ -493,13 +493,13 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
 
     if( traceEnabled )
     {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);
+        //ELVIS_PRINTF("FindIsosurfaceInSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);
     }
     if( d == MAKE_FLOAT(0.0) )
     {
         if( traceEnabled )
         {
-            ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because d is 0\n", rayDirection.x, rayDirection.y, rayDirection.z, d);
+            //ELVIS_PRINTF("FindIsosurfaceInSegment: Exiting because d is 0\n", rayDirection.x, rayDirection.y, rayDirection.z, d);
         }
         return;
     }
@@ -507,7 +507,7 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
     ElVisFloat bestDepth = depth_buffer[segmentIndex];
     if( traceEnabled )
     {
-        ELVIS_PRINTF("FindIsosurfaceInSegment: Best Depth %2.10f and a %2.10f\n", bestDepth, a);
+        //ELVIS_PRINTF("FindIsosurfaceInSegment: Best Depth %2.10f and a %2.10f\n", bestDepth, a);
     }
 //    if( bestDepth <= a )
 //    {
@@ -525,11 +525,11 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
 
     if( traceEnabled )
     {
-        ELVIS_PRINTF("Range of scalar field is (%2.10f, %2.10f)\n", range.GetLow(), range.GetHigh());
-        ELVIS_PRINTF("Origin (%f, %f, %f)\n", origin.x, origin.y, origin.z);
+        //ELVIS_PRINTF("Range of scalar field is (%2.10f, %2.10f)\n", range.GetLow(), range.GetHigh());
+        //ELVIS_PRINTF("Origin (%f, %f, %f)\n", origin.x, origin.y, origin.z);
 
-        ELVIS_PRINTF("Direction (%f, %f, %f)\n", rayDirection.x, rayDirection.y, rayDirection.z);
-        ELVIS_PRINTF("Integration domain [%f, %f]\n", a, b);
+        //ELVIS_PRINTF("Direction (%f, %f, %f)\n", rayDirection.x, rayDirection.y, rayDirection.z);
+        //ELVIS_PRINTF("Integration domain [%f, %f]\n", a, b);
     }
 
     for(int isosurfaceId = 0; isosurfaceId < numIsosurfaces; ++isosurfaceId )
@@ -542,7 +542,7 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Searching for isovalue %f\n", isovalues[isosurfaceId]);
+            //ELVIS_PRINTF("Searching for isovalue %f\n", isovalues[isosurfaceId]);
         }
 
         // Project onto a polynomial along the ray.
@@ -575,16 +575,16 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
         GenerateLeastSquaresPolynomialProjection(requiredOrder, gaussNodes, gaussWeights, f, workspace, polynomialCoefficients);
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Legendre %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-                 polynomialCoefficients[0],
-                 polynomialCoefficients[1],
-                 polynomialCoefficients[2],
-                 polynomialCoefficients[3],
-                 polynomialCoefficients[4],
-                 polynomialCoefficients[5],
-                 polynomialCoefficients[6],
-                 polynomialCoefficients[7],
-                 polynomialCoefficients[8]);
+//            ELVIS_PRINTF("Legendre %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+//                 polynomialCoefficients[0],
+//                 polynomialCoefficients[1],
+//                 polynomialCoefficients[2],
+//                 polynomialCoefficients[3],
+//                 polynomialCoefficients[4],
+//                 polynomialCoefficients[5],
+//                 polynomialCoefficients[6],
+//                 polynomialCoefficients[7],
+//                 polynomialCoefficients[8]);
         }
 
         // Fix up the polynomial order if we requested higher than necessary.
@@ -603,22 +603,22 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
 
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Reduced order %d\n", reducedOrder );
+            //ELVIS_PRINTF("Reduced order %d\n", reducedOrder );
         }
 
         ConvertToMonomial(reducedOrder, monomialConversionTable, polynomialCoefficients, monomialCoefficients);
         if( traceEnabled )
         {
-            ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-                 monomialCoefficients[0],
-                 monomialCoefficients[1],
-                 monomialCoefficients[2],
-                 monomialCoefficients[3],
-                 monomialCoefficients[4],
-                 monomialCoefficients[5],
-                 monomialCoefficients[6],
-                 monomialCoefficients[7],
-                 monomialCoefficients[8]);
+//            ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
+//                 monomialCoefficients[0],
+//                 monomialCoefficients[1],
+//                 monomialCoefficients[2],
+//                 monomialCoefficients[3],
+//                 monomialCoefficients[4],
+//                 monomialCoefficients[5],
+//                 monomialCoefficients[6],
+//                 monomialCoefficients[7],
+//                 monomialCoefficients[8]);
         }
 
         monomialCoefficients[0] -= isovalues[isosurfaceId];
@@ -689,7 +689,7 @@ extern "C" __global__ void FindIsosurfaceInSegment(ElVisFloat3 origin, const int
                                                            foundIntersectionPoint);
             if( traceEnabled )
             {
-                ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[segmentIndex]);
+                //ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[segmentIndex]);
             }
 
             EvaluateNormalCuda(elementId,

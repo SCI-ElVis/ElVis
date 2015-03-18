@@ -47,12 +47,12 @@ struct SingleThreadGaussKronrod;
 
 __device__ void PrintResultType(ElVisFloat f)
 {
-    ELVIS_PRINTF("%2.15f\n", f);
+    //ELVIS_PRINTF("%2.15f\n", f);
 }
 
 __device__ void PrintResultType(ElVisFloat3 f)
 {
-    ELVIS_PRINTF("(%2.15f, %2.15f, %2.15f)", f.x, f.y, f.z);
+    //ELVIS_PRINTF("(%2.15f, %2.15f, %2.15f)", f.x, f.y, f.z);
 }
 
 template<>

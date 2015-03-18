@@ -198,7 +198,7 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 ELVIS_DEVICE ElVisError EvaluateNormalOptiX(unsigned int elementId, unsigned int elementType, int fieldId,
                                             const ElVisFloat3& worldPoint, ElVisFloat3& normal)
 {
-    ELVIS_PRINTF("EvaluateNormalOptiX\n");
+    //ELVIS_PRINTF("EvaluateNormalOptiX\n");
     ReferencePoint refPoint;
     ElVisError e0 = ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, ElVis::eReferencePointIsInvalid, refPoint);
 
