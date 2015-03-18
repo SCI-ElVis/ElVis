@@ -61,8 +61,10 @@ IF( UNIX )
   FIND_LIBRARY( CHOLMOD_LIBRARY 
                 NAMES cholmod )
 
-  FIND_LIBRARY( SUITESPARSE_LIBRARY 
-                NAMES suitesparseconfig )
+  IF( APPLE )
+    FIND_LIBRARY( SUITESPARSE_LIBRARY 
+                  NAMES suitesparseconfig )
+  ENDIF()
 
   FIND_LIBRARY( AMD_LIBRARY 
                 NAMES amd

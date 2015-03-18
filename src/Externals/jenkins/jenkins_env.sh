@@ -5,7 +5,7 @@ shopt -s nocasematch
 dir=`pwd`
 builddir=`basename $dir`
 
-if [[ `hostname` == "cleopatra"* || `hostname` == "oci-ubuntu"* ]]; then
+if [[ `hostname` == "cleopatra"* ]]; then
 
   export OptiX_INSTALL_DIR=/usr/local/NVIDIA-OptiX-SDK-3.6.0-linux64
   export CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-6.0/
