@@ -42,6 +42,7 @@ namespace ElVis
             m_layout(0),
             m_addContourButtonButton(new QPushButton("Add Contour")),
             m_contourSpinBox(new QDoubleSpinBox()),
+            m_refinementsSpinBox(new QDoubleSpinBox()),
             m_values(),
             m_enabledCheckBox(new QCheckBox("Disc. Element Boundaries")),
             m_matchVisual3CheckBox(new QCheckBox("Match Visual 3"))
@@ -59,13 +60,21 @@ namespace ElVis
             m_contourSpinBox->setDecimals(10);
             //m_elementId->setSingleStep(1);
 
+            m_refinementsSpinBox->setMinimum(0);
+            m_refinementsSpinBox->setMaximum(10);
+            m_refinementsSpinBox->setDecimals(0);
+            m_refinementsSpinBox->setValue(0);
+
             m_enabledCheckBox->setChecked( m_appData->GetContourModule()->GetTreatElementBoundariesAsDiscontinuous());
             m_matchVisual3CheckBox->setChecked( m_appData->GetContourModule()->GetMatchVisual3Contours());
+            QLabel* label = new QLabel("Number of refinements");
 
             m_layout->addWidget(m_contourSpinBox, 1, 0);
             m_layout->addWidget(m_addContourButtonButton, 1, 1);
-            m_layout->addWidget(m_enabledCheckBox, 2, 0);
-            m_layout->addWidget(m_matchVisual3CheckBox, 3, 0);
+            m_layout->addWidget(m_refinementsSpinBox, 2, 0);
+            m_layout->addWidget(label, 2, 1);
+            m_layout->addWidget(m_enabledCheckBox, 3, 0);
+            m_layout->addWidget(m_matchVisual3CheckBox, 4, 0);
 
             this->setWidget(widget);
 

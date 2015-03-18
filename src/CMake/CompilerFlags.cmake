@@ -91,7 +91,7 @@ IF( NOT PASSED_FIRST_CONFIGURE )
     SET( CMAKE_CXX_FLAGS_ANALYSIS "-diag-enable sc3 -diag-enable vec" CACHE STRING "C++ Static Analysis Flags" FORCE )
   ELSEIF( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     #-Weverything -Wno-unreachable-code -Wno-newline-eof -Wno-c++98-compat -Wno-c++98-compat-pedantic 
-    SET( CMAKE_CXX_FLAGS "-std=c++0x -Werror -Wall -fstrict-aliasing -Wstrict-aliasing" CACHE STRING "C++ Flags" FORCE)
+    SET( CMAKE_CXX_FLAGS "-std=c++0x -Werror -Wall -fstrict-aliasing -Wstrict-aliasing -Wno-deprecated-register -Wno-deprecated-declarations" CACHE STRING "C++ Flags" FORCE)
     IF( APPLE )
       SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC" CACHE STRING "C++ Flags" FORCE)
     ELSEIF( CYGWIN )

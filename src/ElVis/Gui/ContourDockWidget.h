@@ -41,6 +41,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QLabel>
 
 namespace ElVis
 {
@@ -73,6 +74,7 @@ namespace ElVis
                 QGridLayout* m_layout;
                 QPushButton* m_addContourButtonButton;
                 QDoubleSpinBox* m_contourSpinBox;
+                QDoubleSpinBox* m_refinementsSpinBox;
                 std::map<QListWidgetItem*, ElVisFloat> m_values;
                 QCheckBox* m_enabledCheckBox;
                 QCheckBox* m_matchVisual3CheckBox;
