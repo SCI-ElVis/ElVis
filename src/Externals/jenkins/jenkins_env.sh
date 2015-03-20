@@ -17,7 +17,7 @@ elif [[ `hostname` == "oci-ubuntu"* ]]; then
   export PX_ARC=release_serial
   export PX_DIR=/home/jenkins/projectx
 
-elif [[ `hostname` == "dhcp"* ]]; then
+elif [[ `hostname` == "elvis"* ]]; then
 
   export OptiX_INSTALL_DIR=/Developer/OptiX
   export CUDA_TOOLKIT_ROOT_DIR=/Developer/NVIDIA/CUDA-6.0
