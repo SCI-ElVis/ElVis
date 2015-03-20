@@ -12,7 +12,7 @@ elif [[ `hostname` == "oci-ubuntu"* ]]; then
 
   PREFIX="-DCMAKE_PREFIX_PATH=/home/jenkins/nektar/build/dist/lib64/nektar++-4.0.1/cmake"
 
-elif [[ `hostname` == "dhcp"* ]]; then
+elif [[ `hostname` == "elvis"* ]]; then
 
   PREFIX="-DCMAKE_PREFIX_PATH=/Users/jenkins/nektar/build/dist/lib/nektar++-4.0.1/cmake"
 
