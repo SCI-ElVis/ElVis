@@ -555,8 +555,8 @@ namespace ElVis
         }
 
 
-        // pick the element with lowest Q
-        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+        // pick the element with highest Q
+        if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
           lface = pg->FaceGroup[fgrp].FaceL[face].Face;
         }
@@ -611,8 +611,8 @@ namespace ElVis
         }
 
 
-        // pick the element with lowest Q
-        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+        // pick the element with highest Q
+        if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
           elem  = pg->FaceGroup[fgrp].FaceL[face].Element;
           lface = pg->FaceGroup[fgrp].FaceL[face].Face;
@@ -805,8 +805,8 @@ namespace ElVis
         }
 
 
-        // pick the element with lowest Q
-        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+        // pick the element with highest Q
+        if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
           elem  = pg->FaceGroup[fgrp].FaceL[face].Element;
           lface = pg->FaceGroup[fgrp].FaceL[face].Face;
@@ -892,7 +892,7 @@ namespace ElVis
         if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) )
         {
           //Make sure to swap L and R appropriately
-          if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+          if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
             egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
             elem  = pg->FaceGroup[fgrp].FaceR[face].Element;
           }
@@ -921,7 +921,7 @@ namespace ElVis
 
           WorldVector normal(nvec[0], nvec[1], nvec[2]);
 
-          if (pg->ElementGroup[egrpL].type > pg->ElementGroup[egrpR].type)
+          if (pg->ElementGroup[egrpL].type < pg->ElementGroup[egrpR].type)
             for( d=0; d<3; d++)
               nvec[d] = -nvec[d];
 

@@ -35,14 +35,14 @@ __device__ VolumeRenderingPayload FindNextFaceIntersection(const ElVisFloat3& or
   VolumeRenderingPayload payload;
   payload.Initialize();
 
-  optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
+  optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 0, RT_DEFAULT_MAX);
 
   // do linear faces first, since they are fast.  Intersections with linear 
   // faces may help weed out bad curved matches.
   //ELVIS_PRINTF("FindNextFaceIntersection: Planar faces.\n");
   rtTrace(PlanarFaceGroup, ray, payload);
   //ELVIS_PRINTF("FindNextFaceIntersection (Planar): Found %d Face Id %d T %f\n", payload.FoundIntersection, payload.FaceId.Value, payload.IntersectionT);
-  optix::Ray curvedRay = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, payload.FoundIntersection ? payload.IntersectionT : RT_DEFAULT_MAX);
+  optix::Ray curvedRay = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 0, payload.FoundIntersection ? payload.IntersectionT : RT_DEFAULT_MAX);
   rtTrace(CurvedFaceGroup, curvedRay, payload);
   //ELVIS_PRINTF("FindNextFaceIntersection (Curved): Found %d Face Id %d T %f\n", payload.FoundIntersection, payload.FaceId.Value, payload.IntersectionT);
 
