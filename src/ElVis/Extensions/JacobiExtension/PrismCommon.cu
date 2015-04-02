@@ -299,7 +299,9 @@ ELVIS_DEVICE ElVisError TransformPrismWorldToReference(const ElVisFloat4* prismV
             return eNoError;
         }
 
-        result = tempResult;
+        result.x = max(min(tempResult.x,1.0),-1.0);
+        result.y = max(min(tempResult.y,1.0),-1.0);
+        result.z = max(min(tempResult.z,1.0),-1.0);
 
         //if( p.x == inversePoint.x &&
         //    p.y == inversePoint.y &&
@@ -342,12 +344,12 @@ ELVIS_DEVICE ElVisError TransformPrismWorldToTensor(const ElVisFloat4* prismVert
     result = TransformPrismReferenceToTensor(ref);
 
     bool hasConvergenceFailure =
-            result.x < MAKE_FLOAT(-1.1) ||
-            result.x > MAKE_FLOAT(1.1) ||
-            result.y < MAKE_FLOAT(-1.1) ||
-            result.y > MAKE_FLOAT(1.1) ||
-            result.z < MAKE_FLOAT(-1.1) ||
-            result.z > MAKE_FLOAT(1.1);
+            result.x < MAKE_FLOAT(-1.0) ||
+            result.x > MAKE_FLOAT(1.0) ||
+            result.y < MAKE_FLOAT(-1.0) ||
+            result.y > MAKE_FLOAT(1.0) ||
+            result.z < MAKE_FLOAT(-1.0) ||
+            result.z > MAKE_FLOAT(1.0);
 
     if( hasConvergenceFailure )
     {

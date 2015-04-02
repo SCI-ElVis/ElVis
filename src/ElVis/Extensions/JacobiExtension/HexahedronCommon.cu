@@ -205,7 +205,7 @@ __device__ __forceinline__ ElVisError TransformWorldToReference(const ElVisFloat
     const int MAX_ITERATIONS = 10;
     do
     {
-        ElVisFloat inverse[16];
+        ElVisFloat inverse[9];
         //ElVis::Matrix<3, 3> inverse;
 
         WorldPoint f;
@@ -235,9 +235,9 @@ __device__ __forceinline__ ElVisError TransformWorldToReference(const ElVisFloat
         //}
 
         //result = tempResult;
-        result.x -= r_adjust;
-        result.y -= s_adjust;
-        result.z -= t_adjust;
+        result.x = max(min(result.x-r_adjust,1.0),-1.0);
+        result.y = max(min(result.y-s_adjust,1.0),-1.0);
+        result.z = max(min(result.z-t_adjust,1.0),-1.0);
 
         // Trial 1 - The odds of this are so small that we probably shouldn't check.
         //ElVis::WorldPoint inversePoint = transformReferenceToWorld(result);
@@ -262,12 +262,12 @@ __device__ __forceinline__ ElVisError TransformWorldToTensor(const ElVisFloat4* 
     if( e == eNoError )
     {
         bool hasConvergenceFailure =
-                result.x < MAKE_FLOAT(-1.1) ||
-                result.x > MAKE_FLOAT(1.1) ||
-                result.y < MAKE_FLOAT(-1.1) ||
-                result.y > MAKE_FLOAT(1.1) ||
-                result.z < MAKE_FLOAT(-1.1) ||
-                result.z > MAKE_FLOAT(1.1);
+                result.x < MAKE_FLOAT(-1.0) ||
+                result.x > MAKE_FLOAT(1.0) ||
+                result.y < MAKE_FLOAT(-1.0) ||
+                result.y > MAKE_FLOAT(1.0) ||
+                result.z < MAKE_FLOAT(-1.0) ||
+                result.z > MAKE_FLOAT(1.0);
         if( hasConvergenceFailure ) e = eConvergenceFailure;
     }
 

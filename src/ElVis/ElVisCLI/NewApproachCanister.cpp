@@ -378,6 +378,8 @@ int GenericCLIInterface(int argc, char** argv,
     {
         ElVis::WorldPoint normal(cutPlaneNormal[0], cutPlaneNormal[1], cutPlaneNormal[2]);
         ElVis::WorldPoint p(cutPlanePoint[0], cutPlanePoint[1], cutPlanePoint[2]);
+        std::cout << "Creating Cut-plane: Normal = (" << normal.x() << ", " << normal.y() << ", " << normal.z() <<
+                                        ") Point = (" << p.x() << ", " << p.y() << ", " << p.z() << ")" << std::endl;
         
         boost::shared_ptr<ElVis::Plane> cutPlane(new ElVis::Plane(normal, p));
         boost::shared_ptr<ElVis::SampleVolumeSamplerObject> sampler(new ElVis::SampleVolumeSamplerObject(cutPlane));

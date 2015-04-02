@@ -126,6 +126,7 @@ __device__ __forceinline__ ElVisFloat EvaluateHexGradZAtReferencePoint(
 __device__ __forceinline__ WorldPoint TransformReferenceToWorldLinearHex(
     int hexId, const ReferencePoint& p)
 {
+
     ElVisFloat r = p.x;
     ElVisFloat s = p.y;
     ElVisFloat t = p.z;
@@ -164,6 +165,8 @@ __device__ __forceinline__ WorldPoint TransformReferenceToWorldLinearHex(
 __device__ __forceinline__ WorldPoint TransformReferenceToWorldHex(
     int hexId, const ReferencePoint& p)
 {
+    ELVIS_PRINTF("[NEKTAR TransformReferenceToWorldHex] ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, p.x, p.y, p.z);
+
     const int offset = CurvedGeomOffsetBuffer[hexId];
     uint3 *modes = &CurvedGeomNumModesBuffer[hexId];
 
@@ -320,6 +323,9 @@ __device__ __forceinline__ void calculateInverseJacobianHex(
 __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
     int hexId, const WorldPoint& p)
 {
+  ELVIS_PRINTF("[NEKTAR] TransformWorldToReferenceHex ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, p.x, p.y, p.z);
+
+
     ElVisFloat tolerance = MAKE_FLOAT(1e-5);
 
     // So we first need an initial guess.  We can probably make this smarter,
@@ -333,12 +339,16 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
 
     do
     {
+        ELVIS_PRINTF("[NEKTAR] result ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, result.x, result.y, result.z);
         WorldPoint f = TransformReferenceToWorldHex(hexId, result) - p;
         calculateInverseJacobianHex(hexId, result, inverse);
 
         ElVisFloat r_adjust = (inverse[0]*f.x + inverse[1]*f.y + inverse[2]*f.z);
         ElVisFloat s_adjust = (inverse[3]*f.x + inverse[4]*f.y + inverse[5]*f.z);
         ElVisFloat t_adjust = (inverse[6]*f.x + inverse[7]*f.y + inverse[8]*f.z);
+
+        ELVIS_PRINTF("[NEKTAR] adjust ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, r_adjust, s_adjust, t_adjust);
+
 
         if( fabs(r_adjust) < tolerance &&
             fabs(s_adjust) < tolerance &&
@@ -348,8 +358,8 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
             return result;
         }
 
-        ReferencePoint pointAdjust = MakeFloat3(r_adjust, s_adjust, t_adjust);
-        ReferencePoint tempResult = result - pointAdjust;
+        //ReferencePoint pointAdjust = MakeFloat3(r_adjust, s_adjust, t_adjust);
+        //ReferencePoint tempResult = result - pointAdjust;
 
         // If point adjust is so small it wont' change result then we are done.
         //if( result.x == tempResult.x && result.y == tempResult.y && result.z == tempResult.z )
@@ -357,7 +367,9 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
         //    return result;
         //}
 
-        result = tempResult;
+        result.x = max(min(result.x-r_adjust,1.0),-1.0);
+        result.y = max(min(result.y-s_adjust,1.0),-1.0);
+        result.z = max(min(result.z-t_adjust,1.0),-1.0);
 
         // Trial 1 - The odds of this are so small that we probably shouldn't check.
         //WorldPoint inversePoint = transformReferenceToWorld(result);

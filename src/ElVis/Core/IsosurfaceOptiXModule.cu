@@ -604,7 +604,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
         FieldId,
         foundIntersectionPoint);
 
-      //ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
+      ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found root %2.15f, in world %2.15f with value %f \n", foundRoot, foundT, SampleBuffer[launch_index]);
 
 
       EvaluateNormalOptiX(elementId,
@@ -619,6 +619,22 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
       ////        depth_buffer[launch_index] = (depth_buffer[launch_index]+1.0)/2.0;
 
     }
+    else
+    {
+      ELVIS_PRINTF("FindIsosurfaceInSegment: No root found\n");
+      for(int i = 0; i < reducedOrder; ++i)
+      {
+        ElVisFloat root = roots[i];
+        if( root >= MAKE_FLOAT(-1.0) &&
+          root <= MAKE_FLOAT(1.0) )
+        {
+          ElVisFloat foundT = (root + MAKE_FLOAT(1.0))/MAKE_FLOAT(2.0) * (f.B-f.A) + f.A;
+          ELVIS_PRINTF("FindIsosurfaceInSegment: root[%d] = %2.15f, foundT = %2.15f, bestDepth = %2.15f\n", i, root, foundT, bestDepth);
+        }
+      }
+
+    }
+
   }
   return result;
 }

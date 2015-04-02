@@ -73,21 +73,8 @@ URL:    http://raphael.mit.edu
 
 //#include "PXShape.h"
 
-/*----------------------------------------------------------------*/
-/* WARNING: max p level for SOLN must be >= max p level for GEOM! */
-#define GEOM_USE_P0 1
-#define GEOM_USE_P1 1
-#define GEOM_USE_P2 1
-#define GEOM_USE_P3 0
-#define GEOM_USE_P4 0
-#define GEOM_USE_P5 0
+#include "PXShape_USE.h"
 
-#define SOLN_USE_P0 1
-#define SOLN_USE_P1 1
-#define SOLN_USE_P2 1
-#define SOLN_USE_P3 1
-#define SOLN_USE_P4 0
-#define SOLN_USE_P5 0
 
 /* check sizing for geometry basis fcns */
 #if GEOM_USE_P5 == 1 && (MAX_NBF < 56 || MAX_NBF_FACE < 21)
@@ -1240,7 +1227,7 @@ PXGradientsHierarch1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT 
 template <typename DT> ELVIS_DEVICE int
 PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RESTRICT gphi)
 {
-  DT x;
+  DT x = xref[0];
 #if GEOM_USE_P3
   DT xx;
 #endif
@@ -1250,8 +1237,6 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
 #if GEOM_USE_P5
   DT xxxx;
 #endif
-
-  x = xref[0];
 
   switch ( porder ) {
 #if GEOM_USE_P0    
@@ -1274,7 +1259,7 @@ PXGradientsUniformLagrange1d(const int porder, const DT * RESTRICT xref, DT * RE
 #endif
 #if GEOM_USE_P3
   case 3:
-    DT xx = x*x;
+    xx = x*x;
     gphi[0] = -5.5 + 18.0*x - 13.5*xx;
     gphi[1] =  9.0 - 45.0*x + 40.5*xx;
     gphi[2] = -4.5 + 36.0*x - 40.5*xx;
