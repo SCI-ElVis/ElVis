@@ -36,6 +36,7 @@
 #include <boost/bind.hpp>
 
 #include <ElVis/Gui/SceneViewWidget.h>
+#include <ElVis/Core/SceneViewProjection.h>
 
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/PrimaryRayModule.h>
@@ -145,7 +146,8 @@ namespace ElVis
 
         void SceneViewWidget::SetupPerspective()
         {
-            m_appData->GetSurfaceSceneView()->GetViewSettings()->SetupOpenGLPerspective();
+        	SceneViewProjection projType = m_appData->GetSurfaceSceneView()->GetProjectionType();
+            m_appData->GetSurfaceSceneView()->GetViewSettings()->SetupOpenGLPerspective(projType);
         }
 
 

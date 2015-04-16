@@ -33,6 +33,7 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Vector.hpp>
 #include <ElVis/Core/matrix.cu>
+#include <ElVis/Core/SceneViewProjection.h>
 
 #include <boost/signals2.hpp>
 
@@ -122,7 +123,7 @@ namespace ElVis
             ELVIS_EXPORT WorldVector GetNormalizedV() const;
             ELVIS_EXPORT WorldVector GetNormalizedW() const;
 
-            ELVIS_EXPORT void SetupOpenGLPerspective();
+            ELVIS_EXPORT void SetupOpenGLPerspective(SceneViewProjection projType);
 
             template<typename Archive>
             void NotifyLoad(Archive& ar, const unsigned int version, 

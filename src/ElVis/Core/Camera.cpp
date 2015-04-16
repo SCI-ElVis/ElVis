@@ -32,6 +32,7 @@
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/Vector.hpp>
 #include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/SceneViewProjection.h>
 
 #include <boost/bind.hpp>
 
@@ -274,11 +275,14 @@ namespace ElVis
         OnCameraChanged();
     }
 
-    void Camera::SetupOpenGLPerspective()
+    void Camera::SetupOpenGLPerspective(SceneViewProjection projType)
     {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(m_fieldOfView, m_aspectRatio, m_near, m_far);
+        if( projType == ePerspective)
+            gluPerspective(m_fieldOfView, m_aspectRatio, m_near, m_far);
+        else if( projType == eOrthographic)
+            gluOrtho2D(-10.0, 10.0, -10.0, 10.0);
         glMatrixMode(GL_MODELVIEW);
     }
 
