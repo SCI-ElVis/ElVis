@@ -766,6 +766,7 @@ namespace ElVis
     void SceneView::SetProjectionType(SceneViewProjection type)
     {
         m_projectionType = type;
+        OnNeedsRedraw(*this);
     }
 
     SceneViewProjection SceneView::GetProjectionType() const
