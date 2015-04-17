@@ -123,7 +123,8 @@ namespace ElVis
             ELVIS_EXPORT WorldVector GetNormalizedV() const;
             ELVIS_EXPORT WorldVector GetNormalizedW() const;
 
-            ELVIS_EXPORT void SetupOpenGLPerspective(SceneViewProjection projType);
+            ELVIS_EXPORT void SetupOpenGLPerspective();
+            ELVIS_EXPORT void SetupOpenGLOrtho();
 
             template<typename Archive>
             void NotifyLoad(Archive& ar, const unsigned int version, 

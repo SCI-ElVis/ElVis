@@ -138,16 +138,19 @@ namespace ElVis
 
             m_appData->GetSurfaceSceneView()->Resize(width(), height());
             m_appData->GetSurfaceSceneView()->GetViewSettings()->SetAspectRatio(w, h);
-            SetupPerspective();
+            SetupProjection();
 
             std::cout << "New window size (" << w << ", " << h << ")" << std::endl;
             //emit windowResized(w, h);
         }
 
-        void SceneViewWidget::SetupPerspective()
+        void SceneViewWidget::SetupProjection()
         {
-        	SceneViewProjection projType = m_appData->GetSurfaceSceneView()->GetProjectionType();
-            m_appData->GetSurfaceSceneView()->GetViewSettings()->SetupOpenGLPerspective(projType);
+            SceneViewProjection projType = m_appData->GetSurfaceSceneView()->GetProjectionType();
+            if( projType == ePerspective )
+                m_appData->GetSurfaceSceneView()->GetViewSettings()->SetupOpenGLPerspective();
+            else if( projType == eOrthographic )
+                m_appData->GetSurfaceSceneView()->GetViewSettings()->SetupOpenGLOrtho();
         }
 
 
@@ -157,7 +160,7 @@ namespace ElVis
             Timer timer;
             timer.Start();
             //// Is doing the perspective each time we paint too expensive?
-            SetupPerspective();
+            SetupProjection();
             glColor3f(0.0, 1.0, 0.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             glMatrixMode(GL_MODELVIEW);
