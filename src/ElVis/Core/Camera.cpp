@@ -38,7 +38,7 @@
 namespace ElVis
 {
     Camera::Camera() :
-        m_eye(0, 0, 5),
+        m_eye(EYE_INIT_X, EYE_INIT_Y, EYE_INIT_Z),
         m_lookAt(0, 0, 0),
         m_up(0, 1, 0),
         m_u(-1, 0, 0),
@@ -286,7 +286,8 @@ namespace ElVis
     {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(-10.0, 10.0, -10.0, 10.0, -100.0, 100.0);
+        ElVisFloat simZoom = distanceBetween(m_eye, m_lookAt) / EYE_INIT_Z * 3;
+        glOrtho(-simZoom, simZoom, -simZoom, simZoom, -1000.0, 1000.0);
         glMatrixMode(GL_MODELVIEW);
     }
 
