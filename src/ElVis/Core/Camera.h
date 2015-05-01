@@ -183,6 +183,8 @@ namespace ElVis
             double m_aspectRatio;
             float m_near;
             float m_far;
+            float m_orthoBorder;
+            bool m_perspectiveMode;
 
             const float EYE_INIT_X = 0;
             const float EYE_INIT_Y = 0;

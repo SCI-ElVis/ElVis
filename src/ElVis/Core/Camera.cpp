@@ -34,6 +34,7 @@
 #include <ElVis/Core/Point.hpp>
 
 #include <boost/bind.hpp>
+#include <math.h>
 
 namespace ElVis
 {
@@ -44,10 +45,12 @@ namespace ElVis
         m_u(-1, 0, 0),
         m_v(0, 1, 0),
         m_w(0, 0, -1),
-        m_fieldOfView(60.0),
+        m_fieldOfView(30.0),
         m_aspectRatio(1.0),
         m_near(.1),
-        m_far(10000.0)
+        m_far(10000.0),
+        m_orthoBorder(3.0),
+        m_perspectiveMode(true)
     {
         SetupSignals();
     }
@@ -227,11 +230,25 @@ namespace ElVis
     {
         double percentVertical = static_cast<double>(to_y - from_y)/static_cast<double>(imageHeight) ;
         double percentHorizontal =  static_cast<double>(-to_x + from_x)/static_cast<double>(imageWidth);
+        double viewportSpan_modelCoords;
 
-        WorldVector dir = percentVertical*m_v + percentHorizontal*m_u;
+        if( m_perspectiveMode )
+        {
+            ElVisFloat cameraDistance = distanceBetween(m_eye, m_lookAt);
+            viewportSpan_modelCoords = 2 * tan (m_fieldOfView / 2 * 3.141593 / 180.0) * cameraDistance;
+        } else {
+        	viewportSpan_modelCoords = 2 * m_orthoBorder;
+        }
 
-        m_eye = m_eye + findPointAlongVector(dir, 2.0);
-        m_lookAt = m_lookAt + findPointAlongVector(dir, 2.0);
+        WorldVector cameraV = m_v;
+        Normalize(cameraV);
+        WorldVector cameraU = m_u;
+        Normalize(cameraU);
+        WorldVector dir =   percentVertical * viewportSpan_modelCoords * cameraV
+        		          + percentHorizontal * viewportSpan_modelCoords * cameraU;
+        WorldPoint pointIncr = findPointAlongVector(dir, 1.0);
+        m_eye = m_eye + pointIncr;
+        m_lookAt = m_lookAt + pointIncr;
         OnCameraChanged();
     }
     
@@ -280,15 +297,17 @@ namespace ElVis
         glLoadIdentity();
         gluPerspective(m_fieldOfView, m_aspectRatio, m_near, m_far);
         glMatrixMode(GL_MODELVIEW);
+        m_perspectiveMode = true;
     }
 
     void Camera::SetupOpenGLOrtho()
     {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        ElVisFloat simZoom = distanceBetween(m_eye, m_lookAt) / EYE_INIT_Z * 3;
-        glOrtho(-simZoom, simZoom, -simZoom, simZoom, -1000.0, 1000.0);
+        m_orthoBorder = distanceBetween(m_eye, m_lookAt) / EYE_INIT_Z * 3;
+        glOrtho(-m_orthoBorder, m_orthoBorder, -m_orthoBorder, m_orthoBorder, -1000.0, 1000.0);
         glMatrixMode(GL_MODELVIEW);
+        m_perspectiveMode = false;
     }
 
     Matrix4x4 Camera::InitWithBasis()
