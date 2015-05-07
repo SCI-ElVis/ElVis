@@ -162,7 +162,7 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
     //ELVIS_PRINTF("FindElementFromFace: Looking for element that encloses point (%f, %f, %f)\n", p.x, p.y, p.z);
 
     // Setting tmin=0 here ensures that a point near a face boundary is found
-    VolumeRenderingPayload payload_v = FindNextFaceIntersection(p, direction, MAKE_FLOAT(0));
+    VolumeRenderingPayload payload_v = FindNextFaceIntersection(p, direction, MAKE_FLOAT(0.0));
    
 //    ELVIS_PRINTF("FindElementFromFace: First one Found=%d T=%f id=%d\n", payload_v.FoundIntersection,
 //        payload_v.IntersectionT, payload_v.FaceId.Value);
@@ -173,7 +173,7 @@ __device__ __forceinline__ ElementFinderPayload FindElementFromFace(const ElVisF
     {
         payload_v.Initialize();
         direction = MakeFloat3(-direction.x, -direction.y, -direction.z);
-        payload_v = FindNextFaceIntersection(p, direction, MAKE_FLOAT(0));
+        payload_v = FindNextFaceIntersection(p, direction, MAKE_FLOAT(0.0));
 //        ELVIS_PRINTF("FindElementFromFace Try 2: Found=%d T=%f id=%d\n", payload_v.FoundIntersection,
 //            payload_v.IntersectionT, payload_v.FaceId.Value);
         foundElement = findElementFromFace(p, direction, payload_v, findElementPayload);

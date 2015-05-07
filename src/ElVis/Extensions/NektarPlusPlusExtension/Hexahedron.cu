@@ -267,28 +267,27 @@ __device__ __forceinline__ void CalculateJacobianHex(
 {
     const int offset = CurvedGeomOffsetBuffer[hexId];
     uint3 *modes = &CurvedGeomNumModesBuffer[hexId];
-
     if (offset >= 0)
     {
-        const int nm = modes->x * modes->y * modes->z;
-        J[0] = EvaluateHexGradXAtReferencePoint(
-            &CurvedGeomBuffer[offset], modes, p);
-        J[1] = EvaluateHexGradYAtReferencePoint(
-            &CurvedGeomBuffer[offset], modes, p);
-        J[2] = EvaluateHexGradZAtReferencePoint(
-            &CurvedGeomBuffer[offset], modes, p);
-        J[3] = EvaluateHexGradXAtReferencePoint(
-            &CurvedGeomBuffer[offset+nm], modes, p);
-        J[4] = EvaluateHexGradYAtReferencePoint(
-            &CurvedGeomBuffer[offset+nm], modes, p);
-        J[5] = EvaluateHexGradZAtReferencePoint(
-            &CurvedGeomBuffer[offset+nm], modes, p);
-        J[6] = EvaluateHexGradXAtReferencePoint(
-            &CurvedGeomBuffer[offset+2*nm], modes, p);
-        J[7] = EvaluateHexGradYAtReferencePoint(
-            &CurvedGeomBuffer[offset+2*nm], modes, p);
-        J[8] = EvaluateHexGradZAtReferencePoint(
-            &CurvedGeomBuffer[offset+2*nm], modes, p);
+//        const int nm = modes->x * modes->y * modes->z;
+//        J[0] = EvaluateHexGradXAtReferencePoint(
+//            &CurvedGeomBuffer[offset], modes, p);
+//        J[1] = EvaluateHexGradYAtReferencePoint(
+//            &CurvedGeomBuffer[offset], modes, p);
+//        J[2] = EvaluateHexGradZAtReferencePoint(
+//            &CurvedGeomBuffer[offset], modes, p);
+//        J[3] = EvaluateHexGradXAtReferencePoint(
+//            &CurvedGeomBuffer[offset+nm], modes, p);
+//        J[4] = EvaluateHexGradYAtReferencePoint(
+//            &CurvedGeomBuffer[offset+nm], modes, p);
+//        J[5] = EvaluateHexGradZAtReferencePoint(
+//            &CurvedGeomBuffer[offset+nm], modes, p);
+//        J[6] = EvaluateHexGradXAtReferencePoint(
+//            &CurvedGeomBuffer[offset+2*nm], modes, p);
+//        J[7] = EvaluateHexGradYAtReferencePoint(
+//            &CurvedGeomBuffer[offset+2*nm], modes, p);
+//        J[8] = EvaluateHexGradZAtReferencePoint(
+//            &CurvedGeomBuffer[offset+2*nm], modes, p);
     }
     else
     {
@@ -339,7 +338,7 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
 
     do
     {
-        ELVIS_PRINTF("[NEKTAR] result ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, result.x, result.y, result.z);
+        //ELVIS_PRINTF("[NEKTAR] result ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, result.x, result.y, result.z);
         WorldPoint f = TransformReferenceToWorldHex(hexId, result) - p;
         calculateInverseJacobianHex(hexId, result, inverse);
 
@@ -347,7 +346,7 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
         ElVisFloat s_adjust = (inverse[3]*f.x + inverse[4]*f.y + inverse[5]*f.z);
         ElVisFloat t_adjust = (inverse[6]*f.x + inverse[7]*f.y + inverse[8]*f.z);
 
-        ELVIS_PRINTF("[NEKTAR] adjust ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, r_adjust, s_adjust, t_adjust);
+        //ELVIS_PRINTF("[NEKTAR] adjust ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, r_adjust, s_adjust, t_adjust);
 
 
         if( fabs(r_adjust) < tolerance &&
