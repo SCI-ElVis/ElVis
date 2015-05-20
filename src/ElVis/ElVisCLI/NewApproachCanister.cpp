@@ -101,6 +101,7 @@ int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared
     if( vm.count(traceYLabel) == 1)
     {
         tracey = vm[traceYLabel].as<int>();
+        tracey = height - 1 - tracey;
     }
 
     boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();

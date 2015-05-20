@@ -231,6 +231,7 @@ int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model
     if( vm.count(traceYLabel) == 1)
     {
         tracey = vm[traceYLabel].as<int>();
+        tracey = height - 1 - tracey;
     }
 
     bool trackNumSamples = false;
