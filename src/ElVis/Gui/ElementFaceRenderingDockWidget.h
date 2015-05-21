@@ -67,7 +67,7 @@ namespace ElVis
                 void HandleAddButtonPressed();
                 void HandleSceneInitialized(const Scene& s);
                 void HandleGeometryFaceMapSelected(QtProperty* p, bool v);
-                void HandleToleranceChanged();
+                void HandleToleranceChanged(double x);
 
             protected:
                 virtual void keyPressEvent(QKeyEvent *);
