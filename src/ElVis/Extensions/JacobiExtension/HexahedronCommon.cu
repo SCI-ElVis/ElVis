@@ -202,10 +202,10 @@ __device__ __forceinline__ ElVisError TransformWorldToReference(const ElVisFloat
     //ElVisFloat AlignmentTestMatrix[64];
 
     int numIterations = 0;
-    const int MAX_ITERATIONS = 10;
+    const int MAX_ITERATIONS = 100;
     do
     {
-        ElVisFloat inverse[16];
+        ElVisFloat inverse[9];
         //ElVis::Matrix<3, 3> inverse;
 
         WorldPoint f;
@@ -235,10 +235,12 @@ __device__ __forceinline__ ElVisError TransformWorldToReference(const ElVisFloat
         //}
 
         //result = tempResult;
-        result.x -= r_adjust;
-        result.y -= s_adjust;
-        result.z -= t_adjust;
-
+        //result.x = max(min(result.x-r_adjust,1.0),-1.0);
+        //result.y = max(min(result.y-s_adjust,1.0),-1.0);
+        //result.z = max(min(result.z-t_adjust,1.0),-1.0);
+	result.x = result.x-r_adjust;
+	result.y = result.y-s_adjust;
+        result.z = result.z-t_adjust;
         // Trial 1 - The odds of this are so small that we probably shouldn't check.
         //ElVis::WorldPoint inversePoint = transformReferenceToWorld(result);
         //if( p.x == inversePoint.x &&
@@ -270,6 +272,10 @@ __device__ __forceinline__ ElVisError TransformWorldToTensor(const ElVisFloat4* 
                 result.z > MAKE_FLOAT(1.1);
         if( hasConvergenceFailure ) e = eConvergenceFailure;
     }
+    else
+    {
+        ELVIS_PRINTF("Convergence Failure\n");
+     }
 
     return e;
 }

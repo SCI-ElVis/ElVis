@@ -103,7 +103,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(
         }
         else if (elementType == Nektar::LibUtilities::ePrism)
         {
-            result = TransformWorldToReferencePrism(elementId, wp);
+            //result = TransformWorldToReferencePrism(elementId, wp);
         }
         else
         {
@@ -269,7 +269,7 @@ ELVIS_DEVICE ElVisError EvaluateFace(
     return eNoError;
 }
 
-// Legacy
+
 ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(
     int                   elementId,
     int                   elementType,
@@ -280,7 +280,22 @@ ELVIS_DEVICE ElVisError SampleReferenceGradientOptiX(
     gradient.x = MAKE_FLOAT(0.0);
     gradient.y = MAKE_FLOAT(0.0);
     gradient.z = MAKE_FLOAT(0.0);
-    return eNoError;
+
+    ElVisError returnVal = eNoError;
+    if( elementType == Nektar::LibUtilities::eHexahedron )
+    {
+        int coeffOffset = CoeffOffsetBuffer[elementId];
+        ElVisFloat* coeffs = &SolutionBuffer[coeffOffset];
+        uint3* modes = &ExpNumModesBuffer[elementId];
+        gradient.x = EvaluateHexGradXAtReferencePoint(coeffs, modes, refPoint);
+        gradient.y = EvaluateHexGradYAtReferencePoint(coeffs, modes, refPoint);
+        gradient.z = EvaluateHexGradZAtReferencePoint(coeffs, modes, refPoint);
+    }
+    else
+    {
+        returnVal = eInvalidElementType;
+    }
+    return returnVal;
 }
 
 // Legacy
@@ -290,7 +305,16 @@ ELVIS_DEVICE ElVisError SampleGeometryMappingJacobianOptiX(
     const ReferencePoint& refPoint,
     ElVisFloat*           J)
 {
-    return eNoError;
+    ElVisError returnVal = eNoError;
+    if( elementType == Nektar::LibUtilities::eHexahedron )
+    {
+        CalculateJacobianLinearHex(elementId, refPoint, J);
+    }
+    else
+    {
+        returnVal = eInvalidElementType;
+    }
+    return returnVal;
 }
 
 // Curved: reference/starting point for Newton algorithm

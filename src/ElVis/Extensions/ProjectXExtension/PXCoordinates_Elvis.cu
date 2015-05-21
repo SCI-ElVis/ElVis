@@ -1128,7 +1128,11 @@ LinearSimplexGlob2Ref(enum PXE_Shape Shape, ElVisFloat const * RESTRICT vertices
     Residual += (xrefLin[d]-xref[d])*(xrefLin[d]-xref[d]);
   Residual = sqrt(Residual);
 
-  if ( Residual > 1.0E-10)
+//  ELVIS_PRINTF("PX LinearSimplexGlob2Ref: xrefLin (%2.15f,%2.15f,%2.15f)\n", xrefLin[0], xrefLin[1], xrefLin[2]);
+//  ELVIS_PRINTF("PX LinearSimplexGlob2Ref: xref    (%2.15f,%2.15f,%2.15f)\n", xref[0], xref[1], xref[2]);
+//  ELVIS_PRINTF("PX LinearSimplexGlob2Ref: Linear Element Residual %2.15f\n", Residual);
+
+  if ( Residual > 1.0E-9)
     return PX_NOT_CONVERGED;
 
   return PX_NO_ERROR;

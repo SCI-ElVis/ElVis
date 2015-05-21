@@ -69,21 +69,22 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
 
   ElVisFloat3 origin = eye + seg.Start*rayDirection;
 
-  VolumeRenderingPayload payload = FindNextFaceIntersection(origin, rayDirection);
+  // Setting tmin=1e-3 here prevents self-intersections
+  VolumeRenderingPayload payload = FindNextFaceIntersection(origin, rayDirection, MAKE_FLOAT(1e-3));
   
   if( !payload.FoundIntersection )
   {
-    //ELVIS_PRINTF("Did not find element intersection.\n");
+    ELVIS_PRINTF("Did not find element intersection.\n");
     return false;
   }
 
   seg.End = seg.Start + payload.IntersectionT;
-  //ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
+  ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
 
   ElementFinderPayload newApproach;
   bool foundElement = findElementFromFace(origin, rayDirection, payload, newApproach);
-//  ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New approach id %d and type %d\n",
-//    seg.ElementId, seg.ElementTypeId, newApproach.elementId, newApproach.elementType);
+  ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New approach id %d and type %d\n",
+    seg.ElementId, seg.ElementTypeId, newApproach.elementId, newApproach.elementType);
   seg.ElementId = newApproach.elementId;
   seg.ElementTypeId = newApproach.elementType;
   return true;
@@ -138,13 +139,13 @@ __device__ void ElementTraversal(SegmentFunction& f)
   {
     if( seg.End < MAKE_FLOAT(0.0) )
     {
-      //ELVIS_PRINTF("ElementTraversal: Exiting because ray has left volume based on segment end\n");
+      ELVIS_PRINTF("ElementTraversal: Exiting because ray has left volume based on segment end\n");
       return;
     }
 
     if(ValidateSegment(seg) && f(seg, origin0) )
     {
-      //ELVIS_PRINTF("ElementTraversal: Done because segment is valid and function indicates we are done.\n");
+      ELVIS_PRINTF("ElementTraversal: Done because segment is valid and function indicates we are done.\n");
       return;
     }
 

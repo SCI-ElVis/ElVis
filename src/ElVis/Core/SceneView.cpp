@@ -341,7 +341,7 @@ namespace ElVis
             {
                 if( module->GetEnabled() )
                 {
-                    std::string moduleName = typeid(*module).name();
+                    //std::string moduleName = typeid(*module).name();
                     //printf("Starting Module %s.\n", moduleName.c_str());
 
                     Timer t;

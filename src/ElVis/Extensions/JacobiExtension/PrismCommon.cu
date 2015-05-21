@@ -299,8 +299,12 @@ ELVIS_DEVICE ElVisError TransformPrismWorldToReference(const ElVisFloat4* prismV
             return eNoError;
         }
 
-        result = tempResult;
-
+        //result.x = max(min(tempResult.x,1.0),-1.0);
+        //result.y = max(min(tempResult.y,1.0),-1.0);
+        //result.z = max(min(tempResult.z,1.0),-1.0);
+	result.x = result.x-r_adjust;
+	result.y = result.y-s_adjust;
+        result.z = result.z-t_adjust;
         //if( p.x == inversePoint.x &&
         //    p.y == inversePoint.y &&
         //    p.z == inversePoint.z  )

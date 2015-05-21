@@ -28,7 +28,16 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
 # Nektar++ Extension
 #################################3
 SET(NEKTAR_PLUS_PLUS_EXTENSION_OPTIX_HEADER_ONLY
+  Expansions.cu
   ExtensionOptiXInterface.cu
+  Hexahedron.cu
+  NektarModel.cu
+  OptixHexahedron.cu
+  OptixQuad.cu
+  OptixTriangle.cu
+  Prism.cu
+  Quadrilateral.cu
+  typedefs.cu
 )
 SET_SOURCE_FILES_PROPERTIES(
     ${NEKTAR_PLUS_PLUS_EXTENSION_OPTIX_HEADER_ONLY}

@@ -291,9 +291,6 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: xglobal = %2.15f, %2.15f, %2.15f\n", xglobal[0], xglobal[1], xglobal[2] );
         //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: xg@xref = %2.15f, %2.15f, %2.15f\n", xg[0], xg[1], xg[2] );
 
-        PXProject2RefElement( PXEgrpDataBuffer[egrp].elemData.shape, xref );
-        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref[0]=%f, xref[1]=%f, xref[2]=%f\n", elementId, xref[0], xref[1], xref[2]);
-
         referencePoint.x = xref[0];
         referencePoint.y = xref[1];
         referencePoint.z = xref[2];
@@ -373,7 +370,7 @@ ELVIS_DEVICE ElVisError SampleScalarFieldAtReferencePointOptiX(int elementId, in
     for(int j=0; j<nbf; j++)
         result += localSolution[j*StateRank + fieldId]*phi[j];
 */
-    //ELVIS_PRINTF("PX SampleScalarFieldAtReferencePointOptiX: result=%f\n", result);
+    //ELVIS_PRINTF("PX SampleScalarFieldAtReferencePointOptiX: result=%2.15f\n", result);
 
     return eNoError;
 
