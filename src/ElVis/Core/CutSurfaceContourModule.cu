@@ -525,13 +525,14 @@ RT_PROGRAM void CategorizeMeshPixels()
     id2.Type = ElementTypeAtIntersectionBuffer[c2_index];
     id3.Type = ElementTypeAtIntersectionBuffer[c3_index];
 
-    if( id0.Id == -1 ||
-        id1.Id == -1 ||
-        id2.Id == -1 ||
-        id3.Id == -1 )
-    {
-        return;
-    }
+    // This removes the mesh directly on the boundary of the domain
+//    if( id0.Id == -1 ||
+//        id1.Id == -1 ||
+//        id2.Id == -1 ||
+//        id3.Id == -1 )
+//    {
+//        return;
+//    }
 
     bool pixelIsElementBoundary =
      ( id0 != id1 ||

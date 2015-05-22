@@ -191,8 +191,8 @@ ELVIS_DEVICE ElVisError EvaluateFaceJacobian(
     dz_ds = EvaluateQuadGradientAtReferencePoint1(
         &FaceCoeffsBuffer[offset+2*nummodes], &FaceNumModesBuffer[Idx.Value], p);
 
-    ELVIS_PRINTF("[NEKTAR] Idx = %d  p = %f %f  offset = %d  nummodes = %d  dx_dr = %f  dx_ds = %f  dy_dr = %f  dy_ds = %f  dz_dr = %f  dz_ds = %f\n",
-                 Idx.Value, p.x, p.y, offset, nummodes, dx_dr, dx_ds, dy_dr, dy_ds, dz_dr, dz_ds);
+    //ELVIS_PRINTF("[NEKTAR] Idx = %d  p = %f %f  offset = %d  nummodes = %d  dx_dr = %f  dx_ds = %f  dy_dr = %f  dy_ds = %f  dz_dr = %f  dz_ds = %f\n",
+    //             Idx.Value, p.x, p.y, offset, nummodes, dx_dr, dx_ds, dy_dr, dy_ds, dz_dr, dz_ds);
     
     return eNoError;
 }
@@ -233,8 +233,8 @@ ELVIS_DEVICE ElVisError GetFaceNormal(
     // Flip sign of normal depending on orientation and normalize
     result = NormalFlipBuffer[faceId.Value] * normalize(cr);
 
-    ELVIS_PRINTF("[NEKTAR] face = %d  result = %f %f %f\n",
-                 faceId.Value, result.x, result.y, result.z);
+    //ELVIS_PRINTF("[NEKTAR] face = %d  result = %f %f %f\n",
+    //             faceId.Value, result.x, result.y, result.z);
     return eNoError;
 }
 
@@ -263,8 +263,8 @@ ELVIS_DEVICE ElVisError EvaluateFace(
     result.z = EvaluateQuadAtReferencePoint(
         &FaceCoeffsBuffer[offset+2*nummodes], &FaceNumModesBuffer[Idx.Value], refPoint);
 
-    ELVIS_PRINTF("[NEKTAR] offset = %d  nummodes = %d  refpoint = %f %f  result = %f %f %f\n",
-                 offset, nummodes, refPoint.x, refPoint.y, result.x, result.y, result.z);
+    //ELVIS_PRINTF("[NEKTAR] offset = %d  nummodes = %d  refpoint = %f %f  result = %f %f %f\n",
+    //             offset, nummodes, refPoint.x, refPoint.y, result.x, result.y, result.z);
     
     return eNoError;
 }

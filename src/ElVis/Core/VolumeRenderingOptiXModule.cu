@@ -785,7 +785,7 @@ ELVIS_DEVICE void SegmentIntersection(GlobalFaceIdx globalFaceIdx, const ElVisFl
         {
             if(  rtPotentialIntersection( t ) )
             {
-                ELVIS_PRINTF("SegmentIntersection: Intersection found with segment %d at %f\n", globalFaceIdx.Value, t);
+                //ELVIS_PRINTF("SegmentIntersection: Intersection found with segment %d at %f\n", globalFaceIdx.Value, t);
                 intersectedFaceGlobalIdx = globalFaceIdx;
                 faceIntersectionReferencePoint.x = MAKE_FLOAT(-2.0);
                 faceIntersectionReferencePoint.y = MAKE_FLOAT(-2.0);

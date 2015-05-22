@@ -163,7 +163,7 @@ ELVIS_DEVICE ElVisFloat2 NektarQuadWorldPointToReference(int elementId,
     ElVisFloat* u1 = &QuadMappingCoeffsDir1[QuadCoeffMappingDir1[elementId]];
     uint2 modes = QuadModes[elementId];
     ElVisFloat2 global = MakeFloat2(intersectionPoint.x, intersectionPoint.y);
-    ELVIS_PRINTF("NektarQuadWorldPointToReference: Target global (%f, %f) \n", global.x, global.y);
+    //ELVIS_PRINTF("NektarQuadWorldPointToReference: Target global (%f, %f) \n", global.x, global.y);
 
     unsigned int numIterations = 0;
     ElVisFloat tolerance = MAKE_FLOAT(1e-5);
@@ -175,28 +175,28 @@ ELVIS_DEVICE ElVisFloat2 NektarQuadWorldPointToReference(int elementId,
         ElVisFloat2 f;
         f.x = curGlobalPoint.x-global.x;
         f.y = curGlobalPoint.y-global.y;
-        ELVIS_PRINTF("NektarQuadWorldPointToReference: Local -> Global (%f, %f) -> (%f, %f)\n", local.x, local.y, curGlobalPoint.x, curGlobalPoint.y);
+        //ELVIS_PRINTF("NektarQuadWorldPointToReference: Local -> Global (%f, %f) -> (%f, %f)\n", local.x, local.y, curGlobalPoint.x, curGlobalPoint.y);
 
         J[0] = RefToWorldQuad_df_dr(u0, modes.x, modes.y, local);
         J[1] = RefToWorldQuad_df_ds(u0, modes.x, modes.y, local);
         J[2] = RefToWorldQuad_df_dr(u1, modes.x, modes.y, local);
         J[3] = RefToWorldQuad_df_ds(u1, modes.x, modes.y, local);
      
-        ELVIS_PRINTF("NektarQuadWorldPointToReference: J (%2.15f, %2.15f, %2.15f, %2.15f) \n", J[0], J[1], J[2], J[3]);
+        //ELVIS_PRINTF("NektarQuadWorldPointToReference: J (%2.15f, %2.15f, %2.15f, %2.15f) \n", J[0], J[1], J[2], J[3]);
 
         ElVisFloat inverse[4];
         ElVisFloat denom = J[0]*J[3] - J[1]*J[2];
-        ELVIS_PRINTF("NektarQuadWorldPointToReference: denom %2.15f \n", denom);
+        //ELVIS_PRINTF("NektarQuadWorldPointToReference: denom %2.15f \n", denom);
         ElVisFloat determinant = MAKE_FLOAT(1.0)/(denom);
         inverse[0] = determinant*J[3];
         inverse[1] = -determinant*J[1];
         inverse[2] = -determinant*J[2];
         inverse[3] = determinant*J[0];
-        ELVIS_PRINTF("NektarQuadWorldPointToReference: inverse (%2.15f, %2.15f, %2.15f, %2.15f) \n", inverse[0], inverse[1], inverse[2], inverse[3]);
+        //ELVIS_PRINTF("NektarQuadWorldPointToReference: inverse (%2.15f, %2.15f, %2.15f, %2.15f) \n", inverse[0], inverse[1], inverse[2], inverse[3]);
         double r_adjust = inverse[0]*f.x + inverse[1]*f.y;
         double s_adjust = inverse[2]*f.x + inverse[3]*f.y;
 
-        ELVIS_PRINTF("NektarQuadWorldPointToReference: adjus (%2.15f, %2.15f) \n", r_adjust, s_adjust);
+        //ELVIS_PRINTF("NektarQuadWorldPointToReference: adjus (%2.15f, %2.15f) \n", r_adjust, s_adjust);
 
 
         if( fabsf(r_adjust) < tolerance &&
@@ -218,7 +218,7 @@ ELVIS_DEVICE bool NektarQuadWorldPointInTriangle(int elementId,
     const ElVisFloat3& intersectionPoint, const ElVisFloat2& testPoint)
 {
     ElVisFloat2 local = NektarQuadWorldPointToReference(elementId, intersectionPoint, testPoint);
-    ELVIS_PRINTF("NektarQuadWorldPointInTriangle: (%f, %f)\n", local.x, local.y);
+    //ELVIS_PRINTF("NektarQuadWorldPointInTriangle: (%f, %f)\n", local.x, local.y);
     if( local.x < -1.01 || local.x > 1.01 ||
         local.y < -1.01 || local.y > 1.01 )
     {
@@ -264,7 +264,7 @@ ELVIS_DEVICE bool Is2DCounterClockwise(const ElVisFloat3& v0, const ElVisFloat3&
     ElVisFloat3 e2 = v0 - MakeFloat3(ray.origin);
     ElVisFloat va  = dot( n, e2 );
 
-//    ELVIS_PRINTF("va %2.15f\n", va);
+    //ELVIS_PRINTF("va %2.15f\n", va);
     return (va > 0.0);
 
 }
@@ -272,7 +272,7 @@ ELVIS_DEVICE bool Is2DCounterClockwise(const ElVisFloat3& v0, const ElVisFloat3&
 ELVIS_DEVICE bool Triangle2DIntersection(int primitiveId, const ElVisFloat3& a, 
     const ElVisFloat3& b, const ElVisFloat3& c )
 {
-    ELVIS_PRINTF("TriangleIntersection (%f, %f, %f), (%f, %f, %f), (%f, %f, %f).\n", a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+    //ELVIS_PRINTF("TriangleIntersection (%f, %f, %f), (%f, %f, %f), (%f, %f, %f).\n", a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
     ElVisFloat3 v0 = a;
     ElVisFloat3 v1 = b;
     ElVisFloat3 v2 = c;
@@ -316,7 +316,7 @@ RT_PROGRAM void NektarQuadIntersection(int elementId)
 {
     // Assume xy plane.
     //if( elementId != 41 ) return;
-    ELVIS_PRINTF("NektarQuadIntersection: Element id %d\n", elementId);
+    //ELVIS_PRINTF("NektarQuadIntersection: Element id %d\n", elementId);
     ElVisFloat4 plane = MakeFloat4(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(1.0), MAKE_FLOAT(0.0));
     ElVisFloat t;
     if( FindPlaneIntersection(ray, plane, t) )

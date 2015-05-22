@@ -281,7 +281,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         PX_REAL xref[3] = {0.,0.,0.}; //Initial guess is overwritten anyways
         int result = PXGlob2RefFromCoordinates2(PXEgrpDataBuffer[egrp].elemData, localCoord, xglobal, xref, PXE_False, PXE_False);
 
-        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref = (%2.15f, %2.15f, %2.15f)\n", elementId, xref[0], xref[1], xref[2]);
+        //ELVIS_PRINTF("PX ConvertWorldToReferenceSpaceOptiX: Element Id %d, xref = (%2.15f, %2.15f, %2.15f), result = %d\n", elementId, xref[0], xref[1], xref[2], result);
 
         PX_REAL phi[MAX_NBF] = {0};  // Basis Functions
         PX_REAL xg[3] = {0,0,0};
@@ -296,7 +296,7 @@ ELVIS_DEVICE ElVisError ConvertWorldToReferenceSpaceOptiX(int elementId, int ele
         referencePoint.z = xref[2];
 
         //Bad point...
-        if( result == PX_NOT_CONVERGED )
+        if( result != PX_NO_ERROR )
           return ePointOutsideElement;
     }
 
@@ -401,7 +401,7 @@ ELVIS_DEVICE ElVisError IsValidFaceCoordinate(GlobalFaceIdx faceId, const FaceRe
 
   PX_FaceTypeData * faceData = &PXFaceDataBuffer[Idx.Value];
 
-  result = PX_NO_ERROR == PXProject2RefElement( faceData->shape, xref );
+  result = (PX_NO_ERROR == PXProject2RefElement( faceData->shape, xref ));
 
   //ELVIS_PRINTF("PX IsValidFaceCoordinate: r=%2.15f, s=%2.15f, result=%d!\n", r, s, result);
 
