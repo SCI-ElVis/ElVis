@@ -660,6 +660,36 @@ namespace ElVis
         return result;
     }
 
+    ElVisFloat SceneView::GetRequiredOrder() const
+    {
+        return m_requiredOrder;
+    }
+
+    void SceneView::SetRequiredOrder(ElVisFloat value)
+    {
+        if( value != m_requiredOrder )
+        {
+            m_requiredOrder = value;
+            m_requiredOrderDirty = true;
+            OnSceneViewChanged(*this);
+        }
+    }
+
+    ElVisFloat SceneView::GetEpsilon() const
+    {
+        return m_epsilon;
+    }
+
+    void SceneView::SetEpsilon(ElVisFloat value)
+    {
+        if( value != m_epsilon )
+        {
+            m_epsilon = value;
+            m_epsilonDirty = true;
+            OnSceneViewChanged(*this);
+        }
+    }
+
     ElVisFloat SceneView::GetFaceIntersectionTolerance() const
     {
         return m_faceIntersectionTolerance;
@@ -681,6 +711,18 @@ namespace ElVis
         {
             SetFloat(context["FaceTolerance"], m_faceIntersectionTolerance);
             m_faceIntersectionToleranceDirty = false;
+        }
+
+        if( m_requiredOrderDirty )
+        {
+            SetFloat(context["RequiredOrder"], m_requiredOrder);
+            m_requiredOrderDirty = false;
+        }
+
+        if( m_epsilonDirty )
+        {
+            SetFloat(context["epsilon"], m_epsilon);
+            m_epsilonDirty = false;
         }
 
         if( m_headlightColorIsDirty )

@@ -53,6 +53,8 @@ namespace ElVis
             m_addContourButton(new QPushButton("Add Isovalue")),
             m_contourSpinBox(new QDoubleSpinBox()),
             m_enabledCheckBox(new QCheckBox()),
+            m_requiredOrder(new QSpinBox()),
+            m_epsilon(new QDoubleSpinBox()),
             m_values()
         {
             m_list->setSortingEnabled(true);
@@ -70,9 +72,13 @@ namespace ElVis
                 m_contourSpinBox->setMinimum(-std::numeric_limits<ElVisFloat>::max());
                 m_contourSpinBox->setMaximum(std::numeric_limits<ElVisFloat>::max());
                 m_contourSpinBox->setDecimals(8);
-
                 m_enabledCheckBox->setText("Enabled");
                 m_enabledCheckBox->setChecked(false);
+
+                m_requiredOrder->setMinimum(1e-16);
+
+                m_epsilon->setMinimum(0);
+                m_epsilon->setMaximum(20);
 
                 m_layout->addWidget(m_contourSpinBox, 1, 0);
                 m_layout->addWidget(m_addContourButton, 1, 1);
@@ -126,6 +132,16 @@ namespace ElVis
             {
                 m_enabledCheckBox->setChecked(m_appData->GetIsosurfaceModule()->GetEnabled());
             }
+        }
+
+        void IsosurfaceDockWidget::HandleRequiredOrderChanged(int newValue)
+        {
+
+        }
+
+        void IsosurfaceDockWidget::HandleEpsilonChanged(ElVisFloat newValue)
+        {
+
         }
 
         void IsosurfaceDockWidget::HandleIsovalueAdded(ElVisFloat newValue)

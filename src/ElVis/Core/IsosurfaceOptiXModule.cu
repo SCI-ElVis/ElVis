@@ -423,6 +423,8 @@ __device__ void PrintMatrix(SquareMatrix& m)
 
 rtDeclareVariable(uint, NumIsosurfaces, , );
 rtBuffer<ElVisFloat> SurfaceIsovalues;
+rtBuffer<ElVisFloat> RequiredOrder;
+rtBuffer<ElVisFloat> epsilon;
 rtBuffer<ElVisFloat> Nodes;
 rtBuffer<ElVisFloat> Weights;
 rtBuffer<ElVisFloat> MonomialConversionTable;
@@ -489,7 +491,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
     ElVisFloat workspace[32];
     ElVisFloat h_data[10*10];
 
-    int requiredOrder = 8;
+    int requiredOrder = (int)(RequiredOrder + 0.5);
     for(int i = 0; i < 32; ++i)
     {
       polynomialCoefficients[i] = -73.45;
@@ -511,7 +513,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
 
     // Fix up the polynomial order if we requested higher than necessary.
     int reducedOrder = requiredOrder;
-    ElVisFloat epsilon = MAKE_FLOAT(1e-8);
+    //ElVisFloat epsilon = MAKE_FLOAT(1e-8);
 
     for(int i = requiredOrder; i >= 1; --i)
     {

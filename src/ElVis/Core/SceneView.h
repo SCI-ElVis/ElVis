@@ -235,6 +235,10 @@ namespace ElVis
 
             bool m_faceIntersectionToleranceDirty;
             ElVisFloat m_faceIntersectionTolerance;
+            bool m_epsilonDirty;
+            ElVisFloat m_epsilon;
+            bool m_requiredOrderDirty;
+            ElVisFloat m_requiredOrder;
             Color m_headlightColor;
             bool m_headlightColorIsDirty;
             bool m_enableOptiXExceptions;
