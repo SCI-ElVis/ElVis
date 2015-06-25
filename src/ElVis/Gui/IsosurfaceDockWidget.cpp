@@ -53,8 +53,8 @@ namespace ElVis
             m_addContourButton(new QPushButton("Add Isovalue")),
             m_contourSpinBox(new QDoubleSpinBox()),
             m_enabledCheckBox(new QCheckBox()),
-            m_requiredOrder(new QSpinBox()),
-            m_epsilon(new QDoubleSpinBox()),
+            m_requiredOrderSpinBox(new QSpinBox()),
+            m_epsilonSpinBox(new QDoubleSpinBox()),
             m_values()
         {
             m_list->setSortingEnabled(true);
@@ -75,10 +75,10 @@ namespace ElVis
                 m_enabledCheckBox->setText("Enabled");
                 m_enabledCheckBox->setChecked(false);
 
-                m_requiredOrder->setMinimum(1e-16);
+                m_requiredOrderSpinBox->setMinimum(1e-16);
 
-                m_epsilon->setMinimum(0);
-                m_epsilon->setMaximum(20);
+                m_epsilonSpinBox->setMinimum(0);
+                m_epsilonSpinBox->setMaximum(20);
 
                 m_layout->addWidget(m_contourSpinBox, 1, 0);
                 m_layout->addWidget(m_addContourButton, 1, 1);
@@ -93,6 +93,9 @@ namespace ElVis
                 m_appData->GetIsosurfaceModule()->OnEnabledChanged.connect(boost::bind(&IsosurfaceDockWidget::HandleEnabledChanged, this, _1, _2));
                 connect(m_addContourButton, SIGNAL(clicked()), this, SLOT(HandleAddContourButtonPressed()));
                 m_appData->GetIsosurfaceModule()->OnIsovalueAdded.connect(boost::bind(&IsosurfaceDockWidget::HandleIsovalueAdded, this, _1));
+
+                connect(m_requiredOrderSpinBox, SIGNAL(valueChanged(int)), this, SLOT(HandleRequiredOrderChangedInGui(int)));
+                connect(m_epsilonSpinBox, SIGNAL(valueChanged(double)), this, SLOT(HandleEpsilonChangedInGui(double)));
 //                //////////////////////////////////////
 //                // Isovalue
 //                //////////////////////////////////////
@@ -134,14 +137,14 @@ namespace ElVis
             }
         }
 
-        void IsosurfaceDockWidget::HandleRequiredOrderChanged(int newValue)
+        void IsosurfaceDockWidget::HandleRequiredOrderChangedInGui(int newValue)
         {
-
+            m_appData->GetIsosurfaceModule()->SetRequiredOrder(m_requiredOrderSpinBox->value());
         }
 
-        void IsosurfaceDockWidget::HandleEpsilonChanged(ElVisFloat newValue)
+        void IsosurfaceDockWidget::HandleEpsilonChangedInGui(double newValue)
         {
-
+            m_appData->GetIsosurfaceModule()->SetEpsilon(m_epsilonSpinBox->value());
         }
 
         void IsosurfaceDockWidget::HandleIsovalueAdded(ElVisFloat newValue)

@@ -51,7 +51,9 @@ namespace ElVis
     m_isovalueBuffer("SurfaceIsovalues"),
     m_gaussLegendreNodesBuffer("Nodes"),
     m_gaussLegendreWeightsBuffer("Weights"),
-    m_monomialConversionTableBuffer("MonomialConversionTable")
+    m_monomialConversionTableBuffer("MonomialConversionTable"),
+    m_requiredOrderBuffer("RequiredOrder"),
+    m_epsilonBuffer("epsilon")
   {
   }
 
@@ -76,6 +78,26 @@ namespace ElVis
       OnIsovalueRemoved(value);
       OnModuleChanged(*this);
     }
+  }
+
+  void IsosurfaceModule::SetRequiredOrder(int newValue)
+  {
+	  if( newValue != m_requiredOrder[0] )
+	  {
+		  m_requiredOrder[0] = newValue;
+		  SetSyncAndRenderRequired();
+          OnModuleChanged(*this);
+	  }
+  }
+
+  void IsosurfaceModule::SetEpsilon(double newValue)
+  {
+	  if( newValue != m_epsilon[0] )
+	  {
+		  m_epsilon[0] = newValue;
+		  SetSyncAndRenderRequired();
+          OnModuleChanged(*this);
+	  }
   }
 
   void IsosurfaceModule::DoRender(SceneView* view)
@@ -180,6 +202,14 @@ namespace ElVis
           auto isovalueData = m_isovalueBuffer.Map();
           std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
       }
+
+      m_requiredOrderBuffer.SetDimensions(m_requiredOrder.size());
+      auto requiredOrderData = m_requiredOrderBuffer.Map();
+      std::copy(m_requiredOrder.begin(), m_requiredOrder.end(), requiredOrderData.get());
+
+      m_epsilonBuffer.SetDimensions(m_epsilon.size());
+      auto epsilonData = m_epsilonBuffer.Map();
+      std::copy(m_epsilon.begin(), m_epsilon.end(), epsilonData.get());
   }
 
 

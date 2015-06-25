@@ -53,6 +53,8 @@ namespace ElVis
 
             ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
             ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
+            ELVIS_EXPORT void SetRequiredOrder(int newValue);
+            ELVIS_EXPORT void SetEpsilon(double newValue);
 
             ELVIS_EXPORT const std::set<ElVisFloat> GetIsovalues() const { return m_isovalues; }
 
@@ -76,11 +78,15 @@ namespace ElVis
 
             std::set<ElVisFloat> m_isovalues;
             unsigned int m_isovalueBufferSize;
+            std::vector<ElVisFloat> m_epsilon;
+            std::vector<int> m_requiredOrder;
 
             OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
             OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;
             OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreWeightsBuffer;
             OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_monomialConversionTableBuffer;
+            OptiXBuffer<int,        RT_BUFFER_INPUT> m_requiredOrderBuffer;
+            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_epsilonBuffer;
 
             static RayGeneratorProgram m_FindIsosurface;
 
