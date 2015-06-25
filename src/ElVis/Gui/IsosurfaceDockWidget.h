@@ -74,8 +74,8 @@ namespace ElVis
                 void HandleEnabledStateChangedInGui(int state);
                 void HandleIsovalueAdded(ElVisFloat newValue);
                 void HandleAddContourButtonPressed();
-                void HandleRequiredOrderChangedInGui(int newValue);
-                void HandleEpsilonChangedInGui(double newValue);
+                void HandleRequiredOrderChangedInGui(void);
+                void HandleEpsilonChangedInGui(void);
 
             protected:
                 virtual void keyPressEvent(QKeyEvent *);

@@ -423,8 +423,8 @@ __device__ void PrintMatrix(SquareMatrix& m)
 
 rtDeclareVariable(uint, NumIsosurfaces, , );
 rtBuffer<ElVisFloat> SurfaceIsovalues;
-rtBuffer<ElVisFloat> RequiredOrder;
-rtBuffer<ElVisFloat> epsilon;
+rtBuffer<int> RequiredOrder;
+rtBuffer<ElVisFloat> Epsilon;
 rtBuffer<ElVisFloat> Nodes;
 rtBuffer<ElVisFloat> Weights;
 rtBuffer<ElVisFloat> MonomialConversionTable;
@@ -433,7 +433,7 @@ rtBuffer<ElVisFloat> MonomialConversionTable;
 __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& origin)
 {
   //if( numIsosurfaces == 0 ) return;
-  //ELVIS_PRINTF("Find Isosurface in Segment\n");
+ELVIS_PRINTF("Find Isosurface in Segment\n");
   optix::size_t2 screen = color_buffer.size();
 
   int elementId = seg.ElementId;
@@ -491,7 +491,7 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
     ElVisFloat workspace[32];
     ElVisFloat h_data[10*10];
 
-    int requiredOrder = (int)(RequiredOrder + 0.5);
+    int requiredOrder = RequiredOrder[0];
     for(int i = 0; i < 32; ++i)
     {
       polynomialCoefficients[i] = -73.45;
@@ -513,9 +513,10 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& o
 
     // Fix up the polynomial order if we requested higher than necessary.
     int reducedOrder = requiredOrder;
-    //ElVisFloat epsilon = MAKE_FLOAT(1e-8);
+    ElVisFloat epsilon = Epsilon[0]; //MAKE_FLOAT(1e-8);
 
-    for(int i = requiredOrder; i >= 1; --i)
+ELVIS_PRINTF("Using required order %i and epsilon = %f\n", requiredOrder, epsilon);
+    for (int i = requiredOrder; i >= 1; --i)
     {
       if( Fabsf(polynomialCoefficients[i]) > epsilon )
       {

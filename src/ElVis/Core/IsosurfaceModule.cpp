@@ -53,7 +53,7 @@ namespace ElVis
     m_gaussLegendreWeightsBuffer("Weights"),
     m_monomialConversionTableBuffer("MonomialConversionTable"),
     m_requiredOrderBuffer("RequiredOrder"),
-    m_epsilonBuffer("epsilon")
+    m_epsilonBuffer("Epsilon")
   {
   }
 
@@ -82,9 +82,22 @@ namespace ElVis
 
   void IsosurfaceModule::SetRequiredOrder(int newValue)
   {
-	  if( newValue != m_requiredOrder[0] )
+	  bool change = false;
+
+	  if( m_requiredOrder.size() != 0 )
 	  {
-		  m_requiredOrder[0] = newValue;
+		  if( newValue != m_requiredOrder[0] )
+		      change = true;
+	  }
+	  else
+	  {
+		  change = true;
+	  }
+
+	  if( change )
+	  {
+		  m_requiredOrder.clear();
+          m_requiredOrder.push_back(newValue);
 		  SetSyncAndRenderRequired();
           OnModuleChanged(*this);
 	  }
@@ -92,9 +105,22 @@ namespace ElVis
 
   void IsosurfaceModule::SetEpsilon(double newValue)
   {
-	  if( newValue != m_epsilon[0] )
+	  bool change = false;
+
+	  if( m_epsilon.size() != 0 )
 	  {
-		  m_epsilon[0] = newValue;
+		  if( newValue != m_epsilon[0] )
+		      change = true;
+	  }
+	  else
+	  {
+		  change = true;
+	  }
+
+	  if( change )
+	  {
+		  m_epsilon.clear();
+		  m_epsilon.push_back(newValue);
 		  SetSyncAndRenderRequired();
           OnModuleChanged(*this);
 	  }
@@ -203,13 +229,19 @@ namespace ElVis
           std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
       }
 
-      m_requiredOrderBuffer.SetDimensions(m_requiredOrder.size());
-      auto requiredOrderData = m_requiredOrderBuffer.Map();
-      std::copy(m_requiredOrder.begin(), m_requiredOrder.end(), requiredOrderData.get());
+      if( ! m_requiredOrder.empty() )
+      {
+          m_requiredOrderBuffer.SetDimensions(m_requiredOrder.size());
+          auto requiredOrderData = m_requiredOrderBuffer.Map();
+          std::copy(m_requiredOrder.begin(), m_requiredOrder.end(), requiredOrderData.get());
+      }
 
-      m_epsilonBuffer.SetDimensions(m_epsilon.size());
-      auto epsilonData = m_epsilonBuffer.Map();
-      std::copy(m_epsilon.begin(), m_epsilon.end(), epsilonData.get());
+      if( ! m_epsilon.empty() )
+      {
+          m_epsilonBuffer.SetDimensions(m_epsilon.size());
+          auto epsilonData = m_epsilonBuffer.Map();
+          std::copy(m_epsilon.begin(), m_epsilon.end(), epsilonData.get());
+      }
   }
 
 
