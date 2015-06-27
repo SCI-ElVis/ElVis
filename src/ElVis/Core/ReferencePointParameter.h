@@ -26,22 +26,21 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVIS_CORE_REFERENCE_POINT_PARAMETER_H
 #define ELVIS_CORE_REFERENCE_POINT_PARAMETER_H
 
 namespace ElVis
 {
-    // When calling functions to evaluate a field at world point, the world
-    // point must be transformed to reference coordinates.  To accelerate
-    // this process, if the caller know anything about the transformation,
-    // it can pass that information to the evaluation function.
-    enum ReferencePointParameterType
-    {
-        eReferencePointIsInvalid,
-        eReferencePointIsInitialGuess,
-        eReferencePointIsValid
-    };
+  // When calling functions to evaluate a field at world point, the world
+  // point must be transformed to reference coordinates.  To accelerate
+  // this process, if the caller know anything about the transformation,
+  // it can pass that information to the evaluation function.
+  enum ReferencePointParameterType
+  {
+    eReferencePointIsInvalid,
+    eReferencePointIsInitialGuess,
+    eReferencePointIsValid
+  };
 }
 
 #endif

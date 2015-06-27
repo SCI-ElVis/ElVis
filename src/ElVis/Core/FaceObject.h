@@ -44,49 +44,48 @@
 
 namespace ElVis
 {
-    class Scene;
+  class Scene;
 
-    class FaceObject : public Object
-    {
-        public:
-            ELVIS_EXPORT FaceObject(boost::shared_ptr<Scene> m);
-            ELVIS_EXPORT virtual ~FaceObject() {}
+  class FaceObject : public Object
+  {
+  public:
+    ELVIS_EXPORT FaceObject(boost::shared_ptr<Scene> m);
+    ELVIS_EXPORT virtual ~FaceObject() {}
 
-            ELVIS_EXPORT void EnableFace(int faceId);
-            ELVIS_EXPORT void DisableFace(int faceId);
+    ELVIS_EXPORT void EnableFace(int faceId);
+    ELVIS_EXPORT void DisableFace(int faceId);
 
-            ELVIS_EXPORT void SetFaces(const std::vector<int>& ids, bool flag);
+    ELVIS_EXPORT void SetFaces(const std::vector<int>& ids, bool flag);
 
-        protected:
+  protected:
+    ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(
+      SceneView* view);
+    ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view);
+    ELVIS_EXPORT virtual void DoCreateNode(SceneView* view,
+                                           optixu::Transform& transform,
+                                           optixu::GeometryGroup& group);
 
-            ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(SceneView* view);
-            ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view);
-            ELVIS_EXPORT virtual void DoCreateNode(SceneView* view,
-                optixu::Transform& transform, optixu::GeometryGroup& group);
+  private:
+    FaceObject& operator=(const FaceObject& rhs);
+    ELVIS_EXPORT FaceObject(const FaceObject& rhs);
 
-        private:
-            FaceObject& operator=(const FaceObject& rhs);
-            ELVIS_EXPORT FaceObject(const FaceObject& rhs);
+    void SetupSubscriptions();
 
-            void SetupSubscriptions();
+    optixu::GeometryGroup m_group;
+    optixu::GeometryInstance m_curvedFaceInstance;
+    optixu::GeometryInstance m_planarFaceInstance;
+    optixu::Transform m_transform;
+    optixu::Buffer m_curvedDeviceFlags;
+    optixu::Buffer m_planarDeviceFlags;
 
-            optixu::GeometryGroup m_group;
-            optixu::GeometryInstance m_curvedFaceInstance;
-            optixu::GeometryInstance m_planarFaceInstance;
-            optixu::Transform m_transform;
-            optixu::Buffer m_curvedDeviceFlags;
-            optixu::Buffer m_planarDeviceFlags;
+    optixu::Material m_material;
 
-            optixu::Material m_material;
-
-            boost::shared_ptr<Scene> m_scene;
-            std::set<int> m_faceIds;
-            std::vector<unsigned char> m_curvedFaceFlags;
-            std::vector<unsigned char> m_planarFaceFlags;
-            optixu::Buffer m_facesEnabledBuffer;
-
-    };
-
+    boost::shared_ptr<Scene> m_scene;
+    std::set<int> m_faceIds;
+    std::vector<unsigned char> m_curvedFaceFlags;
+    std::vector<unsigned char> m_planarFaceFlags;
+    optixu::Buffer m_facesEnabledBuffer;
+  };
 }
 
 #endif

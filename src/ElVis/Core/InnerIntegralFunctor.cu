@@ -34,20 +34,22 @@
 
 namespace ElVis
 {
-    struct InnerIntegralFunctor
+  struct InnerIntegralFunctor
+  {
+    ELVIS_DEVICE ElVisFloat
+    GetMaxValue(const Interval<ElVisFloat>& domain) const
     {
-        ELVIS_DEVICE ElVisFloat GetMaxValue(const Interval<ElVisFloat>& domain) const
-        {
-            return transferFunction->GetMaxValue(eDensity, domain);
-        }
+      return transferFunction->GetMaxValue(eDensity, domain);
+    }
 
-
-        ELVIS_DEVICE ElVisFloat operator()(const ElVisFloat& t, const ElVisFloat& s, bool traceEnabled=false) const
-        {
-            return transferFunction->Sample(eDensity, s);
-        }
-        TransferFunction* transferFunction;
-    };
+    ELVIS_DEVICE ElVisFloat operator()(const ElVisFloat& t,
+                                       const ElVisFloat& s,
+                                       bool traceEnabled = false) const
+    {
+      return transferFunction->Sample(eDensity, s);
+    }
+    TransferFunction* transferFunction;
+  };
 }
 
 #endif

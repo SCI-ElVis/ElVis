@@ -26,103 +26,114 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/Color.h>
 
 namespace ElVis
 {
-    Color::Color() :
-      OnColorChanged(),
-      m_red(0.0f),
-      m_green(0.0f),
-      m_blue(0.0f),
-      m_alpha(0.0f)
-    {
-    }
+  Color::Color()
+    : OnColorChanged(), m_red(0.0f), m_green(0.0f), m_blue(0.0f), m_alpha(0.0f)
+  {
+  }
 
+  Color::Color(const Color& rhs)
+    : OnColorChanged(),
+      m_red(rhs.m_red),
+      m_green(rhs.m_green),
+      m_blue(rhs.m_blue),
+      m_alpha(rhs.m_alpha)
+  {
+  }
 
-    Color::Color(const Color& rhs) :
-        OnColorChanged(),
-        m_red(rhs.m_red),
-        m_green(rhs.m_green),
-        m_blue(rhs.m_blue),
-        m_alpha(rhs.m_alpha)
-    {
+  Color& Color::operator=(const Color& rhs)
+  {
+    m_red = rhs.m_red;
+    m_green = rhs.m_green;
+    m_blue = rhs.m_blue;
+    m_alpha = rhs.m_alpha;
+    OnColorChanged(*this);
+    return *this;
+  }
 
-    }
+  float Color::Red() const { return m_red; }
+  float Color::Green() const { return m_green; }
+  float Color::Blue() const { return m_blue; }
+  float Color::Alpha() const { return m_alpha; }
 
-    Color& Color::operator=(const Color& rhs)
-    {
-        m_red = rhs.m_red;
-        m_green = rhs.m_green;
-        m_blue = rhs.m_blue;
-        m_alpha = rhs.m_alpha;
-        OnColorChanged(*this);
-        return *this;
-    }
+  int Color::RedAsInt() const { return static_cast<int>(m_red * 255); }
+  int Color::GreenAsInt() const { return static_cast<int>(m_green * 255); }
+  int Color::BlueAsInt() const { return static_cast<int>(m_blue * 255); }
+  int Color::AlphaAsInt() const { return static_cast<int>(m_alpha * 255); }
 
-    float Color::Red() const { return m_red; }
-    float Color::Green() const { return m_green; }
-    float Color::Blue() const { return m_blue; }
-    float Color::Alpha() const { return m_alpha; }
+  void Color::SetRed(double value)
+  {
+    m_red = static_cast<float>(value);
+    OnColorChanged(*this);
+  }
+  void Color::SetGreen(double value)
+  {
+    m_green = static_cast<float>(value);
+    OnColorChanged(*this);
+  }
+  void Color::SetBlue(double value)
+  {
+    m_blue = static_cast<float>(value);
+    OnColorChanged(*this);
+  }
+  void Color::SetAlpha(double value)
+  {
+    m_alpha = static_cast<float>(value);
+    OnColorChanged(*this);
+  }
 
-    int Color::RedAsInt() const { return static_cast<int>(m_red*255); }
-    int Color::GreenAsInt() const { return static_cast<int>(m_green*255); }
-    int Color::BlueAsInt() const { return static_cast<int>(m_blue*255); }
-    int Color::AlphaAsInt() const { return static_cast<int>(m_alpha*255); }
+  void Color::SetRed(int value)
+  {
+    m_red = value / 255.0f;
+    OnColorChanged(*this);
+  }
+  void Color::SetGreen(int value)
+  {
+    m_green = value / 255.0f;
+    OnColorChanged(*this);
+  }
+  void Color::SetBlue(int value)
+  {
+    m_blue = value / 255.0f;
+    OnColorChanged(*this);
+  }
+  void Color::SetAlpha(int value)
+  {
+    m_alpha = value / 255.0f;
+    OnColorChanged(*this);
+  }
 
-    void Color::SetRed(double value) { m_red = static_cast<float>(value); OnColorChanged(*this); }
-    void Color::SetGreen(double value) { m_green = static_cast<float>(value); OnColorChanged(*this); }
-    void Color::SetBlue(double value) { m_blue = static_cast<float>(value); OnColorChanged(*this); }
-    void Color::SetAlpha(double value) { m_alpha = static_cast<float>(value); OnColorChanged(*this);}
+  Color operator+(const Color& lhs, const Color& rhs)
+  {
+    Color result(lhs.Red() + rhs.Red(), lhs.Green() + rhs.Green(),
+                 lhs.Blue() + rhs.Blue(), lhs.Alpha() + rhs.Alpha());
+    return result;
+  }
 
-    void Color::SetRed(int value) { m_red = value/255.0f; OnColorChanged(*this);}
-    void Color::SetGreen(int value) { m_green = value/255.0f; OnColorChanged(*this);}
-    void Color::SetBlue(int value) { m_blue = value/255.0f; OnColorChanged(*this);}
-    void Color::SetAlpha(int value) { m_alpha = value/255.0f; OnColorChanged(*this);}
+  Color operator-(const Color& lhs, const Color& rhs)
+  {
+    Color result(lhs.Red() - rhs.Red(), lhs.Green() - rhs.Green(),
+                 lhs.Blue() - rhs.Blue(), lhs.Alpha() - rhs.Alpha());
+    return result;
+  }
 
-    Color operator+(const Color& lhs, const Color& rhs)
-    {
-        Color result(lhs.Red() + rhs.Red(),
-                     lhs.Green() + rhs.Green(),
-                     lhs.Blue() + rhs.Blue(),
-                     lhs.Alpha() + rhs.Alpha());
-        return result;
-    }
+  Color operator*(const Color& lhs, const ElVisFloat& s)
+  {
+    Color result(
+      lhs.Red() * s, lhs.Green() * s, lhs.Blue() * s, lhs.Alpha() * s);
+    return result;
+  }
 
-    Color operator-(const Color& lhs, const Color& rhs)
-    {
-        Color result(lhs.Red() - rhs.Red(),
-                     lhs.Green() - rhs.Green(),
-                     lhs.Blue() - rhs.Blue(),
-                     lhs.Alpha() - rhs.Alpha());
-        return result;
-    }
+  Color operator*(const ElVisFloat& s, const Color& rhs) { return rhs * s; }
 
-    Color operator*(const Color& lhs, const ElVisFloat& s)
-    {
-        Color result(lhs.Red() *s ,
-                     lhs.Green() *s,
-                     lhs.Blue() *s,
-                     lhs.Alpha() *s);
-        return result;
-    }
+  bool operator==(const Color& lhs, const Color& rhs)
+  {
+    return lhs.Red() == rhs.Red() && lhs.Green() == rhs.Green() &&
+           lhs.Blue() == rhs.Blue() && lhs.Alpha() == rhs.Alpha();
+  }
 
-    Color operator*(const ElVisFloat& s, const Color& rhs)
-    {
-        return rhs*s;
-    }
-
-    bool operator==(const Color& lhs, const Color& rhs)
-    {
-        return lhs.Red() == rhs.Red() &&
-                lhs.Green() == rhs.Green() &&
-                lhs.Blue() == rhs.Blue() &&
-                lhs.Alpha() == rhs.Alpha();
-    }
-
-    bool operator!=(const Color& lhs, const Color& rhs)
-    {
-        return !(lhs == rhs);
-    }
+  bool operator!=(const Color& lhs, const Color& rhs) { return !(lhs == rhs); }
 }

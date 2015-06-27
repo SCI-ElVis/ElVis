@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
@@ -34,49 +33,51 @@
 
 namespace ElVis
 {
-    optixu::Material SampleVolumeSamplerObject::Material;
-    bool SampleVolumeSamplerObject::Initialized = SampleVolumeSamplerObject::InitializeStatic();
-    optixu::Program SampleVolumeSamplerObject::ClosestHitProgram;
-    optixu::Program SampleVolumeSamplerObject::AnyHitProgram;
+  optixu::Material SampleVolumeSamplerObject::Material;
+  bool SampleVolumeSamplerObject::Initialized =
+    SampleVolumeSamplerObject::InitializeStatic();
+  optixu::Program SampleVolumeSamplerObject::ClosestHitProgram;
+  optixu::Program SampleVolumeSamplerObject::AnyHitProgram;
 
-    SampleVolumeSamplerObject::SampleVolumeSamplerObject() 
+  SampleVolumeSamplerObject::SampleVolumeSamplerObject() {}
+
+  SampleVolumeSamplerObject::SampleVolumeSamplerObject(
+    boost::shared_ptr<Object> obj)
+    : PrimaryRayObject(obj)
+  {
+  }
+
+  SampleVolumeSamplerObject::~SampleVolumeSamplerObject() {}
+
+  optixu::Material SampleVolumeSamplerObject::GetMaterial(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    if (!Material.get())
     {
+      Material = context->createMaterial();
+      Material->setClosestHitProgram(0, ClosestHitProgram);
+      Material->setAnyHitProgram(0, AnyHitProgram);
+
+      // Hack - find a better way.
+      Material->setClosestHitProgram(2, ClosestHitProgram);
+      Material->setAnyHitProgram(2, AnyHitProgram);
     }
+    return Material;
+  }
 
-    SampleVolumeSamplerObject::SampleVolumeSamplerObject(boost::shared_ptr<Object> obj) :
-        PrimaryRayObject(obj)
-    {
-    }
+  bool SampleVolumeSamplerObject::InitializeStatic()
+  {
+    PtxManager::GetOnPtxLoaded().connect(
+      boost::bind(&SampleVolumeSamplerObject::LoadPrograms, _1, _2));
+    return true;
+  }
 
-
-    SampleVolumeSamplerObject::~SampleVolumeSamplerObject() {}
-            
-    optixu::Material SampleVolumeSamplerObject::GetMaterial(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        if( !Material.get() )
-        {
-            Material = context->createMaterial();
-            Material->setClosestHitProgram(0, ClosestHitProgram);
-            Material->setAnyHitProgram(0, AnyHitProgram);
-
-            // Hack - find a better way.
-            Material->setClosestHitProgram(2, ClosestHitProgram);
-            Material->setAnyHitProgram(2, AnyHitProgram);
-        }
-        return Material;
-    }
-
-    bool SampleVolumeSamplerObject::InitializeStatic()
-    {
-        PtxManager::GetOnPtxLoaded().connect(boost::bind(&SampleVolumeSamplerObject::LoadPrograms, _1, _2));
-        return true;
-    }
-
-    void SampleVolumeSamplerObject::LoadPrograms(const std::string& prefix, optixu::Context context)
-    {
-        ClosestHitProgram = PtxManager::LoadProgram(prefix, "SamplerVolumeClosestHit");
-        AnyHitProgram = PtxManager::LoadProgram(prefix, "IgnoreCutSurfacesOutOfVolume");
-    }
+  void SampleVolumeSamplerObject::LoadPrograms(const std::string& prefix,
+                                               optixu::Context context)
+  {
+    ClosestHitProgram =
+      PtxManager::LoadProgram(prefix, "SamplerVolumeClosestHit");
+    AnyHitProgram =
+      PtxManager::LoadProgram(prefix, "IgnoreCutSurfacesOutOfVolume");
+  }
 }
-

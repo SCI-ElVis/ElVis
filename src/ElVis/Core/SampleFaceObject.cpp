@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/SampleFaceObject.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
@@ -34,73 +33,74 @@
 
 namespace ElVis
 {
-    optixu::Material SampleFaceObject::Material;
-    bool SampleFaceObject::Initialized = SampleFaceObject::InitializeStatic();
-    optixu::Program SampleFaceObject::ClosestHitProgram;
+  optixu::Material SampleFaceObject::Material;
+  bool SampleFaceObject::Initialized = SampleFaceObject::InitializeStatic();
+  optixu::Program SampleFaceObject::ClosestHitProgram;
 
-    SampleFaceObject::SampleFaceObject()
+  SampleFaceObject::SampleFaceObject() {}
+
+  SampleFaceObject::SampleFaceObject(boost::shared_ptr<FaceObject> obj)
+    : PrimaryRayObject(obj)
+  {
+  }
+
+  optixu::Material SampleFaceObject::GetMaterial(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    if (!Material.get())
     {
+      Material = context->createMaterial();
+      Material->setClosestHitProgram(0, ClosestHitProgram);
+
+      // Hack - find a better way.
+      Material->setClosestHitProgram(2, ClosestHitProgram);
+    }
+    return Material;
+  }
+
+  void SampleFaceObject::EnableFace(int faceId)
+  {
+    boost::shared_ptr<FaceObject> obj =
+      boost::dynamic_pointer_cast<FaceObject>(this->GetObject());
+    if (!obj)
+    {
+      std::cout << "Case failed. " << std::endl;
+
+      return;
     }
 
-    SampleFaceObject::SampleFaceObject(boost::shared_ptr<FaceObject> obj) :
-        PrimaryRayObject(obj)
-    {
-    }
+    obj->EnableFace(faceId);
+  }
 
+  void SampleFaceObject::DisableFace(int faceId)
+  {
+    boost::shared_ptr<FaceObject> obj =
+      boost::dynamic_pointer_cast<FaceObject>(this->GetObject());
+    if (!obj) return;
 
-    optixu::Material SampleFaceObject::GetMaterial(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        if( !Material.get() )
-        {
-            Material = context->createMaterial();
-            Material->setClosestHitProgram(0, ClosestHitProgram);
+    obj->DisableFace(faceId);
+  }
 
-            // Hack - find a better way.
-            Material->setClosestHitProgram(2, ClosestHitProgram);
-        }
-        return Material;
-    }
+  void SampleFaceObject::SetFaces(const std::vector<int>& ids, bool flag)
+  {
+    boost::shared_ptr<FaceObject> obj =
+      boost::dynamic_pointer_cast<FaceObject>(this->GetObject());
+    if (!obj) return;
 
-    void SampleFaceObject::EnableFace(int faceId)
-    {
-        boost::shared_ptr<FaceObject> obj = boost::dynamic_pointer_cast<FaceObject>(this->GetObject());
-        if( !obj )
-        {
-            std::cout << "Case failed. " << std::endl;
+    obj->SetFaces(ids, flag);
+  }
 
-            return;
-        }
+  bool SampleFaceObject::InitializeStatic()
+  {
+    PtxManager::GetOnPtxLoaded().connect(
+      boost::bind(&SampleFaceObject::LoadPrograms, _1, _2));
+    return true;
+  }
 
-        obj->EnableFace(faceId);
-    }
-
-    void SampleFaceObject::DisableFace(int faceId)
-    {
-        boost::shared_ptr<FaceObject> obj = boost::dynamic_pointer_cast<FaceObject>(this->GetObject());
-        if( !obj ) return;
-
-        obj->DisableFace(faceId);
-    }
-
-    void SampleFaceObject::SetFaces(const std::vector<int>& ids, bool flag)
-    {
-        boost::shared_ptr<FaceObject> obj = boost::dynamic_pointer_cast<FaceObject>(this->GetObject());
-        if( !obj ) return;
-
-        obj->SetFaces(ids, flag);
-    }
-
-
-    bool SampleFaceObject::InitializeStatic()
-    {
-        PtxManager::GetOnPtxLoaded().connect(boost::bind(&SampleFaceObject::LoadPrograms, _1, _2));
-        return true;
-    }
-
-    void SampleFaceObject::LoadPrograms(const std::string& prefix, optixu::Context context)
-    {
-        ClosestHitProgram = PtxManager::LoadProgram(prefix, "SamplerFaceClosestHit");
-    }
+  void SampleFaceObject::LoadPrograms(const std::string& prefix,
+                                      optixu::Context context)
+  {
+    ClosestHitProgram =
+      PtxManager::LoadProgram(prefix, "SamplerFaceClosestHit");
+  }
 }
-

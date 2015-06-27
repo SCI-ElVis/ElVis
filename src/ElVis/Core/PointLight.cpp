@@ -30,18 +30,10 @@
 
 namespace ElVis
 {
-    PointLight::PointLight() :
-        Light(),
-        m_color(),
-        m_location()
-    {
-    }
+  PointLight::PointLight() : Light(), m_color(), m_location() {}
 
-    PointLight::PointLight(const PointLight& rhs) :
-        Light(),
-        m_color(),
-        m_location()
-    {
-    }
+  PointLight::PointLight(const PointLight& rhs)
+    : Light(), m_color(), m_location()
+  {
+  }
 }
-

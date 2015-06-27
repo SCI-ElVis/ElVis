@@ -34,40 +34,38 @@
 
 namespace ElVis
 {
-    class RayGeneratorProgram
+  class RayGeneratorProgram
+  {
+  public:
+    ELVIS_EXPORT RayGeneratorProgram()
+      : Program(), Index(std::numeric_limits<unsigned int>::max())
     {
-        public:
-            ELVIS_EXPORT RayGeneratorProgram() :
-                Program(),
-                Index(std::numeric_limits<unsigned int>::max())
-            {
-            }
+    }
 
-            ELVIS_EXPORT RayGeneratorProgram(const RayGeneratorProgram& rhs) :
-                Program(rhs.Program),
-                Index(rhs.Index)
-            {
-            }
+    ELVIS_EXPORT RayGeneratorProgram(const RayGeneratorProgram& rhs)
+      : Program(rhs.Program), Index(rhs.Index)
+    {
+    }
 
-            ELVIS_EXPORT ~RayGeneratorProgram() {}
+    ELVIS_EXPORT ~RayGeneratorProgram() {}
 
-            const RayGeneratorProgram& operator=(const RayGeneratorProgram& rhs)
-            {
-                Program = rhs.Program;
-                Index = rhs.Index;
-                return *this;
-            }
+    const RayGeneratorProgram& operator=(const RayGeneratorProgram& rhs)
+    {
+      Program = rhs.Program;
+      Index = rhs.Index;
+      return *this;
+    }
 
-            bool IsValid() const { return Index != std::numeric_limits<unsigned int>::max(); }
+    bool IsValid() const
+    {
+      return Index != std::numeric_limits<unsigned int>::max();
+    }
 
-            optixu::Program Program;
-            unsigned int Index;
+    optixu::Program Program;
+    unsigned int Index;
 
-        private:
-            
-                        
-            
-    };
+  private:
+  };
 }
 
-#endif 
+#endif

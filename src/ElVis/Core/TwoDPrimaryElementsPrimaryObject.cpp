@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/TwoDPrimaryElementsPrimaryObject.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
@@ -34,19 +33,17 @@
 
 namespace ElVis
 {
-    TwoDPrimaryElementsPrimaryObject::TwoDPrimaryElementsPrimaryObject()
-    {
-    }
+  TwoDPrimaryElementsPrimaryObject::TwoDPrimaryElementsPrimaryObject() {}
 
-    TwoDPrimaryElementsPrimaryObject::TwoDPrimaryElementsPrimaryObject(boost::shared_ptr<TwoDPrimaryElements> obj) :
-        PrimaryRayObject(obj)
-    {
-    }
+  TwoDPrimaryElementsPrimaryObject::TwoDPrimaryElementsPrimaryObject(
+    boost::shared_ptr<TwoDPrimaryElements> obj)
+    : PrimaryRayObject(obj)
+  {
+  }
 
-
-    optixu::Material TwoDPrimaryElementsPrimaryObject::GetMaterial(SceneView* view)
-    {
-        return PrimaryRayObject::GetObject()->CreateMaterial(view);
-    }
+  optixu::Material TwoDPrimaryElementsPrimaryObject::GetMaterial(
+    SceneView* view)
+  {
+    return PrimaryRayObject::GetObject()->CreateMaterial(view);
+  }
 }
-

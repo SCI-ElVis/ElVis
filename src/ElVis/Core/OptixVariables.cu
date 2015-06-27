@@ -29,7 +29,6 @@
 #ifndef ELVIS_OPTIX_VARIABLES_CU
 #define ELVIS_OPTIX_VARIABLES_CU
 
-
 #include <optix_cuda.h>
 #include <optix_math.h>
 #include <optixu/optixu_matrix.h>
@@ -52,7 +51,7 @@ rtBuffer<uchar4, 2> color_buffer;
 // and storing them in color_buffer.
 rtBuffer<ElVisFloat3, 2> raw_color_buffer;
 
-// For debugging purposes, we want to be able to know what the scalar value 
+// For debugging purposes, we want to be able to know what the scalar value
 // is on a cut surface for a given pixel.  This buffer stores all sample
 // values for fast retrieval.
 rtBuffer<ElVisFloat, 2> SampleBuffer;
@@ -66,26 +65,27 @@ rtBuffer<ElVisFloat3, 2> intersection_buffer;
 // The depth value at each pixel.
 rtBuffer<float, 2> depth_buffer;
 
-// This group should contain all surfaces that are meant to be rendered 
+// This group should contain all surfaces that are meant to be rendered
 // directly.  Examples include cut-surface and element faces.  Element faces
 // that are not meant to be rendered directly should not go into this group.
 rtDeclareVariable(rtObject, SurfaceGeometryGroup, , );
 
-// This group contains all elemental faces.  Ray tracing into this group 
-// will return the closest element face.  2D elements do not belong in this 
-// group.  Currently used by isosurfaces and volume rendering to go from 
-// element to element, but they do use the PointLocation group to find the element
+// This group contains all elemental faces.  Ray tracing into this group
+// will return the closest element face.  2D elements do not belong in this
+// group.  Currently used by isosurfaces and volume rendering to go from
+// element to element, but they do use the PointLocation group to find the
+// element
 // between faces.
-rtDeclareVariable(rtObject, PlanarFaceGroup, ,);
-rtDeclareVariable(rtObject, CurvedFaceGroup, ,);
+rtDeclareVariable(rtObject, PlanarFaceGroup, , );
+rtDeclareVariable(rtObject, CurvedFaceGroup, , );
 
 // Currently commented out in the volume rendering.  May be my trial code.
 // Most likely, only one of ElementTraversalGroup and faceGroup need to remain.
-// Currently, face intersection sets the face id and only applies if the face is 
+// Currently, face intersection sets the face id and only applies if the face is
 // turned on.
 rtDeclareVariable(rtObject, faceGroup, , );
 
-//The dimensionality of the model, i.e. 2D or 3D
+// The dimensionality of the model, i.e. 2D or 3D
 rtDeclareVariable(int, ModelDimension, , );
 
 rtDeclareVariable(ElVisFloat3, normal, attribute normal_vec, );
@@ -104,15 +104,10 @@ rtDeclareVariable(CutSurfaceScalarValuePayload, payload, rtPayload, );
 rtDeclareVariable(ElVisFloat3, VolumeMinExtent, , );
 rtDeclareVariable(ElVisFloat3, VolumeMaxExtent, , );
 
-
 rtBuffer<int, 2> ElementIdBuffer;
 rtBuffer<int, 2> ElementTypeBuffer;
 
 rtDeclareVariable(float, closest_t, rtIntersectionDistance, );
-
-
-
-
 
 // For depth buffer calculations for interop with OpenGL.
 rtDeclareVariable(float, near, , );
@@ -125,13 +120,14 @@ rtBuffer<ElVisFloat4> VertexBuffer;
 /////////////////////////////////////////////////////////////////////////////
 // Faces
 //
-// Faces have a global index and a type-specific index.  ElVis currently 
-// distinguishes between planar and curved faces.  Each planar face will have a 
-// global face index and a different planar face index.  Similarly for curved 
+// Faces have a global index and a type-specific index.  ElVis currently
+// distinguishes between planar and curved faces.  Each planar face will have a
+// global face index and a different planar face index.  Similarly for curved
 // faces.
 /////////////////////////////////////////////////////////////////////////////
 
-// Generic information about each face that is valid regardless of the type of face.
+// Generic information about each face that is valid regardless of the type of
+// face.
 // Indexing is by global face index.
 rtBuffer<ElVis::FaceInfo, 1> FaceInfoBuffer;
 
@@ -139,7 +135,7 @@ rtBuffer<ElVis::FaceInfo, 1> FaceInfoBuffer;
 // Indexins is by global face index.
 rtBuffer<unsigned char, 1> FaceEnabled;
 
-// Information about each planar face. 
+// Information about each planar face.
 // Indexing is by local planar face index.
 rtBuffer<ElVis::PlanarFaceInfo, 1> PlanarFaceInfoBuffer;
 
@@ -150,14 +146,13 @@ rtBuffer<uint, 1> GlobalFaceToCurvedFaceIdxMap;
 
 rtBuffer<ElVisFloat4> PlanarFaceNormalBuffer;
 
-
 struct PlanarFaceTag;
 struct CurvedFaceTag;
 struct GlobalFaceTag;
 
 struct PlanarFaceIdx
 {
-  __device__ PlanarFaceIdx() {};
+  __device__ PlanarFaceIdx(){};
 
   __device__ PlanarFaceIdx(int v) : Value(v) {}
 
@@ -166,7 +161,7 @@ struct PlanarFaceIdx
 
 struct CurvedFaceIdx
 {
-  __device__ CurvedFaceIdx() {};
+  __device__ CurvedFaceIdx(){};
 
   __device__ CurvedFaceIdx(int v) : Value(v) {}
 
@@ -175,15 +170,15 @@ struct CurvedFaceIdx
 
 struct GlobalFaceIdx
 {
-  __device__ GlobalFaceIdx() {};
+  __device__ GlobalFaceIdx(){};
 
-  __device__ GlobalFaceIdx(const PlanarFaceIdx& rhs) :
-    Value(PlanarFaceToGlobalIdxMap[rhs.Value])
+  __device__ GlobalFaceIdx(const PlanarFaceIdx& rhs)
+    : Value(PlanarFaceToGlobalIdxMap[rhs.Value])
   {
   }
 
-  __device__ GlobalFaceIdx(const CurvedFaceIdx& rhs) :
-    Value(CurvedFaceToGlobalIdxMap[rhs.Value])
+  __device__ GlobalFaceIdx(const CurvedFaceIdx& rhs)
+    : Value(CurvedFaceToGlobalIdxMap[rhs.Value])
   {
   }
 
@@ -204,32 +199,34 @@ __device__ CurvedFaceIdx ConvertToCurvedFaceIdx(const GlobalFaceIdx& globalIdx)
 
 __device__ GlobalFaceIdx ConvertToGlobalFaceIdx(const PlanarFaceIdx& planarIdx)
 {
-    return GlobalFaceIdx(PlanarFaceToGlobalIdxMap[planarIdx.Value]);
+  return GlobalFaceIdx(PlanarFaceToGlobalIdxMap[planarIdx.Value]);
 }
 
 __device__ GlobalFaceIdx ConvertToGlobalFaceIdx(const CurvedFaceIdx& curvedIdx)
 {
-    return GlobalFaceIdx(CurvedFaceToGlobalIdxMap[curvedIdx.Value]);
+  return GlobalFaceIdx(CurvedFaceToGlobalIdxMap[curvedIdx.Value]);
 }
 
 __device__ unsigned char GetFaceEnabled(GlobalFaceIdx idx)
 {
-    return FaceEnabled[idx.Value];
+  return FaceEnabled[idx.Value];
 }
 
 __device__ const ElVis::FaceInfo& GetFaceInfo(GlobalFaceIdx globalFaceIdx)
 {
-    return FaceInfoBuffer[globalFaceIdx.Value];
+  return FaceInfoBuffer[globalFaceIdx.Value];
 }
 
+rtDeclareVariable(GlobalFaceIdx,
+                  intersectedFaceGlobalIdx,
+                  attribute IntersectedFaceId, );
+rtDeclareVariable(ElVisFloat2,
+                  faceIntersectionReferencePoint,
+                  attribute FaceIntersectionReferencePoint, );
+rtDeclareVariable(bool,
+                  faceIntersectionReferencePointIsValid,
+                  attribute FaceIntersectionReferencePointIsValid, );
 
-
-rtDeclareVariable(GlobalFaceIdx, intersectedFaceGlobalIdx, attribute IntersectedFaceId, );
-rtDeclareVariable(ElVisFloat2, faceIntersectionReferencePoint, attribute FaceIntersectionReferencePoint, );
-rtDeclareVariable(bool, faceIntersectionReferencePointIsValid, attribute FaceIntersectionReferencePointIsValid, );
-
-rtDeclareVariable(ElVisFloat3, HeadlightColor, ,);
-
+rtDeclareVariable(ElVisFloat3, HeadlightColor, , );
 
 #endif
-

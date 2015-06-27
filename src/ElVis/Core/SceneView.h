@@ -57,213 +57,265 @@
 
 namespace ElVis
 {
-    class RenderModule;
-    class PrimaryRayModule;
+  class RenderModule;
+  class PrimaryRayModule;
 
-    namespace
+  namespace
+  {
+    const std::string VIEW_SETTINGS_KEY_NAME("ViewSettings");
+  }
+  class SceneView
+  {
+  public:
+    friend class boost::serialization::access;
+    ELVIS_EXPORT SceneView();
+    ELVIS_EXPORT virtual ~SceneView();
+
+    ELVIS_EXPORT Timer Draw();
+    ELVIS_EXPORT void Resize(unsigned int width, unsigned int height);
+
+    ELVIS_EXPORT unsigned int GetWidth() const { return m_width; }
+    ELVIS_EXPORT unsigned int GetHeight() const { return m_height; }
+
+    ELVIS_EXPORT void SetScene(boost::shared_ptr<Scene> value)
     {
-      const std::string VIEW_SETTINGS_KEY_NAME("ViewSettings");
+      m_scene = value;
     }
-    class SceneView
+    ELVIS_EXPORT boost::shared_ptr<Scene> GetScene() const { return m_scene; }
+
+    ELVIS_EXPORT const WorldPoint& GetEye() const
     {
-        public:
-            friend class boost::serialization::access;
-            ELVIS_EXPORT SceneView();
-            ELVIS_EXPORT virtual ~SceneView();
+      return m_viewSettings->GetEye();
+    }
+    ELVIS_EXPORT const WorldPoint& GetLookAt() const
+    {
+      return m_viewSettings->GetLookAt();
+    }
+    ELVIS_EXPORT const WorldVector& GetUp() const
+    {
+      return m_viewSettings->GetUp();
+    }
+    ELVIS_EXPORT float GetFieldOfView() const
+    {
+      return static_cast<float>(m_viewSettings->GetFieldOfView());
+    }
+    ELVIS_EXPORT boost::shared_ptr<const Camera> GetViewSettings() const
+    {
+      return m_viewSettings;
+    }
+    ELVIS_EXPORT boost::shared_ptr<Camera> GetViewSettings()
+    {
+      return m_viewSettings;
+    }
 
-            ELVIS_EXPORT Timer Draw();
-            ELVIS_EXPORT void Resize(unsigned int width, unsigned int height);
+    ELVIS_EXPORT void SetCamera(const Camera& view);
 
-            ELVIS_EXPORT unsigned int GetWidth() const { return m_width; }
-            ELVIS_EXPORT unsigned int GetHeight() const { return m_height; }
+    ELVIS_EXPORT void WriteColorBufferToFile(const std::string& fileName);
 
-            ELVIS_EXPORT void SetScene(boost::shared_ptr<Scene> value) { m_scene = value; }
-            ELVIS_EXPORT boost::shared_ptr<Scene> GetScene() const { return m_scene; }
-            
-            ELVIS_EXPORT const WorldPoint& GetEye() const { return m_viewSettings->GetEye(); }
-            ELVIS_EXPORT const WorldPoint& GetLookAt() const { return m_viewSettings->GetLookAt(); }
-            ELVIS_EXPORT const WorldVector& GetUp() const { return m_viewSettings->GetUp(); }
-            ELVIS_EXPORT float GetFieldOfView() const { return static_cast<float>(m_viewSettings->GetFieldOfView()); }
-            ELVIS_EXPORT boost::shared_ptr<const Camera> GetViewSettings() const { return m_viewSettings; }
-            ELVIS_EXPORT boost::shared_ptr<Camera> GetViewSettings() { return m_viewSettings; }
+    ELVIS_EXPORT RayGeneratorProgram
+    AddRayGenerationProgram(const std::string& programName);
 
-            ELVIS_EXPORT void SetCamera(const Camera& view);
+    ELVIS_EXPORT optixu::Context GetContext()
+    {
+      return GetScene()->GetContext();
+    }
 
-            ELVIS_EXPORT void WriteColorBufferToFile(const std::string& fileName);
+    ELVIS_EXPORT void AddRenderModule(boost::shared_ptr<RenderModule> module);
 
-            ELVIS_EXPORT RayGeneratorProgram AddRayGenerationProgram(const std::string& programName);
+    ELVIS_EXPORT OptiXBuffer<uchar4>& GetColorBuffer() { return m_colorBuffer; }
+    ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetRawColorBuffer()
+    {
+      return m_rawColorBuffer;
+    }
 
-            ELVIS_EXPORT optixu::Context GetContext() {return GetScene()->GetContext();}
+    ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetIntersectionPointBuffer()
+    {
+      return m_intersectionBuffer;
+    }
+    ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetNormalBuffer()
+    {
+      return m_normalBuffer;
+    }
+    ELVIS_EXPORT OptiXBuffer<ElVisFloat>& GetSampleBuffer()
+    {
+      return m_sampleBuffer;
+    }
+    ELVIS_EXPORT double GetTimings(boost::shared_ptr<RenderModule> m) const
+    {
+      std::map<boost::shared_ptr<RenderModule>, double>::const_iterator found =
+        m_timings.find(m);
+      if (found != m_timings.end())
+      {
+        return (*found).second;
+      }
+      else
+      {
+        return -1;
+      }
+    }
 
-            ELVIS_EXPORT void AddRenderModule(boost::shared_ptr<RenderModule>  module);
+    ELVIS_EXPORT const std::map<boost::shared_ptr<RenderModule>, double>&
+    GetTimings() const
+    {
+      return m_timings;
+    }
 
-            ELVIS_EXPORT OptiXBuffer<uchar4>& GetColorBuffer() { return m_colorBuffer; }
-            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetRawColorBuffer() { return m_rawColorBuffer; }
+    std::string GetPTXPrefix()
+    {
+      if (m_scene && m_scene->GetModel())
+      {
+        return m_scene->GetModel()->GetPTXPrefix();
+      }
+      return "";
+    }
 
-            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetIntersectionPointBuffer() { return m_intersectionBuffer; }
-            ELVIS_EXPORT OptiXBuffer<ElVisFloat3>& GetNormalBuffer() { return m_normalBuffer; }
-            ELVIS_EXPORT OptiXBuffer<ElVisFloat>& GetSampleBuffer() { return m_sampleBuffer; }
-            ELVIS_EXPORT double GetTimings(boost::shared_ptr<RenderModule>  m) const
-            {
-                std::map<boost::shared_ptr<RenderModule> , double>::const_iterator found = m_timings.find(m);
-                if( found != m_timings.end() )
-                {
-                    return (*found).second;
-                }
-                else
-                {
-                    return -1;
-                }
-            }
+    ELVIS_EXPORT boost::shared_ptr<PrimaryRayModule> GetPrimaryRayModule()
+      const;
 
-            ELVIS_EXPORT const std::map<boost::shared_ptr<RenderModule> , double>& GetTimings() const { return m_timings; }
+    ELVIS_EXPORT void DisplayBuffersToScreen();
 
-            std::string GetPTXPrefix() 
-            {
-                if( m_scene && m_scene->GetModel() )
-                {
-                    return m_scene->GetModel()->GetPTXPrefix();
-                }
-                return "";
-            }
+    ELVIS_EXPORT void SetDepthBufferBits(int newValue);
 
-            ELVIS_EXPORT boost::shared_ptr<PrimaryRayModule> GetPrimaryRayModule() const;
+    ELVIS_EXPORT void WriteDepthBuffer(const std::string& filePrefix);
 
-            ELVIS_EXPORT void DisplayBuffersToScreen();
+    ELVIS_EXPORT std::list<boost::shared_ptr<RenderModule>> GetRenderModules()
+    {
+      return m_allRenderModules;
+    }
 
-            ELVIS_EXPORT void SetDepthBufferBits(int newValue); 
+    ELVIS_EXPORT WorldPoint
+    GetIntersectionPoint(unsigned int pixel_x, unsigned int pixel_y);
+    ELVIS_EXPORT WorldPoint
+    GetNormal(unsigned int pixel_x, unsigned int pixel_y);
+    ELVIS_EXPORT int GetElementId(unsigned int pixel_x, unsigned int pixel_y);
+    ELVIS_EXPORT int GetElementTypeId(unsigned int pixel_x,
+                                      unsigned int pixel_y);
+    ELVIS_EXPORT ElVisFloat
+    GetScalarSample(unsigned int pixel_x, unsigned int pixel_y);
 
-            ELVIS_EXPORT void WriteDepthBuffer(const std::string& filePrefix);
+    ELVIS_EXPORT void SetScalarFieldIndex(int index);
 
-            ELVIS_EXPORT std::list<boost::shared_ptr<RenderModule> > GetRenderModules() { return m_allRenderModules; }
+    ELVIS_EXPORT int GetScalarFieldIndex() const { return m_scalarFieldIndex; }
 
-            ELVIS_EXPORT WorldPoint GetIntersectionPoint(unsigned int pixel_x, unsigned int pixel_y);
-            ELVIS_EXPORT WorldPoint GetNormal(unsigned int pixel_x, unsigned int pixel_y);
-            ELVIS_EXPORT int GetElementId(unsigned int pixel_x, unsigned int pixel_y);
-            ELVIS_EXPORT int GetElementTypeId(unsigned int pixel_x, unsigned int pixel_y);
-            ELVIS_EXPORT ElVisFloat GetScalarSample(unsigned int pixel_x, unsigned int pixel_y);
+    ELVIS_EXPORT ElVisFloat GetFaceIntersectionTolerance() const;
+    ELVIS_EXPORT void SetFaceIntersectionTolerance(ElVisFloat value);
 
-            ELVIS_EXPORT void SetScalarFieldIndex(int index);
+    ELVIS_EXPORT const Color& GetHeadlightColor() const;
+    ELVIS_EXPORT void SetHeadlightColor(const Color& newValue);
 
-            ELVIS_EXPORT int GetScalarFieldIndex() const { return m_scalarFieldIndex; }
+    ELVIS_EXPORT const Color& GetBackgroundColor() const
+    {
+      return m_backgroundColor;
+    }
+    ELVIS_EXPORT void SetBackgroundColor(const Color& newValue);
 
-            ELVIS_EXPORT ElVisFloat GetFaceIntersectionTolerance() const;
-            ELVIS_EXPORT void SetFaceIntersectionTolerance(ElVisFloat value);
+    ELVIS_EXPORT Stat CalculateScalarSampleStats();
 
-            ELVIS_EXPORT const Color& GetHeadlightColor() const;
-            ELVIS_EXPORT void SetHeadlightColor(const Color& newValue);
+    ELVIS_EXPORT void SetProjectionType(SceneViewProjection type);
+    ELVIS_EXPORT SceneViewProjection GetProjectionType() const;
 
-            ELVIS_EXPORT const Color& GetBackgroundColor() const { return m_backgroundColor; }
-            ELVIS_EXPORT void SetBackgroundColor(const Color& newValue);
+    boost::signals2::signal<void(const SceneView&)> OnSceneViewChanged;
+    boost::signals2::signal<void(int w, int h)> OnWindowSizeChanged;
+    boost::signals2::signal<void(const SceneView&)> OnNeedsRedraw;
 
-            ELVIS_EXPORT Stat CalculateScalarSampleStats();
+  protected:
+    virtual void DoWindowSizeHasChanged() {}
+    virtual void DoPrepareForDisplay() {}
 
-            ELVIS_EXPORT void SetProjectionType(SceneViewProjection type);
-            ELVIS_EXPORT SceneViewProjection GetProjectionType() const;
+  private:
+    SceneView(const SceneView&);
+    SceneView& operator=(const SceneView& rhs);
+    void SynchronizeWithGPUIfNeeded(optixu::Context context);
 
-            boost::signals2::signal<void (const SceneView&)> OnSceneViewChanged;
-            boost::signals2::signal<void (int w, int h)> OnWindowSizeChanged;
-            boost::signals2::signal<void (const SceneView&)> OnNeedsRedraw;
+    template <typename T>
+    void HandleSynchedObjectChanged(const SynchedObject<T>& obj)
+    {
+      OnSceneViewChanged(*this);
+    }
 
-        protected:
-            virtual void DoWindowSizeHasChanged() {}
-            virtual void DoPrepareForDisplay() {}          
+    static const std::string ColorBufferName;
+    static const std::string DepthBufferName;
+    static const std::string StencilBufferName;
+    static const std::string NormalBufferName;
+    static const std::string RawColorBufferName;
+    static const std::string IntersectionBufferName;
 
-        private:
-            SceneView(const SceneView&);
-            SceneView& operator=(const SceneView& rhs);
-            void SynchronizeWithGPUIfNeeded(optixu::Context context);
+    void PrepareForDisplay();
+    void WindowSizeHasChanged();
+    void ViewingParametersHaveChanged();
+    void SetupCamera();
+    void ClearDepthBuffer();
+    void ClearColorBuffer();
+    void HandleRenderModuleChanged(const RenderModule&);
 
-            template<typename T>
-            void HandleSynchedObjectChanged(const SynchedObject<T>& obj)
-            {
-                OnSceneViewChanged(*this);
-            }
+    template <typename Archive>
+    void save(Archive& ar, const unsigned int version) const
+    {
+      // ar & BOOST_SERIALIZATION_NVP(m_scene);
+      ar& boost::serialization::make_nvp(
+        VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+      // ar & BOOST_SERIALIZATION_NVP(m_depthBits);
+      // ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
+      // ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
+      // ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
+      // ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
+      // ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
+      // ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
+      // do_serialize(ar, version);
+    }
 
+    template <typename Archive>
+    void load(Archive& ar, const unsigned int version)
+    {
+      // ar & BOOST_SERIALIZATION_NVP(m_scene);
+      ar& boost::serialization::make_nvp(
+        VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+      // ar & BOOST_SERIALIZATION_NVP(m_depthBits);
+      // ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
+      // ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
+      // ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
+      // ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
+      // ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
+      // ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
+      // do_serialize(ar, version);
+      OnSceneViewChanged(*this);
+    }
 
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
-            static const std::string ColorBufferName;
-            static const std::string DepthBufferName;
-            static const std::string StencilBufferName;
-            static const std::string NormalBufferName;
-            static const std::string RawColorBufferName;
-            static const std::string IntersectionBufferName;
-            
-            void PrepareForDisplay();
-            void WindowSizeHasChanged();
-            void ViewingParametersHaveChanged();
-            void SetupCamera();
-            void ClearDepthBuffer();
-            void ClearColorBuffer();
-            void HandleRenderModuleChanged(const RenderModule&);
+    boost::shared_ptr<Scene> m_scene;
+    unsigned int m_width;
+    unsigned int m_height;
+    boost::shared_ptr<Camera> m_viewSettings;
 
-            template<typename Archive>
-            void save(Archive& ar, const unsigned int version) const
-            {
-                //ar & BOOST_SERIALIZATION_NVP(m_scene);
-                ar & boost::serialization::make_nvp(VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
-                //ar & BOOST_SERIALIZATION_NVP(m_depthBits);
-                //ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
-                //ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
-                //ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
-                //ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
-                //ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
-                //ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
-                //do_serialize(ar, version);
-            }
+    OptiXBuffer<uchar4> m_colorBuffer;
+    OptiXBuffer<ElVisFloat3> m_rawColorBuffer;
 
-            template<typename Archive>
-            void load(Archive& ar, const unsigned int version)
-            {
-                //ar & BOOST_SERIALIZATION_NVP(m_scene);
-                ar & boost::serialization::make_nvp(VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
-                //ar & BOOST_SERIALIZATION_NVP(m_depthBits);
-                //ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
-                //ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
-                //ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
-                //ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
-                //ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
-                //ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
-                //do_serialize(ar, version);
-                OnSceneViewChanged(*this);
-            }
+    // Must be float for OpenGL.
+    OptiXBuffer<float> m_depthBuffer;
+    OptiXBuffer<ElVisFloat3> m_normalBuffer;
+    OptiXBuffer<ElVisFloat3> m_intersectionBuffer;
+    OptiXBuffer<ElVisFloat> m_sampleBuffer;
+    OptiXBuffer<int> m_elementIdBuffer;
+    OptiXBuffer<int> m_elementTypeBuffer;
+    int m_depthBits;
 
-            BOOST_SERIALIZATION_SPLIT_MEMBER()
+    std::map<std::string, RayGeneratorProgram> m_rayGenerationPrograms;
+    std::list<boost::shared_ptr<RenderModule>> m_allRenderModules;
+    std::map<boost::shared_ptr<RenderModule>, double> m_timings;
+    int m_scalarFieldIndex;
+    bool m_passedInitialOptixSetup;
 
-            boost::shared_ptr<Scene> m_scene;
-            unsigned int m_width;
-            unsigned int m_height;
-            boost::shared_ptr<Camera> m_viewSettings;
-
-            OptiXBuffer<uchar4> m_colorBuffer;
-            OptiXBuffer<ElVisFloat3> m_rawColorBuffer;
-
-            // Must be float for OpenGL.
-            OptiXBuffer<float> m_depthBuffer;
-            OptiXBuffer<ElVisFloat3> m_normalBuffer;
-            OptiXBuffer<ElVisFloat3> m_intersectionBuffer;
-            OptiXBuffer<ElVisFloat> m_sampleBuffer;
-            OptiXBuffer<int> m_elementIdBuffer;
-            OptiXBuffer<int> m_elementTypeBuffer;
-            int m_depthBits;
-
-            std::map<std::string, RayGeneratorProgram> m_rayGenerationPrograms;
-            std::list<boost::shared_ptr<RenderModule> > m_allRenderModules;
-            std::map<boost::shared_ptr<RenderModule> , double> m_timings;
-            int m_scalarFieldIndex;
-            bool m_passedInitialOptixSetup;
-
-            bool m_faceIntersectionToleranceDirty;
-            ElVisFloat m_faceIntersectionTolerance;
-            Color m_headlightColor;
-            bool m_headlightColorIsDirty;
-            bool m_enableOptiXExceptions;
-            optixu::Program m_exceptionProgram;
-            Color m_backgroundColor;
-            bool m_backgroundColorIsDirty;
-            SynchedObject<SceneViewProjection> m_projectionType;
-
-    };
+    bool m_faceIntersectionToleranceDirty;
+    ElVisFloat m_faceIntersectionTolerance;
+    Color m_headlightColor;
+    bool m_headlightColorIsDirty;
+    bool m_enableOptiXExceptions;
+    optixu::Program m_exceptionProgram;
+    Color m_backgroundColor;
+    bool m_backgroundColorIsDirty;
+    SynchedObject<SceneViewProjection> m_projectionType;
+  };
 }
 
-#endif //ELVIS_SCENE_VIEW_H
+#endif // ELVIS_SCENE_VIEW_H

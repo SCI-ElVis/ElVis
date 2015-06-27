@@ -31,14 +31,12 @@
 
 namespace ElVis
 {
-    enum VolumeRenderingIntegrationCategory
-    {
-        eNoSegment,
-        eDensityZero,
-        eDensityAndColorHaveBreakpoints
-    };
-
+  enum VolumeRenderingIntegrationCategory
+  {
+    eNoSegment,
+    eDensityZero,
+    eDensityAndColorHaveBreakpoints
+  };
 }
-
 
 #endif

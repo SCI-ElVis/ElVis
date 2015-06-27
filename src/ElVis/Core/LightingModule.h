@@ -29,7 +29,6 @@
 #ifndef ELVIS_NATIVE_LIGHTING_MODULE_H
 #define ELVIS_NATIVE_LIGHTING_MODULE_H
 
-
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/SceneView.h>
@@ -41,29 +40,29 @@
 
 namespace ElVis
 {
-    class LightingModule : public RenderModule
-    {
-        public:
-            ELVIS_EXPORT LightingModule();
-            ELVIS_EXPORT virtual ~LightingModule();
-            
-        protected:
-            virtual void DoRender(SceneView* view); 
-            virtual void DoSetup(SceneView* view); 
-            virtual int DoGetNumberOfRequiredEntryPoints() 
-            {
-                // 7 Ray programs in the CutSurfceColorMap object
-                // 1 in the color map.
-                return 1; 
-            }
-            virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
-            virtual std::string DoGetName() const  { return "Lighting Module"; }
+  class LightingModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT LightingModule();
+    ELVIS_EXPORT virtual ~LightingModule();
 
-        private:
-            ELVIS_EXPORT LightingModule(const LightingModule& rhs);
-            const LightingModule& operator=(const LightingModule& rhs);            
-            RayGeneratorProgram m_program;
-    };
+  protected:
+    virtual void DoRender(SceneView* view);
+    virtual void DoSetup(SceneView* view);
+    virtual int DoGetNumberOfRequiredEntryPoints()
+    {
+      // 7 Ray programs in the CutSurfceColorMap object
+      // 1 in the color map.
+      return 1;
+    }
+    virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
+    virtual std::string DoGetName() const { return "Lighting Module"; }
+
+  private:
+    ELVIS_EXPORT LightingModule(const LightingModule& rhs);
+    const LightingModule& operator=(const LightingModule& rhs);
+    RayGeneratorProgram m_program;
+  };
 }
 
-#endif //CUT_SURFACE_COLOR_MAP_H
+#endif // CUT_SURFACE_COLOR_MAP_H

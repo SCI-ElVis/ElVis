@@ -30,17 +30,10 @@
 
 namespace ElVis
 {
-    DirectionalLight::DirectionalLight() :
-        Light(),
-        m_color(),
-        m_direction()
-    {
-    }
-    
-    DirectionalLight::DirectionalLight(const DirectionalLight& rhs) :
-        Light(rhs),
-        m_color(rhs.m_color),
-        m_direction(rhs.m_direction)
-    {
-    }
+  DirectionalLight::DirectionalLight() : Light(), m_color(), m_direction() {}
+
+  DirectionalLight::DirectionalLight(const DirectionalLight& rhs)
+    : Light(rhs), m_color(rhs.m_color), m_direction(rhs.m_direction)
+  {
+  }
 }

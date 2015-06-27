@@ -35,96 +35,88 @@
 
 namespace ElVis
 {
-    HostTransferFunction::HostTransferFunction() :
-        m_breakpoints(),
-        m_localDeviceTransferFunction(),
-        m_dirty(true)
+  HostTransferFunction::HostTransferFunction()
+    : m_breakpoints(), m_localDeviceTransferFunction(), m_dirty(true)
+  {
+    m_localDeviceTransferFunction.Initialize();
+  }
+
+  void HostTransferFunction::FreeDeviceMemory() {}
+
+  void HostTransferFunction::AllocateDeviceMemory() {}
+
+  void HostTransferFunction::CopyToOptix(optixu::Context context,
+                                         OptiXBuffer<ElVisFloat>& breakpoints,
+                                         OptiXBuffer<ElVisFloat>& values,
+                                         TransferFunctionChannel channel)
+  {
+    breakpoints.SetContext(context);
+    breakpoints.SetDimensions(m_breakpoints.size());
+    values.SetContext(context);
+    values.SetDimensions(m_breakpoints.size());
+    auto breakpointData = breakpoints.Map();
+    auto valueData = values.Map();
+
+    int index = 0;
+    for (std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin();
+         iter != m_breakpoints.end(); ++iter)
     {
-        m_localDeviceTransferFunction.Initialize();
-    }
-        
+      breakpointData[index] = (*iter).first;
 
-    void HostTransferFunction::FreeDeviceMemory()
+      if (channel == eDensity) valueData[index] = (*iter).second.Density;
+      if (channel == eRed) valueData[index] = (*iter).second.Col.Red();
+      if (channel == eGreen) valueData[index] = (*iter).second.Col.Green();
+      if (channel == eBlue) valueData[index] = (*iter).second.Col.Blue();
+
+      ++index;
+    }
+  }
+
+  void HostTransferFunction::CopyToDeviceMemory() {}
+
+  void HostTransferFunction::SynchronizeDeviceIfNeeded()
+  {
+    if (!m_dirty) return;
+
+    FreeDeviceMemory();
+    AllocateDeviceMemory();
+    CopyToDeviceMemory();
+
+    // Reset after OptiX updates.
+    m_dirty = true;
+  }
+
+  void HostTransferFunction::SynchronizeOptiXIfNeeded()
+  {
+    if (!m_dirty) return;
+  }
+
+  void HostTransferFunction::SetBreakpoint(double s, const Color& c)
+  {
+    SetBreakpoint(s, c, c.Alpha());
+  }
+
+  void HostTransferFunction::SetBreakpoint(double s,
+                                           const Color& c,
+                                           const ElVisFloat& density)
+  {
+    if (m_breakpoints.find(s) == m_breakpoints.end())
     {
-
+      m_breakpoints[s].Col = c;
+      m_breakpoints[s].Density = density;
+      m_breakpoints[s].Scalar = static_cast<ElVisFloat>(s);
+      m_dirty = true;
+      OnTransferFunctionChanged();
     }
+  }
 
-    void HostTransferFunction::AllocateDeviceMemory()
+  void HostTransferFunction::Clear()
+  {
+    if (m_breakpoints.size() > 0)
     {
-
+      m_breakpoints = std::map<double, Breakpoint>();
+      m_dirty = true;
+      OnTransferFunctionChanged();
     }
-
-    void HostTransferFunction::CopyToOptix(optixu::Context context, OptiXBuffer<ElVisFloat>& breakpoints, OptiXBuffer<ElVisFloat>& values, TransferFunctionChannel channel)
-    {
-        breakpoints.SetContext(context);
-        breakpoints.SetDimensions(m_breakpoints.size());
-        values.SetContext(context);
-        values.SetDimensions(m_breakpoints.size());
-        auto breakpointData = breakpoints.Map();
-        auto valueData = values.Map();
-
-        int index = 0;
-        for(std::map<double, Breakpoint>::iterator iter = m_breakpoints.begin(); iter != m_breakpoints.end(); ++iter)
-        {
-            breakpointData[index] = (*iter).first;
-
-            if( channel == eDensity ) valueData[index] = (*iter).second.Density;
-            if( channel == eRed ) valueData[index] = (*iter).second.Col.Red();
-            if( channel == eGreen ) valueData[index] = (*iter).second.Col.Green();
-            if( channel == eBlue ) valueData[index] = (*iter).second.Col.Blue();
-
-            ++index;
-        }
-    }
-
-
-    void HostTransferFunction::CopyToDeviceMemory()
-    {
-
-    }
-
-    void HostTransferFunction::SynchronizeDeviceIfNeeded()
-    {
-        if (!m_dirty) return;
-
-        FreeDeviceMemory();
-        AllocateDeviceMemory();
-        CopyToDeviceMemory();
-
-        // Reset after OptiX updates.
-        m_dirty = true;
-    }
-
-    void HostTransferFunction::SynchronizeOptiXIfNeeded()
-    {
-        if( !m_dirty) return;
-    }
-
-    void HostTransferFunction::SetBreakpoint(double s, const Color& c)
-    {
-        SetBreakpoint(s, c, c.Alpha());
-    }
-
-    void HostTransferFunction::SetBreakpoint(double s, const Color& c, const ElVisFloat& density)
-    {
-        if( m_breakpoints.find(s) == m_breakpoints.end() )
-        {
-            m_breakpoints[s].Col = c;
-            m_breakpoints[s].Density = density;
-            m_breakpoints[s].Scalar = static_cast<ElVisFloat>(s);
-            m_dirty = true;
-            OnTransferFunctionChanged();
-        }
-    }
-
-    void HostTransferFunction::Clear()
-    {
-        if( m_breakpoints.size() > 0 )
-        {
-            m_breakpoints = std::map<double, Breakpoint>();
-            m_dirty = true;
-            OnTransferFunctionChanged();
-        }
-    }
-
+  }
 }

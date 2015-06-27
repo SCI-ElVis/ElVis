@@ -37,26 +37,28 @@
 
 namespace ElVis
 {
-    class PointLight : public Light
+  class PointLight : public Light
+  {
+  public:
+    ELVIS_EXPORT PointLight();
+    ELVIS_EXPORT PointLight(const PointLight& rhs);
+    ELVIS_EXPORT virtual ~PointLight() {}
+
+    ELVIS_EXPORT const WorldPoint& Position() const { return m_location; }
+    ELVIS_EXPORT void SetPosition(const WorldPoint& value)
     {
-        public:
-            ELVIS_EXPORT PointLight();
-            ELVIS_EXPORT PointLight(const PointLight& rhs);
-            ELVIS_EXPORT virtual ~PointLight() {}
+      m_location = value;
+    }
 
-            ELVIS_EXPORT const WorldPoint& Position() const { return m_location; }
-            ELVIS_EXPORT void SetPosition(const WorldPoint& value) { m_location = value; }
+    ELVIS_EXPORT const Color& GetColor() const { return m_color; }
+    ELVIS_EXPORT void SetColor(const Color& rhs) { m_color = rhs; }
 
-            ELVIS_EXPORT const Color& GetColor() const { return m_color; }
-            ELVIS_EXPORT void SetColor(const Color& rhs) { m_color = rhs; }
+  private:
+    PointLight& operator=(const PointLight& rhs);
 
-        private:
-            PointLight& operator=(const PointLight& rhs);
-
-            Color m_color;
-            WorldPoint m_location;
-    };
+    Color m_color;
+    WorldPoint m_location;
+  };
 }
 
-#endif //ELVIS_ELVIS_POINT_LIGHT_H
-
+#endif // ELVIS_ELVIS_POINT_LIGHT_H

@@ -37,12 +37,13 @@ rtDeclareVariable(ElVisFloat, FaceTolerance, , );
 
 struct Segment
 {
-  __device__ Segment() :
-    Start(MAKE_FLOAT(0.0)),
-    End(MAKE_FLOAT(0.0)),
-    ElementId(-1),
-    ElementTypeId(-1),
-    RayDirection(MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0)))
+  __device__ Segment()
+    : Start(MAKE_FLOAT(0.0)),
+      End(MAKE_FLOAT(0.0)),
+      ElementId(-1),
+      ElementTypeId(-1),
+      RayDirection(
+        MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0)))
   {
   }
 
@@ -53,26 +54,28 @@ struct Segment
   ElVisFloat3 RayDirection;
 };
 
-
-__device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDirection)
+__device__ bool FindNextSegmentAlongRay(Segment& seg,
+                                        const ElVisFloat3& rayDirection)
 {
   optix::size_t2 screen = color_buffer.size();
-  //ELVIS_PRINTF("FindNextSegmentAlongRay: Starting t %f \n", seg.Start);
+  // ELVIS_PRINTF("FindNextSegmentAlongRay: Starting t %f \n", seg.Start);
 
-  // If we have already encountered an object we don't need to continue along this ray.
+  // If we have already encountered an object we don't need to continue along
+  // this ray.
   ElVisFloat depth = depth_buffer[launch_index];
-  //ELVIS_PRINTF("FindNextSegmentAlongRay best depth so far %2.10f\n", depth);
-  if( depth < seg.Start )
+  // ELVIS_PRINTF("FindNextSegmentAlongRay best depth so far %2.10f\n", depth);
+  if (depth < seg.Start)
   {
     return false;
   }
 
-  ElVisFloat3 origin = eye + seg.Start*rayDirection;
+  ElVisFloat3 origin = eye + seg.Start * rayDirection;
 
   // Setting tmin=1e-3 here prevents self-intersections
-  VolumeRenderingPayload payload = FindNextFaceIntersection(origin, rayDirection, MAKE_FLOAT(1e-3));
-  
-  if( !payload.FoundIntersection )
+  VolumeRenderingPayload payload =
+    FindNextFaceIntersection(origin, rayDirection, MAKE_FLOAT(1e-3));
+
+  if (!payload.FoundIntersection)
   {
     ELVIS_PRINTF("Did not find element intersection.\n");
     return false;
@@ -82,9 +85,12 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
   ELVIS_PRINTF("Segment is [%f, %f]\n", seg.Start, seg.End);
 
   ElementFinderPayload newApproach;
-  bool foundElement = findElementFromFace(origin, rayDirection, payload, newApproach);
-  ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New approach id %d and type %d\n",
-    seg.ElementId, seg.ElementTypeId, newApproach.elementId, newApproach.elementType);
+  bool foundElement =
+    findElementFromFace(origin, rayDirection, payload, newApproach);
+  ELVIS_PRINTF("FindNextSegmentAlongRay: Segment element %d and type %d, New "
+               "approach id %d and type %d\n",
+               seg.ElementId, seg.ElementTypeId, newApproach.elementId,
+               newApproach.elementType);
   seg.ElementId = newApproach.elementId;
   seg.ElementTypeId = newApproach.elementType;
   return true;
@@ -93,34 +99,37 @@ __device__ bool FindNextSegmentAlongRay(Segment& seg, const ElVisFloat3& rayDire
 __device__ bool ValidateSegment(const Segment& seg)
 {
   int elementId = seg.ElementId;
-  //ELVIS_PRINTF("ValidateSegment: Element id %d\n", elementId);
+  // ELVIS_PRINTF("ValidateSegment: Element id %d\n", elementId);
 
-  if( elementId == -1 )
+  if (elementId == -1)
   {
-    //ELVIS_PRINTF("ValidateSegment: Exiting because element id is -1\n");
+    // ELVIS_PRINTF("ValidateSegment: Exiting because element id is -1\n");
     return false;
   }
 
-  //int elementTypeId = seg.ElementTypeId;
+  // int elementTypeId = seg.ElementTypeId;
 
   ElVisFloat a = seg.Start;
   ElVisFloat b = seg.End;
 
-  //ElVisFloat3 rayDirection = seg.RayDirection;
-  ElVisFloat d = (b-a);
+  // ElVisFloat3 rayDirection = seg.RayDirection;
+  ElVisFloat d = (b - a);
 
-  //ELVIS_PRINTF("ValidateSegment: Ray Direction (%2.10f, %2.10f, %2.10f), segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x, rayDirection.y, rayDirection.z, d, a, b);
+  // ELVIS_PRINTF("ValidateSegment: Ray Direction (%2.10f, %2.10f, %2.10f),
+  // segment distance %2.10f and endopints [%2.10f, %2.10f]\n", rayDirection.x,
+  // rayDirection.y, rayDirection.z, d, a, b);
 
-  if( d == MAKE_FLOAT(0.0) )
+  if (d == MAKE_FLOAT(0.0))
   {
-    //ELVIS_PRINTF("ValidateSegment: Exiting because d is 0\n", rayDirection.x, rayDirection.y, rayDirection.z, d);
+    // ELVIS_PRINTF("ValidateSegment: Exiting because d is 0\n", rayDirection.x,
+    // rayDirection.y, rayDirection.z, d);
     return false;
   }
 
   return true;
 }
 
-template<typename SegmentFunction>
+template <typename SegmentFunction>
 __device__ void ElementTraversal(SegmentFunction& f)
 {
   // Cast a single ray to find entrance to volume.
@@ -135,17 +144,19 @@ __device__ void ElementTraversal(SegmentFunction& f)
   seg.RayDirection = rayDirection;
   int maxIter = 200;
   int iter = 0;
-  while( FindNextSegmentAlongRay(seg, rayDirection) && iter < maxIter)
+  while (FindNextSegmentAlongRay(seg, rayDirection) && iter < maxIter)
   {
-    if( seg.End < MAKE_FLOAT(0.0) )
+    if (seg.End < MAKE_FLOAT(0.0))
     {
-      ELVIS_PRINTF("ElementTraversal: Exiting because ray has left volume based on segment end\n");
+      ELVIS_PRINTF("ElementTraversal: Exiting because ray has left volume "
+                   "based on segment end\n");
       return;
     }
 
-    if(ValidateSegment(seg) && f(seg, origin0) )
+    if (ValidateSegment(seg) && f(seg, origin0))
     {
-      ELVIS_PRINTF("ElementTraversal: Done because segment is valid and function indicates we are done.\n");
+      ELVIS_PRINTF("ElementTraversal: Done because segment is valid and "
+                   "function indicates we are done.\n");
       return;
     }
 
@@ -155,4 +166,3 @@ __device__ void ElementTraversal(SegmentFunction& f)
 }
 
 #endif
-

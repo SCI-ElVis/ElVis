@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
@@ -39,146 +38,143 @@
 
 namespace ElVis
 {
-    PrimaryRayModule::PrimaryRayModule() :
-        OnObjectAdded(),
-        m_objects(),
-        m_program(),
-        m_group()
+  PrimaryRayModule::PrimaryRayModule()
+    : OnObjectAdded(), m_objects(), m_program(), m_group()
+  {
+    m_program.Index = -1;
+  }
+
+  void PrimaryRayModule::AddObject(boost::shared_ptr<PrimaryRayObject> obj)
+  {
+    m_objects.push_back(obj);
+    obj->OnObjectChanged.connect(
+      boost::bind(&PrimaryRayModule::HandleObjectChanged, this, _1));
+    SetSyncAndRenderRequired();
+    OnObjectAdded(obj);
+    OnModuleChanged(*this);
+  }
+
+  void PrimaryRayModule::DoSetup(SceneView* view)
+  {
+    try
     {
-        m_program.Index = -1;
-    }
-    
-    void PrimaryRayModule::AddObject(boost::shared_ptr<PrimaryRayObject> obj) 
-    { 
-        m_objects.push_back(obj); 
-        obj->OnObjectChanged.connect(boost::bind(&PrimaryRayModule::HandleObjectChanged, this, _1));
-        SetSyncAndRenderRequired();
-        OnObjectAdded(obj); 
-        OnModuleChanged(*this);
-    }
+      optixu::Context context = view->GetContext();
 
-    void PrimaryRayModule::DoSetup(SceneView* view)
+      m_group = context->createGroup();
+      m_group->setAcceleration(
+        context->createAcceleration("NoAccel", "NoAccel"));
+      context["SurfaceGeometryGroup"]->set(m_group);
+
+      m_program = view->AddRayGenerationProgram("GeneratePrimaryRays");
+      context->setMissProgram(
+        0, PtxManager::LoadProgram(
+             context, view->GetPTXPrefix(), "PrimaryRayMissed"));
+    }
+    catch (optixu::Exception& e)
     {
-        try
-        {
-            optixu::Context context = view->GetContext();
-
-            m_group = context->createGroup();
-            m_group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
-            context["SurfaceGeometryGroup"]->set( m_group );
-
-            m_program = view->AddRayGenerationProgram("GeneratePrimaryRays");
-            context->setMissProgram(0, PtxManager::LoadProgram(context, view->GetPTXPrefix(), "PrimaryRayMissed"));
-        }
-        catch(optixu::Exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cerr << e.getErrorString() << std::endl;
-            std::cout << e.getErrorString().c_str() << std::endl;
-        }
-        catch(std::exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cout << e.what() << std::endl;
-        }
-        catch(...)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-        }
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cerr << e.getErrorString() << std::endl;
+      std::cout << e.getErrorString().c_str() << std::endl;
     }
-
-    void PrimaryRayModule::DoSynchronize(SceneView* view)
+    catch (std::exception& e)
     {
-        try
-        {
-            optixu::Context context = view->GetContext();
-            assert(context);
-
-            auto numSurfaces = m_objects.size();
-
-            assert(m_group);
-            m_group->setChildCount(static_cast<unsigned int>(numSurfaces));
-
-            int curChild = 0;
-            for(std::vector<boost::shared_ptr<PrimaryRayObject> >::const_iterator iter = m_objects.begin(); iter != m_objects.end(); ++iter)
-            {
-                optixu::Transform transform;
-                optixu::GeometryGroup geometryGroup;
-
-                (*iter)->CreateNode(view, transform, geometryGroup);
-
-                bool test = true;
-                if( transform.get() && test )
-                {
-                    m_group->setChild(curChild, transform);
-                    ++curChild;
-                }
-                else if ( geometryGroup.get() && test )
-                {
-                    m_group->setChild(curChild, geometryGroup);
-                    ++curChild;
-                }
-                else
-                {
-                    --numSurfaces;
-                    m_group->setChildCount(static_cast<unsigned int>(numSurfaces));
-                }
-
-
-                
-            }
-
-            m_group->getAcceleration()->markDirty();
-        }
-        catch(optixu::Exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cerr << e.getErrorString() << std::endl;
-            std::cout << e.getErrorString().c_str() << std::endl;
-        }
-        catch(std::exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cout << e.what() << std::endl;
-        }
-        catch(...)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-        }
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cout << e.what() << std::endl;
     }
-
-    void PrimaryRayModule::DoRender(SceneView* view)
+    catch (...)
     {
-        try
-        {      
-            optixu::Context context = view->GetContext();
-            context->launch(m_program.Index, view->GetWidth(), view->GetHeight());
-        }
-        catch(optixu::Exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cerr << e.getErrorString() << std::endl;
-            std::cout << e.getErrorString().c_str() << std::endl;
-        }
-        catch(std::exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cout << e.what() << std::endl;
-        }
-        catch(...)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-        }
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
     }
+  }
 
-
-
-    void PrimaryRayModule::HandleObjectChanged(const PrimaryRayObject& obj)
+  void PrimaryRayModule::DoSynchronize(SceneView* view)
+  {
+    try
     {
-        OnObjectChanged(obj);
-        OnModuleChanged(*this);
-        SetSyncAndRenderRequired();
+      optixu::Context context = view->GetContext();
+      assert(context);
+
+      auto numSurfaces = m_objects.size();
+
+      assert(m_group);
+      m_group->setChildCount(static_cast<unsigned int>(numSurfaces));
+
+      int curChild = 0;
+      for (
+        std::vector<boost::shared_ptr<PrimaryRayObject>>::const_iterator iter =
+          m_objects.begin();
+        iter != m_objects.end(); ++iter)
+      {
+        optixu::Transform transform;
+        optixu::GeometryGroup geometryGroup;
+
+        (*iter)->CreateNode(view, transform, geometryGroup);
+
+        bool test = true;
+        if (transform.get() && test)
+        {
+          m_group->setChild(curChild, transform);
+          ++curChild;
+        }
+        else if (geometryGroup.get() && test)
+        {
+          m_group->setChild(curChild, geometryGroup);
+          ++curChild;
+        }
+        else
+        {
+          --numSurfaces;
+          m_group->setChildCount(static_cast<unsigned int>(numSurfaces));
+        }
+      }
+
+      m_group->getAcceleration()->markDirty();
     }
-            
+    catch (optixu::Exception& e)
+    {
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cerr << e.getErrorString() << std::endl;
+      std::cout << e.getErrorString().c_str() << std::endl;
+    }
+    catch (std::exception& e)
+    {
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cout << e.what() << std::endl;
+    }
+    catch (...)
+    {
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+    }
+  }
+
+  void PrimaryRayModule::DoRender(SceneView* view)
+  {
+    try
+    {
+      optixu::Context context = view->GetContext();
+      context->launch(m_program.Index, view->GetWidth(), view->GetHeight());
+    }
+    catch (optixu::Exception& e)
+    {
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cerr << e.getErrorString() << std::endl;
+      std::cout << e.getErrorString().c_str() << std::endl;
+    }
+    catch (std::exception& e)
+    {
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cout << e.what() << std::endl;
+    }
+    catch (...)
+    {
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+    }
+  }
+
+  void PrimaryRayModule::HandleObjectChanged(const PrimaryRayObject& obj)
+  {
+    OnObjectChanged(obj);
+    OnModuleChanged(*this);
+    SetSyncAndRenderRequired();
+  }
 }
-

@@ -34,59 +34,67 @@
 #include <boost/typeof/typeof.hpp>
 namespace ElVis
 {
-    const std::string Plugin::GetNameFunctionName("GetPluginName");
-    const std::string Plugin::LoadModelFunctionName("LoadModel");
-    const std::string Plugin::GetVolumeFileFilterFunctionName("GetVolumeFileFilter");
+  const std::string Plugin::GetNameFunctionName("GetPluginName");
+  const std::string Plugin::LoadModelFunctionName("LoadModel");
+  const std::string Plugin::GetVolumeFileFilterFunctionName(
+    "GetVolumeFileFilter");
 
-    Plugin::Plugin(const boost::filesystem::path& pluginPath) :
-        m_path(pluginPath),
-        m_dynamicLib(pluginPath),
-        m_name(),
-        m_volumeFileFilter(),
-        m_getNameFunction(0),
-        m_loadModelFunction(0),
-        m_getVolumeFileFilterFunction(0)
+  Plugin::Plugin(const boost::filesystem::path& pluginPath)
+    : m_path(pluginPath),
+      m_dynamicLib(pluginPath),
+      m_name(),
+      m_volumeFileFilter(),
+      m_getNameFunction(0),
+      m_loadModelFunction(0),
+      m_getVolumeFileFilterFunction(0)
+  {
+    m_getNameFunction =
+      m_dynamicLib.GetFunction<GetNameFunction>(GetNameFunctionName);
+    m_loadModelFunction =
+      m_dynamicLib.GetFunction<LoadModelFunction>(LoadModelFunctionName);
+    m_getVolumeFileFilterFunction =
+      m_dynamicLib.GetFunction<GetVolumeFileFilterFunction>(
+        GetVolumeFileFilterFunctionName);
+
+    if (!m_getNameFunction)
     {
-        m_getNameFunction = m_dynamicLib.GetFunction<GetNameFunction>(GetNameFunctionName);
-        m_loadModelFunction = m_dynamicLib.GetFunction<LoadModelFunction>(LoadModelFunctionName);
-        m_getVolumeFileFilterFunction = m_dynamicLib.GetFunction<GetVolumeFileFilterFunction>(GetVolumeFileFilterFunctionName);
-
-        if( !m_getNameFunction )
-        {
-            throw UnableToLoadDynamicLibException("Extenstion at " + pluginPath.string() + " does not have " + GetNameFunctionName);
-        }
-
-        if( !m_loadModelFunction )
-        {
-            throw UnableToLoadDynamicLibException("Extenstion at " + pluginPath.string() + " does not have " + LoadModelFunctionName);
-        }
-
-        if( !m_getVolumeFileFilterFunction )
-        {
-            throw UnableToLoadDynamicLibException("Extenstion at " + pluginPath.string() + " does not have " + GetVolumeFileFilterFunctionName);
-        }
-
-        m_name = std::string(m_getNameFunction());
-        m_volumeFileFilter = std::string(m_getVolumeFileFilterFunction());
+      throw UnableToLoadDynamicLibException(
+        "Extenstion at " + pluginPath.string() + " does not have " +
+        GetNameFunctionName);
     }
 
-    Plugin::~Plugin()
+    if (!m_loadModelFunction)
     {
+      throw UnableToLoadDynamicLibException(
+        "Extenstion at " + pluginPath.string() + " does not have " +
+        LoadModelFunctionName);
     }
 
-    boost::shared_ptr<ElVis::Model> Plugin::LoadModel(const std::string& name)
+    if (!m_getVolumeFileFilterFunction)
     {
-        auto rawPtr = m_loadModelFunction(name.c_str());
-        rawPtr->SetPlugin(shared_from_this());
-
-        // We want to return a shared ptr to maintain consistency across ElVis,
-        // but we can't assume that the model can be deleted in the context 
-        // of ElVis (for example, if the plugin is written with a different 
-        // C runtime library on Windows, deleting the model in ElVis rather 
-        // than the plugin will cause a crash).  
-        // TODO - Require plugins to implement a cleanup function that we can 
-        // then attach to the shared ptr deleter.
-        return boost::shared_ptr<ElVis::Model>(rawPtr, noDelete);
+      throw UnableToLoadDynamicLibException(
+        "Extenstion at " + pluginPath.string() + " does not have " +
+        GetVolumeFileFilterFunctionName);
     }
+
+    m_name = std::string(m_getNameFunction());
+    m_volumeFileFilter = std::string(m_getVolumeFileFilterFunction());
+  }
+
+  Plugin::~Plugin() {}
+
+  boost::shared_ptr<ElVis::Model> Plugin::LoadModel(const std::string& name)
+  {
+    auto rawPtr = m_loadModelFunction(name.c_str());
+    rawPtr->SetPlugin(shared_from_this());
+
+    // We want to return a shared ptr to maintain consistency across ElVis,
+    // but we can't assume that the model can be deleted in the context
+    // of ElVis (for example, if the plugin is written with a different
+    // C runtime library on Windows, deleting the model in ElVis rather
+    // than the plugin will cause a crash).
+    // TODO - Require plugins to implement a cleanup function that we can
+    // then attach to the shared ptr deleter.
+    return boost::shared_ptr<ElVis::Model>(rawPtr, noDelete);
+  }
 }
-

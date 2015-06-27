@@ -35,23 +35,25 @@
 
 namespace ElVis
 {
-    class DirectionalLight : public Light
+  class DirectionalLight : public Light
+  {
+  public:
+    ELVIS_EXPORT DirectionalLight();
+    ELVIS_EXPORT DirectionalLight(const DirectionalLight& rhs);
+    ELVIS_EXPORT virtual ~DirectionalLight() {}
+
+    ELVIS_EXPORT const WorldVector& Direction() const { return m_direction; }
+    ELVIS_EXPORT void SetPosition(const WorldVector& value)
     {
-        public:
-            ELVIS_EXPORT DirectionalLight();
-            ELVIS_EXPORT DirectionalLight(const DirectionalLight& rhs);
-            ELVIS_EXPORT virtual ~DirectionalLight() {}
+      m_direction = value;
+    }
 
-            ELVIS_EXPORT const WorldVector& Direction() const { return m_direction; }
-            ELVIS_EXPORT void SetPosition(const WorldVector& value) { m_direction = value; }
+  private:
+    Light& operator=(const Light& rhs);
 
-        private:
-            Light& operator=(const Light& rhs);
-
-            Color m_color;
-            WorldVector m_direction;
-    };
+    Color m_color;
+    WorldVector m_direction;
+  };
 }
 
-#endif //ELVIS_DIRECTIONAL_LIGHT_H
-
+#endif // ELVIS_DIRECTIONAL_LIGHT_H

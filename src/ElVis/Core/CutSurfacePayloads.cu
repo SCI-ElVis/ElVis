@@ -41,93 +41,100 @@ rtDeclareVariable(ElVisFloat3, BGColor, , );
 // Used by rays that query scalar at specific points.
 // Set the found value with
 // *scalarValue = value;
-// If a scalar value is not found, then the background color is used 
+// If a scalar value is not found, then the background color is used
 // and specified in result;
 struct CutSurfaceScalarValuePayload
-{      
-    ELVIS_DEVICE void Initialize()
-    {
-        isValid = false;
-        ReferencePointSet = false;
-        scalarValue = ELVIS_FLOAT_MAX;
-        IntersectionT = -1.0f;
-        Normal = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
-        Color = BGColor;
-        elementId = -1;
-        elementType = -1;
-    }
+{
+  ELVIS_DEVICE void Initialize()
+  {
+    isValid = false;
+    ReferencePointSet = false;
+    scalarValue = ELVIS_FLOAT_MAX;
+    IntersectionT = -1.0f;
+    Normal = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+    Color = BGColor;
+    elementId = -1;
+    elementType = -1;
+  }
 
-    int isValid;
-    int elementId;
-    int elementType;
-    ElVisFloat3 ReferenceIntersectionPoint;
-    ElVisFloat3 result;
-    ElVisFloat3 IntersectionPoint;
-    float IntersectionT;
-    ElVisFloat3 Normal;
-    ElVisFloat3 Color;
-    ElVisFloat scalarValue;
-    int ReferencePointSet;
+  int isValid;
+  int elementId;
+  int elementType;
+  ElVisFloat3 ReferenceIntersectionPoint;
+  ElVisFloat3 result;
+  ElVisFloat3 IntersectionPoint;
+  float IntersectionT;
+  ElVisFloat3 Normal;
+  ElVisFloat3 Color;
+  ElVisFloat scalarValue;
+  int ReferencePointSet;
 };
-
 
 /// \brief Ray payload designed for use with the element finder routines
 ///        in FineElement.cu
 struct ElementFinderPayload
 {
-    ELVIS_DEVICE ElementFinderPayload() 
-    {
-    }
+  ELVIS_DEVICE ElementFinderPayload() {}
 
-    /// This method takes the place of a constructor, as constructors in payload objects
-    /// are not support by OptiX 2.5 and earlier.
-    ELVIS_DEVICE void Initialize(const ElVisFloat3& p)
-    {
-        IntersectionPoint = p;
-        elementId = -1;
-        elementType = -1;
-        ReferencePointType = ElVis::eReferencePointIsInvalid;
-        ReferenceIntersectionPoint = MakeFloat3(ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX);
-    }
+  /// This method takes the place of a constructor, as constructors in payload
+  /// objects
+  /// are not support by OptiX 2.5 and earlier.
+  ELVIS_DEVICE void Initialize(const ElVisFloat3& p)
+  {
+    IntersectionPoint = p;
+    elementId = -1;
+    elementType = -1;
+    ReferencePointType = ElVis::eReferencePointIsInvalid;
+    ReferenceIntersectionPoint =
+      MakeFloat3(ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX);
+  }
 
-    ELVIS_DEVICE ElementFinderPayload(const ElementFinderPayload& rhs) :
-        IntersectionPoint(rhs.IntersectionPoint),
-        elementId(rhs.elementId),
-        elementType(rhs.elementType),
-        ReferencePointType(rhs.ReferencePointType),
-        ReferenceIntersectionPoint(rhs.ReferenceIntersectionPoint)
-    {
-    }
+  ELVIS_DEVICE ElementFinderPayload(const ElementFinderPayload& rhs)
+    : IntersectionPoint(rhs.IntersectionPoint),
+      elementId(rhs.elementId),
+      elementType(rhs.elementType),
+      ReferencePointType(rhs.ReferencePointType),
+      ReferenceIntersectionPoint(rhs.ReferenceIntersectionPoint)
+  {
+  }
 
-    ELVIS_DEVICE ElementFinderPayload& operator=(const ElementFinderPayload& rhs)
-    {
-        IntersectionPoint = MakeFloat3(rhs.IntersectionPoint.x, rhs.IntersectionPoint.y, rhs.IntersectionPoint.z);
-        elementId = rhs.elementId;
-        elementType = rhs.elementType;
-        ReferencePointType = rhs.ReferencePointType;
-        ReferenceIntersectionPoint = MakeFloat3(rhs.ReferenceIntersectionPoint.x, rhs.ReferenceIntersectionPoint.y, rhs.ReferenceIntersectionPoint.z);
-        return *this;
-    }
-    /// \brief The point for which the enclosing element is sought.
-    ElVisFloat3 IntersectionPoint;
+  ELVIS_DEVICE ElementFinderPayload& operator=(const ElementFinderPayload& rhs)
+  {
+    IntersectionPoint =
+      MakeFloat3(rhs.IntersectionPoint.x, rhs.IntersectionPoint.y,
+                 rhs.IntersectionPoint.z);
+    elementId = rhs.elementId;
+    elementType = rhs.elementType;
+    ReferencePointType = rhs.ReferencePointType;
+    ReferenceIntersectionPoint = MakeFloat3(rhs.ReferenceIntersectionPoint.x,
+                                            rhs.ReferenceIntersectionPoint.y,
+                                            rhs.ReferenceIntersectionPoint.z);
+    return *this;
+  }
+  /// \brief The point for which the enclosing element is sought.
+  ElVisFloat3 IntersectionPoint;
 
-    /// \brief The element id that encloses IntersectionPoint.
-    int elementId;
+  /// \brief The element id that encloses IntersectionPoint.
+  int elementId;
 
-    /// \brief The element type that encloses IntersectionPoint.
-    int elementType;
+  /// \brief The element type that encloses IntersectionPoint.
+  int elementType;
 
-    /// \brief In some cases, the determination of the enclosing element also calculates the reference
-    ///        points associated with IntersectionPoint.  If that occurs, this can be stored to prevent
-    ///        further processing later.
-    ///
-    /// If a reference point is calculated as part of the find element procecdure, set this value to
-    /// eReferencePointIsValid, otherwise leave it as eReferencePointIsInvalid,
-    ElVis::ReferencePointParameterType ReferencePointType;
+  /// \brief In some cases, the determination of the enclosing element also
+  /// calculates the reference
+  ///        points associated with IntersectionPoint.  If that occurs, this can
+  ///        be stored to prevent
+  ///        further processing later.
+  ///
+  /// If a reference point is calculated as part of the find element procecdure,
+  /// set this value to
+  /// eReferencePointIsValid, otherwise leave it as eReferencePointIsInvalid,
+  ElVis::ReferencePointParameterType ReferencePointType;
 
-    /// \brief If ReferencePointType is set to eReferencePointIsValid, then this contains the calculated reference
-    ///        point.
-    ElVisFloat3 ReferenceIntersectionPoint;
+  /// \brief If ReferencePointType is set to eReferencePointIsValid, then this
+  /// contains the calculated reference
+  ///        point.
+  ElVisFloat3 ReferenceIntersectionPoint;
 };
 
-#endif //ELVIS_CUT_SURFACE_PAYLOADS_H
+#endif // ELVIS_CUT_SURFACE_PAYLOADS_H

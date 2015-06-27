@@ -41,65 +41,85 @@ rtDeclareVariable(float3, ambientColor, , );
 rtBuffer<float, 1> lightPosition;
 rtBuffer<float, 1> lightColor;
 
-__device__ __forceinline__ ElVisFloat3 CalculateContribution(const ElVisFloat3& lightPos, const ElVisFloat3& intersectionPoint, const ElVisFloat3& lcolor, const ElVisFloat3& normal, const ElVisFloat3& color)
+__device__ __forceinline__ ElVisFloat3
+CalculateContribution(const ElVisFloat3& lightPos,
+                      const ElVisFloat3& intersectionPoint,
+                      const ElVisFloat3& lcolor,
+                      const ElVisFloat3& normal,
+                      const ElVisFloat3& color)
 {
 
-//    ELVIS_PRINTF("LightPos: (%2.15f, %2.15f, %2.15f), Intersection Point (%2.15f, %2.15f, %2.15f), Light Color (%2.15f, %2.15f, %2.15f), Normal (%2.15f, %2.15f, %2.15f)\n",
-//                 lightPos.x, lightPos.y, lightPos.z,
-//                 intersectionPoint.x, intersectionPoint.y, intersectionPoint.z,
-//                 lcolor.x, lcolor.y, lcolor.z,
-//                 normal.x, normal.y, normal.z
-//                 );
+  //    ELVIS_PRINTF("LightPos: (%2.15f, %2.15f, %2.15f), Intersection Point
+  //    (%2.15f, %2.15f, %2.15f), Light Color (%2.15f, %2.15f, %2.15f), Normal
+  //    (%2.15f, %2.15f, %2.15f)\n",
+  //                 lightPos.x, lightPos.y, lightPos.z,
+  //                 intersectionPoint.x, intersectionPoint.y,
+  //                 intersectionPoint.z,
+  //                 lcolor.x, lcolor.y, lcolor.z,
+  //                 normal.x, normal.y, normal.z
+  //                 );
 
-    ElVisFloat3 vectorToLight = lightPos - intersectionPoint;
-    vectorToLight = normalize(vectorToLight);
-    //ELVIS_PRINTF("Vector to light: (%2.15f, %2.15f, %2.15f)\n", vectorToLight.x, vectorToLight.y, vectorToLight.z);
+  ElVisFloat3 vectorToLight = lightPos - intersectionPoint;
+  vectorToLight = normalize(vectorToLight);
+  // ELVIS_PRINTF("Vector to light: (%2.15f, %2.15f, %2.15f)\n",
+  // vectorToLight.x, vectorToLight.y, vectorToLight.z);
 
-    ElVisFloat d = dot(vectorToLight, normal);
+  ElVisFloat d = dot(vectorToLight, normal);
 
-    //d = max(MAKE_FLOAT(0.0), d);
-    if( d < MAKE_FLOAT(0.0) )
-    {
-        d = -d;
-    }
-    //ELVIS_PRINTF("d %2.15f\n", d);
+  // d = max(MAKE_FLOAT(0.0), d);
+  if (d < MAKE_FLOAT(0.0))
+  {
+    d = -d;
+  }
+  // ELVIS_PRINTF("d %2.15f\n", d);
 
-    //ElVisFloat3 lcolor = MakeFloat3(lightColor[i], lightColor[i+1], lightColor[i+2]);
-    ElVisFloat3 contribution = d*lcolor*color;
-    return contribution;
+  // ElVisFloat3 lcolor = MakeFloat3(lightColor[i], lightColor[i+1],
+  // lightColor[i+2]);
+  ElVisFloat3 contribution = d * lcolor * color;
+  return contribution;
 }
 
 // color - the color at the intersection point.
 // normal - the unit normal at the intersection point.
-__device__ __forceinline__ ElVisFloat3 DiffuseLighting(const ElVisFloat3& color, const ElVisFloat3& normal, const ElVisFloat3& intersectionPoint)
+__device__ __forceinline__ ElVisFloat3
+DiffuseLighting(const ElVisFloat3& color,
+                const ElVisFloat3& normal,
+                const ElVisFloat3& intersectionPoint)
 {
-    // Depends on lighting information in the Scene.
-    ElVisFloat3 resultColor = MakeFloat3(ambientColor)*color;
-    ElVisFloat3 normalizedNormal = normalize(normal);
+  // Depends on lighting information in the Scene.
+  ElVisFloat3 resultColor = MakeFloat3(ambientColor) * color;
+  ElVisFloat3 normalizedNormal = normalize(normal);
 
-    int numLights = lightPosition.size()/3;
-    //ELVIS_PRINTF("Num Lights %d", numLights);
-    for(int i = 0; i < numLights; i+=3)
-    {
-        // Just simple diffuse.
-        ElVisFloat3 lightPos = MakeFloat3(lightPosition[i], lightPosition[i+1], lightPosition[i+2]);
-        ElVisFloat3 lcolor = MakeFloat3(lightColor[i], lightColor[i+1], lightColor[i+2]);
-        resultColor += CalculateContribution(lightPos, intersectionPoint, lcolor, normal, color);
+  int numLights = lightPosition.size() / 3;
+  // ELVIS_PRINTF("Num Lights %d", numLights);
+  for (int i = 0; i < numLights; i += 3)
+  {
+    // Just simple diffuse.
+    ElVisFloat3 lightPos =
+      MakeFloat3(lightPosition[i], lightPosition[i + 1], lightPosition[i + 2]);
+    ElVisFloat3 lcolor =
+      MakeFloat3(lightColor[i], lightColor[i + 1], lightColor[i + 2]);
+    resultColor +=
+      CalculateContribution(lightPos, intersectionPoint, lcolor, normal, color);
 
-//        ElVisFloat3 vectorToLight = lightPos - intersectionPoint;
-//        vectorToLight = normalize(vectorToLight);
-//        ElVisFloat d = dot(vectorToLight, normal);
+    //        ElVisFloat3 vectorToLight = lightPos - intersectionPoint;
+    //        vectorToLight = normalize(vectorToLight);
+    //        ElVisFloat d = dot(vectorToLight, normal);
 
-//        d = max(MAKE_FLOAT(0.0), d);
-//        ElVisFloat3 lcolor = MakeFloat3(lightColor[i], lightColor[i+1], lightColor[i+2]);
-//        ElVisFloat3 contribution = d*lcolor*color;
-//        resultColor += contribution;
-    }
+    //        d = max(MAKE_FLOAT(0.0), d);
+    //        ElVisFloat3 lcolor = MakeFloat3(lightColor[i], lightColor[i+1],
+    //        lightColor[i+2]);
+    //        ElVisFloat3 contribution = d*lcolor*color;
+    //        resultColor += contribution;
+  }
 
-    //ELVIS_PRINTF("Color eye (%f, %f, %f), normal (%f, %f, %f)\n", eye.x, eye.y, eye.z, normal.x, normal.y, normal.z);
-    resultColor += CalculateContribution(eye, intersectionPoint, HeadlightColor, normalizedNormal, color);
-    //ELVIS_PRINTF("Result color (%f, %f, %f)\n", resultColor.x, resultColor.y, resultColor.z);
-    return resultColor;
+  // ELVIS_PRINTF("Color eye (%f, %f, %f), normal (%f, %f, %f)\n", eye.x, eye.y,
+  // eye.z, normal.x, normal.y, normal.z);
+  resultColor += CalculateContribution(
+    eye, intersectionPoint, HeadlightColor, normalizedNormal, color);
+  // ELVIS_PRINTF("Result color (%f, %f, %f)\n", resultColor.x, resultColor.y,
+  // resultColor.z);
+  return resultColor;
 }
 
-#endif //ELVIS_DIFFUSE_LIGHTING_CU
+#endif // ELVIS_DIFFUSE_LIGHTING_CU

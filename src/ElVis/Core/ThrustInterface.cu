@@ -32,13 +32,17 @@
 
 namespace ElVis
 {
-//    __host__ void SortByElementIdAndType(thrust::device_ptr<ElementId>& keyBuffer, thrust::device_ptr<int>& valueBuffer, int n)
-//    {
-//        thrust::sort_by_key(keyBuffer, keyBuffer + n, valueBuffer);
-//    }
+  //    __host__ void SortByElementIdAndType(thrust::device_ptr<ElementId>&
+  //    keyBuffer, thrust::device_ptr<int>& valueBuffer, int n)
+  //    {
+  //        thrust::sort_by_key(keyBuffer, keyBuffer + n, valueBuffer);
+  //    }
 
-    __host__ void SortByPixelType(thrust::device_ptr<VolumeRenderingIntegrationCategory>& keyBuffer, thrust::device_ptr<int>& valueBuffer, int n)
-    {
-        thrust::sort_by_key(keyBuffer, keyBuffer + n, valueBuffer);
-    }
+  __host__ void SortByPixelType(
+    thrust::device_ptr<VolumeRenderingIntegrationCategory>& keyBuffer,
+    thrust::device_ptr<int>& valueBuffer,
+    int n)
+  {
+    thrust::sort_by_key(keyBuffer, keyBuffer + n, valueBuffer);
+  }
 }

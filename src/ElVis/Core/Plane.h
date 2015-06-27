@@ -45,62 +45,64 @@
 
 namespace ElVis
 {
-    class Plane : public Object
+  class Plane : public Object
+  {
+  public:
+    friend class boost::serialization::access;
+    ELVIS_EXPORT Plane();
+    ELVIS_EXPORT Plane(const WorldPoint& normal, const WorldPoint& p);
+    ELVIS_EXPORT virtual ~Plane() {}
+
+    ELVIS_EXPORT const WorldPoint& GetNormal() const { return m_normal; }
+    ELVIS_EXPORT const WorldPoint& GetPoint() const { return m_point; }
+    ELVIS_EXPORT WorldPoint& GetNormal() { return m_normal; }
+    ELVIS_EXPORT WorldPoint& GetPoint() { return m_point; }
+
+    ELVIS_EXPORT void SetNormal(const WorldPoint& value) { m_normal = value; }
+    ELVIS_EXPORT void SetPoint(const WorldPoint& value) { m_point = value; }
+
+  protected:
+    ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(
+      SceneView* view);
+    ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view);
+    ELVIS_EXPORT virtual void DoCreateNode(SceneView* view,
+                                           optixu::Transform& transform,
+                                           optixu::GeometryGroup& group);
+
+  private:
+    Plane& operator=(const Plane& rhs);
+    ELVIS_EXPORT Plane(const Plane& rhs);
+    static bool Initialized;
+    static bool InitializeStatic();
+    static void LoadPrograms(const std::string& prefix,
+                             optixu::Context context);
+
+    void CopyDataToOptiX();
+    void HandlePointChanged(const WorldPoint& p);
+    void SetupSubscriptions();
+
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
-        public:
-            friend class boost::serialization::access;
-            ELVIS_EXPORT Plane();
-            ELVIS_EXPORT Plane(const WorldPoint& normal, const WorldPoint& p);
-            ELVIS_EXPORT virtual ~Plane() {}
+      ar& BOOST_SERIALIZATION_BASE_OBJECT_NVP(Object);
+      ar& BOOST_SERIALIZATION_NVP(m_normal);
+      ar& BOOST_SERIALIZATION_NVP(m_point);
+    }
 
-            ELVIS_EXPORT const WorldPoint& GetNormal() const { return m_normal; }
-            ELVIS_EXPORT const WorldPoint& GetPoint() const { return m_point; }
-            ELVIS_EXPORT WorldPoint& GetNormal() { return m_normal; }
-            ELVIS_EXPORT WorldPoint& GetPoint() { return m_point; }
+    optixu::GeometryGroup m_group;
+    optixu::GeometryInstance m_instance;
+    optixu::Transform m_transform;
 
-            ELVIS_EXPORT void SetNormal(const WorldPoint& value) { m_normal = value; }
-            ELVIS_EXPORT void SetPoint(const WorldPoint& value) { m_point = value; }
+    optixu::Material m_material;
 
-        protected:
+    WorldPoint m_normal;
+    WorldPoint m_point;
 
-            ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(SceneView* view);
-            ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view);
-            ELVIS_EXPORT virtual void DoCreateNode(SceneView* view,
-                optixu::Transform& transform, optixu::GeometryGroup& group);
+    static optixu::Program BoundingProgram;
+    static optixu::Program IntersectionProgram;
+  };
 
-        private:
-            Plane& operator=(const Plane& rhs);
-            ELVIS_EXPORT Plane(const Plane& rhs);
-            static bool Initialized;
-            static bool InitializeStatic();
-            static void LoadPrograms(const std::string& prefix, optixu::Context context);
-
-            void CopyDataToOptiX();
-            void HandlePointChanged(const WorldPoint& p);
-            void SetupSubscriptions();
-
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
-            {
-                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Object);
-                ar & BOOST_SERIALIZATION_NVP(m_normal);
-                ar & BOOST_SERIALIZATION_NVP(m_point);
-            }
-
-            optixu::GeometryGroup m_group;
-            optixu::GeometryInstance m_instance;
-            optixu::Transform m_transform;
-
-            optixu::Material m_material;
-
-            WorldPoint m_normal;
-            WorldPoint m_point;
-
-            static optixu::Program BoundingProgram;
-            static optixu::Program IntersectionProgram;
-    };
-
-    ELVIS_EXPORT std::ostream& operator<<(std::ostream& os, const Plane& tri);
+  ELVIS_EXPORT std::ostream& operator<<(std::ostream& os, const Plane& tri);
 }
 
 #endif

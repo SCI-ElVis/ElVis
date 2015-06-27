@@ -44,111 +44,128 @@
 
 namespace ElVis
 {
-    enum VolumeRenderingIntegrationType
+  enum VolumeRenderingIntegrationType
+  {
+    eRiemann_SingleThreadPerRay = 0,
+    eTrapezoidal_SingleThreadPerRay = 1,
+    eIntegrateSegment_FullAlgorithm = 7
+  };
+
+  class VolumeRenderingModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT VolumeRenderingModule();
+    ELVIS_EXPORT virtual ~VolumeRenderingModule() {}
+
+    ELVIS_EXPORT void SetIntegrationType(VolumeRenderingIntegrationType type);
+    VolumeRenderingIntegrationType GetIntegrationType() const
     {
-        eRiemann_SingleThreadPerRay = 0,
-        eTrapezoidal_SingleThreadPerRay = 1,
-        eIntegrateSegment_FullAlgorithm = 7
-    };
+      return m_segmentIntegrationType;
+    }
 
-
-    class VolumeRenderingModule : public RenderModule
+    boost::shared_ptr<HostTransferFunction> GetTransferFunction()
     {
-        public:
-            ELVIS_EXPORT VolumeRenderingModule();
-            ELVIS_EXPORT virtual ~VolumeRenderingModule() {}
+      return m_transferFunction;
+    }
 
-            ELVIS_EXPORT void SetIntegrationType(VolumeRenderingIntegrationType type);
-            VolumeRenderingIntegrationType GetIntegrationType() const { return m_segmentIntegrationType; }
+    ELVIS_EXPORT void SetCompositingStepSize(ElVisFloat value);
+    ElVisFloat GetCompositingStepSize() const { return m_compositingStepSize; }
 
-            boost::shared_ptr<HostTransferFunction> GetTransferFunction() { return m_transferFunction; }
+    ELVIS_EXPORT void SetEpsilon(ElVisFloat value);
+    ElVisFloat GetEpsilon() const { return m_epsilon; }
 
-            ELVIS_EXPORT void SetCompositingStepSize(ElVisFloat value);
-            ElVisFloat GetCompositingStepSize() const { return m_compositingStepSize; }
+    ELVIS_EXPORT void WriteAccumulatedDensityBuffer(const std::string& fileName,
+                                                    SceneView* view);
 
-            ELVIS_EXPORT void SetEpsilon(ElVisFloat value);
-            ElVisFloat GetEpsilon() const { return m_epsilon; }
+    ELVIS_EXPORT void SetTrackNumberOfSamples(bool value);
+    ELVIS_EXPORT bool GetTrackNumberOfSamples() const
+    {
+      return m_enableSampleTracking;
+    }
 
-            ELVIS_EXPORT void WriteAccumulatedDensityBuffer(const std::string& fileName, SceneView* view);
+    void SetRenderIntegrationType(bool value)
+    {
+      m_renderIntegrationType = value;
+    }
 
-            ELVIS_EXPORT void SetTrackNumberOfSamples(bool value);
-            ELVIS_EXPORT bool GetTrackNumberOfSamples() const { return m_enableSampleTracking; }
+    void SetEnableEmptySpaceSkipping(bool value)
+    {
+      m_enableEmptySpaceSkipping = value;
+    }
 
-            void SetRenderIntegrationType(bool value) { m_renderIntegrationType = value; }
+    boost::signals2::signal<void(
+      const RenderModule&, VolumeRenderingIntegrationType)>
+      OnIntegrationTypeChanged;
 
-            void SetEnableEmptySpaceSkipping(bool value) { m_enableEmptySpaceSkipping = value; }
+  protected:
+    ELVIS_EXPORT virtual void DoRender(SceneView* view);
+    ELVIS_EXPORT virtual void DoSetup(SceneView* view);
+    ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
 
-            boost::signals2::signal<void (const RenderModule&, VolumeRenderingIntegrationType)> OnIntegrationTypeChanged;
+    virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
+    virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
+    virtual std::string DoGetName() const { return "Volume Rendering"; }
 
-        protected:
-            ELVIS_EXPORT virtual void DoRender(SceneView* view);
-            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
-            ELVIS_EXPORT virtual void DoEvaluateSegment(SceneView* view);
+  private:
+    VolumeRenderingModule& operator=(const VolumeRenderingModule& rhs);
+    VolumeRenderingModule(const VolumeRenderingModule& rhs);
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
-            virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
-            virtual std::string DoGetName() const { return "Volume Rendering"; }
+    static bool InitializeStatic();
+    static bool Initialized;
 
-        private:
-            VolumeRenderingModule& operator=(const VolumeRenderingModule& rhs);
-            VolumeRenderingModule(const VolumeRenderingModule& rhs);
-            
-            static bool InitializeStatic();
-            static bool Initialized;
+    // virtual void DoAfterSetup(SceneView* view);
 
-            //virtual void DoAfterSetup(SceneView* view);
+    void IntegrateSegment(SceneView* view);
+    void IntegrateSegmentSingleThreadPerRayRiemann(SceneView* view);
+    void IntegrateSingleThreadPerRayFull(SceneView* view);
+    void IntegrateSingleWarpPerSegmentFull(SceneView* view);
+    void IntegrateSegmentSingleThreadPerRay(SceneView* view);
+    void IntegrateGKOnly(SceneView* view);
+    void IntegrateTrapezoidal_SingleThreadPerRay(SceneView* view);
 
-            void IntegrateSegment(SceneView* view);
-            void IntegrateSegmentSingleThreadPerRayRiemann(SceneView* view);
-            void IntegrateSingleThreadPerRayFull(SceneView* view);
-            void IntegrateSingleWarpPerSegmentFull(SceneView* view);
-            void IntegrateSegmentSingleThreadPerRay(SceneView* view);
-            void IntegrateGKOnly(SceneView* view);
-            void IntegrateTrapezoidal_SingleThreadPerRay(SceneView* view);
+    void HandleTransferFunctionChanged();
 
-            void HandleTransferFunctionChanged();
+    ///////////////////////////////////////////////////////
+    // The following methods are primarily test methods to see how a
+    // user-defined
+    // he over each entire segment performs when compared to adaptively sampling
+    // in warp sized chunks.  Both cases use error estimation, it's just that
+    // the first one cuts sample spacing in half globally when the error isn't
+    // good enough, while the second tries to be more adaptive.
+    void IntegrateDensity_NonAdaptiveTrapezoidal_SingleBlockPerRay(
+      SceneView* view);
+    void IntegrateDensity_AdaptiveTrapezoidal_SingleBlockPerRay(
+      SceneView* view);
 
-            ///////////////////////////////////////////////////////
-            // The following methods are primarily test methods to see how a user-defined
-            // he over each entire segment performs when compared to adaptively sampling
-            // in warp sized chunks.  Both cases use error estimation, it's just that
-            // the first one cuts sample spacing in half globally when the error isn't
-            // good enough, while the second tries to be more adaptive.
-            void IntegrateDensity_NonAdaptiveTrapezoidal_SingleBlockPerRay(SceneView* view);
-            void IntegrateDensity_AdaptiveTrapezoidal_SingleBlockPerRay(SceneView* view);
+    ///////////////////////////////////////////////////////////
+    // the following methods are candidates for the final code.
+    ///////////////////////////////////////////////////////////
+    void ResetSampleCount();
 
-            ///////////////////////////////////////////////////////////
-            // the following methods are candidates for the final code.
-            ///////////////////////////////////////////////////////////
-            void ResetSampleCount();
+    OptiXBuffer<ElVisFloat> DensityBreakpoints;
+    OptiXBuffer<ElVisFloat> RedBreakpoints;
+    OptiXBuffer<ElVisFloat> GreenBreakpoints;
+    OptiXBuffer<ElVisFloat> BlueBreakpoints;
 
-            OptiXBuffer<ElVisFloat> DensityBreakpoints;
-            OptiXBuffer<ElVisFloat> RedBreakpoints;
-            OptiXBuffer<ElVisFloat> GreenBreakpoints;
-            OptiXBuffer<ElVisFloat> BlueBreakpoints;
+    OptiXBuffer<ElVisFloat> DensityValues;
+    OptiXBuffer<ElVisFloat> RedValues;
+    OptiXBuffer<ElVisFloat> GreenValues;
+    OptiXBuffer<ElVisFloat> BlueValues;
 
-            OptiXBuffer<ElVisFloat> DensityValues;
-            OptiXBuffer<ElVisFloat> RedValues;
-            OptiXBuffer<ElVisFloat> GreenValues;
-            OptiXBuffer<ElVisFloat> BlueValues;
+    RayGeneratorProgram m_program;
+    static RayGeneratorProgram m_PerformVolumeRendering;
 
-            RayGeneratorProgram m_program;
-            static RayGeneratorProgram m_PerformVolumeRendering;
+    // Element by Element Approach
+    VolumeRenderingIntegrationType m_segmentIntegrationType;
 
-            // Element by Element Approach
-            VolumeRenderingIntegrationType m_segmentIntegrationType;
-
-            bool m_enableSampleTracking;
-            boost::shared_ptr<HostTransferFunction> m_transferFunction;
-            ElVisFloat m_compositingStepSize;
-            ElVisFloat m_epsilon;
-            bool m_renderIntegrationType;
-            bool m_enableEmptySpaceSkipping;
-            bool m_initializationComplete;
-
-
-    };
+    bool m_enableSampleTracking;
+    boost::shared_ptr<HostTransferFunction> m_transferFunction;
+    ElVisFloat m_compositingStepSize;
+    ElVisFloat m_epsilon;
+    bool m_renderIntegrationType;
+    bool m_enableEmptySpaceSkipping;
+    bool m_initializationComplete;
+  };
 }
-
 
 #endif

@@ -41,45 +41,47 @@ rtDeclareVariable(float, s0, , );
 rtDeclareVariable(float, s1, , );
 rtDeclareVariable(float, s2, , );
 
-
-RT_PROGRAM void triangle_intersect( int primIdx )
+RT_PROGRAM void triangle_intersect(int primIdx)
 {
-    ElVisFloat3 e0 = TriangleVertex1 - TriangleVertex0;
-    ElVisFloat3 e1 = TriangleVertex0 - TriangleVertex2;
-    ElVisFloat3 n  = cross( e0, e1 );
+  ElVisFloat3 e0 = TriangleVertex1 - TriangleVertex0;
+  ElVisFloat3 e1 = TriangleVertex0 - TriangleVertex2;
+  ElVisFloat3 n = cross(e0, e1);
 
-    ElVisFloat v   = dot( n, MakeFloat3(ray.direction) );
-    ElVisFloat r   = MAKE_FLOAT(1.0) / v;
+  ElVisFloat v = dot(n, MakeFloat3(ray.direction));
+  ElVisFloat r = MAKE_FLOAT(1.0) / v;
 
-    ElVisFloat3 e2 = TriangleVertex0 - MakeFloat3(ray.origin);
-    ElVisFloat va  = dot( n, e2 );
-    ElVisFloat t   = r*va;
+  ElVisFloat3 e2 = TriangleVertex0 - MakeFloat3(ray.origin);
+  ElVisFloat va = dot(n, e2);
+  ElVisFloat t = r * va;
 
-    if(t < ray.tmax && t > ray.tmin) 
+  if (t < ray.tmax && t > ray.tmin)
+  {
+    ElVisFloat3 i = cross(e2, MakeFloat3(ray.direction));
+    ElVisFloat v1 = dot(i, e1);
+    ElVisFloat beta = r * v1;
+    if (beta >= MAKE_FLOAT(0.0))
     {
-        ElVisFloat3 i   = cross( e2, MakeFloat3(ray.direction) );
-        ElVisFloat v1   = dot( i, e1 );
-        ElVisFloat beta = r*v1;
-        if(beta >= MAKE_FLOAT(0.0))
+      ElVisFloat v2 = dot(i, e0);
+      ElVisFloat gamma = r * v2;
+      if ((v1 + v2) * v <= v * v && gamma >= MAKE_FLOAT(0.0))
+      {
+        if (rtPotentialIntersection(t))
         {
-            ElVisFloat v2 = dot( i, e0 );
-            ElVisFloat gamma = r*v2;
-            if( (v1+v2)*v <= v*v && gamma >= MAKE_FLOAT(0.0) ) 
-            {
-                if(  rtPotentialIntersection( t ) ) 
-                {
-                    normal = n;
-                    rtReportIntersection(0);
-                }
-            }
-        }   
+          normal = n;
+          rtReportIntersection(0);
+        }
+      }
     }
+  }
 }
 
-RT_PROGRAM void triangle_bounding (int, float result[6])
+RT_PROGRAM void triangle_bounding(int, float result[6])
 {
-    optix::Aabb* aabb = (optix::Aabb*)result;
-    aabb->m_min = fminf( fminf( ConvertToFloat3(TriangleVertex0), ConvertToFloat3(TriangleVertex1)), ConvertToFloat3(TriangleVertex2) );
-    aabb->m_max = fmaxf( fmaxf( ConvertToFloat3(TriangleVertex0), ConvertToFloat3(TriangleVertex1)), ConvertToFloat3(TriangleVertex2) );
+  optix::Aabb* aabb = (optix::Aabb*)result;
+  aabb->m_min = fminf(
+    fminf(ConvertToFloat3(TriangleVertex0), ConvertToFloat3(TriangleVertex1)),
+    ConvertToFloat3(TriangleVertex2));
+  aabb->m_max = fmaxf(
+    fmaxf(ConvertToFloat3(TriangleVertex0), ConvertToFloat3(TriangleVertex1)),
+    ConvertToFloat3(TriangleVertex2));
 }
-

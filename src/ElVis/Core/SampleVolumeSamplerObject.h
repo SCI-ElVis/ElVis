@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVISNATIVE_SAMPLE_VOLUME_SAMPLER_OBJECT
 #define ELVISNATIVE_SAMPLE_VOLUME_SAMPLER_OBJECT
 
@@ -40,35 +39,38 @@
 
 namespace ElVis
 {
-    class SampleVolumeSamplerObject : public PrimaryRayObject
+  class SampleVolumeSamplerObject : public PrimaryRayObject
+  {
+  public:
+    friend class boost::serialization::access;
+    ELVIS_EXPORT SampleVolumeSamplerObject();
+    ELVIS_EXPORT explicit SampleVolumeSamplerObject(
+      boost::shared_ptr<Object> obj);
+    ELVIS_EXPORT virtual ~SampleVolumeSamplerObject();
+
+  protected:
+    virtual optixu::Material GetMaterial(SceneView* view);
+
+  private:
+    SampleVolumeSamplerObject& operator=(const SampleVolumeSamplerObject& rhs);
+    ELVIS_EXPORT SampleVolumeSamplerObject(
+      const SampleVolumeSamplerObject& rhs);
+
+    static bool Initialized;
+    static bool InitializeStatic();
+    static void LoadPrograms(const std::string& prefix,
+                             optixu::Context context);
+
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
-        public:
-            friend class boost::serialization::access;
-            ELVIS_EXPORT SampleVolumeSamplerObject();
-            ELVIS_EXPORT explicit SampleVolumeSamplerObject(boost::shared_ptr<Object> obj);
-            ELVIS_EXPORT virtual ~SampleVolumeSamplerObject();
-            
-        protected:
-            virtual optixu::Material GetMaterial(SceneView* view);
+      ar& BOOST_SERIALIZATION_BASE_OBJECT_NVP(PrimaryRayObject);
+    }
 
-        private:
-            SampleVolumeSamplerObject& operator=(const SampleVolumeSamplerObject& rhs);
-            ELVIS_EXPORT SampleVolumeSamplerObject(const SampleVolumeSamplerObject& rhs);
-
-            static bool Initialized;
-            static bool InitializeStatic();
-            static void LoadPrograms(const std::string& prefix, optixu::Context context);
-
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
-            {
-                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(PrimaryRayObject);
-            }
-
-            static optixu::Material Material;
-            static optixu::Program ClosestHitProgram;
-            static optixu::Program AnyHitProgram;
-    };
+    static optixu::Material Material;
+    static optixu::Program ClosestHitProgram;
+    static optixu::Program AnyHitProgram;
+  };
 }
 
 #endif

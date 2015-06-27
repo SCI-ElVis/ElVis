@@ -40,9 +40,8 @@
 #include <ElVis/Core/PrimaryRayGenerator.cu>
 #include <ElVis/Core/OptixVariables.cu>
 
-
 RT_PROGRAM void GeneratePrimaryRays()
-{   
+{
   optix::size_t2 screen = color_buffer.size();
 
   optix::Ray ray = GeneratePrimaryRay(screen, 0, 1e-3f);
@@ -52,13 +51,14 @@ RT_PROGRAM void GeneratePrimaryRays()
   normal_buffer[launch_index] = payload.Normal;
   SampleBuffer[launch_index] = payload.scalarValue;
 
-//  ELVIS_PRINTF("Origin (%2.15f, %2.15f, %2.15f), Direction (%2.15f, %2.15f, %2.15f)\n",
-//    ray.origin.x, ray.origin.y, ray.origin.z,
-//    ray.direction.x, ray.direction.y, ray.direction.z);
-  rtTrace(SurfaceGeometryGroup, ray, payload);   
+  //  ELVIS_PRINTF("Origin (%2.15f, %2.15f, %2.15f), Direction (%2.15f, %2.15f,
+  //  %2.15f)\n",
+  //    ray.origin.x, ray.origin.y, ray.origin.z,
+  //    ray.direction.x, ray.direction.y, ray.direction.z);
+  rtTrace(SurfaceGeometryGroup, ray, payload);
 
-
-  //ELVIS_PRINTF("GeneratePrimaryRays: Normal (%f, %f, %f)\n", payload.Normal.x, payload.Normal.y, payload.Normal.z);
+  // ELVIS_PRINTF("GeneratePrimaryRays: Normal (%f, %f, %f)\n",
+  // payload.Normal.x, payload.Normal.y, payload.Normal.z);
   raw_color_buffer[launch_index] = payload.Color;
   color_buffer[launch_index] = ConvertToColor(payload.Color);
   normal_buffer[launch_index] = payload.Normal;
@@ -68,18 +68,22 @@ RT_PROGRAM void GeneratePrimaryRays()
   ElementTypeBuffer[launch_index] = payload.elementType;
 
   ////unsigned int s = 0x01 << (DepthBits-1);
-  ////depth_buffer[launch_index] = (far+near)/(far-near) + 1.0f/payload.IntersectionT * ( (2.0f*far*near)/(far-near));
+  ////depth_buffer[launch_index] = (far+near)/(far-near) +
+  ///1.0f/payload.IntersectionT * ( (2.0f*far*near)/(far-near));
   ////    if( payload.IntersectionT == -1.0f )
   ////    {
-  ////        // Assuming a depth buffer bound on [0,1], the normal LESS comparision for the depth buffer will ignore these
+  ////        // Assuming a depth buffer bound on [0,1], the normal LESS
+  ///comparision for the depth buffer will ignore these
   ////        // pixels.
   ////        depth_buffer[launch_index] = 2.0f;
   ////    }
   ////    else
   ////    {
-  ////        depth_buffer[launch_index] = ( 1.0f/payload.IntersectionT * far*near/(far-near) + .5f*(far+near)/(far-near) + .5f );
+  ////        depth_buffer[launch_index] = ( 1.0f/payload.IntersectionT *
+  ///far*near/(far-near) + .5f*(far+near)/(far-near) + .5f );
   ////    }
-  ////    ELVIS_PRINTF("Intersection t %f and depth t %f\n", payload.IntersectionT, depth_buffer[launch_index]);
+  ////    ELVIS_PRINTF("Intersection t %f and depth t %f\n",
+  ///payload.IntersectionT, depth_buffer[launch_index]);
 
   //// Probably want window coordinates.
 
@@ -87,35 +91,37 @@ RT_PROGRAM void GeneratePrimaryRays()
   ////    ELVIS_PRINTF("Clip Coordinates.\n");
   ////    if( payload.IntersectionT == -1.0f )
   ////    {
-  ////        // Assuming a depth buffer bound on [0,1], the normal LESS comparision for the depth buffer will ignore these
+  ////        // Assuming a depth buffer bound on [0,1], the normal LESS
+  ///comparision for the depth buffer will ignore these
   ////        // pixels.
   ////        depth_buffer[launch_index] = 2.0f;
   ////    }
   ////    else
   ////    {
-  ////        depth_buffer[launch_index] = -payload.IntersectionT * (far+near)/(far-near) - 1.0f * 2.0f *far*near/(far-near);
+  ////        depth_buffer[launch_index] = -payload.IntersectionT *
+  ///(far+near)/(far-near) - 1.0f * 2.0f *far*near/(far-near);
   ////    }
-
 
   //// ndc Coordinates
   //// These are -1..1, I want 0..1
-  //if( !payload.isValid )
+  // if( !payload.isValid )
   //{
-  //  // Assuming a depth buffer bound on [0,1], the normal LESS comparision for the depth buffer will ignore these
+  //  // Assuming a depth buffer bound on [0,1], the normal LESS comparision for
+  //  the depth buffer will ignore these
   //  // pixels.
   //  depth_buffer[launch_index] = ELVIS_FLOAT_MAX;
   //}
-  //else
+  // else
   //{
-  //  //depth_buffer[launch_index] = (far+near)/(far-near) - 2.0f/payload.IntersectionT * far*near/(far-near);
+  //  //depth_buffer[launch_index] = (far+near)/(far-near) -
+  //  2.0f/payload.IntersectionT * far*near/(far-near);
   //  //depth_buffer[launch_index] = (depth_buffer[launch_index]+1.0)/2.0;
   //  depth_buffer[launch_index] = payload.IntersectionT;
   //}
 
-  //ELVIS_PRINTF("GeneratePrimaryRays: Intersection t %f and depth t %f\n", payload.IntersectionT, depth_buffer[launch_index]);
+  // ELVIS_PRINTF("GeneratePrimaryRays: Intersection t %f and depth t %f\n",
+  // payload.IntersectionT, depth_buffer[launch_index]);
 }
-
-
 
 RT_PROGRAM void PrimaryRayMissed()
 {
@@ -127,9 +133,4 @@ RT_PROGRAM void ExceptionProgram()
   rtPrintExceptionDetails();
 }
 
-
-
-
-
 #endif
-

@@ -43,42 +43,42 @@
 
 namespace ElVis
 {
-    /// \brief Plugins allow custom funtionality to be added to ElVis.
-    ///
-    /// Plugins must support the following functions:
-    class Plugin : public boost::enable_shared_from_this<Plugin>
-    {
-        public:
-            ELVIS_EXPORT explicit Plugin(const boost::filesystem::path& pluginPath);
-            ELVIS_EXPORT virtual ~Plugin();
+  /// \brief Plugins allow custom funtionality to be added to ElVis.
+  ///
+  /// Plugins must support the following functions:
+  class Plugin : public boost::enable_shared_from_this<Plugin>
+  {
+  public:
+    ELVIS_EXPORT explicit Plugin(const boost::filesystem::path& pluginPath);
+    ELVIS_EXPORT virtual ~Plugin();
 
-            const std::string& GetName() const { return m_name; }
-            const std::string& GetModelFileFilter() const { return m_volumeFileFilter; }
-            ELVIS_EXPORT boost::shared_ptr<ElVis::Model> LoadModel(const std::string& name);
-            ELVIS_EXPORT const boost::filesystem::path& GetPath() { return m_path; }
+    const std::string& GetName() const { return m_name; }
+    const std::string& GetModelFileFilter() const { return m_volumeFileFilter; }
+    ELVIS_EXPORT boost::shared_ptr<ElVis::Model> LoadModel(
+      const std::string& name);
+    ELVIS_EXPORT const boost::filesystem::path& GetPath() { return m_path; }
 
-        private:
-            Plugin(const Plugin& rhs);
-            Plugin& operator=(const Plugin& rhs);
+  private:
+    Plugin(const Plugin& rhs);
+    Plugin& operator=(const Plugin& rhs);
 
-            const static std::string GetNameFunctionName;
-            const static std::string LoadModelFunctionName;
-            const static std::string GetVolumeFileFilterFunctionName;
+    const static std::string GetNameFunctionName;
+    const static std::string LoadModelFunctionName;
+    const static std::string GetVolumeFileFilterFunctionName;
 
-            typedef const char* (*GetNameFunction)();
-            typedef const char* (*GetVolumeFileFilterFunction)();
-            typedef ElVis::Model* (*LoadModelFunction)(const char* path);
+    typedef const char* (*GetNameFunction)();
+    typedef const char* (*GetVolumeFileFilterFunction)();
+    typedef ElVis::Model* (*LoadModelFunction)(const char* path);
 
-            boost::filesystem::path m_path;
-            DynamicLib m_dynamicLib;
-            std::string m_name;
-            std::string m_volumeFileFilter;
+    boost::filesystem::path m_path;
+    DynamicLib m_dynamicLib;
+    std::string m_name;
+    std::string m_volumeFileFilter;
 
-            GetNameFunction m_getNameFunction;
-            LoadModelFunction m_loadModelFunction;
-            GetVolumeFileFilterFunction m_getVolumeFileFilterFunction;
-    };
+    GetNameFunction m_getNameFunction;
+    LoadModelFunction m_loadModelFunction;
+    GetVolumeFileFilterFunction m_getVolumeFileFilterFunction;
+  };
 }
 
 #endif
-

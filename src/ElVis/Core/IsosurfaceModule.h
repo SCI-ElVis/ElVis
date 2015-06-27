@@ -43,49 +43,50 @@
 
 namespace ElVis
 {
-    class IsosurfaceModule : public RenderModule
+  class IsosurfaceModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT IsosurfaceModule();
+    ELVIS_EXPORT virtual ~IsosurfaceModule() {}
+
+    ELVIS_EXPORT virtual void DoRender(SceneView* view);
+
+    ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
+    ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
+
+    ELVIS_EXPORT const std::set<ElVisFloat> GetIsovalues() const
     {
-        public:
-            ELVIS_EXPORT IsosurfaceModule();
-            ELVIS_EXPORT virtual ~IsosurfaceModule() {}
+      return m_isovalues;
+    }
 
-            ELVIS_EXPORT virtual void DoRender(SceneView* view);
+    boost::signals2::signal<void(ElVisFloat)> OnIsovalueAdded;
+    boost::signals2::signal<void(ElVisFloat, ElVisFloat)> OnIsovalueChanged;
+    boost::signals2::signal<void(ElVisFloat)> OnIsovalueRemoved;
 
-            ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
-            ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
+  protected:
+    ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
+    ELVIS_EXPORT virtual void DoSetup(SceneView* view);
 
-            ELVIS_EXPORT const std::set<ElVisFloat> GetIsovalues() const { return m_isovalues; }
+    virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
+    virtual std::string DoGetName() const { return "Isosurface Rendering"; }
 
-            boost::signals2::signal< void (ElVisFloat) > OnIsovalueAdded;
-            boost::signals2::signal< void (ElVisFloat, ElVisFloat)> OnIsovalueChanged;
-            boost::signals2::signal< void (ElVisFloat)> OnIsovalueRemoved;
+  private:
+    IsosurfaceModule& operator=(const IsosurfaceModule& rhs);
+    IsosurfaceModule(const IsosurfaceModule& rhs);
 
-        protected:
+    static void ReadFloatVector(const std::string& fileName,
+                                std::vector<ElVisFloat>& values);
 
-            ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
-            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
+    std::set<ElVisFloat> m_isovalues;
+    unsigned int m_isovalueBufferSize;
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
-            virtual std::string DoGetName() const { return "Isosurface Rendering"; }
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreWeightsBuffer;
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_monomialConversionTableBuffer;
 
-        private:
-            IsosurfaceModule& operator=(const IsosurfaceModule& rhs);
-            IsosurfaceModule(const IsosurfaceModule& rhs);
-
-            static void ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values);
-
-            std::set<ElVisFloat> m_isovalues;
-            unsigned int m_isovalueBufferSize;
-
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreWeightsBuffer;
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_monomialConversionTableBuffer;
-
-            static RayGeneratorProgram m_FindIsosurface;
-
-    };
+    static RayGeneratorProgram m_FindIsosurface;
+  };
 }
-
 
 #endif

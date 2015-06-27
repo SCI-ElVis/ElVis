@@ -40,6 +40,4 @@ RT_PROGRAM void PlanarFaceIntersection(int primitiveId)
   // primitiveId is the local index for a planar face.
 }
 
-
-
 #endif

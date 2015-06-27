@@ -36,66 +36,67 @@
 
 namespace ElVis
 {
-    enum FaceType
+  enum FaceType
+  {
+    eCurved,
+    ePlanar
+  };
+
+  struct FaceInfo
+  {
+    // CommonElements[0] - The element on the opposite side as the face's
+    // normal.
+    // CommonElements[1] - The element on the same side of the face's normal.
+    ElementId CommonElements[2];
+    FaceType Type;
+    ElVisFloat3 MinExtent;
+    ElVisFloat3 MaxExtent;
+
+    void widenExtents()
     {
-        eCurved,
-        ePlanar
-    };
+      if (MinExtent.x == MaxExtent.x)
+      {
+        MinExtent.x = MinExtent.x - static_cast<ElVisFloat>(.0001);
+        MaxExtent.x = MaxExtent.x + static_cast<ElVisFloat>(.0001);
+      }
 
-    struct FaceInfo
-    {
-        // CommonElements[0] - The element on the opposite side as the face's normal.
-        // CommonElements[1] - The element on the same side of the face's normal.
-        ElementId CommonElements[2];
-        FaceType Type;
-        ElVisFloat3 MinExtent;
-        ElVisFloat3 MaxExtent;
+      if (MinExtent.y == MaxExtent.y)
+      {
+        MinExtent.y = MinExtent.y - static_cast<ElVisFloat>(.0001);
+        MaxExtent.y = MaxExtent.y + static_cast<ElVisFloat>(.0001);
+      }
 
-        void widenExtents()
-        {
-          if( MinExtent.x == MaxExtent.x )
-          {
-            MinExtent.x = MinExtent.x - static_cast<ElVisFloat>(.0001);
-            MaxExtent.x = MaxExtent.x + static_cast<ElVisFloat>(.0001);
-          }
-
-          if( MinExtent.y == MaxExtent.y )
-          {
-            MinExtent.y = MinExtent.y - static_cast<ElVisFloat>(.0001);
-            MaxExtent.y = MaxExtent.y + static_cast<ElVisFloat>(.0001);
-          }
-
-          if( MinExtent.z == MaxExtent.z )
-          {
-            MinExtent.z = MinExtent.z - static_cast<ElVisFloat>(.0001);
-            MaxExtent.z = MaxExtent.z + static_cast<ElVisFloat>(.0001);
-          }
-        }
-    };
-
-    inline bool isPlanarFace(const FaceInfo& info)
-    {
-      return info.Type == ePlanar;
+      if (MinExtent.z == MaxExtent.z)
+      {
+        MinExtent.z = MinExtent.z - static_cast<ElVisFloat>(.0001);
+        MaxExtent.z = MaxExtent.z + static_cast<ElVisFloat>(.0001);
+      }
     }
+  };
 
-    inline bool isCurvedFace(const FaceInfo& info)
-    {
-      return info.Type == eCurved;
-    }
+  inline bool isPlanarFace(const FaceInfo& info)
+  {
+    return info.Type == ePlanar;
+  }
 
-    enum TwoDElementType
-    {
-      eSegment,
-      eTriangle,
-      eQuad,
-      eInvalid
-    };
+  inline bool isCurvedFace(const FaceInfo& info)
+  {
+    return info.Type == eCurved;
+  }
 
-    struct PlanarFaceInfo
-    {
-      TwoDElementType Type;
-      unsigned int vertexIdx[4];
-    };
+  enum TwoDElementType
+  {
+    eSegment,
+    eTriangle,
+    eQuad,
+    eInvalid
+  };
+
+  struct PlanarFaceInfo
+  {
+    TwoDElementType Type;
+    unsigned int vertexIdx[4];
+  };
 }
 
 #endif
