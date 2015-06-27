@@ -139,7 +139,6 @@ namespace ElVis
             m_appData->GetSurfaceSceneView()->GetViewSettings()->SetAspectRatio(w, h);
             SetupPerspective();
 
-            std::cout << "New window size (" << w << ", " << h << ")" << std::endl;
             //emit windowResized(w, h);
         }
 
