@@ -29,6 +29,14 @@
 #ifndef ELVIS_SCENE_VIEW_H
 #define ELVIS_SCENE_VIEW_H
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
+
 #include <ElVis/Core/Model.h>
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/Camera.h>
@@ -47,23 +55,14 @@
 #include <boost/signals2.hpp>
 #include <boost/foreach.hpp>
 
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/serialization/list.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/shared_ptr.hpp>
-#include <boost/serialization/string.hpp>
+
 
 namespace ElVis
 {
   class RenderModule;
   class PrimaryRayModule;
 
-  namespace
-  {
-    const std::string VIEW_SETTINGS_KEY_NAME("ViewSettings");
-  }
+
   class SceneView
   {
   public:
@@ -248,39 +247,19 @@ namespace ElVis
     void ClearColorBuffer();
     void HandleRenderModuleChanged(const RenderModule&);
 
+    /// \brief Serializes this to an archive.
+    /// \param ar The serialization destination.
     template <typename Archive>
-    void save(Archive& ar, const unsigned int version) const
-    {
-      // ar & BOOST_SERIALIZATION_NVP(m_scene);
-      ar& boost::serialization::make_nvp(
-        VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
-      // ar & BOOST_SERIALIZATION_NVP(m_depthBits);
-      // ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
-      // ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
-      // ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
-      // ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
-      // ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
-      // ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
-      // do_serialize(ar, version);
-    }
+    void save(Archive& ar, const unsigned int version) const;
 
+    /// \brief Deserializes this from an archive.
+    /// \param ar The serialization source.
     template <typename Archive>
-    void load(Archive& ar, const unsigned int version)
-    {
-      // ar & BOOST_SERIALIZATION_NVP(m_scene);
-      ar& boost::serialization::make_nvp(
-        VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
-      // ar & BOOST_SERIALIZATION_NVP(m_depthBits);
-      // ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
-      // ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
-      // ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
-      // ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
-      // ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
-      // ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
-      // do_serialize(ar, version);
-      OnSceneViewChanged(*this);
-    }
+    void load(Archive& ar, const unsigned int version);
 
+    /// This macro is required to support the save/load interface above.
+    /// Without it, serialization and deserialization are performed by
+    /// the same function.
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 
     boost::shared_ptr<Scene> m_scene;

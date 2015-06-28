@@ -31,8 +31,11 @@
 
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <boost/signals2.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/split_member.hpp>
 #include <bitset>
-
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 namespace ElVis
 {
   class SceneView;
@@ -59,6 +62,9 @@ namespace ElVis
 
   class RenderModule
   {
+  public:
+    friend class boost::serialization::access;
+
   public:
     ELVIS_EXPORT explicit RenderModule();
     ELVIS_EXPORT virtual ~RenderModule() {}
@@ -98,12 +104,30 @@ namespace ElVis
 
     virtual void DoUpdateBeforeRender(SceneView* view) {}
 
+    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const {}
+    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) {}
+
     virtual int DoGetNumberOfRequiredEntryPoints() = 0;
     virtual std::string DoGetName() const = 0;
 
     virtual void DoResize(unsigned int newWidth, unsigned int newHeight);
 
   private:
+    /// \brief Serializes this to an archive.
+    /// \param ar The serialization destination.
+    template <typename Archive>
+    void save(Archive& ar, const unsigned int version) const;
+
+    /// \brief Deserializes this from an archive.
+    /// \param ar The serialization source.
+    template <typename Archive>
+    void load(Archive& ar, const unsigned int version);
+
+    /// This macro is required to support the save/load interface above.
+    /// Without it, serialization and deserialization are performed by
+    /// the same function.
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
+
     RenderModule& operator=(const RenderModule& rhs);
     RenderModule(const RenderModule& rhs);
 
@@ -111,5 +135,7 @@ namespace ElVis
     bool m_enabled;
   };
 }
+
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(ElVis::RenderModule)
 
 #endif // ELVIS_RENDER_MODULE_H

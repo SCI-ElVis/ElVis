@@ -26,12 +26,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVISCLI_NEKTAR_MODELS_H
 #define ELVISCLI_NEKTAR_MODELS_H
 
 #include <ElVis/Core/Model.h>
 
-int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath);
+int TestNektarModelLoad(int argc,
+                        char** argv,
+                        boost::shared_ptr<ElVis::Model> model,
+                        unsigned int width,
+                        unsigned int height,
+                        const std::string& outFilePath);
 
-#endif //ELVISCLI_NEKTAR_MODELS_H
+#endif // ELVISCLI_NEKTAR_MODELS_H

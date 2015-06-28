@@ -36,17 +36,23 @@
 
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/serialization/set.hpp>
 
 namespace ElVis
 {
+  // Serialization Keys
+  namespace
+  {
+    const std::string ISOVALUE_KEY_NAME("Isovalues");
+  }
+
   RayGeneratorProgram IsosurfaceModule::m_FindIsosurface;
 
   IsosurfaceModule::IsosurfaceModule()
     : RenderModule(),
-      OnIsovalueAdded(),
-      OnIsovalueChanged(),
+      OnIsovaluesChanged(),
       m_isovalues(),
-      m_isovalueBufferSize(),
+      m_dirty(true),
       m_isovalueBuffer("SurfaceIsovalues"),
       m_gaussLegendreNodesBuffer("Nodes"),
       m_gaussLegendreWeightsBuffer("Weights"),
@@ -59,8 +65,9 @@ namespace ElVis
     if (m_isovalues.find(value) == m_isovalues.end())
     {
       m_isovalues.insert(value);
+      m_dirty = true;
       SetSyncAndRenderRequired();
-      OnIsovalueAdded(value);
+      OnIsovaluesChanged();
       OnModuleChanged(*this);
     }
   }
@@ -71,8 +78,9 @@ namespace ElVis
     if (found != m_isovalues.end())
     {
       m_isovalues.erase(found);
+      m_dirty = true;
       SetSyncAndRenderRequired();
-      OnIsovalueRemoved(value);
+      OnIsovaluesChanged();
       OnModuleChanged(*this);
     }
   }
@@ -109,7 +117,6 @@ namespace ElVis
   {
     try
     {
-      std::cout << "Isourface setup." << std::endl;
       optixu::Context context = view->GetContext();
 
       if (!m_FindIsosurface.IsValid())
@@ -170,16 +177,16 @@ namespace ElVis
 
   void IsosurfaceModule::DoSynchronize(SceneView* view)
   {
-    if (m_isovalueBufferSize != m_isovalues.size())
+    if( m_dirty )
     {
       m_isovalueBuffer.SetDimensions(m_isovalues.size());
-      m_isovalueBufferSize = static_cast<unsigned int>(m_isovalues.size());
-    }
 
-    if (!m_isovalues.empty())
-    {
-      auto isovalueData = m_isovalueBuffer.Map();
-      std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
+      if (!m_isovalues.empty())
+      {
+        auto isovalueData = m_isovalueBuffer.Map();
+        std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
+      }
+      m_dirty = true;
     }
   }
 
@@ -208,5 +215,18 @@ namespace ElVis
       }
     }
     inFile.close();
+  }
+
+  void IsosurfaceModule::serialize(boost::archive::xml_oarchive& ar, unsigned int version) const
+  {
+    ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
+  }
+
+  void IsosurfaceModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
+  {
+    ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
+    m_dirty = true;
+    OnIsovaluesChanged();
+    SetSyncAndRenderRequired();
   }
 }

@@ -31,10 +31,21 @@
 
 // Designed for the synthetic datasets on (0, 0, 0) - (1, 1, 1)
 void NewApproachCanisterMeshRendering(int argc, char** argv);
-int ColorMapBulletNewApproachVolumeSampling(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath);
-int GenericCLIInterface(int argc, char** argv, boost::shared_ptr<ElVis::Scene> scene, boost::shared_ptr<ElVis::Model> model,
+int ColorMapBulletNewApproachVolumeSampling(
+  int argc,
+  char** argv,
+  boost::shared_ptr<ElVis::Model> model,
+  unsigned int width,
+  unsigned int height,
+  const std::string& outFilePath);
+int GenericCLIInterface(int argc,
+                        char** argv,
+                        boost::shared_ptr<ElVis::Scene> scene,
+                        boost::shared_ptr<ElVis::Model> model,
                         boost::shared_ptr<ElVis::ColorMap> colorMap,
-                        unsigned int width, unsigned int height, const std::string& outFilePath, const ElVis::Camera& c);
-
+                        unsigned int width,
+                        unsigned int height,
+                        const std::string& outFilePath,
+                        const ElVis::Camera& c);
 
 #endif

@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/ColorMapperModule.h>
 #include <ElVis/ElVisCLI/Nektar++Models.h>
@@ -44,71 +43,83 @@
 #include <ElVis/Core/ElVisConfig.h>
 #include <boost/make_shared.hpp>
 
-int TestNektarModelLoad(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath)
+int TestNektarModelLoad(int argc,
+                        char** argv,
+                        boost::shared_ptr<ElVis::Model> model,
+                        unsigned int width,
+                        unsigned int height,
+                        const std::string& outFilePath)
 {
-    glutInit(&argc, argv);
-        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-        glutInitWindowSize(100, 100);
-        glutCreateWindow("fake");
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+  glutInitWindowSize(100, 100);
+  glutCreateWindow("fake");
 
-    ElVis::Camera c;
-    c.SetParameters(ElVis::WorldPoint(.5, .5, 1.2), ElVis::WorldPoint(.5, .5, 0.), ElVis::WorldVector(0., 1., 0.));
+  ElVis::Camera c;
+  c.SetParameters(ElVis::WorldPoint(.5, .5, 1.2), ElVis::WorldPoint(.5, .5, 0.),
+                  ElVis::WorldVector(0., 1., 0.));
 
-    boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
-    scene->SetModel(model);
+  boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
+  scene->SetModel(model);
 
-    auto l = boost::make_shared<ElVis::PointLight>();
-    ElVis::Color lightColor;
-    lightColor.SetRed(.5);
-    lightColor.SetGreen(.5);
-    lightColor.SetBlue(.5);
+  auto l = boost::make_shared<ElVis::PointLight>();
+  ElVis::Color lightColor;
+  lightColor.SetRed(.5);
+  lightColor.SetGreen(.5);
+  lightColor.SetBlue(.5);
 
-    ElVis::WorldPoint lightPos(10.0, 0.0, 0.0);
-    l->SetColor(lightColor);
-    l->SetPosition(lightPos);
-    scene->AddLight(l);
+  ElVis::WorldPoint lightPos(10.0, 0.0, 0.0);
+  l->SetColor(lightColor);
+  l->SetPosition(lightPos);
+  scene->AddLight(l);
 
-    ElVis::Color ambientColor;
-    ambientColor.SetRed(.5);
-    ambientColor.SetGreen(.5);
-    ambientColor.SetBlue(.5);
-    scene->SetAmbientLightColor(ambientColor);
+  ElVis::Color ambientColor;
+  ambientColor.SetRed(.5);
+  ambientColor.SetGreen(.5);
+  ambientColor.SetBlue(.5);
+  scene->SetAmbientLightColor(ambientColor);
 
-    ElVis::SceneView* view = new ElVis::SceneView();
-    view->SetCamera(c);
-    view->SetScene(scene);
-    view->Resize(width, height);
+  ElVis::SceneView* view = new ElVis::SceneView();
+  view->SetCamera(c);
+  view->SetScene(scene);
+  view->Resize(width, height);
 
-    boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(new ElVis::PrimaryRayModule());
-    view->AddRenderModule(primaryRayModule);
+  boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(
+    new ElVis::PrimaryRayModule());
+  view->AddRenderModule(primaryRayModule);
 
-    boost::shared_ptr<ElVis::Triangle> triangle1(new ElVis::Triangle());
-    triangle1->SetP0(ElVis::WorldPoint(0., 0., .5));
-    triangle1->SetP1(ElVis::WorldPoint(1., 0., .5));
-    triangle1->SetP2(ElVis::WorldPoint(1., 1., .5));
-    boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t1Sampler(new ElVis::SampleVolumeSamplerObject(triangle1));
-    primaryRayModule->AddObject(t1Sampler);
+  boost::shared_ptr<ElVis::Triangle> triangle1(new ElVis::Triangle());
+  triangle1->SetP0(ElVis::WorldPoint(0., 0., .5));
+  triangle1->SetP1(ElVis::WorldPoint(1., 0., .5));
+  triangle1->SetP2(ElVis::WorldPoint(1., 1., .5));
+  boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t1Sampler(
+    new ElVis::SampleVolumeSamplerObject(triangle1));
+  primaryRayModule->AddObject(t1Sampler);
 
+  boost::shared_ptr<ElVis::Triangle> triangle2(new ElVis::Triangle());
+  triangle2->SetP0(ElVis::WorldPoint(1., 1., .5));
+  triangle2->SetP1(ElVis::WorldPoint(0., 1., .5));
+  triangle2->SetP2(ElVis::WorldPoint(0., 0., .5));
+  boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t2Sampler(
+    new ElVis::SampleVolumeSamplerObject(triangle2));
+  primaryRayModule->AddObject(t2Sampler);
 
-    boost::shared_ptr<ElVis::Triangle> triangle2(new ElVis::Triangle());
-    triangle2->SetP0(ElVis::WorldPoint(1., 1., .5));
-    triangle2->SetP1(ElVis::WorldPoint(0., 1., .5));
-    triangle2->SetP2(ElVis::WorldPoint(0., 0., .5));
-    boost::shared_ptr<ElVis::SampleVolumeSamplerObject> t2Sampler(new ElVis::SampleVolumeSamplerObject(triangle2));
-    primaryRayModule->AddObject(t2Sampler);
+  boost::shared_ptr<ElVis::ColorMapperModule> colorMapperModule(
+    new ElVis::ColorMapperModule());
+  boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(
+    new ElVis::TextureColorMap(ElVis::GetColorMapPath() +
+                               "/diverging257.cmap"));
+  textureColorMapper->SetMin(0);
+  textureColorMapper->SetMax(1.5);
+  colorMapperModule->SetColorMap(textureColorMapper);
 
-    boost::shared_ptr<ElVis::ColorMapperModule> colorMapperModule(new ElVis::ColorMapperModule());
-    boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(new ElVis::TextureColorMap(ElVis::GetColorMapPath() + "/diverging257.cmap"));
-    textureColorMapper->SetMin(0);
-    textureColorMapper->SetMax(1.5);
-    colorMapperModule->SetColorMap(textureColorMapper);
+  view->AddRenderModule(colorMapperModule);
 
-    view->AddRenderModule(colorMapperModule);
+  boost::shared_ptr<ElVis::LightingModule> lighting(
+    new ElVis::LightingModule());
+  view->AddRenderModule(lighting);
+  view->Draw();
+  view->WriteColorBufferToFile(outFilePath);
 
-    boost::shared_ptr<ElVis::LightingModule> lighting(new ElVis::LightingModule());
-    view->AddRenderModule(lighting);
-    view->Draw();
-    view->WriteColorBufferToFile(outFilePath);
-
-    return 0;
+  return 0;
 }

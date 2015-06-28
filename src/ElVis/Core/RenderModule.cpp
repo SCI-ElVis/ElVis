@@ -28,9 +28,17 @@
 
 #include <ElVis/Core/RenderModule.h>
 #include <string>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 namespace ElVis
 {
+  // Serialization keys.
+  namespace
+  {
+    const std::string ENABLED_KEY_NAME("Enabled");
+  }
+
   RenderModule::RenderModule() : m_flags(), m_enabled(true)
   {
     m_flags.set(eSetupRequired);
@@ -127,4 +135,24 @@ namespace ElVis
   {
     DoResize(newWidth, newHeight);
   }
+
+  template <typename Archive>
+  void RenderModule::save(Archive& ar, const unsigned int version) const
+  {
+    ar & boost::serialization::make_nvp(ENABLED_KEY_NAME.c_str(), m_enabled);
+    serialize(ar, version);
+  }
+
+  template <typename Archive>
+  void RenderModule::load(Archive& ar, const unsigned int version)
+  {
+    ar & boost::serialization::make_nvp(ENABLED_KEY_NAME.c_str(), m_enabled);
+    deserialize(ar, version);
+  }
+
+  template void RenderModule::save(boost::archive::xml_oarchive&,
+                                const unsigned int) const;
+
+  template void RenderModule::load(boost::archive::xml_iarchive&,
+                                const unsigned int);
 }

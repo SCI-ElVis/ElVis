@@ -26,35 +26,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVIS_CLI_VOLUME_RENDERING_H
-#define ELVIS_CLI_VOLUME_RENDERING_H
+#ifndef ELVIS_CLI_VIEW_SETTINGS_RENDERING
+#define ELVIS_CLI_VIEW_SETTINGS_RENDERING
 
-#include <string>
-#include <ElVis/Core/Camera.h>
-#include <ElVis/Core/Model.h>
-#include <boost/shared_ptr.hpp>
-
-int IsosurfaceBullet(int argc,
-                     char** argv,
-                     boost::shared_ptr<ElVis::Model> model,
-                     unsigned int width,
-                     unsigned int height,
-                     const std::string& outFilePath,
-                     ElVis::Camera& c);
-int VolumeRendering(int argc,
-                    char** argv,
-                    boost::shared_ptr<ElVis::Model> model,
-                    unsigned int width,
-                    unsigned int height,
-                    const std::string& outFilePath,
-                    ElVis::Camera& c);
-void PaddleVolumeRendering(int argc, char** argv);
-int VolumeRenderSphereForVerification(int argc,
-                                      char** argv,
-                                      boost::shared_ptr<ElVis::Model> model,
-                                      unsigned int width,
-                                      unsigned int height,
-                                      const std::string& outFilePath,
-                                      ElVis::Camera& c);
+/// \brief Renders a scene using the given view settings file.
+int ViewSettingsRendering(int argc,
+                        char** argv,
+                        boost::shared_ptr<ElVis::Scene> scene,
+                        boost::shared_ptr<ElVis::Model> model,
+                        unsigned int width,
+                        unsigned int height,
+                        const std::string& outFilePath);
 
 #endif

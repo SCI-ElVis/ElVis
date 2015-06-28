@@ -48,6 +48,8 @@ namespace ElVis
   public:
     ELVIS_EXPORT IsosurfaceModule();
     ELVIS_EXPORT virtual ~IsosurfaceModule() {}
+    IsosurfaceModule& operator=(const IsosurfaceModule& rhs) = delete;
+    IsosurfaceModule(const IsosurfaceModule& rhs) = delete;
 
     ELVIS_EXPORT virtual void DoRender(SceneView* view);
 
@@ -59,9 +61,7 @@ namespace ElVis
       return m_isovalues;
     }
 
-    boost::signals2::signal<void(ElVisFloat)> OnIsovalueAdded;
-    boost::signals2::signal<void(ElVisFloat, ElVisFloat)> OnIsovalueChanged;
-    boost::signals2::signal<void(ElVisFloat)> OnIsovalueRemoved;
+    boost::signals2::signal<void()> OnIsovaluesChanged;
 
   protected:
     ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
@@ -70,15 +70,19 @@ namespace ElVis
     virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
     virtual std::string DoGetName() const { return "Isosurface Rendering"; }
 
-  private:
-    IsosurfaceModule& operator=(const IsosurfaceModule& rhs);
-    IsosurfaceModule(const IsosurfaceModule& rhs);
+    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const override;
+    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) override;
 
+  private:
+    /// \brief Reads a vector of floating point value from a file.
+    /// Projecting an arbitrary smooth function onto a polynomial requires
+    /// the nodes and weights for numerical ingegration.  These values
+    /// are stored in a file in the ElVis installation directory.
     static void ReadFloatVector(const std::string& fileName,
                                 std::vector<ElVisFloat>& values);
 
     std::set<ElVisFloat> m_isovalues;
-    unsigned int m_isovalueBufferSize;
+    bool m_dirty;
 
     OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
     OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;

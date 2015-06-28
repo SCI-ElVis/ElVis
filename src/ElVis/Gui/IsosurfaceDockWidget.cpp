@@ -86,7 +86,7 @@ namespace ElVis
                 connect(m_enabledCheckBox, SIGNAL(stateChanged(int)), this, SLOT(HandleEnabledStateChangedInGui(int)));
                 m_appData->GetIsosurfaceModule()->OnEnabledChanged.connect(boost::bind(&IsosurfaceDockWidget::HandleEnabledChanged, this, _1, _2));
                 connect(m_addContourButton, SIGNAL(clicked()), this, SLOT(HandleAddContourButtonPressed()));
-                m_appData->GetIsosurfaceModule()->OnIsovalueAdded.connect(boost::bind(&IsosurfaceDockWidget::HandleIsovalueAdded, this, _1));
+                m_appData->GetIsosurfaceModule()->OnIsovaluesChanged.connect(boost::bind(&IsosurfaceDockWidget::HandleIsovaluesChanged, this));
 //                //////////////////////////////////////
 //                // Isovalue
 //                //////////////////////////////////////
@@ -128,11 +128,8 @@ namespace ElVis
             }
         }
 
-        void IsosurfaceDockWidget::HandleIsovalueAdded(ElVisFloat newValue)
+        void IsosurfaceDockWidget::HandleIsovaluesChanged()
         {
-//            QListWidgetItem* item = new QListWidgetItem();
-//            item->setData(Qt::DisplayRole, newValue);
-//            m_list->addItem(item);
             PopulateListWidget();
         }
 

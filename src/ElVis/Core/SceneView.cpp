@@ -52,10 +52,87 @@
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
 
+#include <boost/serialization/vector.hpp>
+
 #define png_infopp_NULL (png_infopp) NULL
 #ifndef int_p_NULL
 #define int_p_NULL (int*) NULL
 #endif
+
+// Serialization constants
+namespace
+{
+  const std::string VIEW_SETTINGS_KEY_NAME("ViewSettings");
+  const std::string RENDER_MODULES_KEY_NAME("RenderModules");
+  const std::string RENDER_MODULE_KEY_NAME("RenderModule");
+  const std::string RENDER_MODULE_NAMES_KEY_NAME("RenderModuleNames");
+}
+
+// Custom serialization of the render module list.
+namespace boost
+{
+  namespace serialization
+  {
+
+    template <class Archive>
+    void save(Archive& ar,
+              const std::list<boost::shared_ptr<ElVis::RenderModule>>& modules,
+              const unsigned int version)
+    {
+      // Write all of the module names, then serialize the modules.  This is
+      // a workaround for the difficulty we fond in getting the boost
+      // serialization library to correctly handle derived classes.
+      std::vector<std::string> moduleNames;
+      for (const auto& pModule : modules)
+      {
+        moduleNames.push_back(pModule->GetName());
+      }
+      ar& boost::serialization::make_nvp(
+        RENDER_MODULE_NAMES_KEY_NAME.c_str(), moduleNames);
+
+      // TRICKY - for this to work, we need to write each module out in the
+      // same order as the names are listed above.
+      for (const auto& pModule : modules)
+      {
+        // TRICKY - serialize by reference to prevent the serilization library
+        // from trying to serialize the derived manually.  We handle derived
+        // classes manually.
+        const auto& moduleReference = *pModule;
+        ar& boost::serialization::make_nvp(
+          RENDER_MODULE_KEY_NAME.c_str(), moduleReference);
+      }
+    }
+
+    template <class Archive>
+    void load(Archive& ar,
+              std::list<boost::shared_ptr<ElVis::RenderModule>>& modules,
+              const unsigned int version)
+    {
+      std::vector<std::string> moduleNames;
+      ar& boost::serialization::make_nvp(
+        RENDER_MODULE_NAMES_KEY_NAME.c_str(), moduleNames);
+
+      for (const auto& moduleName : moduleNames)
+      {
+        auto found = std::find_if(
+          modules.begin(), modules.end(),
+          [moduleName](boost::shared_ptr<ElVis::RenderModule> pModule)
+          {
+            return pModule->GetName() == moduleName;
+          });
+
+        if (found == modules.end()) continue;
+        auto pModule = *found;
+        auto& moduleReference = *pModule;
+        ar& boost::serialization::make_nvp(
+          RENDER_MODULE_KEY_NAME.c_str(), moduleReference);
+      }
+    }
+  }
+}
+
+BOOST_SERIALIZATION_SPLIT_FREE(
+  std::list<boost::shared_ptr<ElVis::RenderModule>>);
 
 namespace ElVis
 {
@@ -797,4 +874,29 @@ namespace ElVis
   {
     return *m_projectionType;
   }
+
+  template <typename Archive>
+  void SceneView::save(Archive& ar, const unsigned int version) const
+  {
+    ar& boost::serialization::make_nvp(
+      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+    ar& boost::serialization::make_nvp(
+      RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
+  }
+
+  template <typename Archive>
+  void SceneView::load(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp(
+      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+    ar& boost::serialization::make_nvp(
+      RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
+    OnSceneViewChanged(*this);
+  }
+
+  template void SceneView::save(boost::archive::xml_oarchive&,
+                                const unsigned int) const;
+
+  template void SceneView::load(boost::archive::xml_iarchive&,
+                                const unsigned int);
 }
