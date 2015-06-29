@@ -23,3 +23,4 @@ OS | Compiler | Cuda | OptiX | Driver | GPU | Reason
 ---|----------|------|-------|--------|----|---
 Open SUSE 12.04 | gcc 4.6.3 | 5.5 | 3.6.3 | 331.20 | GeForce GTX 465 | 
 Ubuntu 14.04 | gcc 4.8.2 | 6.0 | 3.6.3 | 340.58 | GeForce CTX 770 | A supported NVIDIA GPU could not be found.
+Ubuntu 14.04 | gcc 4.8.2 | 6.5 | 3.6.0 | 340.29 | GeForce GTX 760 | 
