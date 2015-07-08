@@ -491,7 +491,21 @@ ELVIS_PRINTF("Find Isosurface in Segment\n");
     ElVisFloat workspace[32];
     ElVisFloat h_data[10*10];
 
-    int requiredOrder = RequiredOrder[0];
+    int requiredOrder = 8;
+    if( RequiredOrder.size() == 1 )
+    {
+    	if( RequiredOrder[0] >= 0 && RequiredOrder[0] <= 19 )
+            requiredOrder = RequiredOrder[0];
+    }
+
+    ElVisFloat epsilon = MAKE_FLOAT(1e-4);
+    if( Epsilon.size() == 1 )
+    {
+        if( epsilon >= MAKE_FLOAT(1e-16) )
+            epsilon = Epsilon[0];
+    }
+ELVIS_PRINTF("Using values: required order %d & epsilon %f\n", requiredOrder, epsilon);
+return false;
     for(int i = 0; i < 32; ++i)
     {
       polynomialCoefficients[i] = -73.45;
@@ -513,9 +527,7 @@ ELVIS_PRINTF("Find Isosurface in Segment\n");
 
     // Fix up the polynomial order if we requested higher than necessary.
     int reducedOrder = requiredOrder;
-    ElVisFloat epsilon = Epsilon[0]; //MAKE_FLOAT(1e-8);
 
-ELVIS_PRINTF("Using required order %i and epsilon = %f\n", requiredOrder, epsilon);
     for (int i = requiredOrder; i >= 1; --i)
     {
       if( Fabsf(polynomialCoefficients[i]) > epsilon )

@@ -54,7 +54,8 @@ namespace ElVis
             m_contourSpinBox(new QDoubleSpinBox()),
             m_enabledCheckBox(new QCheckBox()),
             m_requiredOrderSpinBox(new QSpinBox()),
-            m_epsilonSpinBox(new QDoubleSpinBox()),
+//            m_epsilonSpinBox(new QDoubleSpinBox()),
+            m_epsilonSpinBox(new QSpinBox()),
             m_values()
         {
             m_list->setSortingEnabled(true);
@@ -77,11 +78,15 @@ namespace ElVis
                 m_enabledCheckBox->setText("Enabled");
                 m_enabledCheckBox->setChecked(false);
 
-                m_epsilonSpinBox->setMinimum(1e-16);
-                m_epsilonSpinBox->setDecimals(16);
+//                m_epsilonSpinBox->setMinimum(1e-16);
+                m_epsilonSpinBox->setMinimum(-16);
+//                m_epsilonSpinBox->setDecimals(16);
+//                m_epsilonSpinBox->setValue(0.0001);
+                m_epsilonSpinBox->setValue(-4);
 
                 m_requiredOrderSpinBox->setMinimum(0);
-                m_requiredOrderSpinBox->setMaximum(20);
+                m_requiredOrderSpinBox->setMaximum(19);
+                m_requiredOrderSpinBox->setValue(8);
 
                 m_layout->addWidget(m_contourSpinBox, 1, 0);
                 m_layout->addWidget(m_addContourButton, 1, 1);

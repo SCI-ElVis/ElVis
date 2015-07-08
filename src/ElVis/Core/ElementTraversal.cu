@@ -135,6 +135,10 @@ __device__ void ElementTraversal(SegmentFunction& f)
   seg.RayDirection = rayDirection;
   int maxIter = 200;
   int iter = 0;
+
+f(seg,origin0);
+return;
+
   while( FindNextSegmentAlongRay(seg, rayDirection) && iter < maxIter)
   {
     if( seg.End < MAKE_FLOAT(0.0) )

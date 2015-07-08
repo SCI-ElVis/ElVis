@@ -103,13 +103,15 @@ namespace ElVis
 	  }
   }
 
-  void IsosurfaceModule::SetEpsilon(double newValue)
+//  void IsosurfaceModule::SetEpsilon(double newValue)
+  void IsosurfaceModule::SetEpsilon(int newValue)
   {
 	  bool change = false;
+	  double newValueD = pow(10, newValue);
 
 	  if( m_epsilon.size() != 0 )
 	  {
-		  if( newValue != m_epsilon[0] )
+		  if( newValueD != m_epsilon[0] )
 		      change = true;
 	  }
 	  else
@@ -120,7 +122,7 @@ namespace ElVis
 	  if( change )
 	  {
 		  m_epsilon.clear();
-		  m_epsilon.push_back(newValue);
+		  m_epsilon.push_back(newValueD);
 		  SetSyncAndRenderRequired();
           OnModuleChanged(*this);
 	  }
@@ -197,6 +199,10 @@ namespace ElVis
       }
       m_isovalueBuffer.SetContext(context);
       m_isovalueBuffer.SetDimensions(0);
+      m_requiredOrderBuffer.SetContext(context);
+      m_requiredOrderBuffer.SetDimensions(0);
+      m_epsilonBuffer.SetContext(context);
+      m_epsilonBuffer.SetDimensions(0);
     }
     catch(optixu::Exception& e)
     {
