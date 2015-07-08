@@ -90,7 +90,6 @@ namespace ElVis
                 QDoubleSpinBox* m_contourSpinBox;
                 QCheckBox* m_enabledCheckBox;
                 QSpinBox* m_requiredOrderSpinBox;
-//                QDoubleSpinBox* m_epsilonSpinBox;
                 QSpinBox* m_epsilonSpinBox;
                 std::map<QListWidgetItem*, ElVisFloat> m_values;
 

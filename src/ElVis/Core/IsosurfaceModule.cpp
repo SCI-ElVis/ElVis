@@ -103,7 +103,6 @@ namespace ElVis
 	  }
   }
 
-//  void IsosurfaceModule::SetEpsilon(double newValue)
   void IsosurfaceModule::SetEpsilon(int newValue)
   {
 	  bool change = false;

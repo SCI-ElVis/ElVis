@@ -433,7 +433,6 @@ rtBuffer<ElVisFloat> MonomialConversionTable;
 __device__ bool FindIsosurfaceInSegment(const Segment& seg, const ElVisFloat3& origin)
 {
   //if( numIsosurfaces == 0 ) return;
-ELVIS_PRINTF("Find Isosurface in Segment\n");
   optix::size_t2 screen = color_buffer.size();
 
   int elementId = seg.ElementId;
@@ -504,8 +503,7 @@ ELVIS_PRINTF("Find Isosurface in Segment\n");
         if( epsilon >= MAKE_FLOAT(1e-16) )
             epsilon = Epsilon[0];
     }
-ELVIS_PRINTF("Using values: required order %d & epsilon %f\n", requiredOrder, epsilon);
-return false;
+
     for(int i = 0; i < 32; ++i)
     {
       polynomialCoefficients[i] = -73.45;

@@ -54,7 +54,6 @@ namespace ElVis
             ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
             ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
             ELVIS_EXPORT void SetRequiredOrder(int newValue);
-//            ELVIS_EXPORT void SetEpsilon(double newValue);
             ELVIS_EXPORT void SetEpsilon(int newValue);
 
             ELVIS_EXPORT const std::set<ElVisFloat> GetIsovalues() const { return m_isovalues; }
