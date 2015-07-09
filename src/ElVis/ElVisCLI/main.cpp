@@ -284,11 +284,6 @@ int main(int argc, char** argv)
   }
   else if (testName == "Generic")
   {
-    if( !colorMap )
-    {
-      std::cout << "Error: color map is a required parameter." << std::endl;
-      return 1;
-    }
     result = GenericCLIInterface(
       argc, argv, scene, model, colorMap, width, height, outFilePath, c);
   }
