@@ -36,6 +36,13 @@
 #include <boost/timer.hpp>
 #include <boost/bind.hpp>
 
+// Serialization keys
+namespace
+{
+  const std::string MIN_KEY_NAME("Min");
+  const std::string MAX_KEY_NAME("Max");
+  const std::string SIZE_KEY_NAME("Size");
+}
 namespace ElVis
 {
   ColorMapperModule::ColorMapperModule()
@@ -63,27 +70,10 @@ namespace ElVis
 
     m_data = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT4, m_size);
 
-    // To use textures, comment out this line and uncomment the textureSampler
-    // code.
-    // Testing has shown that textures are slightly slower and take longer to
-    // compile
     context["ColorMapTexture"]->set(m_data);
 
     context["TextureMaxScalar"]->setFloat(m_min);
     context["TextureMinScalar"]->setFloat(m_max);
-
-    //        m_textureSampler = context->createTextureSampler();
-    //        m_textureSampler->setWrapMode(0, RT_WRAP_REPEAT);
-    //        m_textureSampler->setWrapMode(1, RT_WRAP_REPEAT);
-    //        m_textureSampler->setFilteringModes(RT_FILTER_NEAREST,
-    //        RT_FILTER_NEAREST, RT_FILTER_NONE);
-    //        m_textureSampler->setIndexingMode(RT_TEXTURE_INDEX_NORMALIZED_COORDINATES);
-    //        m_textureSampler->setReadMode(RT_TEXTURE_READ_ELEMENT_TYPE);
-    //        m_textureSampler->setMaxAnisotropy(1.0f);
-    //        m_textureSampler->setMipLevelCount(1);
-    //        m_textureSampler->setArraySize(1);
-    //        m_textureSampler->setBuffer(0, 0, m_data);
-    //        context["t"]->setTextureSampler(m_textureSampler);
   }
 
   void ColorMapperModule::DoSynchronize(SceneView* view)
@@ -143,5 +133,20 @@ namespace ElVis
 
       SetSyncAndRenderRequired();
     }
+  }
+
+  void ColorMapperModule::serialize(boost::archive::xml_oarchive& ar, unsigned int version) const
+  {
+    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
+    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
+    ar & boost::serialization::make_nvp(SIZE_KEY_NAME.c_str(), m_size);
+
+  }
+
+  void ColorMapperModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
+  {
+    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
+    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
+    ar & boost::serialization::make_nvp(SIZE_KEY_NAME.c_str(), m_size);
   }
 }

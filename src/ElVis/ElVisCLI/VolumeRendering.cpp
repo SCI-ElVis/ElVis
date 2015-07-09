@@ -49,6 +49,7 @@
 int IsosurfaceBullet(int argc,
                      char** argv,
                      boost::shared_ptr<ElVis::Model> model,
+                     boost::shared_ptr<ElVis::ColorMap> colorMap,
                      unsigned int width,
                      unsigned int height,
                      const std::string& outFilePath,
@@ -116,12 +117,7 @@ int IsosurfaceBullet(int argc,
   boost::shared_ptr<ElVis::SceneView> view(new ElVis::SceneView());
   view->SetCamera(c);
 
-  boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(
-    new ElVis::TextureColorMap(ElVis::GetColorMapPath() +
-                               "/diverging257.cmap"));
-  textureColorMapper->SetMin(-.12);
-  textureColorMapper->SetMax(0);
-  m_colorMapperModule->SetColorMap(textureColorMapper);
+  m_colorMapperModule->SetColorMap(colorMap);
 
   view->AddRenderModule(primaryRayModule);
   view->AddRenderModule(isosurfaceModule);

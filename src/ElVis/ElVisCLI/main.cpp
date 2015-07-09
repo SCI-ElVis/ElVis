@@ -89,6 +89,26 @@ namespace
 
 int main(int argc, char** argv)
 {
+
+//  {
+//    boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(
+//      new ElVis::TextureColorMap("/home/bnelson/dev/ElVis/Serialization/src/ColorMaps/diverging257.cmap"));
+
+//    std::cout << "<ColorMap name=\"Diverging\" space=\"RGB\">" << std::endl;
+//    for(size_t i = 0; i < textureColorMapper->m_localData.size()/4; ++i)
+//    {
+//      auto pct = static_cast<float>(i)/static_cast<float>(textureColorMapper->m_localData.size()/4-1);
+
+//      std::cout << "<Point x=\"" << pct << "\" o=\"1.0\" r=\"" <<
+//                   textureColorMapper->m_localData[4*i] << "\" g =\"" <<
+//                   textureColorMapper->m_localData[4*i+1] << "\" b=\"" <<
+//                   textureColorMapper->m_localData[4*i+2] << "\"/>" << std::endl;
+//    }
+
+//    std::cout << "</ColorMap>" << std::endl;
+//    exit(0);
+//  }
+
   const char* testNameLabel = "TestName";
   const char* modelPathLabel = "ModelPath";
   const char* widthLabel = "Width";
@@ -223,26 +243,27 @@ int main(int argc, char** argv)
     colorMap->SetMin(min);
     colorMap->SetMax(max);
   }
-  else
-  {
-    boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(
-      new ElVis::TextureColorMap(ElVis::GetColorMapPath() +
-                                 "/diverging257.cmap"));
-    textureColorMapper->SetMin(-.12);
-    textureColorMapper->SetMax(0);
-    colorMap = textureColorMapper;
-  }
 
   int result = 0;
 
   if (testName == "CutSurfaceBullet")
   {
+    if( !colorMap )
+    {
+      std::cout << "Error: color map is a required parameter." << std::endl;
+      return 1;
+    }
     result = ColorMapBulletNewApproachVolumeSampling(
-      argc, argv, model, width, height, outFilePath);
+      argc, argv, model, colorMap, width, height, outFilePath);
   }
   else if (testName == "CutSurfaceNektarSynthetic")
   {
-    result = TestNektarModelLoad(argc, argv, model, width, height, outFilePath);
+    if( !colorMap )
+    {
+      std::cout << "Error: color map is a required parameter." << std::endl;
+      return 1;
+    }
+    result = TestNektarModelLoad(argc, argv, model, colorMap, width, height, outFilePath);
   }
   else if (testName == "VolumeRenderBullet")
   {
@@ -254,15 +275,30 @@ int main(int argc, char** argv)
   }
   else if (testName == "IsosurfaceBullet")
   {
-    result = IsosurfaceBullet(argc, argv, model, width, height, outFilePath, c);
+    if( !colorMap )
+    {
+      std::cout << "Error: color map is a required parameter." << std::endl;
+      return 1;
+    }
+    result = IsosurfaceBullet(argc, argv, model, colorMap, width, height, outFilePath, c);
   }
   else if (testName == "Generic")
   {
+    if( !colorMap )
+    {
+      std::cout << "Error: color map is a required parameter." << std::endl;
+      return 1;
+    }
     result = GenericCLIInterface(
       argc, argv, scene, model, colorMap, width, height, outFilePath, c);
   }
   else if( testName == "ViewSettings")
   {
+    if( !colorMap )
+    {
+      std::cout << "Error: color map is a required parameter." << std::endl;
+      return 1;
+    }
     result = ViewSettingsRendering(
       argc, argv, scene, model, width, height, outFilePath);
   }

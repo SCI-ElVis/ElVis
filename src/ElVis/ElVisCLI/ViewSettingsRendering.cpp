@@ -55,7 +55,7 @@
 #include <boost/filesystem.hpp>
 #include <ElVis/Core/ColorMapperModule.h>
 #include <ElVis/Core/SampleVolumeSamplerObject.h>
-
+#include <fstream>
 #include <boost/make_shared.hpp>
 
 int ViewSettingsRendering(int argc,
@@ -78,10 +78,11 @@ int ViewSettingsRendering(int argc,
     const char* traceLabel = "EnableTrace";
     const char* traceXLabel = "TraceX";
     const char* traceYLabel = "TraceY";
-
+    const char* settingsPathLabel = "Settings";
     const char* numTestsLabel = "NumTests";
 
     unsigned int numTests = 1;
+    std::string settingsPath("settings.xml");
 
     boost::program_options::options_description desc(
       "ViewSettingsRederingOptions");
@@ -89,8 +90,8 @@ int ViewSettingsRendering(int argc,
       traceLabel, boost::program_options::value<int>(), "Enable Trace")(
       traceXLabel, boost::program_options::value<int>(), "Trace X")(
       traceYLabel, boost::program_options::value<int>(), "Trace Y")(
-      numTestsLabel, boost::program_options::value<unsigned int>(&numTests),
-      "Number of Tests");
+      numTestsLabel, boost::program_options::value<unsigned int>(&numTests), "Number of Tests")
+          (settingsPathLabel, boost::program_options::value<std::string>(&settingsPath), "Settings");
 
     boost::program_options::options_description commandLineOptions(
       "CommandLineOptions");
@@ -186,6 +187,11 @@ int ViewSettingsRendering(int argc,
 
     view->SetScene(scene);
     view->Resize(width, height);
+
+    std::ifstream inFile(settingsPath);
+    boost::archive::xml_iarchive ia(inFile);
+    ia >> boost::serialization::make_nvp("SceneView", *view);
+    inFile.close();
 
     // Don't time to take care of initialization artifacts.
     view->Draw();

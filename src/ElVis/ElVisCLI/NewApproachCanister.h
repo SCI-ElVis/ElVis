@@ -35,6 +35,7 @@ int ColorMapBulletNewApproachVolumeSampling(
   int argc,
   char** argv,
   boost::shared_ptr<ElVis::Model> model,
+    boost::shared_ptr<ElVis::ColorMap> colorMap,
   unsigned int width,
   unsigned int height,
   const std::string& outFilePath);

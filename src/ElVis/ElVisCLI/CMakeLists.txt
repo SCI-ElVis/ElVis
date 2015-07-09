@@ -171,6 +171,9 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1000
         --Height 1000
         --OutFile BulletCutSurfaceP2
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml"
+        --ColorMapMin -0.12
+        --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/BulletCutSurfaceP2Baseline"
     ) 
 
@@ -198,6 +201,9 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1000
         --Height 1000
         --OutFile BulletCutSurfaceP3
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml"
+        --ColorMapMin -0.12
+        --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/BulletCutSurfaceP3Baseline"
     )
 
@@ -245,6 +251,9 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
         --OutFile IsosurfaceBullet1
         --Isovalues 0.0
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml"
+        --ColorMapMin -0.12
+        --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/IsosurfaceBullet1Baseline"
     )
 ENDIF()

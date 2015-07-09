@@ -31,7 +31,6 @@
 
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/RenderModule.h>
-#include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/ElementId.h>

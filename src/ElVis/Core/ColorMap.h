@@ -147,7 +147,7 @@ namespace ElVis
   protected:
     virtual void DoPopulateTexture(optixu::Buffer& buffer);
 
-  private:
+public:
     TextureColorMap(const TextureColorMap&);
     std::vector<float> m_localData;
   };

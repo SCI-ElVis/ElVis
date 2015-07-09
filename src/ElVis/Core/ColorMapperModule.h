@@ -64,6 +64,9 @@ namespace ElVis
     virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
     virtual std::string DoGetName() const { return "Color Mapper"; }
 
+    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const override;
+    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) override;
+
   private:
     ColorMapperModule(const ColorMapperModule& rhs);
     ColorMapperModule& operator=(const ColorMapperModule& rhs);

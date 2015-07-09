@@ -46,6 +46,7 @@
 int TestNektarModelLoad(int argc,
                         char** argv,
                         boost::shared_ptr<ElVis::Model> model,
+                        boost::shared_ptr<ElVis::ColorMap> colorMap,
                         unsigned int width,
                         unsigned int height,
                         const std::string& outFilePath)
@@ -106,12 +107,12 @@ int TestNektarModelLoad(int argc,
 
   boost::shared_ptr<ElVis::ColorMapperModule> colorMapperModule(
     new ElVis::ColorMapperModule());
-  boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(
-    new ElVis::TextureColorMap(ElVis::GetColorMapPath() +
-                               "/diverging257.cmap"));
-  textureColorMapper->SetMin(0);
-  textureColorMapper->SetMax(1.5);
-  colorMapperModule->SetColorMap(textureColorMapper);
+//  boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(
+//    new ElVis::TextureColorMap(ElVis::GetColorMapPath() +
+//                               "/diverging257.cmap"));
+//  textureColorMapper->SetMin(0);
+//  textureColorMapper->SetMax(1.5);
+  colorMapperModule->SetColorMap(colorMap);
 
   view->AddRenderModule(colorMapperModule);
 
