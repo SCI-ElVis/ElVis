@@ -72,6 +72,7 @@ URL:    http://raphael.mit.edu
 #include <stdio.h>
 #include <Fundamentals/PX.h>
 
+#define PX_REF_OUTSIDE_ELEMENT -18
 
 /******************************************************************/
 //  FUNCTION Definition: PXProject2RefElement_Edge
@@ -330,7 +331,12 @@ PXProject2RefElement( enum PXE_Shape Shape, PX_REAL * RESTRICT xref )
   int nFaceSearch = 0;
   int FaceSearch[6] = {0, 0, 0, 0, 0, 0};
 
-  return PXProject2RefElement(Shape, xref, &nFaceSearch, FaceSearch);
+  PXProject2RefElement(Shape, xref, &nFaceSearch, FaceSearch);
+
+  if ( nFaceSearch > 0 )
+    return PX_REF_OUTSIDE_ELEMENT;
+  else
+    return PX_NO_ERROR;
 }
 
 
@@ -1256,7 +1262,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
       xref[d] += lim*dxref[d];
 
     //Make sure the reference coordinates are inside the element
-    PXErrorReturn( PXProject2RefElement( Shape, xref ) );
+    ierr = PXProject2RefElement( Shape, xref );
 
     //Compute the difference between the old and projected xref
     Residual = 0.0;
@@ -1265,7 +1271,7 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     Residual = sqrt(Residual);
 
     //Abort if the point is constantly hitting the same point on the edge of the element
-    if ( ( Residual < 1.0E-10) ) {
+    if ( ( Residual < 1.0E-10) && ierr == PX_REF_OUTSIDE_ELEMENT ) {
       break;
     }
 
@@ -1276,12 +1282,12 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
 
   //we may have broken out of while loop b/c ierr != PX_NO_ERROR
   //check what happened
-  if(ierr==PX_NON_PHYSICAL){
-    ConvergedFlag=PXE_False;
-  }
-  else{
-    PXErrorReturn(ierr);
-  }
+//  if(ierr!=PX_NO_ERROR){
+//    ConvergedFlag=PXE_False;
+//  }
+//  else{
+//    PXErrorReturn(ierr);
+//  }
 
   // Check Convergence
   if (ConvergedFlag == PXE_False) {
@@ -1291,9 +1297,10 @@ PXCurvedGlob2Ref(PX_ElementTypeData const& elemData, PX_REAL const *xnodes, PX_R
     PXShapeElem(order, qorder, xref, phi );
     PXRef2GlobFromCoordinatesGivenShape2(nbf, Dim, xnodes, xg, phi);
 
-      //ELVIS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref: xref = %f, %f, %f\n", xref[0], xref[1], xref[2] );
-      //ELVIS_PRINTF("ERROR: xglobal = %f, %f, %f\n", xglobal[0], xglobal[1], xglobal[2] );
-      //ELVIS_PRINTF("ERROR: xg@xref = %f, %f, %f\n", xg[0], xg[1], xg[2] );
+//      ELVIS_PRINTF("ERROR: Unable to Converge PXCurvedGlob2Ref: xref = %f, %f, %f\n", xref[0], xref[1], xref[2] );
+//      ELVIS_PRINTF("ERROR: Residual = %e, ierr = %d, iter = %d\n", Residual, ierr, iter );
+//      ELVIS_PRINTF("ERROR: xglobal = %f, %f, %f\n", xglobal[0], xglobal[1], xglobal[2] );
+//      ELVIS_PRINTF("ERROR: xg@xref = %f, %f, %f\n", xg[0], xg[1], xg[2] );
     //}
     return PX_NOT_CONVERGED;
   }

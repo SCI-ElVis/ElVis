@@ -165,7 +165,7 @@ __device__ __forceinline__ WorldPoint TransformReferenceToWorldLinearHex(
 __device__ __forceinline__ WorldPoint TransformReferenceToWorldHex(
     int hexId, const ReferencePoint& p)
 {
-    ELVIS_PRINTF("[NEKTAR TransformReferenceToWorldHex] ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, p.x, p.y, p.z);
+    //ELVIS_PRINTF("[NEKTAR TransformReferenceToWorldHex] ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, p.x, p.y, p.z);
 
     const int offset = CurvedGeomOffsetBuffer[hexId];
     uint3 *modes = &CurvedGeomNumModesBuffer[hexId];
@@ -193,7 +193,7 @@ __device__ __forceinline__ void CalculateJacobianLinearHex(
     ElVisFloat r = p.x;
     ElVisFloat s = p.y;
     ElVisFloat t = p.z;
-    ELVIS_PRINTF("refpoint = %f %f %f\n", r, s, t);
+    //ELVIS_PRINTF("refpoint = %f %f %f\n", r, s, t);
     
 
     ElVisFloat t1 = 1.0f-s;
@@ -322,7 +322,7 @@ __device__ __forceinline__ void calculateInverseJacobianHex(
 __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
     int hexId, const WorldPoint& p)
 {
-  ELVIS_PRINTF("[NEKTAR] TransformWorldToReferenceHex ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, p.x, p.y, p.z);
+  //ELVIS_PRINTF("[NEKTAR] TransformWorldToReferenceHex ID = %d (%2.15f, %2.15f, %2.15f) \n", hexId, p.x, p.y, p.z);
 
 
     ElVisFloat tolerance = MAKE_FLOAT(1e-5);
@@ -353,7 +353,7 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
             fabs(s_adjust) < tolerance &&
             fabs(t_adjust) < tolerance )
         {
-            ELVIS_PRINTF("[NEKTAR] CONVERGE = %d  result = %f %f %f\n", numIterations, result.x, result.y, result.z);
+            //ELVIS_PRINTF("[NEKTAR] CONVERGE = %d  result = %f %f %f\n", numIterations, result.x, result.y, result.z);
             return result;
         }
 
@@ -383,7 +383,7 @@ __device__ __forceinline__ ReferencePoint TransformWorldToReferenceHex(
     }
     while( numIterations < MAX_ITERATIONS);
 
-    ELVIS_PRINTF("[NEKTAR] DIDN'T CONVERGE   result = %f %f %f\n", numIterations, result.x, result.y, result.z);
+    //ELVIS_PRINTF("[NEKTAR] DIDN'T CONVERGE   result = %f %f %f\n", numIterations, result.x, result.y, result.z);
 
     return result;
 }

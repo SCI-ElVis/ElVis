@@ -60,6 +60,10 @@ namespace ElVis
     class RenderModule;
     class PrimaryRayModule;
 
+    namespace
+    {
+      const std::string VIEW_SETTINGS_KEY_NAME("ViewSettings");
+    }
     class SceneView
     {
         public:
@@ -194,21 +198,37 @@ namespace ElVis
             void HandleRenderModuleChanged(const RenderModule&);
 
             template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
+            void save(Archive& ar, const unsigned int version) const
             {
-                ar & BOOST_SERIALIZATION_NVP(m_scene);
-                ar & BOOST_SERIALIZATION_NVP(m_width);
-                ar & BOOST_SERIALIZATION_NVP(m_height);
-                ar & BOOST_SERIALIZATION_NVP(m_viewSettings);
-                ar & BOOST_SERIALIZATION_NVP(m_depthBits);
+                //ar & BOOST_SERIALIZATION_NVP(m_scene);
+                ar & boost::serialization::make_nvp(VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+                //ar & BOOST_SERIALIZATION_NVP(m_depthBits);
                 //ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
-                ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
-                ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
-                ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
-                ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
-                ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
+                //ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
+                //ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
+                //ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
+                //ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
+                //ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
                 //do_serialize(ar, version);
             }
+
+            template<typename Archive>
+            void load(Archive& ar, const unsigned int version)
+            {
+                //ar & BOOST_SERIALIZATION_NVP(m_scene);
+                ar & boost::serialization::make_nvp(VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+                //ar & BOOST_SERIALIZATION_NVP(m_depthBits);
+                //ar & BOOST_SERIALIZATION_NVP(m_allRenderModules);
+                //ar & BOOST_SERIALIZATION_NVP(m_scalarFieldIndex);
+                //ar & BOOST_SERIALIZATION_NVP(m_passedInitialOptixSetup);
+                //ar & BOOST_SERIALIZATION_NVP(m_faceIntersectionTolerance);
+                //ar & BOOST_SERIALIZATION_NVP(m_headlightColor);
+                //ar & BOOST_SERIALIZATION_NVP(m_backgroundColor);
+                //do_serialize(ar, version);
+                OnSceneViewChanged(*this);
+            }
+
+            BOOST_SERIALIZATION_SPLIT_MEMBER()
 
             boost::shared_ptr<Scene> m_scene;
             unsigned int m_width;
