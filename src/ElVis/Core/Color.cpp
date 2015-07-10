@@ -136,4 +136,10 @@ namespace ElVis
   }
 
   bool operator!=(const Color& lhs, const Color& rhs) { return !(lhs == rhs); }
+
+  std::ostream& operator<<(std::ostream& os, const Color& rhs)
+  {
+    os << "(" << rhs.Red() << ", " << rhs.Green() << ", " << rhs.Blue() << ", " << rhs.Alpha() << ")";
+    return os;
+  }
 }

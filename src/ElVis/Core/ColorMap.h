@@ -49,14 +49,14 @@ namespace ElVis
 {
   class SceneView;
 
-
+  /// \brief A node in the piecewise-linear color map defined by the ColorMap
+  /// class.
   struct ColorMapBreakpoint
   {
     friend class boost::serialization::access;
     ElVis::Color Col;
     ElVisFloat Scalar;
 
-  private:
     template <typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -65,7 +65,13 @@ namespace ElVis
     }
   };
 
-  // an interface to color maps on [0,1]
+  /// \brief A piecewise-linear color map consisting of breakpoints on [0,1]
+  /// with an associated color.  Samples falling between breakpoints are
+  /// linearly interpolated, while samples falling outside the range are
+  /// clamped.
+  ///
+  /// Breakpoints are specified on [0,1], but the color map can be scaled
+  /// to any scalar range using SetMin and SetMax.
   class ColorMap
   {
   public:
@@ -73,27 +79,38 @@ namespace ElVis
     ELVIS_EXPORT ColorMap();
     ELVIS_EXPORT ~ColorMap() {}
 
+    /// \brief Sets the minimum scalar value for the color map.
     ELVIS_EXPORT void SetMin(float value);
+
+    /// \brief Sets the maximum scalar value for the color map.
     ELVIS_EXPORT void SetMax(float value);
+
+    /// \brief Returns the minimum scalar value.
     ELVIS_EXPORT float GetMin() const { return m_min; }
+
+    /// \brief Returns the maximum scalar value.
     ELVIS_EXPORT float GetMax() const { return m_max; }
 
-    ELVIS_EXPORT void SetBreakpoint(ElVisFloat value, const Color& c);
-    ELVIS_EXPORT void SetBreakpoint(
-      const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator& iter,
-      const Color& c);
+    /// \brief Sets a breakpoint.
+    /// \param[in] value The scalar value of the breakpoint on [0,1]
+    /// \param[in] c The breakpoint's color.
+    /// \returns An iterator to the breakpoint.  If value is outside the
+    ///          range of [0,1], then this will be an invalid iterator.
+    /// TODO - Why are we exposing internals?  The gui uses it, but why?
+    ELVIS_EXPORT std::map<ElVisFloat, ColorMapBreakpoint>::iterator
+      SetBreakpoint(ElVisFloat value, const Color& c);
 
+    /// Returns the breakpoint collection.
     ELVIS_EXPORT const std::map<ElVisFloat, ColorMapBreakpoint>&
     GetBreakpoints() const
     {
       return m_breakpoints;
     }
+
+    /// Removes the given breakpoint from the color map.
     ELVIS_EXPORT void RemoveBreakpoint(
       const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator iter);
     ELVIS_EXPORT Color Sample(const ElVisFloat& value) const;
-
-    ELVIS_EXPORT std::map<ElVisFloat, ColorMapBreakpoint>::iterator
-    InsertBreakpoint(ElVisFloat value, const Color& c);
 
     ELVIS_EXPORT bool IsValid() const { return m_breakpoints.size() >= 2; }
 

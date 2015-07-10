@@ -92,7 +92,7 @@ namespace ElVis
                             c.SetGreen(1.0);
                             c.SetRed(1.0);
                             c.SetBlue(1.0);
-                            m_selectedBreakpoint = m_model->InsertBreakpoint(px, c);
+                            m_selectedBreakpoint = m_model->SetBreakpoint(px, c);
                         } 
                     } 
                     else if (me->button() == Qt::RightButton) 
@@ -128,7 +128,7 @@ namespace ElVis
                         ElVis::Color c = (*m_selectedBreakpoint).second.Col;
                         c.SetAlpha(py);
                         m_model->RemoveBreakpoint(m_selectedBreakpoint);
-                        m_selectedBreakpoint = m_model->InsertBreakpoint(key, c);
+                        m_selectedBreakpoint = m_model->SetBreakpoint(key, c);
                         OnBreakpointsChanged();
                     }
                     break;

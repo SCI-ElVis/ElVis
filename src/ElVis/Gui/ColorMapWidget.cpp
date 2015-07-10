@@ -144,7 +144,7 @@ namespace ElVis
                 selectedPoint != m_rect->GetTransferFunction()->GetBreakpoints().end() )
             {
                 auto transferFunction = m_rect->GetTransferFunction();
-                transferFunction->SetBreakpoint(selectedPoint, m_selectedColor);
+                transferFunction->SetBreakpoint(selectedPoint->first, m_selectedColor);
                 m_rect->ForceUpdate();
             }
         }

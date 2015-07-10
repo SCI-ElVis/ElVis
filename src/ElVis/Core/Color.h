@@ -36,6 +36,7 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/split_member.hpp>
+#include <iostream>
 
 namespace ElVis
 {
@@ -132,6 +133,7 @@ namespace ElVis
   ELVIS_EXPORT Color operator-(const Color& lhs, const Color& rhs);
   ELVIS_EXPORT Color operator*(const Color& lhs, const ElVisFloat& s);
   ELVIS_EXPORT Color operator*(const ElVisFloat& s, const Color& rhs);
+  ELVIS_EXPORT std::ostream& operator<<(std::ostream& os, const Color& rhs);
 }
 
 #endif // ELVIS_ELVIS_CORE_COLOR_H

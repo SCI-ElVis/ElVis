@@ -41,7 +41,7 @@ namespace ElVis
 
   void ColorMap::SetMin(float value)
   {
-    if (value != m_min)
+    if (value != m_min && value < m_max)
     {
       m_min = value;
       OnMinChanged(value);
@@ -50,15 +50,18 @@ namespace ElVis
 
   void ColorMap::SetMax(float value)
   {
-    if (value != m_max)
+    if (value != m_max && value > m_min)
     {
       m_max = value;
       OnMaxChanged(value);
     }
   }
 
-  void ColorMap::SetBreakpoint(ElVisFloat value, const Color& c)
+  std::map<ElVisFloat, ColorMapBreakpoint>::iterator
+  ColorMap::SetBreakpoint(ElVisFloat value, const Color& c)
   {
+    if( value < 0.0f || value > 1.0f ) return m_breakpoints.end();
+
     std::map<ElVisFloat, ColorMapBreakpoint>::iterator found =
       m_breakpoints.find(value);
     if (found == m_breakpoints.end())
@@ -66,41 +69,18 @@ namespace ElVis
       ColorMapBreakpoint breakpoint;
       breakpoint.Col = c;
       breakpoint.Scalar = value;
-      m_breakpoints[value] = breakpoint;
+      auto iter = m_breakpoints.insert(std::make_pair(value, breakpoint));
       OnColorMapChanged(*this);
+      return iter.first;
     }
-  }
-
-  void ColorMap::SetBreakpoint(
-    const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator& iter,
-    const Color& c)
-  {
-    if (iter == m_breakpoints.end()) return;
-
-    if ((*iter).second.Col == c) return;
-
-    std::map<ElVisFloat, ColorMapBreakpoint>::iterator found =
-      m_breakpoints.find((*iter).first);
-    if (found != m_breakpoints.end())
+    else if(found->second.Col != c)
     {
-      (*found).second.Col = c;
+      found->second.Col = c;
       OnColorMapChanged(*this);
+      return found;
     }
-  }
 
-  std::map<ElVisFloat, ColorMapBreakpoint>::iterator ColorMap::
-    InsertBreakpoint(ElVisFloat value, const Color& c)
-  {
-    ColorMapBreakpoint point;
-    point.Col = c;
-    point.Scalar = value;
-
-    std::map<ElVisFloat, ColorMapBreakpoint>::value_type v(value, point);
-    std::pair<std::map<ElVisFloat, ColorMapBreakpoint>::iterator, bool> result =
-      m_breakpoints.insert(v);
-
-    OnColorMapChanged(*this);
-    return result.first;
+    return m_breakpoints.end();
   }
 
   void ColorMap::RemoveBreakpoint(
