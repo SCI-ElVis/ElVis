@@ -119,7 +119,6 @@ SET(ELVIS_HEADERS
     CutSurfaceContourModule.h
     CutSurfaceMeshModule.h
     Cylinder.h
-    DirectionalLight.h
     DynamicLib.h
     ElementId.h
     ElVisConfig.h
@@ -144,7 +143,6 @@ SET(ELVIS_HEADERS
     OptiXSynchedObject.hpp
     Plugin.h
     Point.hpp
-    PointLight.h
     PtxManager.h
     RayGeneratorProgram.h
     ReferencePointParameter.h
@@ -180,14 +178,12 @@ SET(ELVIS_SOURCES
     CutSurfaceContourModule.cpp
     CutSurfaceMeshModule.cpp
     Cylinder.cpp
-    DirectionalLight.cpp
     DynamicLib.cpp
     ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp
     FaceObject.cpp
     Light.cpp
     Model.cpp
     Plugin.cpp
-    PointLight.cpp
     PtxManager.cpp
     Scene.cpp
     SceneView.cpp
