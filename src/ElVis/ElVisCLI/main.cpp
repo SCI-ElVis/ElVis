@@ -109,8 +109,6 @@ int main(int argc, char** argv)
   double min = 0.0;
   double max = 1.0;
 
-  std::string configFile;
-
   boost::program_options::options_description desc("ElVisCLIOptions");
   desc.add_options()(
     testNameLabel, boost::program_options::value<std::string>(), "Test Name")(
@@ -135,17 +133,9 @@ int main(int argc, char** argv)
                ->multitoken(),
     "Up");
 
-  const char* configFileNameLabel = "ConfigFile";
-
-  boost::program_options::options_description configFileOptions(
-    "ConfigFileOptions");
-  configFileOptions.add_options()(
-    configFileNameLabel,
-    boost::program_options::value<std::string>(&configFile), "Config File");
-
   boost::program_options::options_description commandLineOptions(
     "CommandLineOptions");
-  commandLineOptions.add(desc).add(configFileOptions);
+  commandLineOptions.add(desc);
 
   boost::program_options::variables_map vm;
   boost::program_options::store(
@@ -157,19 +147,6 @@ int main(int argc, char** argv)
       .run(),
     vm);
   boost::program_options::notify(vm);
-
-  if (!configFile.empty())
-  {
-    std::ifstream inFile(configFile.c_str());
-    std::cout << "Loading " << configFile << std::endl;
-    if (inFile)
-    {
-      boost::program_options::store(
-        boost::program_options::parse_config_file(inFile, desc, true), vm);
-      boost::program_options::notify(vm);
-    }
-    inFile.close();
-  }
 
   TestParam(vm, testNameLabel);
   TestParam(vm, modelPathLabel);
@@ -184,17 +161,14 @@ int main(int argc, char** argv)
   if (eyeInput.size() == 3)
   {
     eye = ElVis::WorldPoint(eyeInput[0], eyeInput[1], eyeInput[2]);
-    std::cout << "Eye: " << eye << std::endl;
   }
   if (upInput.size() == 3)
   {
     up = ElVis::WorldVector(upInput[0], upInput[1], upInput[2]);
-    std::cout << "Up: " << up << std::endl;
   }
   if (atInput.size() == 3)
   {
     at = ElVis::WorldPoint(atInput[0], atInput[1], atInput[2]);
-    std::cout << "At: " << at << std::endl;
   }
 
   ElVis::Camera c;

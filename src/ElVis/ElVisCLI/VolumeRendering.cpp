@@ -381,208 +381,208 @@ int VolumeRendering(int argc,
   return 0;
 }
 
-int VolumeRenderSphereForVerification(int argc,
-                                      char** argv,
-                                      boost::shared_ptr<ElVis::Model> model,
-                                      unsigned int width,
-                                      unsigned int height,
-                                      const std::string& outFilePath,
-                                      ElVis::Camera& c)
-{
-  glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-  glutInitWindowSize(100, 100);
-  glutCreateWindow("fake");
+//int VolumeRenderSphereForVerification(int argc,
+//                                      char** argv,
+//                                      boost::shared_ptr<ElVis::Model> model,
+//                                      unsigned int width,
+//                                      unsigned int height,
+//                                      const std::string& outFilePath,
+//                                      ElVis::Camera& c)
+//{
+//  glutInit(&argc, argv);
+//  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+//  glutInitWindowSize(100, 100);
+//  glutCreateWindow("fake");
 
-  const char* integrationTypeLabel = "IntegrationType";
-  const char* breakpointLabel = "Breakpoints";
-  const char* colorsLabel = "Colors";
-  const char* hLabel = "h";
-  const char* epsilonLabel = "Epsilon";
-  const char* traceLabel = "EnableTrace";
-  const char* traceXLabel = "TraceX";
-  const char* traceYLabel = "TraceY";
-  const char* trackNumSamplesLabel = "TrackNumSamples";
-  const char* renderIntegrationTypeLabel = "RenderIntegrationType";
-  std::vector<double> breakpoints;
-  std::vector<double> colors;
+//  const char* integrationTypeLabel = "IntegrationType";
+//  const char* breakpointLabel = "Breakpoints";
+//  const char* colorsLabel = "Colors";
+//  const char* hLabel = "h";
+//  const char* epsilonLabel = "Epsilon";
+//  const char* traceLabel = "EnableTrace";
+//  const char* traceXLabel = "TraceX";
+//  const char* traceYLabel = "TraceY";
+//  const char* trackNumSamplesLabel = "TrackNumSamples";
+//  const char* renderIntegrationTypeLabel = "RenderIntegrationType";
+//  std::vector<double> breakpoints;
+//  std::vector<double> colors;
 
-  boost::program_options::options_description desc("VolumeRenderingOptions");
-  desc.add_options()(integrationTypeLabel, boost::program_options::value<int>(),
-                     "Integration Type")(
-    breakpointLabel, boost::program_options::value<std::vector<double>>(
-                       &breakpoints)->multitoken(),
-    "Breakpoints")(
-    colorsLabel,
-    boost::program_options::value<std::vector<double>>(&colors)->multitoken(),
-    "Colors")(hLabel, boost::program_options::value<double>(), "h")(
-    epsilonLabel, boost::program_options::value<double>(), "Epsilon")(
-    traceLabel, boost::program_options::value<int>(), "Enable Trace")(
-    traceXLabel, boost::program_options::value<int>(), "Trace X")(
-    traceYLabel, boost::program_options::value<int>(), "Trace Y")(
-    trackNumSamplesLabel, boost::program_options::value<int>(),
-    "Track Num Samples")(renderIntegrationTypeLabel,
-                         boost::program_options::value<int>(),
-                         "RenderIntegrationType");
+//  boost::program_options::options_description desc("VolumeRenderingOptions");
+//  desc.add_options()(integrationTypeLabel, boost::program_options::value<int>(),
+//                     "Integration Type")(
+//    breakpointLabel, boost::program_options::value<std::vector<double>>(
+//                       &breakpoints)->multitoken(),
+//    "Breakpoints")(
+//    colorsLabel,
+//    boost::program_options::value<std::vector<double>>(&colors)->multitoken(),
+//    "Colors")(hLabel, boost::program_options::value<double>(), "h")(
+//    epsilonLabel, boost::program_options::value<double>(), "Epsilon")(
+//    traceLabel, boost::program_options::value<int>(), "Enable Trace")(
+//    traceXLabel, boost::program_options::value<int>(), "Trace X")(
+//    traceYLabel, boost::program_options::value<int>(), "Trace Y")(
+//    trackNumSamplesLabel, boost::program_options::value<int>(),
+//    "Track Num Samples")(renderIntegrationTypeLabel,
+//                         boost::program_options::value<int>(),
+//                         "RenderIntegrationType");
 
-  boost::program_options::variables_map vm;
-  boost::program_options::store(
-    boost::program_options::command_line_parser(argc, argv)
-      .options(desc)
-      .style(boost::program_options::command_line_style::allow_long |
-             boost::program_options::command_line_style::long_allow_adjacent)
-      .allow_unregistered()
-      .run(),
-    vm);
-  boost::program_options::notify(vm);
+//  boost::program_options::variables_map vm;
+//  boost::program_options::store(
+//    boost::program_options::command_line_parser(argc, argv)
+//      .options(desc)
+//      .style(boost::program_options::command_line_style::allow_long |
+//             boost::program_options::command_line_style::long_allow_adjacent)
+//      .allow_unregistered()
+//      .run(),
+//    vm);
+//  boost::program_options::notify(vm);
 
-  if (vm.count(integrationTypeLabel) == 0)
-  {
-    return 1;
-  }
+//  if (vm.count(integrationTypeLabel) == 0)
+//  {
+//    return 1;
+//  }
 
-  if (breakpoints.size() * 4 != colors.size())
-  {
-    std::cerr << "Invalid transfer specification." << std::endl;
-    return 1;
-  }
+//  if (breakpoints.size() * 4 != colors.size())
+//  {
+//    std::cerr << "Invalid transfer specification." << std::endl;
+//    return 1;
+//  }
 
-  ElVis::VolumeRenderingIntegrationType integrationType =
-    static_cast<ElVis::VolumeRenderingIntegrationType>(
-      vm[integrationTypeLabel].as<int>());
+//  ElVis::VolumeRenderingIntegrationType integrationType =
+//    static_cast<ElVis::VolumeRenderingIntegrationType>(
+//      vm[integrationTypeLabel].as<int>());
 
-  double h = .1;
-  if (vm.count(hLabel) == 1)
-  {
-    h = vm[hLabel].as<double>();
-  }
+//  double h = .1;
+//  if (vm.count(hLabel) == 1)
+//  {
+//    h = vm[hLabel].as<double>();
+//  }
 
-  double epsilon = .001;
-  if (vm.count(epsilonLabel) == 1)
-  {
-    epsilon = vm[epsilonLabel].as<double>();
-  }
+//  double epsilon = .001;
+//  if (vm.count(epsilonLabel) == 1)
+//  {
+//    epsilon = vm[epsilonLabel].as<double>();
+//  }
 
-  bool trace = false;
-  if (vm.count(traceLabel) == 1)
-  {
-    trace = vm[traceLabel].as<int>();
-  }
+//  bool trace = false;
+//  if (vm.count(traceLabel) == 1)
+//  {
+//    trace = vm[traceLabel].as<int>();
+//  }
 
-  int tracex = -1;
-  int tracey = -1;
-  if (vm.count(traceXLabel) == 1)
-  {
-    tracex = vm[traceXLabel].as<int>();
-  }
+//  int tracex = -1;
+//  int tracey = -1;
+//  if (vm.count(traceXLabel) == 1)
+//  {
+//    tracex = vm[traceXLabel].as<int>();
+//  }
 
-  if (vm.count(traceYLabel) == 1)
-  {
-    tracey = vm[traceYLabel].as<int>();
-  }
+//  if (vm.count(traceYLabel) == 1)
+//  {
+//    tracey = vm[traceYLabel].as<int>();
+//  }
 
-  bool trackNumSamples = false;
-  if (vm.count(trackNumSamplesLabel) == 1)
-  {
-    trackNumSamples = (vm[trackNumSamplesLabel].as<int>() == 1);
-  }
+//  bool trackNumSamples = false;
+//  if (vm.count(trackNumSamplesLabel) == 1)
+//  {
+//    trackNumSamples = (vm[trackNumSamplesLabel].as<int>() == 1);
+//  }
 
-  bool renderIntegrationType = false;
-  if (vm.count(renderIntegrationTypeLabel) == 1)
-  {
-    renderIntegrationType = (vm[renderIntegrationTypeLabel].as<int>() == 1);
-  }
+//  bool renderIntegrationType = false;
+//  if (vm.count(renderIntegrationTypeLabel) == 1)
+//  {
+//    renderIntegrationType = (vm[renderIntegrationTypeLabel].as<int>() == 1);
+//  }
 
-  boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
-  scene->SetModel(model);
+//  boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
+//  scene->SetModel(model);
 
-  boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(
-    new ElVis::PrimaryRayModule());
-  boost::shared_ptr<ElVis::VolumeRenderingModule> m_volumeRenderingModule(
-    new ElVis::VolumeRenderingModule());
-  m_volumeRenderingModule->SetIntegrationType(integrationType);
-  m_volumeRenderingModule->SetCompositingStepSize(h);
-  m_volumeRenderingModule->SetEpsilon(epsilon);
-  scene->SetEnableOptixTrace(trace);
-  scene->SetOptixTracePixelIndex(
-    ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
-  m_volumeRenderingModule->SetRenderIntegrationType(renderIntegrationType);
+//  boost::shared_ptr<ElVis::PrimaryRayModule> primaryRayModule(
+//    new ElVis::PrimaryRayModule());
+//  boost::shared_ptr<ElVis::VolumeRenderingModule> m_volumeRenderingModule(
+//    new ElVis::VolumeRenderingModule());
+//  m_volumeRenderingModule->SetIntegrationType(integrationType);
+//  m_volumeRenderingModule->SetCompositingStepSize(h);
+//  m_volumeRenderingModule->SetEpsilon(epsilon);
+//  scene->SetEnableOptixTrace(trace);
+//  scene->SetOptixTracePixelIndex(
+//    ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
+//  m_volumeRenderingModule->SetRenderIntegrationType(renderIntegrationType);
 
-  std::cout << "Track number of samples: " << (trackNumSamples ? "Yes" : "No")
-            << std::endl;
-  m_volumeRenderingModule->SetTrackNumberOfSamples(trackNumSamples);
+//  std::cout << "Track number of samples: " << (trackNumSamples ? "Yes" : "No")
+//            << std::endl;
+//  m_volumeRenderingModule->SetTrackNumberOfSamples(trackNumSamples);
 
-  // Setup the transfer function.
-  boost::shared_ptr<ElVis::HostTransferFunction> transferFunction =
-    m_volumeRenderingModule->GetTransferFunction();
-  for (unsigned int i = 0; i < breakpoints.size(); ++i)
-  {
-    ElVis::Color c(
-      colors[i * 4], colors[i * 4 + 1], colors[i * 4 + 2], colors[i * 4 + 3]);
-    transferFunction->SetBreakpoint(breakpoints[i], c);
-  }
+//  // Setup the transfer function.
+//  boost::shared_ptr<ElVis::HostTransferFunction> transferFunction =
+//    m_volumeRenderingModule->GetTransferFunction();
+//  for (unsigned int i = 0; i < breakpoints.size(); ++i)
+//  {
+//    ElVis::Color c(
+//      colors[i * 4], colors[i * 4 + 1], colors[i * 4 + 2], colors[i * 4 + 3]);
+//    transferFunction->SetBreakpoint(breakpoints[i], c);
+//  }
 
-  //    ElVis::Camera c;
-  //    c.SetParameters(ElVis::WorldPoint(1.6, 0, 1.5), ElVis::WorldPoint(0, 0,
-  //    0), ElVis::WorldVector(0, 1, 0));
+//  //    ElVis::Camera c;
+//  //    c.SetParameters(ElVis::WorldPoint(1.6, 0, 1.5), ElVis::WorldPoint(0, 0,
+//  //    0), ElVis::WorldVector(0, 1, 0));
 
-  // Zoomed to region of interest.
+//  // Zoomed to region of interest.
 
-  // Overall view
-  // c.SetParameters(ElVis::WorldPoint(6, 0, 3.5), ElVis::WorldPoint(0, 0, 3.5),
-  // ElVis::WorldVector(0, 1, 0));
+//  // Overall view
+//  // c.SetParameters(ElVis::WorldPoint(6, 0, 3.5), ElVis::WorldPoint(0, 0, 3.5),
+//  // ElVis::WorldVector(0, 1, 0));
 
-  // c.SetParameters(ElVis::WorldPoint(1.8, 1.2, 3.0), ElVis::WorldPoint(0, 0,
-  // 1), ElVis::WorldVector(0, 1, 0));
+//  // c.SetParameters(ElVis::WorldPoint(1.8, 1.2, 3.0), ElVis::WorldPoint(0, 0,
+//  // 1), ElVis::WorldVector(0, 1, 0));
 
-  // c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0, 0,
-  // 2.7), ElVis::WorldVector(0, 1, 0));
+//  // c.SetParameters(ElVis::WorldPoint(1.8, .46, 3.7), ElVis::WorldPoint(0, 0,
+//  // 2.7), ElVis::WorldVector(0, 1, 0));
 
-  boost::shared_ptr<ElVis::SceneView> view(new ElVis::SceneView());
-  view->SetCamera(c);
+//  boost::shared_ptr<ElVis::SceneView> view(new ElVis::SceneView());
+//  view->SetCamera(c);
 
-  view->AddRenderModule(primaryRayModule);
-  view->AddRenderModule(m_volumeRenderingModule);
-  view->SetScene(scene);
-  view->Resize(width, height);
+//  view->AddRenderModule(primaryRayModule);
+//  view->AddRenderModule(m_volumeRenderingModule);
+//  view->SetScene(scene);
+//  view->Resize(width, height);
 
-  ///////////////////////////////////
-  // Single Shot
-  ///////////////////////////////////
-  // view->Draw();
-  std::map<boost::shared_ptr<ElVis::RenderModule>, double> accum;
+//  ///////////////////////////////////
+//  // Single Shot
+//  ///////////////////////////////////
+//  // view->Draw();
+//  std::map<boost::shared_ptr<ElVis::RenderModule>, double> accum;
 
-  unsigned int numTests = 1;
-  for (unsigned int i = 0; i < numTests; ++i)
-  {
-    view->Draw();
-    const std::map<boost::shared_ptr<ElVis::RenderModule>, double>& timings =
-      view->GetTimings();
-    for (std::map<boost::shared_ptr<ElVis::RenderModule>,
-                  double>::const_iterator iter = timings.begin();
-         iter != timings.end(); ++iter)
-    {
-      accum[(*iter).first] += (*iter).second;
-    }
-  }
+//  unsigned int numTests = 1;
+//  for (unsigned int i = 0; i < numTests; ++i)
+//  {
+//    view->Draw();
+//    const std::map<boost::shared_ptr<ElVis::RenderModule>, double>& timings =
+//      view->GetTimings();
+//    for (std::map<boost::shared_ptr<ElVis::RenderModule>,
+//                  double>::const_iterator iter = timings.begin();
+//         iter != timings.end(); ++iter)
+//    {
+//      accum[(*iter).first] += (*iter).second;
+//    }
+//  }
 
-  // Make sure the data getting into the output file is always in the same
-  // order.
-  std::vector<boost::shared_ptr<ElVis::RenderModule>> headers;
-  for (std::map<boost::shared_ptr<ElVis::RenderModule>, double>::iterator iter =
-         accum.begin();
-       iter != accum.end(); ++iter)
-  {
-    boost::shared_ptr<ElVis::RenderModule> module = (*iter).first;
-    double totalTime = (*iter).second;
-    std::cout << typeid(*module).name() << " - " << totalTime / numTests
-              << std::endl;
-  }
+//  // Make sure the data getting into the output file is always in the same
+//  // order.
+//  std::vector<boost::shared_ptr<ElVis::RenderModule>> headers;
+//  for (std::map<boost::shared_ptr<ElVis::RenderModule>, double>::iterator iter =
+//         accum.begin();
+//       iter != accum.end(); ++iter)
+//  {
+//    boost::shared_ptr<ElVis::RenderModule> module = (*iter).first;
+//    double totalTime = (*iter).second;
+//    std::cout << typeid(*module).name() << " - " << totalTime / numTests
+//              << std::endl;
+//  }
 
-  view->WriteColorBufferToFile(outFilePath);
-  std::cout << "Done volume rendering." << std::endl;
-  return 0;
-}
+//  view->WriteColorBufferToFile(outFilePath);
+//  std::cout << "Done volume rendering." << std::endl;
+//  return 0;
+//}
 
 // void PaddleVolumeRendering(int argc, char** argv)
 //{

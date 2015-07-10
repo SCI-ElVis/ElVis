@@ -607,22 +607,6 @@ int GenericCLIInterface(int argc,
     }
 
     view->WriteColorBufferToFile(outFilePath.c_str());
-
-    if (numTests > 1)
-    {
-      ElVis::Stat runtimeStats(
-        times, std::numeric_limits<ElVisFloat>::max(), numTests - 1, .95);
-      std::cout << "Average Time Per Run: " << runtimeStats.Mean << std::endl;
-#ifdef __GNUC__
-#ifndef __clang__
-      if (system("nvidia-smi"))
-      {
-        std::cout << "Filed to make system call 'nvidia-smi'" << std::endl;
-        return 1;
-      }
-#endif
-#endif
-    }
   }
   catch (std::exception& e)
   {
