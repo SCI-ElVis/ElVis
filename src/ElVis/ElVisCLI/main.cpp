@@ -42,7 +42,6 @@
 #include <ElVis/Core/Interval.hpp>
 #include <ElVis/Core/Jacobi.hpp>
 #include <ElVis/ElVisCLI/VolumeRendering.h>
-#include "Nektar++Models.h"
 #include "ViewSettingsRendering.h"
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -235,15 +234,6 @@ int main(int argc, char** argv)
     }
     result = ColorMapBulletNewApproachVolumeSampling(
       argc, argv, model, colorMap, width, height, outFilePath);
-  }
-  else if (testName == "CutSurfaceNektarSynthetic")
-  {
-    if( !colorMap )
-    {
-      std::cout << "Error: color map is a required parameter." << std::endl;
-      return 1;
-    }
-    result = TestNektarModelLoad(argc, argv, model, colorMap, width, height, outFilePath);
   }
   else if (testName == "VolumeRenderBullet")
   {

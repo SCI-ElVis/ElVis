@@ -38,7 +38,6 @@ INCLUDE_DIRECTORIES(
 add_definitions(-DQT_NO_KEYWORDS)
 
 SET(HEADERS
-  Nektar++Models.h
   NewApproachCanister.h
   ViewSettingsRendering.h
   VolumeRendering.h
@@ -46,7 +45,6 @@ SET(HEADERS
 
 SET(SOURCES
   main.cpp
-  Nektar++Models.cpp
   NewApproachCanister.cpp
   ViewSettingsRendering.cpp
   VolumeRendering.cpp
