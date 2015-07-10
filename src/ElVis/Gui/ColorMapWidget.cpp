@@ -186,7 +186,7 @@ namespace ElVis
         {
             if( current )
             {
-                boost::shared_ptr<PiecewiseLinearColorMap> colorMap = m_appData->GetScene()->GetColorMap(current->text(0).toStdString());
+                boost::shared_ptr<ColorMap> colorMap = m_appData->GetScene()->GetColorMap(current->text(0).toStdString());
                 m_appData->SetSelectedColorMap(colorMap);
                 colorMap->SetMin(m_doublePropertyManager->value(m_minProperty));
                 colorMap->SetMax(m_doublePropertyManager->value(m_maxProperty));
@@ -199,7 +199,7 @@ namespace ElVis
 
         void ColorMapWidget::HandleColorMapRangeChanged(QtProperty* prop, double value)
         {
-            boost::shared_ptr<PiecewiseLinearColorMap> map = m_appData->GetSelectedColorMap();
+            boost::shared_ptr<ColorMap> map = m_appData->GetSelectedColorMap();
 
             if( prop == m_minProperty )
             {

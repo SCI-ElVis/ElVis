@@ -89,26 +89,6 @@ namespace
 
 int main(int argc, char** argv)
 {
-
-//  {
-//    boost::shared_ptr<ElVis::TextureColorMap> textureColorMapper(
-//      new ElVis::TextureColorMap("/home/bnelson/dev/ElVis/Serialization/src/ColorMaps/diverging257.cmap"));
-
-//    std::cout << "<ColorMap name=\"Diverging\" space=\"RGB\">" << std::endl;
-//    for(size_t i = 0; i < textureColorMapper->m_localData.size()/4; ++i)
-//    {
-//      auto pct = static_cast<float>(i)/static_cast<float>(textureColorMapper->m_localData.size()/4-1);
-
-//      std::cout << "<Point x=\"" << pct << "\" o=\"1.0\" r=\"" <<
-//                   textureColorMapper->m_localData[4*i] << "\" g =\"" <<
-//                   textureColorMapper->m_localData[4*i+1] << "\" b=\"" <<
-//                   textureColorMapper->m_localData[4*i+2] << "\"/>" << std::endl;
-//    }
-
-//    std::cout << "</ColorMap>" << std::endl;
-//    exit(0);
-//  }
-
   const char* testNameLabel = "TestName";
   const char* modelPathLabel = "ModelPath";
   const char* widthLabel = "Width";

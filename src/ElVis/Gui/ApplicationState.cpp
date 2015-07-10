@@ -315,7 +315,7 @@ namespace ElVis
             }
         }
 
-        void ApplicationState::SetSelectedColorMap(boost::shared_ptr<PiecewiseLinearColorMap> f)
+        void ApplicationState::SetSelectedColorMap(boost::shared_ptr<ColorMap> f)
         {
             m_selectedTransferFunction = f;
             m_colorMapperModule->SetColorMap(f);

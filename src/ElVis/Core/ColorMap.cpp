@@ -37,7 +37,7 @@
 
 namespace ElVis
 {
-  ColorMap::ColorMap() : m_min(0.0f), m_max(1.0f) {}
+  ColorMap::ColorMap() : m_min(0.0f), m_max(1.0f) , m_breakpoints(){}
 
   void ColorMap::SetMin(float value)
   {
@@ -57,123 +57,7 @@ namespace ElVis
     }
   }
 
-  void TextureColorMap::DoPopulateTexture(optixu::Buffer& buffer)
-  {
-    RTsize bufSize;
-    buffer->getSize(bufSize);
-    if (bufSize * 4 != m_localData.size())
-    {
-      std::cout << "Local data size " << m_localData.size() << std::endl;
-      buffer->setSize(m_localData.size() / 4);
-    }
-
-    float* colorMapData = static_cast<float*>(buffer->map());
-    std::copy(m_localData.begin(), m_localData.end(), colorMapData);
-    buffer->unmap();
-  }
-
-  TextureColorMap::TextureColorMap(const std::string& fileName) : m_localData()
-  {
-    Read(fileName);
-  }
-
-  void TextureColorMap::Read(const std::string& fileName)
-  {
-    if (!boost::filesystem::exists(fileName))
-    {
-      std::cout << "Unable to read " << fileName << std::endl;
-      return;
-    }
-    std::ifstream inFile(fileName.c_str());
-    float min;
-    inFile >> min;
-    float max;
-    inFile >> max;
-
-    SetMin(min);
-    SetMax(max);
-    unsigned int size;
-    inFile >> size;
-
-    std::cout << "Reading color map information from " << fileName << std::endl;
-    std::cout << "Min = " << min << std::endl;
-    std::cout << "Max = " << max << std::endl;
-
-    m_localData.resize(size * 4);
-
-    float t;
-    for (unsigned int i = 0; i < size * 4; ++i)
-    {
-      inFile >> t;
-      m_localData[i] = t;
-    }
-    inFile.close();
-  }
-
-  //    void TextureColorMap::Write(const std::string& fileName)
-  //    {
-  //        std::ofstream outFile(fileName.c_str());
-
-  //        outFile << GetMin() << std::endl;
-  //        outFile << GetMax() << std::endl;
-  //        outFile << m_size << std::endl;
-
-  //        for(unsigned int i = 0; i < m_localData.size(); ++i)
-  //        {
-  //            outFile << m_localData[i] << std::endl;
-  //        }
-
-  //        outFile.close();
-  //    }
-
-  //    void TextureColorMap::WriteVTK(const std::string& fileName)
-  //    {
-  //        std::ofstream outFile(fileName.c_str());
-  //        outFile << "<ColorMap name=\"Exported\" space=\"RGB\">" <<
-  //        std::endl;
-
-  //        unsigned int wrote = 0;
-  //        float prev[3];
-  //        for(unsigned int i = 0; i < m_size; ++i)
-  //        {
-  //            if( i != 0 && i != m_size-1)
-  //            {
-  //                if( (int)(prev[0]*255.0) == (int)(m_localData[4*i]*255.0) &&
-  //                    (int)(prev[1]*255.0) == (int)(m_localData[4*i+1]*255.0)
-  //                    &&
-  //                    (int)(prev[2]*255.0) == (int)(m_localData[4*i+2]*255.0)
-  //                    )
-  //                {
-  //                    continue;
-  //                }
-  //            }
-
-  //            prev[0] = m_localData[4*i];
-  //            prev[1] = m_localData[4*i+1];
-  //            prev[2] = m_localData[4*i+2];
-
-  //            ++wrote;
-  //            outFile << "<Point x=\"" << (double)i/(m_size-1) << "\" o=\"1\"
-  //            ";
-  //            outFile <<  "r=\"" << m_localData[4*i] << "\" ";
-  //            outFile <<  "g=\"" << m_localData[4*i+1] << "\" ";
-  //            outFile <<  "b=\"" << m_localData[4*i+2] << "\" ";
-  //            outFile << "/>" << std::endl;
-  //        }
-
-  //        outFile << "</ColorMap>" << std::endl;
-  //        outFile.close();
-
-  //        std::cout << "Wrote " << wrote << " samples out of " << m_size <<
-  //        std::endl;
-  //    }
-
-  PiecewiseLinearColorMap::PiecewiseLinearColorMap()
-    : ColorMap(), m_breakpoints()
-  {
-  }
-
-  void PiecewiseLinearColorMap::SetBreakpoint(ElVisFloat value, const Color& c)
+  void ColorMap::SetBreakpoint(ElVisFloat value, const Color& c)
   {
     std::map<ElVisFloat, ColorMapBreakpoint>::iterator found =
       m_breakpoints.find(value);
@@ -187,7 +71,7 @@ namespace ElVis
     }
   }
 
-  void PiecewiseLinearColorMap::SetBreakpoint(
+  void ColorMap::SetBreakpoint(
     const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator& iter,
     const Color& c)
   {
@@ -204,7 +88,7 @@ namespace ElVis
     }
   }
 
-  std::map<ElVisFloat, ColorMapBreakpoint>::iterator PiecewiseLinearColorMap::
+  std::map<ElVisFloat, ColorMapBreakpoint>::iterator ColorMap::
     InsertBreakpoint(ElVisFloat value, const Color& c)
   {
     ColorMapBreakpoint point;
@@ -219,7 +103,7 @@ namespace ElVis
     return result.first;
   }
 
-  void PiecewiseLinearColorMap::RemoveBreakpoint(
+  void ColorMap::RemoveBreakpoint(
     const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator iter)
   {
     if (iter != m_breakpoints.end())
@@ -229,7 +113,7 @@ namespace ElVis
     }
   }
 
-  Color PiecewiseLinearColorMap::Sample(const ElVisFloat& value) const
+  Color ColorMap::Sample(const ElVisFloat& value) const
   {
     std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator iter =
       m_breakpoints.lower_bound(value);
@@ -255,7 +139,7 @@ namespace ElVis
     }
   }
 
-  void PiecewiseLinearColorMap::DoPopulateTexture(optixu::Buffer& buffer)
+  void ColorMap::PopulateTexture(optixu::Buffer& buffer)
   {
     RTsize bufSize;
     buffer->getSize(bufSize);

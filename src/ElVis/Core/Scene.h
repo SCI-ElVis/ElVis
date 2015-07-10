@@ -78,10 +78,10 @@ namespace ElVis
       ELVIS_EXPORT ColorMapInfo(const ColorMapInfo& rhs);
       ELVIS_EXPORT ColorMapInfo& operator=(const ColorMapInfo& rhs);
 
-      boost::shared_ptr<PiecewiseLinearColorMap> Map;
+      boost::shared_ptr<ColorMap> Map;
       boost::filesystem::path Path;
       std::string Name;
-      PiecewiseLinearColorMap Map1;
+      ColorMap Map1;
 
     private:
       template <typename Archive>
@@ -137,7 +137,7 @@ namespace ElVis
 
     ELVIS_EXPORT boost::shared_ptr<ColorMap> LoadColorMap(
       const boost::filesystem::path& p);
-    ELVIS_EXPORT boost::shared_ptr<PiecewiseLinearColorMap> GetColorMap(
+    ELVIS_EXPORT boost::shared_ptr<ColorMap> GetColorMap(
       const std::string& name) const;
     ELVIS_EXPORT const std::map<std::string, ColorMapInfo>& GetColorMaps() const
     {

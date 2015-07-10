@@ -317,7 +317,7 @@ namespace ElVis
 
     ColorMapInfo info;
     info.Map =
-      boost::shared_ptr<PiecewiseLinearColorMap>(new PiecewiseLinearColorMap());
+      boost::shared_ptr<ColorMap>(new ColorMap());
     info.Path = p;
     info.Name = colorMapName;
 
@@ -373,7 +373,7 @@ namespace ElVis
     return *this;
   }
 
-  boost::shared_ptr<PiecewiseLinearColorMap> Scene::GetColorMap(
+  boost::shared_ptr<ColorMap> Scene::GetColorMap(
     const std::string& name) const
   {
     std::map<std::string, ColorMapInfo>::const_iterator found =
@@ -384,7 +384,7 @@ namespace ElVis
     }
     else
     {
-      return boost::shared_ptr<PiecewiseLinearColorMap>();
+      return boost::shared_ptr<ColorMap>();
     }
   }
 
