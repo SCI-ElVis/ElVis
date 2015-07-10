@@ -36,7 +36,7 @@
 #include <ElVis/Core/IsosurfaceModule.h>
 #include <ElVis/Core/VolumeRenderingModule.h>
 #include <ElVis/Core/LightingModule.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>
 #include <ElVis/Core/HostTransferFunction.h>
 #include <ElVis/Core/CutSurfaceContourModule.h>
@@ -262,7 +262,7 @@ namespace ElVis
 //                transferFunction->SetBreakpoint(0.1+OFFSET, c8);
             }
 
-            ElVis::PointLight* l = new ElVis::PointLight();
+            ElVis::Light* l = new ElVis::Light();
             ElVis::Color lightColor;
             lightColor.SetRed(.2);
             lightColor.SetGreen(.2);

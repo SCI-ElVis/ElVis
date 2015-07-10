@@ -34,7 +34,7 @@
 #include <ElVis/Core/Scene.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>
 #include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/HostTransferFunction.h>
@@ -83,7 +83,7 @@ int IsosurfaceBullet(int argc,
   boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
   scene->SetModel(model);
 
-  auto l = boost::make_shared<ElVis::PointLight>();
+  auto l = boost::make_shared<ElVis::Light>();
   ElVis::Color lightColor;
   lightColor.SetRed(.5);
   lightColor.SetGreen(.5);
@@ -288,7 +288,7 @@ int VolumeRendering(int argc,
   boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
   scene->SetModel(model);
 
-  auto l = boost::make_shared<ElVis::PointLight>();
+  auto l = boost::make_shared<ElVis::Light>();
   ElVis::Color lightColor;
   lightColor.SetRed(.5);
   lightColor.SetGreen(.5);
@@ -615,7 +615,7 @@ int VolumeRenderSphereForVerification(int argc,
 //    boost::make_shared<ElVis::Scene>();
 //    scene->SetModel(model);
 
-//    ElVis::PointLight* l = new ElVis::PointLight();
+//    ElVis::Light* l = new ElVis::Light();
 //    ElVis::Color lightColor;
 //    lightColor.SetRed(.5);
 //    lightColor.SetGreen(.5);

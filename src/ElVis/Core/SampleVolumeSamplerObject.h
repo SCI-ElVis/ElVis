@@ -43,7 +43,6 @@ namespace ElVis
   {
   public:
     friend class boost::serialization::access;
-    ELVIS_EXPORT SampleVolumeSamplerObject();
     ELVIS_EXPORT explicit SampleVolumeSamplerObject(
       boost::shared_ptr<Object> obj);
     ELVIS_EXPORT virtual ~SampleVolumeSamplerObject();

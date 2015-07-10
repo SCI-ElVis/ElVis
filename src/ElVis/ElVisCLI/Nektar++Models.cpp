@@ -34,7 +34,7 @@
 #include <ElVis/Core/Scene.h>
 #include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/Triangle.h>
@@ -63,7 +63,7 @@ int TestNektarModelLoad(int argc,
   boost::shared_ptr<ElVis::Scene> scene = boost::make_shared<ElVis::Scene>();
   scene->SetModel(model);
 
-  auto l = boost::make_shared<ElVis::PointLight>();
+  auto l = boost::make_shared<ElVis::Light>();
   ElVis::Color lightColor;
   lightColor.SetRed(.5);
   lightColor.SetGreen(.5);

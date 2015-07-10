@@ -42,7 +42,7 @@ namespace ElVis
   {
   public:
     ELVIS_EXPORT Light();
-    ELVIS_EXPORT Light(const Light& rhs);
+//    ELVIS_EXPORT Light(const Light& rhs);
     ELVIS_EXPORT virtual ~Light() {}
 
     ELVIS_EXPORT const Color& GetColor() const { return m_color; }
@@ -54,11 +54,11 @@ namespace ElVis
       m_position = value;
     }
 
-    ELVIS_EXPORT bool IsDirectional() const { return m_isDirectionalLight; }
-    ELVIS_EXPORT void SetIsDirectional(bool value)
-    {
-      m_isDirectionalLight = value;
-    }
+//    ELVIS_EXPORT bool IsDirectional() const { return m_isDirectionalLight; }
+//    ELVIS_EXPORT void SetIsDirectional(bool value)
+//    {
+//      m_isDirectionalLight = value;
+//    }
 
     template <typename Archive>
     void serialize(Archive& ar, const unsigned int version)

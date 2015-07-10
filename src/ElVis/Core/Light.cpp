@@ -32,10 +32,10 @@ namespace ElVis
 {
   Light::Light() : m_color(), m_position(), m_isDirectionalLight(false) {}
 
-  Light::Light(const Light& rhs)
-    : m_color(rhs.m_color),
-      m_position(rhs.m_position),
-      m_isDirectionalLight(rhs.m_isDirectionalLight)
-  {
-  }
+//  Light::Light(const Light& rhs)
+//    : m_color(rhs.m_color),
+//      m_position(rhs.m_position),
+//      m_isDirectionalLight(rhs.m_isDirectionalLight)
+//  {
+//  }
 }

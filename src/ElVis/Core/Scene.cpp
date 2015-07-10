@@ -27,8 +27,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <ElVis/Core/Scene.h>
-#include <ElVis/Core/DirectionalLight.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/Model.h>
 #include <ElVis/Core/PtxManager.h>
 #include <ElVis/Core/Util.hpp>
@@ -140,44 +139,44 @@ namespace ElVis
                                             m_ambientLightColor.Green(),
                                             m_ambientLightColor.Blue());
 
-        std::list<boost::shared_ptr<DirectionalLight>> allDirectionalLights;
-        std::list<boost::shared_ptr<PointLight>> allPointLights;
-        std::cout << "Total Lights: " << m_allLights.size() << std::endl;
-        for (std::list<boost::shared_ptr<Light>>::iterator iter =
-               m_allLights.begin();
-             iter != m_allLights.end(); ++iter)
-        {
-          auto asDirectional =
-            boost::dynamic_pointer_cast<DirectionalLight>(*iter);
-          auto asPointLight = boost::dynamic_pointer_cast<PointLight>(*iter);
+//        std::list<boost::shared_ptr<DirectionalLight>> allDirectionalLights;
+//        std::list<boost::shared_ptr<PointLight>> allPointLights;
+//        std::cout << "Total Lights: " << m_allLights.size() << std::endl;
+//        for (std::list<boost::shared_ptr<Light>>::iterator iter =
+//               m_allLights.begin();
+//             iter != m_allLights.end(); ++iter)
+//        {
+//          auto asDirectional =
+//            boost::dynamic_pointer_cast<DirectionalLight>(*iter);
+//          auto asPointLight = boost::dynamic_pointer_cast<PointLight>(*iter);
 
-          if (asDirectional)
-          {
-            allDirectionalLights.push_back(asDirectional);
-          }
-          else if (asPointLight)
-          {
-            allPointLights.push_back(asPointLight);
-          }
-        }
+//          if (asDirectional)
+//          {
+//            allDirectionalLights.push_back(asDirectional);
+//          }
+//          else if (asPointLight)
+//          {
+//            allPointLights.push_back(asPointLight);
+//          }
+//        }
 
         // Setup Directional Lights.
 
         // Setup Point Lights.
         optixu::Buffer lightPositionBuffer = m_context->createBuffer(
-          RT_BUFFER_INPUT, RT_FORMAT_FLOAT, allPointLights.size() * 3);
+          RT_BUFFER_INPUT, RT_FORMAT_FLOAT, m_allLights.size() * 3);
         m_context["lightPosition"]->set(lightPositionBuffer);
         float* positionData = static_cast<float*>(lightPositionBuffer->map());
 
         optixu::Buffer lightColorBuffer = m_context->createBuffer(
-          RT_BUFFER_INPUT, RT_FORMAT_FLOAT, allPointLights.size() * 3);
+          RT_BUFFER_INPUT, RT_FORMAT_FLOAT, m_allLights.size() * 3);
         m_context["lightColor"]->set(lightColorBuffer);
         float* colorData = static_cast<float*>(lightColorBuffer->map());
 
         int i = 0;
-        for (std::list<boost::shared_ptr<PointLight>>::const_iterator iter =
-               allPointLights.begin();
-             iter != allPointLights.end(); ++iter)
+        for (std::list<boost::shared_ptr<Light>>::const_iterator iter =
+               m_allLights.begin();
+             iter != m_allLights.end(); ++iter)
         {
           positionData[i] = static_cast<float>((*iter)->Position().x());
           positionData[i + 1] = static_cast<float>((*iter)->Position().y());

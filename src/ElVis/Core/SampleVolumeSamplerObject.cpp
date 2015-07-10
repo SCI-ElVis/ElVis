@@ -39,8 +39,6 @@ namespace ElVis
   optixu::Program SampleVolumeSamplerObject::ClosestHitProgram;
   optixu::Program SampleVolumeSamplerObject::AnyHitProgram;
 
-  SampleVolumeSamplerObject::SampleVolumeSamplerObject() {}
-
   SampleVolumeSamplerObject::SampleVolumeSamplerObject(
     boost::shared_ptr<Object> obj)
     : PrimaryRayObject(obj)

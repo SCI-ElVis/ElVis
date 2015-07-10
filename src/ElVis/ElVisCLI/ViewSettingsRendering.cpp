@@ -34,7 +34,7 @@
 #include <ElVis/Core/Scene.h>
 #include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/Triangle.h>
 #include <ElVis/Core/SurfaceObject.h>
 #include <ElVis/Core/ElVisConfig.h>
@@ -130,7 +130,7 @@ int ViewSettingsRendering(int argc,
     scene->SetOptixTracePixelIndex(
       ElVis::Point<unsigned int, ElVis::TwoD>(tracex, tracey));
 
-    auto l = boost::make_shared<ElVis::PointLight>();
+    auto l = boost::make_shared<ElVis::Light>();
     ElVis::Color lightColor;
     lightColor.SetRed(.5);
     lightColor.SetGreen(.5);

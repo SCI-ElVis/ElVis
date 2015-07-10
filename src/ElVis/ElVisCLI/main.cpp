@@ -33,7 +33,7 @@
 #include <ElVis/Core/Scene.h>
 #include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/Triangle.h>
 #include <string>
 #include <ElVis/Core/Cylinder.h>
