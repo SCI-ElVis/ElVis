@@ -56,7 +56,7 @@ namespace ElVis
                 ColorMapRect* GetRect() { return m_rect; }
 
             public Q_SLOTS:
-                void HandleColorMapSelectionChanged(boost::shared_ptr<PiecewiseLinearColorMap> value);
+                void HandleColorMapSelectionChanged(boost::shared_ptr<ColorMap> value);
                 void HandleColorMapChanged();
 
             protected:

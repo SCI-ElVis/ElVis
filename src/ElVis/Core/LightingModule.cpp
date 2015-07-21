@@ -32,31 +32,25 @@
 
 namespace ElVis
 {
-    LightingModule::LightingModule() :
-        m_program()
-    {
-    }
+  LightingModule::LightingModule() : m_program() {}
 
-    LightingModule::~LightingModule()
-    {
-    }
-            
-    void LightingModule::DoRender(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        //boost::timer timer;
-        context->launch(m_program.Index, view->GetWidth(), view->GetHeight());
-        //double elapsed = timer.elapsed();
-        //printf("Render time for lighting: %e\n", elapsed);
-    }
+  LightingModule::~LightingModule() {}
 
-    void LightingModule::DoSetup(SceneView* view)
-    {
-        // Right now this assumes that the scene will enter all of the lighting information.
-        optixu::Context context = view->GetContext();
+  void LightingModule::DoRender(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    // boost::timer timer;
+    context->launch(m_program.Index, view->GetWidth(), view->GetHeight());
+    // double elapsed = timer.elapsed();
+    // printf("Render time for lighting: %e\n", elapsed);
+  }
 
-        m_program = view->AddRayGenerationProgram("OpenGLLighting");
-    }
-            
+  void LightingModule::DoSetup(SceneView* view)
+  {
+    // Right now this assumes that the scene will enter all of the lighting
+    // information.
+    optixu::Context context = view->GetContext();
+
+    m_program = view->AddRayGenerationProgram("OpenGLLighting");
+  }
 }
-

@@ -34,10 +34,33 @@
 #include <ElVis/Core/Model.h>
 #include <boost/shared_ptr.hpp>
 
+namespace ElVis
+{
+  class ColorMap;
+}
 
-int IsosurfaceBullet(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c);
-int VolumeRendering(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c);
+int IsosurfaceBullet(int argc,
+                     char** argv,
+                     boost::shared_ptr<ElVis::Model> model,
+                     boost::shared_ptr<ElVis::ColorMap> colorMap,
+                     unsigned int width,
+                     unsigned int height,
+                     const std::string& outFilePath,
+                     ElVis::Camera& c);
+int VolumeRendering(int argc,
+                    char** argv,
+                    boost::shared_ptr<ElVis::Model> model,
+                    unsigned int width,
+                    unsigned int height,
+                    const std::string& outFilePath,
+                    ElVis::Camera& c);
 void PaddleVolumeRendering(int argc, char** argv);
-int VolumeRenderSphereForVerification(int argc, char** argv, boost::shared_ptr<ElVis::Model> model, unsigned int width, unsigned int height, const std::string& outFilePath, ElVis::Camera& c);
+int VolumeRenderSphereForVerification(int argc,
+                                      char** argv,
+                                      boost::shared_ptr<ElVis::Model> model,
+                                      unsigned int width,
+                                      unsigned int height,
+                                      const std::string& outFilePath,
+                                      ElVis::Camera& c);
 
 #endif

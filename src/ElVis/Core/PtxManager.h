@@ -29,7 +29,6 @@
 #ifndef PTX_MANAGER_H
 #define PTX_MANAGER_H
 
-
 #include <optixu/optixpp.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <string>
@@ -38,49 +37,51 @@
 
 namespace ElVis
 {
-    class PtxManager
+  class PtxManager
+  {
+  public:
+    ELVIS_EXPORT static optixu::Program LoadProgram(
+      optixu::Context context,
+      const std::string& prefix,
+      const std::string& programName);
+
+    // Loads a program.
+    ELVIS_EXPORT static optixu::Program LoadProgram(
+      const std::string& prefix, const std::string& programName);
+
+    // Gets a perviously loaded program.
+    ELVIS_EXPORT static optixu::Program GetProgram(
+      const std::string& prefix, const std::string& programName);
+
+    ELVIS_EXPORT static void SetupContext(const std::string& prefix,
+                                          optixu::Context context);
+
+    // When a model is loaded, we find the Ptx file for the contect, create a
+    // context,
+    // then ask people to add their programs.
+    ELVIS_EXPORT static boost::signals2::signal<void(const std::string&,
+                                                     optixu::Context)>&
+    GetOnPtxLoaded();
+
+  private:
+    typedef std::map<std::string, optixu::Program> ProgramMap;
+
+    struct Data
     {
-        public:
-            ELVIS_EXPORT static optixu::Program LoadProgram(optixu::Context context, const std::string& prefix, const std::string& programName);
+    public:
+      Data() : Programs(), Context() {}
 
+      Data(const Data& rhs) : Programs(rhs.Programs), Context(rhs.Context) {}
 
-            // Loads a program.
-            ELVIS_EXPORT static optixu::Program LoadProgram(const std::string& prefix, const std::string& programName);
+      ProgramMap Programs;
+      optixu::Context Context;
 
-            // Gets a perviously loaded program.
-            ELVIS_EXPORT static optixu::Program GetProgram(const std::string& prefix, const std::string& programName);
-
-            ELVIS_EXPORT static void SetupContext(const std::string& prefix, optixu::Context context);
-
-            // When a model is loaded, we find the Ptx file for the contect, create a context,
-            // then ask people to add their programs.
-            ELVIS_EXPORT static boost::signals2::signal<void (const std::string&, optixu::Context)>& GetOnPtxLoaded();
-
-        private:
-            typedef std::map<std::string, optixu::Program> ProgramMap;
-
-            struct Data
-            {
-                public:
-                    Data() :
-                        Programs(),
-                        Context() {}
-
-                    Data(const Data& rhs) :
-                        Programs(rhs.Programs),
-                        Context(rhs.Context) {}
-
-                    ProgramMap Programs;
-                    optixu::Context Context;
-                private:
-                    Data& operator=(const Data&);
-            };
-
-
-            static std::map<std::string, Data> AllPrograms;
-
-
+    private:
+      Data& operator=(const Data&);
     };
+
+    static std::map<std::string, Data> AllPrograms;
+  };
 }
 
 #endif

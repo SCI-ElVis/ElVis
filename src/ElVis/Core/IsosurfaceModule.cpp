@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/IsosurfaceModule.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
@@ -37,33 +36,40 @@
 
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/serialization/set.hpp>
 
 namespace ElVis
 {
+  // Serialization Keys
+  namespace
+  {
+    const std::string ISOVALUE_KEY_NAME("Isovalues");
+  }
+
   RayGeneratorProgram IsosurfaceModule::m_FindIsosurface;
 
-  IsosurfaceModule::IsosurfaceModule() :
-  RenderModule(),
-    OnIsovalueAdded(),
-    OnIsovalueChanged(),
-    m_isovalues(),
-    m_isovalueBufferSize(),
-    m_isovalueBuffer("SurfaceIsovalues"),
-    m_gaussLegendreNodesBuffer("Nodes"),
-    m_gaussLegendreWeightsBuffer("Weights"),
-    m_monomialConversionTableBuffer("MonomialConversionTable"),
-    m_requiredOrderBuffer("RequiredOrder"),
-    m_epsilonBuffer("Epsilon")
+  IsosurfaceModule::IsosurfaceModule()
+    : RenderModule(),
+      OnIsovaluesChanged(),
+      m_isovalues(),
+      m_dirty(true),
+      m_isovalueBuffer("SurfaceIsovalues"),
+      m_gaussLegendreNodesBuffer("Nodes"),
+      m_gaussLegendreWeightsBuffer("Weights"),
+      m_requiredOrderBuffer("RequiredOrder"),
+      m_epsilonBuffer("Epsilon"),
+      m_monomialConversionTableBuffer("MonomialConversionTable")
   {
   }
 
   void IsosurfaceModule::AddIsovalue(const ElVisFloat& value)
   {
-    if( m_isovalues.find(value) == m_isovalues.end() )
+    if (m_isovalues.find(value) == m_isovalues.end())
     {
       m_isovalues.insert(value);
+      m_dirty = true;
       SetSyncAndRenderRequired();
-      OnIsovalueAdded(value);
+      OnIsovaluesChanged();
       OnModuleChanged(*this);
     }
   }
@@ -71,11 +77,12 @@ namespace ElVis
   void IsosurfaceModule::RemoveIsovalue(const ElVisFloat& value)
   {
     std::set<ElVisFloat>::iterator found = m_isovalues.find(value);
-    if( found != m_isovalues.end() )
+    if (found != m_isovalues.end())
     {
       m_isovalues.erase(found);
+      m_dirty = true;
       SetSyncAndRenderRequired();
-      OnIsovalueRemoved(value);
+      OnIsovaluesChanged();
       OnModuleChanged(*this);
     }
   }
@@ -129,45 +136,44 @@ namespace ElVis
 
   void IsosurfaceModule::DoRender(SceneView* view)
   {
-    if( m_isovalues.empty() ) return;
+    if (m_isovalues.empty()) return;
 
     try
     {
       optixu::Context context = view->GetContext();
 
-      context->launch(m_FindIsosurface.Index, view->GetWidth(), view->GetHeight());
+      context->launch(
+        m_FindIsosurface.Index, view->GetWidth(), view->GetHeight());
     }
-    catch(optixu::Exception& e)
+    catch (optixu::Exception& e)
     {
       std::cout << "Exception encountered rendering isosurface." << std::endl;
       std::cerr << e.getErrorString() << std::endl;
       std::cout << e.getErrorString().c_str() << std::endl;
     }
-    catch(std::exception& e)
+    catch (std::exception& e)
     {
       std::cout << "Exception encountered rendering isosurface." << std::endl;
       std::cout << e.what() << std::endl;
     }
-    catch(...)
+    catch (...)
     {
       std::cout << "Exception encountered rendering isosurface." << std::endl;
     }
   }
 
-
   void IsosurfaceModule::DoSetup(SceneView* view)
   {
     try
     {
-      std::cout << "Isourface setup." << std::endl;
       optixu::Context context = view->GetContext();
 
-      if( !m_FindIsosurface.IsValid() )
+      if (!m_FindIsosurface.IsValid())
       {
         m_FindIsosurface = view->AddRayGenerationProgram("FindIsosurface");
       }
 
-      if( !m_gaussLegendreNodesBuffer.Initialized() )
+      if (!m_gaussLegendreNodesBuffer.Initialized())
       {
         std::vector<ElVisFloat> nodes;
         ReadFloatVector("Nodes.txt", nodes);
@@ -177,7 +183,7 @@ namespace ElVis
         std::copy(nodes.begin(), nodes.end(), nodeData.get());
       }
 
-      if( !m_gaussLegendreWeightsBuffer.Initialized() )
+      if (!m_gaussLegendreWeightsBuffer.Initialized())
       {
         std::vector<ElVisFloat> weights;
         ReadFloatVector("Weights.txt", weights);
@@ -187,14 +193,16 @@ namespace ElVis
         std::copy(weights.begin(), weights.end(), data.get());
       }
 
-      if( !m_monomialConversionTableBuffer.Initialized() )
+      if (!m_monomialConversionTableBuffer.Initialized())
       {
         std::vector<ElVisFloat> monomialCoversionData;
         ReadFloatVector("MonomialConversionTables.txt", monomialCoversionData);
         m_monomialConversionTableBuffer.SetContext(context);
-        m_monomialConversionTableBuffer.SetDimensions(monomialCoversionData.size());
+        m_monomialConversionTableBuffer.SetDimensions(
+          monomialCoversionData.size());
         auto data = m_monomialConversionTableBuffer.Map();
-        std::copy(monomialCoversionData.begin(), monomialCoversionData.end(), data.get());
+        std::copy(monomialCoversionData.begin(), monomialCoversionData.end(),
+                  data.get());
       }
       m_isovalueBuffer.SetContext(context);
       m_isovalueBuffer.SetDimensions(0);
@@ -203,18 +211,18 @@ namespace ElVis
       m_epsilonBuffer.SetContext(context);
       m_epsilonBuffer.SetDimensions(0);
     }
-    catch(optixu::Exception& e)
+    catch (optixu::Exception& e)
     {
       std::cout << "Exception encountered setting up isosurface." << std::endl;
       std::cerr << e.getErrorString() << std::endl;
       std::cout << e.getErrorString().c_str() << std::endl;
     }
-    catch(std::exception& e)
+    catch (std::exception& e)
     {
       std::cout << "Exception encountered setting up isosurface." << std::endl;
       std::cout << e.what() << std::endl;
     }
-    catch(...)
+    catch (...)
     {
       std::cout << "Exception encountered setting up isosurface." << std::endl;
     }
@@ -222,16 +230,14 @@ namespace ElVis
 
   void IsosurfaceModule::DoSynchronize(SceneView* view)
   {
-      if( m_isovalueBufferSize != m_isovalues.size()   )
-      {
-        m_isovalueBuffer.SetDimensions(m_isovalues.size());
-        m_isovalueBufferSize = static_cast<unsigned int>(m_isovalues.size());
-      }
+    if( m_dirty )
+    {
+      m_isovalueBuffer.SetDimensions(m_isovalues.size());
 
-      if( !m_isovalues.empty() )
+      if (!m_isovalues.empty())
       {
-          auto isovalueData = m_isovalueBuffer.Map();
-          std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
+        auto isovalueData = m_isovalueBuffer.Map();
+        std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
       }
 
       if( ! m_requiredOrder.empty() )
@@ -247,18 +253,20 @@ namespace ElVis
           auto epsilonData = m_epsilonBuffer.Map();
           std::copy(m_epsilon.begin(), m_epsilon.end(), epsilonData.get());
       }
+      m_dirty = true;
+    }
   }
 
-
-  void IsosurfaceModule::ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values)
+  void IsosurfaceModule::ReadFloatVector(const std::string& fileName,
+                                         std::vector<ElVisFloat>& values)
   {
     std::ifstream inFile(fileName.c_str());
 
-    while(!inFile.eof())
+    while (!inFile.eof())
     {
       std::string line;
       std::getline(inFile, line);
-      if( line.empty() )
+      if (line.empty())
       {
         continue;
       }
@@ -268,17 +276,24 @@ namespace ElVis
         ElVisFloat value = boost::lexical_cast<ElVisFloat>(line);
         values.push_back(value);
       }
-      catch(boost::bad_lexical_cast&)
+      catch (boost::bad_lexical_cast&)
       {
         std::cout << "Unable to parse " << line << std::endl;
       }
-
     }
     inFile.close();
   }
 
+  void IsosurfaceModule::serialize(boost::archive::xml_oarchive& ar, unsigned int version) const
+  {
+    ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
+  }
 
-
+  void IsosurfaceModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
+  {
+    ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
+    m_dirty = true;
+    OnIsovaluesChanged();
+    SetSyncAndRenderRequired();
+  }
 }
-
-

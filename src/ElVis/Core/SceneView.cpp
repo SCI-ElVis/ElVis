@@ -52,10 +52,87 @@
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
 
+#include <boost/serialization/vector.hpp>
+
 #define png_infopp_NULL (png_infopp) NULL
 #ifndef int_p_NULL
 #define int_p_NULL (int*) NULL
 #endif
+
+// Serialization constants
+namespace
+{
+  const std::string VIEW_SETTINGS_KEY_NAME("ViewSettings");
+  const std::string RENDER_MODULES_KEY_NAME("RenderModules");
+  const std::string RENDER_MODULE_KEY_NAME("RenderModule");
+  const std::string RENDER_MODULE_NAMES_KEY_NAME("RenderModuleNames");
+}
+
+// Custom serialization of the render module list.
+namespace boost
+{
+  namespace serialization
+  {
+
+    template <class Archive>
+    void save(Archive& ar,
+              const std::list<boost::shared_ptr<ElVis::RenderModule>>& modules,
+              const unsigned int version)
+    {
+      // Write all of the module names, then serialize the modules.  This is
+      // a workaround for the difficulty we fond in getting the boost
+      // serialization library to correctly handle derived classes.
+      std::vector<std::string> moduleNames;
+      for (const auto& pModule : modules)
+      {
+        moduleNames.push_back(pModule->GetName());
+      }
+      ar& boost::serialization::make_nvp(
+        RENDER_MODULE_NAMES_KEY_NAME.c_str(), moduleNames);
+
+      // TRICKY - for this to work, we need to write each module out in the
+      // same order as the names are listed above.
+      for (const auto& pModule : modules)
+      {
+        // TRICKY - serialize by reference to prevent the serilization library
+        // from trying to serialize the derived manually.  We handle derived
+        // classes manually.
+        const auto& moduleReference = *pModule;
+        ar& boost::serialization::make_nvp(
+          RENDER_MODULE_KEY_NAME.c_str(), moduleReference);
+      }
+    }
+
+    template <class Archive>
+    void load(Archive& ar,
+              std::list<boost::shared_ptr<ElVis::RenderModule>>& modules,
+              const unsigned int version)
+    {
+      std::vector<std::string> moduleNames;
+      ar& boost::serialization::make_nvp(
+        RENDER_MODULE_NAMES_KEY_NAME.c_str(), moduleNames);
+
+      for (const auto& moduleName : moduleNames)
+      {
+        auto found = std::find_if(
+          modules.begin(), modules.end(),
+          [moduleName](boost::shared_ptr<ElVis::RenderModule> pModule)
+          {
+            return pModule->GetName() == moduleName;
+          });
+
+        if (found == modules.end()) continue;
+        auto pModule = *found;
+        auto& moduleReference = *pModule;
+        ar& boost::serialization::make_nvp(
+          RENDER_MODULE_KEY_NAME.c_str(), moduleReference);
+      }
+    }
+  }
+}
+
+BOOST_SERIALIZATION_SPLIT_FREE(
+  std::list<boost::shared_ptr<ElVis::RenderModule>>);
 
 namespace ElVis
 {
@@ -100,9 +177,10 @@ namespace ElVis
       m_backgroundColorIsDirty(true),
       m_projectionType(ePerspective)
   {
-    m_projectionType.OnDirtyFlagChanged.connect(
-      boost::bind(&SceneView::HandleSynchedObjectChanged<SceneViewProjection>, this, _1));
-    m_viewSettings->OnCameraChanged.connect(boost::bind(&SceneView::SetupCamera, this));
+    m_projectionType.OnDirtyFlagChanged.connect(boost::bind(
+      &SceneView::HandleSynchedObjectChanged<SceneViewProjection>, this, _1));
+    m_viewSettings->OnCameraChanged.connect(
+      boost::bind(&SceneView::SetupCamera, this));
 
     m_enableOptiXExceptions = true;
   }
@@ -188,7 +266,8 @@ namespace ElVis
   {
     BOOST_FOREACH (boost::shared_ptr<RenderModule> module, m_allRenderModules)
     {
-      boost::shared_ptr<PrimaryRayModule> result = boost::dynamic_pointer_cast<PrimaryRayModule>(module);
+      boost::shared_ptr<PrimaryRayModule> result =
+        boost::dynamic_pointer_cast<PrimaryRayModule>(module);
       if (result) return result;
     }
 
@@ -228,7 +307,8 @@ namespace ElVis
 
     //        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     //        //SetRasterPositionToLowerLeftCorner();
-    //        glReadPixels(0, 0, GetWidth(), GetHeight(), GL_DEPTH_COMPONENT, GL_FLOAT, data);
+    //        glReadPixels(0, 0, GetWidth(), GetHeight(), GL_DEPTH_COMPONENT,
+    //        GL_FLOAT, data);
 
     //        float* max = std::max_element(data, data+numEntries);
     //        std::cout << "Max from depth buffer = " << *max << std::endl;
@@ -242,9 +322,12 @@ namespace ElVis
     //        {
 
     //            boost::gil::rgb8_image_t forPng(GetWidth(), GetHeight());
-    //            boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(),
-    //            (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()), boost::gil::view(forPng));
-    //            boost::gil::png_write_view(filePrefix + ".png", boost::gil::const_view(forPng));
+    //            boost::gil::copy_pixels(
+    //            boost::gil::interleaved_view(GetWidth(), GetHeight(),
+    //            (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()),
+    //            boost::gil::view(forPng));
+    //            boost::gil::png_write_view(filePrefix + ".png",
+    //            boost::gil::const_view(forPng));
     //        }
 
     //        delete [] data;
@@ -253,7 +336,8 @@ namespace ElVis
     //        {
     //            data = static_cast<float*>(m_depthBuffer.MapOptiXPointer());
     //            max = std::max_element(data, data+numEntries);
-    //            std::cout << "Max from optix depth buffer = " << *max << std::endl;
+    //            std::cout << "Max from optix depth buffer = " << *max <<
+    //            std::endl;
     //            for(unsigned int i = 0; i < numEntries; ++i)
     //            {
     //                imageData[i].x = data[i]*255.0/(*max);
@@ -265,9 +349,12 @@ namespace ElVis
     //            {
 
     //                boost::gil::rgb8_image_t forPng(GetWidth(), GetHeight());
-    //                boost::gil::copy_pixels( boost::gil::interleaved_view(GetWidth(), GetHeight(),
-    //                (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()), boost::gil::view(forPng));
-    //                boost::gil::png_write_view(filePrefix + "_optix.png", boost::gil::const_view(forPng));
+    //                boost::gil::copy_pixels(
+    //                boost::gil::interleaved_view(GetWidth(), GetHeight(),
+    //                (boost::gil::rgb8_pixel_t*)imageData, 3*GetWidth()),
+    //                boost::gil::view(forPng));
+    //                boost::gil::png_write_view(filePrefix + "_optix.png",
+    //                boost::gil::const_view(forPng));
     //            }
     //        }
 
@@ -284,10 +371,13 @@ namespace ElVis
     if (!colorBuffer) return;
 
     boost::gil::rgba8_image_t forPng(GetWidth(), GetHeight());
-    boost::gil::copy_pixels(boost::gil::interleaved_view(
-                              GetWidth(), GetHeight(), (boost::gil::rgba8_pixel_t*)colorBuffer.get(), 4 * GetWidth()),
-                            boost::gil::view(forPng));
-    boost::gil::png_write_view(fileName + ".png", boost::gil::const_view(forPng));
+    boost::gil::copy_pixels(
+      boost::gil::interleaved_view(
+        GetWidth(), GetHeight(), (boost::gil::rgba8_pixel_t*)colorBuffer.get(),
+        4 * GetWidth()),
+      boost::gil::view(forPng));
+    boost::gil::png_write_view(
+      fileName + ".png", boost::gil::const_view(forPng));
 
     std::cout << "Done writing images." << std::endl;
   }
@@ -374,14 +464,19 @@ namespace ElVis
   void SceneView::AddRenderModule(boost::shared_ptr<RenderModule> module)
   {
     m_allRenderModules.push_back(module);
-    module->OnModuleChanged.connect(boost::bind(&SceneView::HandleRenderModuleChanged, this, _1));
-    module->OnRenderFlagsChanged.connect(boost::bind(&SceneView::HandleRenderModuleChanged, this, _1));
-    // If anything changes in the scene or the view, then this is an indication that the modules
+    module->OnModuleChanged.connect(
+      boost::bind(&SceneView::HandleRenderModuleChanged, this, _1));
+    module->OnRenderFlagsChanged.connect(
+      boost::bind(&SceneView::HandleRenderModuleChanged, this, _1));
+    // If anything changes in the scene or the view, then this is an indication
+    // that the modules
     // need to re-render, but don't necessarily need to redo their setup.
 
-    OnWindowSizeChanged.connect(boost::bind(&RenderModule::SetRenderRequired, module.get()));
+    OnWindowSizeChanged.connect(
+      boost::bind(&RenderModule::SetRenderRequired, module.get()));
 
-    OnSceneViewChanged.connect(boost::bind(&RenderModule::SetRenderRequired, module));
+    OnSceneViewChanged.connect(
+      boost::bind(&RenderModule::SetRenderRequired, module));
   }
 
   void SceneView::HandleRenderModuleChanged(const RenderModule&)
@@ -429,8 +524,10 @@ namespace ElVis
       //           // First, write the new depth buffer.
       //           // Note that this must happen before any other OpenGL related
       //           // activities since it will erase the entire depth buffer.
-      //           // There is a way to do this with the stencil buffer so that other OpenGL
-      //           // stuff can come first, but for now we'll assume this plugin is always
+      //           // There is a way to do this with the stencil buffer so that
+      //           other OpenGL
+      //           // stuff can come first, but for now we'll assume this plugin
+      //           is always
       //           // first.
 
       // Debugging code.
@@ -438,10 +535,12 @@ namespace ElVis
       //            float depthScale;
       //            glGetFloatv(GL_DEPTH_SCALE, &depthScale);
       //            glGetFloatv(GL_DEPTH_BIAS, &depthBias);
-      //            std::cout << "Depth Scale = " << depthScale << ", bias = " << depthBias << std::endl;
+      //            std::cout << "Depth Scale = " << depthScale << ", bias = "
+      //            << depthBias << std::endl;
       //            float depthRange[2];
       //            glGetFloatv(GL_DEPTH_RANGE, depthRange);
-      //            std::cout << "Depth Range (" << depthRange[0] << ", " << depthRange[1] << ")" << std::endl;
+      //            std::cout << "Depth Range (" << depthRange[0] << ", " <<
+      //            depthRange[1] << ")" << std::endl;
 
       // Disable the depth test before writing so that all updates
       // will make it.
@@ -463,7 +562,8 @@ namespace ElVis
       //            }
 
       //            void* depthData = m_depthBuffer.map();
-      //            glDrawPixels(GetWidth(), GetHeight(), GL_DEPTH_COMPONENT, GL_FLOAT, depthData);
+      //            glDrawPixels(GetWidth(), GetHeight(), GL_DEPTH_COMPONENT,
+      //            GL_FLOAT, depthData);
       //            m_depthBuffer.unmap();
 
       //////////////////////////////////////////////
@@ -477,7 +577,8 @@ namespace ElVis
 
       glDrawBuffer(GL_BACK);
       auto colorData = m_colorBuffer.Map();
-      glDrawPixels(GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, (void*)colorData.get());
+      glDrawPixels(GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE,
+                   (void*)colorData.get());
 
       // GLenum error = glGetError();
 
@@ -491,9 +592,11 @@ namespace ElVis
       // Trial code to see how drawing individual points works.
       ////////////////////////
       //            glEnable(GL_COLOR_MATERIAL);
-      //            ElVisFloat3* intersectionData = static_cast<ElVisFloat3*>(m_intersectionBuffer.map());
+      //            ElVisFloat3* intersectionData =
+      //            static_cast<ElVisFloat3*>(m_intersectionBuffer.map());
       //            uchar4* color = static_cast<uchar4*>(m_colorBuffer.map());
-      //            ElVisFloat* scalars = static_cast<ElVisFloat*>(m_sampleBuffer.map());
+      //            ElVisFloat* scalars =
+      //            static_cast<ElVisFloat*>(m_sampleBuffer.map());
 
       //            glBegin(GL_POINTS);
       //            for(int i = 0; i < GetWidth()*GetHeight(); ++i)
@@ -501,13 +604,15 @@ namespace ElVis
       //                std::cout << scalars[i] << std::endl;
       //                if( scalars[i] < ELVIS_FLOAT_COMPARE )
       //                {
-      //                    std::cout << intersectionData[i].x << " " <<  intersectionData[i].y << " " <<
+      //                    std::cout << intersectionData[i].x << " " <<
+      //                    intersectionData[i].y << " " <<
       //                    intersectionData[i].z << std::endl;
 
       //                    glColor3f(static_cast<ElVisFloat>(color[i].x)/255.0f,
       //                              static_cast<ElVisFloat>(color[i].y)/255.0f,
       //                              static_cast<ElVisFloat>(color[i].z)/255.0f);
-      //                    glVertex3f(intersectionData[i].x, intersectionData[i].y, intersectionData[i].z);
+      //                    glVertex3f(intersectionData[i].x,
+      //                    intersectionData[i].y, intersectionData[i].z);
       //                }
       //            }
       //            glEnd();
@@ -525,7 +630,8 @@ namespace ElVis
     }
   }
 
-  WorldPoint SceneView::GetIntersectionPoint(unsigned int pixel_x, unsigned int pixel_y)
+  WorldPoint SceneView::GetIntersectionPoint(unsigned int pixel_x,
+                                             unsigned int pixel_y)
   {
     ElVisFloat3 element = m_intersectionBuffer(pixel_x, m_height - pixel_y - 1);
     return WorldPoint(element.x, element.y, element.z);
@@ -547,7 +653,8 @@ namespace ElVis
     return m_elementTypeBuffer(pixel_x, m_height - pixel_y - 1);
   }
 
-  ElVisFloat SceneView::GetScalarSample(unsigned int pixel_x, unsigned int pixel_y)
+  ElVisFloat SceneView::GetScalarSample(unsigned int pixel_x,
+                                        unsigned int pixel_y)
   {
     return m_sampleBuffer(pixel_x, m_height - pixel_y - 1);
   }
@@ -589,15 +696,18 @@ namespace ElVis
 
       m_sampleBuffer.SetContext(m_context);
       m_sampleBuffer.SetDimensions(GetWidth(), GetHeight());
-      // unsigned int sampleBufferSize = GetWidth() * GetHeight() * sizeof(float);
+      // unsigned int sampleBufferSize = GetWidth() * GetHeight() *
+      // sizeof(float);
 
       m_normalBuffer.SetContext(m_context);
       m_normalBuffer.SetDimensions(GetWidth(), GetHeight());
-      // unsigned int normalBufferSize = GetWidth() * GetHeight() * sizeof(float)*3;
+      // unsigned int normalBufferSize = GetWidth() * GetHeight() *
+      // sizeof(float)*3;
 
       m_intersectionBuffer.SetContext(m_context);
       m_intersectionBuffer.SetDimensions(GetWidth(), GetHeight());
-      // unsigned int intersectionSize = GetWidth() * GetHeight() * sizeof(float)*3;
+      // unsigned int intersectionSize = GetWidth() * GetHeight() *
+      // sizeof(float)*3;
 
       m_elementIdBuffer.SetContext(m_context);
       m_elementIdBuffer.SetDimensions(GetWidth(), GetHeight());
@@ -605,7 +715,8 @@ namespace ElVis
       m_elementTypeBuffer.SetContext(m_context);
       m_elementTypeBuffer.SetDimensions(GetWidth(), GetHeight());
 
-      m_exceptionProgram = PtxManager::LoadProgram(m_context, GetPTXPrefix(), "ExceptionProgram");
+      m_exceptionProgram =
+        PtxManager::LoadProgram(m_context, GetPTXPrefix(), "ExceptionProgram");
       m_context->setPrintLaunchIndex(-1, -1, -1);
       SetupCamera();
       m_context["DepthBits"]->setInt(m_depthBits);
@@ -627,7 +738,8 @@ namespace ElVis
     }
   }
 
-  RayGeneratorProgram SceneView::AddRayGenerationProgram(const std::string& programName)
+  RayGeneratorProgram SceneView::AddRayGenerationProgram(
+    const std::string& programName)
   {
     auto found = m_rayGenerationPrograms.find(programName);
     if (found != m_rayGenerationPrograms.end())
@@ -638,17 +750,22 @@ namespace ElVis
     RayGeneratorProgram result;
 
     optixu::Context m_context = GetScene()->GetContext();
-    result.Program = PtxManager::LoadProgram(m_context, GetPTXPrefix(), programName.c_str());
+    result.Program =
+      PtxManager::LoadProgram(m_context, GetPTXPrefix(), programName.c_str());
     result.Index = static_cast<unsigned int>(m_rayGenerationPrograms.size());
 
     m_rayGenerationPrograms[programName] = result;
 
-    m_context->setEntryPointCount(static_cast<unsigned int>(m_rayGenerationPrograms.size()));
+    m_context->setEntryPointCount(
+      static_cast<unsigned int>(m_rayGenerationPrograms.size()));
     m_context->setRayGenerationProgram(result.Index, result.Program);
     return result;
   }
 
-  ElVisFloat SceneView::GetFaceIntersectionTolerance() const { return m_faceIntersectionTolerance; }
+  ElVisFloat SceneView::GetFaceIntersectionTolerance() const
+  {
+    return m_faceIntersectionTolerance;
+  }
 
   void SceneView::SetFaceIntersectionTolerance(ElVisFloat value)
   {
@@ -693,13 +810,16 @@ namespace ElVis
     if (m_projectionType.IsDirty())
     {
       ElVis::SceneViewProjection data = *m_projectionType;
-      context["ProjectionType"]->setUserData(sizeof(ElVis::SceneViewProjection), &data);
+      context["ProjectionType"]->setUserData(
+        sizeof(ElVis::SceneViewProjection), &data);
       m_projectionType.MarkClean();
     }
 
-    if (context->getExceptionEnabled(RT_EXCEPTION_ALL) != m_enableOptiXExceptions)
+    if (context->getExceptionEnabled(RT_EXCEPTION_ALL) !=
+        m_enableOptiXExceptions)
     {
-      std::cout << "Setting exception flag to " << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
+      std::cout << "Setting exception flag to "
+                << (m_enableOptiXExceptions ? "true" : "false") << std::endl;
       context->setExceptionEnabled(RT_EXCEPTION_ALL, m_enableOptiXExceptions);
     }
 
@@ -737,14 +857,46 @@ namespace ElVis
     return Stat();
     //        if( !m_sampleBuffer.Initialized() ) return Stat();
 
-    //        ElVisFloat* samples = static_cast<ElVisFloat*>(m_sampleBuffer.MapOptiXPointer());
+    //        ElVisFloat* samples =
+    //        static_cast<ElVisFloat*>(m_sampleBuffer.MapOptiXPointer());
     //        int size = GetWidth()*GetHeight();
     //        Stat result(samples, ELVIS_FLOAT_MAX, size);
     //        m_sampleBuffer.UnmapOptiXPointer();
     //        return result;
   }
 
-  void SceneView::SetProjectionType(SceneViewProjection type) { m_projectionType = type; }
+  void SceneView::SetProjectionType(SceneViewProjection type)
+  {
+    m_projectionType = type;
+  }
 
-  SceneViewProjection SceneView::GetProjectionType() const { return *m_projectionType; }
+  SceneViewProjection SceneView::GetProjectionType() const
+  {
+    return *m_projectionType;
+  }
+
+  template <typename Archive>
+  void SceneView::save(Archive& ar, const unsigned int version) const
+  {
+    ar& boost::serialization::make_nvp(
+      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+    ar& boost::serialization::make_nvp(
+      RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
+  }
+
+  template <typename Archive>
+  void SceneView::load(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp(
+      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+    ar& boost::serialization::make_nvp(
+      RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
+    OnSceneViewChanged(*this);
+  }
+
+  template void SceneView::save(boost::archive::xml_oarchive&,
+                                const unsigned int) const;
+
+  template void SceneView::load(boost::archive::xml_iarchive&,
+                                const unsigned int);
 }

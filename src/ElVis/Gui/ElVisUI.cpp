@@ -50,7 +50,7 @@
 #include <ElVis/Core/Scene.h>
 #include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/Triangle.h>
 #include <ElVis/Core/SurfaceObject.h>
 #include <ElVis/Core/Plane.h>

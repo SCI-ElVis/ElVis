@@ -110,9 +110,9 @@ namespace ElVis
                     OnApplicationStateChanged();
                 }
 
-                void SetSelectedColorMap(boost::shared_ptr<PiecewiseLinearColorMap> f);
+                void SetSelectedColorMap(boost::shared_ptr<ColorMap> f);
 
-                boost::shared_ptr<PiecewiseLinearColorMap> GetSelectedColorMap() { return m_selectedTransferFunction; }
+                boost::shared_ptr<ColorMap> GetSelectedColorMap() { return m_selectedTransferFunction; }
 
 
                 void ClearSelectedTransferFunction()
@@ -126,7 +126,7 @@ namespace ElVis
                 void GeneratePointInformation(unsigned int pixel_x, unsigned int pixel_y);
 
                 boost::signals2::signal<void (boost::shared_ptr<PrimaryRayObject>)> OnSelectedObjectChanged;
-                boost::signals2::signal<void (boost::shared_ptr<PiecewiseLinearColorMap>)> OnSelectedTransferFunctionChanged;
+                boost::signals2::signal<void (boost::shared_ptr<ColorMap>)> OnSelectedTransferFunctionChanged;
                 boost::signals2::signal<void ()> OnApplicationStateChanged;
                 boost::signals2::signal<void (const PointInfo&)> OnSelectedPointChanged;
 
@@ -160,7 +160,7 @@ namespace ElVis
 
                 boost::shared_ptr<PrimaryRayObject> m_selectedObject;
 
-                boost::shared_ptr<PiecewiseLinearColorMap> m_selectedTransferFunction;
+                boost::shared_ptr<ColorMap> m_selectedTransferFunction;
 
                 boost::shared_ptr<ElVis::ColorMapperModule> m_colorMapperModule;
 

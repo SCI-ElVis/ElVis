@@ -34,60 +34,58 @@
 
 namespace ElVis
 {
-    Cylinder::Cylinder() :
-        Object(),
-        m_transformationMatrix(optix::Matrix<4,4>::identity())
+  Cylinder::Cylinder()
+    : Object(), m_transformationMatrix(optix::Matrix<4, 4>::identity())
+  {
+  }
+
+  optixu::Geometry Cylinder::DoCreateOptiXGeometry(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    optixu::Geometry result = context->createGeometry();
+    result->setPrimitiveCount(1u);
+
+    result->setBoundingBoxProgram(PtxManager::LoadProgram(
+      context, view->GetPTXPrefix(), "CylinderBounding"));
+    result->setIntersectionProgram(PtxManager::LoadProgram(
+      context, view->GetPTXPrefix(), "CylinderIntersect"));
+    return result;
+  }
+
+  optixu::Material Cylinder::DoCreateMaterial(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    return context->createMaterial();
+  }
+
+  void Cylinder::DoCreateNode(SceneView* view,
+                              optixu::Transform& transform,
+                              optixu::GeometryGroup& group)
+  {
+    optixu::Context context = view->GetContext();
+    if (m_transform.get())
     {
+      transform = m_transform;
+      group = m_group;
+      return;
     }
 
+    optixu::Geometry geom = CreateOptiXGeometry(view);
+    transform = context->createTransform();
+    transform->setMatrix(false, m_transformationMatrix.getData(), 0);
 
-    optixu::Geometry Cylinder::DoCreateOptiXGeometry(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        optixu::Geometry result = context->createGeometry();
-        result->setPrimitiveCount(1u);
+    group = context->createGeometryGroup();
+    group->setAcceleration(context->createAcceleration("NoAccel", "NoAccel"));
+    transform->setChild(group);
 
-        result->setBoundingBoxProgram( PtxManager::LoadProgram(context, view->GetPTXPrefix(), "CylinderBounding") );
-        result->setIntersectionProgram( PtxManager::LoadProgram(context, view->GetPTXPrefix(), "CylinderIntersect") );
-        return result;
-    }
+    group->setChildCount(1);
+    optixu::GeometryInstance instance = context->createGeometryInstance();
+    instance->setGeometry(geom);
 
-    optixu::Material Cylinder::DoCreateMaterial(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        return context->createMaterial();
-    }
+    group->setChild(0, instance);
 
-    void Cylinder::DoCreateNode(SceneView* view, 
-                optixu::Transform& transform, optixu::GeometryGroup& group)
-    {
-        optixu::Context context = view->GetContext();
-        if( m_transform.get() )
-        {
-            transform = m_transform;
-            group = m_group;
-            return;
-        }
-        
-        optixu::Geometry geom = CreateOptiXGeometry(view);
-        transform = context->createTransform();
-        transform->setMatrix(false, m_transformationMatrix.getData(), 0);
-        
-        group = context->createGeometryGroup();
-        group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
-        transform->setChild(group);
-
-        group->setChildCount(1);
-        optixu::GeometryInstance instance = context->createGeometryInstance();
-        instance->setGeometry(geom);
-        
-        group->setChild(0, instance);
-
-        m_transform = transform;
-        m_group = group;
-        m_instance = instance;
-    }
-
+    m_transform = transform;
+    m_group = group;
+    m_instance = instance;
+  }
 }
-
-

@@ -33,46 +33,55 @@
 
 namespace ElVis
 {
-    extern "C" __global__ void PopulateColorBuffer(ElVisFloat3* __restrict__ accumulatedColor, ElVisFloat* __restrict__ accumulatedOpacity, uchar4* __restrict__ colorBuffer, int bufSize,
-                                                   ElVisFloat3 bgColor)
+  extern "C" __global__ void PopulateColorBuffer(
+    ElVisFloat3* __restrict__ accumulatedColor,
+    ElVisFloat* __restrict__ accumulatedOpacity,
+    uchar4* __restrict__ colorBuffer,
+    int bufSize,
+    ElVisFloat3 bgColor)
+  {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= bufSize)
     {
-        int index = blockIdx.x*blockDim.x + threadIdx.x;
-        if( index >= bufSize ) 
-        {
-            return;
-        }
-
-        ElVisFloat atten = expf(-accumulatedOpacity[index]);
-
-        ElVisFloat3 accumColor = accumulatedColor[index];
-        uchar4 incomingColor = colorBuffer[index];
-
-        ElVisFloat3 incomingColorAsFloat = MakeFloat3(incomingColor.x/MAKE_FLOAT(255.0), incomingColor.y/MAKE_FLOAT(255.0), incomingColor.z/MAKE_FLOAT(255.0));
-        accumColor += incomingColorAsFloat*atten;
-
-        uchar4 color;
-        ElVisFloat red  = fminf(MAKE_FLOAT(1.0), accumColor.x);
-        ElVisFloat green  = fminf(MAKE_FLOAT(1.0), accumColor.y);
-        ElVisFloat blue  = fminf(MAKE_FLOAT(1.0), accumColor.z);
-        color.x = 255u*red;
-        color.y = 255u*green;
-        color.z = 255u*blue;
-        color.w = 255u;//*opacity[index];
-        colorBuffer[index] = color;
+      return;
     }
 
-    extern "C" __global__ void ClearAccumulatorBuffers(ElVisFloat* __restrict__ opacity, ElVisFloat3* __restrict__ color, int bufSize)
-    {
-        int index = blockIdx.x*blockDim.x + threadIdx.x;
-        if( index >= bufSize ) 
-        {
-            return;
-        }
+    ElVisFloat atten = expf(-accumulatedOpacity[index]);
 
-        opacity[index] = MAKE_FLOAT(0.0);
-        color[index] = MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+    ElVisFloat3 accumColor = accumulatedColor[index];
+    uchar4 incomingColor = colorBuffer[index];
+
+    ElVisFloat3 incomingColorAsFloat = MakeFloat3(
+      incomingColor.x / MAKE_FLOAT(255.0), incomingColor.y / MAKE_FLOAT(255.0),
+      incomingColor.z / MAKE_FLOAT(255.0));
+    accumColor += incomingColorAsFloat * atten;
+
+    uchar4 color;
+    ElVisFloat red = fminf(MAKE_FLOAT(1.0), accumColor.x);
+    ElVisFloat green = fminf(MAKE_FLOAT(1.0), accumColor.y);
+    ElVisFloat blue = fminf(MAKE_FLOAT(1.0), accumColor.z);
+    color.x = 255u * red;
+    color.y = 255u * green;
+    color.z = 255u * blue;
+    color.w = 255u; //*opacity[index];
+    colorBuffer[index] = color;
+  }
+
+  extern "C" __global__ void ClearAccumulatorBuffers(
+    ElVisFloat* __restrict__ opacity,
+    ElVisFloat3* __restrict__ color,
+    int bufSize)
+  {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= bufSize)
+    {
+      return;
     }
 
+    opacity[index] = MAKE_FLOAT(0.0);
+    color[index] =
+      MakeFloat3(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(0.0));
+  }
 }
 
-#endif //ELVIS_CORE_VOLUME_RENDERING_CU
+#endif // ELVIS_CORE_VOLUME_RENDERING_CU

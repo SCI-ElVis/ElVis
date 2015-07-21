@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVISNATIVE_PRIMARY_RAY_OBJECT_H
 #define ELVISNATIVE_PRIMARY_RAY_OBJECT_H
 
@@ -44,39 +43,44 @@
 
 namespace ElVis
 {
-    /// \brief Adapts objects so they can be used by the primary ray module.
-    class PrimaryRayObject
+  /// \brief Adapts objects so they can be used by the primary ray module.
+  class PrimaryRayObject
+  {
+  public:
+    friend class boost::serialization::access;
+    ELVIS_EXPORT PrimaryRayObject();
+    ELVIS_EXPORT explicit PrimaryRayObject(boost::shared_ptr<Object> obj);
+    ELVIS_EXPORT virtual ~PrimaryRayObject();
+
+    ELVIS_EXPORT boost::shared_ptr<Object> GetObject() const
     {
-        public:
-            friend class boost::serialization::access;
-            ELVIS_EXPORT PrimaryRayObject();
-            ELVIS_EXPORT explicit PrimaryRayObject(boost::shared_ptr<Object> obj);
-            ELVIS_EXPORT virtual ~PrimaryRayObject();
-            
-            ELVIS_EXPORT boost::shared_ptr<Object> GetObject() const { return m_object; }
+      return m_object;
+    }
 
-            ELVIS_EXPORT void CreateNode(SceneView* view, optixu::Transform& transform, optixu::GeometryGroup& group);
+    ELVIS_EXPORT void CreateNode(SceneView* view,
+                                 optixu::Transform& transform,
+                                 optixu::GeometryGroup& group);
 
-            boost::signals2::signal<void (const PrimaryRayObject&)> OnObjectChanged;
+    boost::signals2::signal<void(const PrimaryRayObject&)> OnObjectChanged;
 
-        protected:
-            virtual optixu::Material GetMaterial(SceneView* view) = 0;
+  protected:
+    virtual optixu::Material GetMaterial(SceneView* view) = 0;
 
-        private:
-            PrimaryRayObject& operator=(const PrimaryRayObject& rhs);
-            PrimaryRayObject(const PrimaryRayObject& rhs);
+  private:
+    PrimaryRayObject& operator=(const PrimaryRayObject& rhs);
+    PrimaryRayObject(const PrimaryRayObject& rhs);
 
-            void HandleObjectChanged(const Object&);
-            void SetupSubscriptions();
+    void HandleObjectChanged(const Object&);
+    void SetupSubscriptions();
 
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
-            {
-                ar & BOOST_SERIALIZATION_NVP(m_object);
-            }
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+      ar& BOOST_SERIALIZATION_NVP(m_object);
+    }
 
-            boost::shared_ptr<Object> m_object;
-    };
+    boost::shared_ptr<Object> m_object;
+  };
 }
 
 #endif

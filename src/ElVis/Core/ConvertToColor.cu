@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVIS_CONVERT_TO_COLOR_CU
 #define ELVIS_CONVERT_TO_COLOR_CU
 
@@ -34,15 +33,16 @@
 #include <optix_math.h>
 #include <ElVis/Core/Float.cu>
 
-// Converts a floating point color representation, where every channel is 
-// in the range [0,1] to a 1-byte per channel RGBA color in the range [0,255], 
+// Converts a floating point color representation, where every channel is
+// in the range [0,1] to a 1-byte per channel RGBA color in the range [0,255],
 // with an alpha of 255.
 __device__ __forceinline__ uchar4 ConvertToColor(const ElVisFloat3& c)
 {
-    return make_uchar4( static_cast<unsigned char>(c.x*MAKE_FLOAT(255.99)),  /* R */
-                        static_cast<unsigned char>(c.y*MAKE_FLOAT(255.99)),  /* G */
-                        static_cast<unsigned char>(c.z*MAKE_FLOAT(255.99)),  /* B */
-                        255u);                                                 /* A */
+  return make_uchar4(
+    static_cast<unsigned char>(c.x * MAKE_FLOAT(255.99)), /* R */
+    static_cast<unsigned char>(c.y * MAKE_FLOAT(255.99)), /* G */
+    static_cast<unsigned char>(c.z * MAKE_FLOAT(255.99)), /* B */
+    255u);                                                /* A */
 }
 
 #endif

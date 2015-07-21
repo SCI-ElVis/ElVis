@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/SceneView.h>
 
@@ -35,47 +34,40 @@
 
 namespace ElVis
 {
-    PrimaryRayObject::PrimaryRayObject() :
-        m_object()
+  PrimaryRayObject::PrimaryRayObject() : m_object() { SetupSubscriptions(); }
+
+  PrimaryRayObject::PrimaryRayObject(boost::shared_ptr<Object> obj)
+    : m_object(obj)
+  {
+    SetupSubscriptions();
+  }
+
+  PrimaryRayObject::~PrimaryRayObject() {}
+
+  void PrimaryRayObject::CreateNode(SceneView* view,
+                                    optixu::Transform& transform,
+                                    optixu::GeometryGroup& group)
+  {
+    m_object->CreateNode(view, transform, group);
+
+    if (!group.get()) return;
+
+    for (unsigned int i = 0; i < group->getChildCount(); ++i)
     {
-        SetupSubscriptions();
+      optixu::GeometryInstance instance = group->getChild(i);
+      instance->setMaterialCount(1);
+      instance->setMaterial(0, GetMaterial(view));
     }
+  }
 
-    PrimaryRayObject::PrimaryRayObject(boost::shared_ptr<Object> obj) :
-        m_object(obj)    
-    {
-        SetupSubscriptions();
-    }
+  void PrimaryRayObject::SetupSubscriptions()
+  {
+    m_object->OnObjectChanged.connect(
+      boost::bind(&PrimaryRayObject::HandleObjectChanged, this, _1));
+  }
 
-
-    PrimaryRayObject::~PrimaryRayObject()
-    {
-    }
-
-
-    void PrimaryRayObject::CreateNode(SceneView* view, 
-        optixu::Transform& transform, optixu::GeometryGroup& group)
-    {
-        m_object->CreateNode(view, transform, group);
-
-        if( !group.get() ) return;
-
-        for(unsigned int i = 0; i < group->getChildCount(); ++i)
-        {
-            optixu::GeometryInstance instance = group->getChild(i);
-            instance->setMaterialCount(1);
-            instance->setMaterial(0, GetMaterial(view));
-        }
-    }
-
-    void PrimaryRayObject::SetupSubscriptions()
-    {
-        m_object->OnObjectChanged.connect(boost::bind(&PrimaryRayObject::HandleObjectChanged, this, _1));
-    }
-
-    void PrimaryRayObject::HandleObjectChanged(const Object&)
-    {
-        OnObjectChanged(*this);
-    }
+  void PrimaryRayObject::HandleObjectChanged(const Object&)
+  {
+    OnObjectChanged(*this);
+  }
 }
-

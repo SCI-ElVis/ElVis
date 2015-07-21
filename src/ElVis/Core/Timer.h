@@ -40,33 +40,33 @@
 
 namespace ElVis
 {
-    class Timer
-    {    
-        public:
-            #ifdef _WIN32
-                typedef LARGE_INTEGER CounterType;
-            #elif  defined(__APPLE__)
-                typedef timeval CounterType;
-            #else
-                typedef timespec CounterType;
-            #endif
+  class Timer
+  {
+  public:
+#ifdef _WIN32
+    typedef LARGE_INTEGER CounterType;
+#elif defined(__APPLE__)
+    typedef timeval CounterType;
+#else
+    typedef timespec CounterType;
+#endif
 
-        public:
-            ELVIS_EXPORT Timer();
-            ELVIS_EXPORT ~Timer();
-            ELVIS_EXPORT Timer(const Timer& rhs);
-            ELVIS_EXPORT Timer& operator=(const Timer& rhs);
+  public:
+    ELVIS_EXPORT Timer();
+    ELVIS_EXPORT ~Timer();
+    ELVIS_EXPORT Timer(const Timer& rhs);
+    ELVIS_EXPORT Timer& operator=(const Timer& rhs);
 
-            ELVIS_EXPORT void Start();
-            ELVIS_EXPORT void Stop();
-            ELVIS_EXPORT CounterType Elapsed();
-            ELVIS_EXPORT double TimePerTest(unsigned int n);
+    ELVIS_EXPORT void Start();
+    ELVIS_EXPORT void Stop();
+    ELVIS_EXPORT CounterType Elapsed();
+    ELVIS_EXPORT double TimePerTest(unsigned int n);
 
-        private:
-            CounterType m_start;
-            CounterType m_end;
-            CounterType m_resolution;
-    };
+  private:
+    CounterType m_start;
+    CounterType m_end;
+    CounterType m_resolution;
+  };
 }
 
-#endif //ELVIS_TIMER_H
+#endif // ELVIS_TIMER_H

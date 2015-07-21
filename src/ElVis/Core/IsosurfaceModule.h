@@ -31,7 +31,6 @@
 
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/RenderModule.h>
-#include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
 #include <ElVis/Core/Float.h>
 #include <ElVis/Core/ElementId.h>
@@ -43,55 +42,60 @@
 
 namespace ElVis
 {
-    class IsosurfaceModule : public RenderModule
+  class IsosurfaceModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT IsosurfaceModule();
+    ELVIS_EXPORT virtual ~IsosurfaceModule() {}
+    IsosurfaceModule& operator=(const IsosurfaceModule& rhs) = delete;
+    IsosurfaceModule(const IsosurfaceModule& rhs) = delete;
+
+    ELVIS_EXPORT virtual void DoRender(SceneView* view);
+
+    ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
+    ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
+    ELVIS_EXPORT void SetRequiredOrder(int newValue);
+    ELVIS_EXPORT void SetEpsilon(int newValue);
+
+    ELVIS_EXPORT const std::set<ElVisFloat> GetIsovalues() const
     {
-        public:
-            ELVIS_EXPORT IsosurfaceModule();
-            ELVIS_EXPORT virtual ~IsosurfaceModule() {}
+      return m_isovalues;
+    }
 
-            ELVIS_EXPORT virtual void DoRender(SceneView* view);
+    boost::signals2::signal<void()> OnIsovaluesChanged;
 
-            ELVIS_EXPORT void AddIsovalue(const ElVisFloat& value);
-            ELVIS_EXPORT void RemoveIsovalue(const ElVisFloat& value);
-            ELVIS_EXPORT void SetRequiredOrder(int newValue);
-            ELVIS_EXPORT void SetEpsilon(int newValue);
+  protected:
+    ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
+    ELVIS_EXPORT virtual void DoSetup(SceneView* view);
 
-            ELVIS_EXPORT const std::set<ElVisFloat> GetIsovalues() const { return m_isovalues; }
+    virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
+    virtual std::string DoGetName() const { return "Isosurface Rendering"; }
 
-            boost::signals2::signal< void (ElVisFloat) > OnIsovalueAdded;
-            boost::signals2::signal< void (ElVisFloat, ElVisFloat)> OnIsovalueChanged;
-            boost::signals2::signal< void (ElVisFloat)> OnIsovalueRemoved;
+    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const override;
+    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) override;
 
-        protected:
+  private:
+    /// \brief Reads a vector of floating point value from a file.
+    /// Projecting an arbitrary smooth function onto a polynomial requires
+    /// the nodes and weights for numerical ingegration.  These values
+    /// are stored in a file in the ElVis installation directory.
+    static void ReadFloatVector(const std::string& fileName,
+                                std::vector<ElVisFloat>& values);
 
-            ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
-            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
+    std::set<ElVisFloat> m_isovalues;
+    bool m_dirty;
+    std::vector<ElVisFloat> m_epsilon;
+    std::vector<int> m_requiredOrder;
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
-            virtual std::string DoGetName() const { return "Isosurface Rendering"; }
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreWeightsBuffer;
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_monomialConversionTableBuffer;
+    OptiXBuffer<int,        RT_BUFFER_INPUT> m_requiredOrderBuffer;
+    OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_epsilonBuffer;
 
-        private:
-            IsosurfaceModule& operator=(const IsosurfaceModule& rhs);
-            IsosurfaceModule(const IsosurfaceModule& rhs);
-
-            static void ReadFloatVector(const std::string& fileName, std::vector<ElVisFloat>& values);
-
-            std::set<ElVisFloat> m_isovalues;
-            unsigned int m_isovalueBufferSize;
-            std::vector<ElVisFloat> m_epsilon;
-            std::vector<int> m_requiredOrder;
-
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_isovalueBuffer;
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreNodesBuffer;
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_gaussLegendreWeightsBuffer;
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_monomialConversionTableBuffer;
-            OptiXBuffer<int,        RT_BUFFER_INPUT> m_requiredOrderBuffer;
-            OptiXBuffer<ElVisFloat, RT_BUFFER_INPUT> m_epsilonBuffer;
-
-            static RayGeneratorProgram m_FindIsosurface;
-
-    };
+    static RayGeneratorProgram m_FindIsosurface;
+  };
 }
-
 
 #endif

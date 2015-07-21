@@ -62,7 +62,7 @@ namespace ElVis
             return result;
         }
 
-        void ColorMapRect::SetTransferFunction(boost::shared_ptr<PiecewiseLinearColorMap> value)
+        void ColorMapRect::SetTransferFunction(boost::shared_ptr<ColorMap> value)
         {
             if( m_colorMap != value )
             {
@@ -84,7 +84,7 @@ namespace ElVis
             }
         }
 
-        boost::shared_ptr<PiecewiseLinearColorMap> ColorMapRect::GetTransferFunction() const
+        boost::shared_ptr<ColorMap> ColorMapRect::GetTransferFunction() const
         {
             return m_colorMap;
         }

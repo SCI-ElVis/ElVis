@@ -38,56 +38,59 @@
 #include <ElVis/Core/OptixVariables.cu>
 
 // Color mapping is implemented as a separate invocation to the OptiX engine.
-// Any launch_index with a scalar that is not FLT_MAX will go through the 
+// Any launch_index with a scalar that is not FLT_MAX will go through the
 // color mapping process.
 
 // To use textures, comment out this line and uncomment the textureSampler code.
-// Testing has shown that textures are slightly slower and take longer to compile
+// Testing has shown that textures are slightly slower and take longer to
+// compile
 rtBuffer<float4, 1> ColorMapTexture;
-//rtTextureSampler<float4, 1> t;
+// rtTextureSampler<float4, 1> t;
 
-
-rtDeclareVariable(float, TextureMinScalar, ,);
-rtDeclareVariable(float, TextureMaxScalar, ,);
-
+rtDeclareVariable(float, TextureMinScalar, , );
+rtDeclareVariable(float, TextureMaxScalar, , );
 
 RT_PROGRAM void TextureColorMap()
 {
 
-    ElVisFloat scalar = SampleBuffer[launch_index];
+  ElVisFloat scalar = SampleBuffer[launch_index];
 
-    // Use a comparison because I can't get an equality to ELVIS_FLOAT_MAX to 
-    // work.
-    if( scalar > ELVIS_FLOAT_COMPARE ) 
-    {
-        return;
-    }
+  // Use a comparison because I can't get an equality to ELVIS_FLOAT_MAX to
+  // work.
+  if (scalar > ELVIS_FLOAT_COMPARE)
+  {
+    return;
+  }
 
-    ElVisFloat normalized = (scalar - TextureMinScalar)/(TextureMaxScalar - TextureMinScalar);
-    normalized = fmaxf(normalized, MAKE_FLOAT(0.0));
-    normalized = fminf(normalized, MAKE_FLOAT(1.0));
-    
-    int index = normalized*ColorMapTexture.size();
+  ElVisFloat normalized =
+    (scalar - TextureMinScalar) / (TextureMaxScalar - TextureMinScalar);
+  normalized = fmaxf(normalized, MAKE_FLOAT(0.0));
+  normalized = fminf(normalized, MAKE_FLOAT(1.0));
 
-    //ELVIS_PRINTF("Color map index %d\n", index);
-    //ELVIS_PRINTF("Min %f, Max %f, scalar %f Normalized %f\n", TextureMinScalar, TextureMaxScalar, scalar, normalized);
-    if( index == ColorMapTexture.size() )
-    {
-        // TODO - Setup the texture so I don't have this branch.
-        index = index - 1;
-    }
-    float4 resultColor = ColorMapTexture[index];
+  int index = normalized * ColorMapTexture.size();
 
-    //float4 resultColor = tex1D( t, normalized);
+  // ELVIS_PRINTF("Color map index %d\n", index);
+  // ELVIS_PRINTF("Min %f, Max %f, scalar %f Normalized %f\n", TextureMinScalar,
+  // TextureMaxScalar, scalar, normalized);
+  if (index == ColorMapTexture.size())
+  {
+    // TODO - Setup the texture so I don't have this branch.
+    index = index - 1;
+  }
+  float4 resultColor = ColorMapTexture[index];
 
-//    ELVIS_PRINTF("(%f, %f) - %f to %f give color (%f, %f, %f)\n", TextureMinScalar, TextureMaxScalar, scalar, normalized,
-//        resultColor.x, resultColor.y, resultColor.z);
+  // float4 resultColor = tex1D( t, normalized);
 
-    // Set the actual color in the color buffer since we don't 
-    // know for sure if the lighting module will be called.
-    raw_color_buffer[launch_index] = MakeFloat3(resultColor.x, resultColor.y, resultColor.z);
-    color_buffer[launch_index] = ConvertToColor(MakeFloat3(resultColor.x, resultColor.y, resultColor.z));
+  //    ELVIS_PRINTF("(%f, %f) - %f to %f give color (%f, %f, %f)\n",
+  //    TextureMinScalar, TextureMaxScalar, scalar, normalized,
+  //        resultColor.x, resultColor.y, resultColor.z);
+
+  // Set the actual color in the color buffer since we don't
+  // know for sure if the lighting module will be called.
+  raw_color_buffer[launch_index] =
+    MakeFloat3(resultColor.x, resultColor.y, resultColor.z);
+  color_buffer[launch_index] =
+    ConvertToColor(MakeFloat3(resultColor.x, resultColor.y, resultColor.z));
 }
 
-
-#endif 
+#endif

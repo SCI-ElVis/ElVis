@@ -29,7 +29,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVIS_CORE_ELEMENT_ID_H
 #define ELVIS_CORE_ELEMENT_ID_H
 
@@ -37,42 +36,38 @@
 
 namespace ElVis
 {
-    struct ElementId
-    {
+  struct ElementId
+  {
 #ifndef __CUDACC__
-        ElementId() : Id(-1), Type(-1) {}
-        ElementId(int id, int type) : Id(id), Type(type) {}
+    ElementId() : Id(-1), Type(-1) {}
+    ElementId(int id, int type) : Id(id), Type(type) {}
 #endif
 
-        int Id;
-        int Type;
+    int Id;
+    int Type;
 
-        ELVIS_DEVICE bool operator<(const ElementId& rhs) const
-        {
-            if( Id == rhs.Id )
-            {
-                return Type < rhs.Type;
-            }
-            else
-            {
-                return Id < rhs.Id;
-            }
-        }
+    ELVIS_DEVICE bool operator<(const ElementId& rhs) const
+    {
+      if (Id == rhs.Id)
+      {
+        return Type < rhs.Type;
+      }
+      else
+      {
+        return Id < rhs.Id;
+      }
+    }
 
-        ELVIS_DEVICE bool operator==(const ElementId& rhs) const
-        {
-            return Id == rhs.Id && Type == rhs.Type;
-        }
+    ELVIS_DEVICE bool operator==(const ElementId& rhs) const
+    {
+      return Id == rhs.Id && Type == rhs.Type;
+    }
 
-        ELVIS_DEVICE bool operator!=(const ElementId& rhs) const
-        {
-            return !(*this==rhs);
-        }
-
-    };
-
-
+    ELVIS_DEVICE bool operator!=(const ElementId& rhs) const
+    {
+      return !(*this == rhs);
+    }
+  };
 }
 
 #endif
-

@@ -48,7 +48,7 @@ namespace ElVis
   class Camera
   {
   public:
-      friend class boost::serialization::access;
+    friend class boost::serialization::access;
     boost::signals2::signal<void()> OnCameraChanged;
 
   public:
@@ -81,7 +81,8 @@ namespace ElVis
     /// It is safe to change the up vector through the reference.
     ELVIS_EXPORT WorldVector& GetUp() { return m_up; }
 
-    /// \brief Get the un-normalized vector from the eye point to the look at point.
+    /// \brief Get the un-normalized vector from the eye point to the look at
+    /// point.
     ELVIS_EXPORT const WorldVector& GetGaze() const { return m_w; }
 
     /// \brief Returns the camera's current vertical field of view
@@ -105,7 +106,9 @@ namespace ElVis
     ELVIS_EXPORT void SetFar(float value);
 
     ELVIS_EXPORT void SetLookAt(const WorldPoint& value);
-    ELVIS_EXPORT void SetParameters(const WorldPoint& eye, const WorldPoint& at, const WorldVector& up);
+    ELVIS_EXPORT void SetParameters(const WorldPoint& eye,
+                                    const WorldPoint& at,
+                                    const WorldVector& up);
     ELVIS_EXPORT void SetParameters(const WorldPoint& eye,
                                     const WorldPoint& at,
                                     const WorldVector& up,
@@ -113,12 +116,23 @@ namespace ElVis
                                     ElVisFloat near,
                                     ElVisFloat far);
 
-    ELVIS_EXPORT void MoveEyeAlongGaze(int from_x, int from_y, int to_x, int to_y, int imageWidth, int imageHeight);
+    ELVIS_EXPORT void MoveEyeAlongGaze(int from_x,
+                                       int from_y,
+                                       int to_x,
+                                       int to_y,
+                                       int imageWidth,
+                                       int imageHeight);
 
     /// Rotate based on mouse movement.
-    ELVIS_EXPORT void Rotate(int from_x, int from_y, int to_x, int to_y, int width, int height);
+    ELVIS_EXPORT void Rotate(
+      int from_x, int from_y, int to_x, int to_y, int width, int height);
 
-    ELVIS_EXPORT void Pan(int from_x, int from_y, int to_x, int to_y, int imageWidth, int imageHeight);
+    ELVIS_EXPORT void Pan(int from_x,
+                          int from_y,
+                          int to_x,
+                          int to_y,
+                          int imageWidth,
+                          int imageHeight);
 
     ELVIS_EXPORT const WorldVector& GetU() const { return m_u; }
     ELVIS_EXPORT const WorldVector& GetV() const { return m_v; }
@@ -178,8 +192,11 @@ namespace ElVis
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 
   private:
-    static ElVisFloat3 ProjectToSphere(ElVisFloat x, ElVisFloat y, ElVisFloat radius);
-    static Matrix4x4 RotationMatrix(const ElVisFloat3& _to, const ElVisFloat3& _from);
+    static ElVisFloat3 ProjectToSphere(ElVisFloat x,
+                                       ElVisFloat y,
+                                       ElVisFloat radius);
+    static Matrix4x4 RotationMatrix(const ElVisFloat3& _to,
+                                    const ElVisFloat3& _from);
 
     void SetupSignals();
     void HandleEyeAtChanged(const WorldPoint& p);

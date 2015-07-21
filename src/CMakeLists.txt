@@ -260,7 +260,7 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/../ColorMaps/Grayscale.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/BlueToYellow.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/BlackBody.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml
-              ${CMAKE_SOURCE_DIR}/../ColorMaps/diverging257.cmap
+              ${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml
               DESTINATION ${ELVIS_COLOR_MAP_DIR})
 
 IF(WIN32)

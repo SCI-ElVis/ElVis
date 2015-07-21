@@ -41,22 +41,21 @@
 
 RT_PROGRAM void OpenGLLighting()
 {
-    ElVisFloat3 normal = normal_buffer[launch_index];
-    
-    if( normal.x != MAKE_FLOAT(0.0) ||
-        normal.y != MAKE_FLOAT(0.0) ||
-        normal.z != MAKE_FLOAT(0.0) )
-    {
-        
-        const ElVisFloat3 intersectionPoint = intersection_buffer[launch_index];
-        const ElVisFloat3 color = raw_color_buffer[launch_index];
-		
-        normal = normalize(normal);    
-        ElVisFloat3 resultColor = DiffuseLighting(color, normal, intersectionPoint);
+  ElVisFloat3 normal = normal_buffer[launch_index];
 
-        ElVisFloat3 clamped = clamp(resultColor, MAKE_FLOAT(0.0), MAKE_FLOAT(1.0));
-        color_buffer[launch_index] = ConvertToColor(clamped);
-    }
+  if (normal.x != MAKE_FLOAT(0.0) || normal.y != MAKE_FLOAT(0.0) ||
+      normal.z != MAKE_FLOAT(0.0))
+  {
+
+    const ElVisFloat3 intersectionPoint = intersection_buffer[launch_index];
+    const ElVisFloat3 color = raw_color_buffer[launch_index];
+
+    normal = normalize(normal);
+    ElVisFloat3 resultColor = DiffuseLighting(color, normal, intersectionPoint);
+
+    ElVisFloat3 clamped = clamp(resultColor, MAKE_FLOAT(0.0), MAKE_FLOAT(1.0));
+    color_buffer[launch_index] = ConvertToColor(clamped);
+  }
 }
 
 #endif

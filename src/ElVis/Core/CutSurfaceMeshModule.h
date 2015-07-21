@@ -42,31 +42,29 @@
 
 namespace ElVis
 {
-    class CutSurfaceMeshModule : public RenderModule
-    {
-        public:
-            ELVIS_EXPORT CutSurfaceMeshModule();
-            ELVIS_EXPORT virtual ~CutSurfaceMeshModule() {}
+  class CutSurfaceMeshModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT CutSurfaceMeshModule();
+    ELVIS_EXPORT virtual ~CutSurfaceMeshModule() {}
 
-        protected:
-            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
-            ELVIS_EXPORT virtual void DoRender(SceneView* view);
+  protected:
+    ELVIS_EXPORT virtual void DoSetup(SceneView* view);
+    ELVIS_EXPORT virtual void DoRender(SceneView* view);
 
+    virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
+    virtual std::string DoGetName() const;
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
-            virtual std::string DoGetName() const;
+  private:
+    CutSurfaceMeshModule(const CutSurfaceMeshModule& rhs);
+    CutSurfaceMeshModule& operator=(const CutSurfaceMeshModule& rhs);
 
-        private:
-            CutSurfaceMeshModule(const CutSurfaceMeshModule& rhs);
-            CutSurfaceMeshModule& operator=(const CutSurfaceMeshModule& rhs);
+    static const std::string ProgramName;
+    static const std::string CategorizeProgramName;
 
-            static const std::string ProgramName;
-            static const std::string CategorizeProgramName;
-
-            RayGeneratorProgram m_program;
-            RayGeneratorProgram m_categorizeProgram;
-    };
+    RayGeneratorProgram m_program;
+    RayGeneratorProgram m_categorizeProgram;
+  };
 }
-
 
 #endif

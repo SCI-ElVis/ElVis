@@ -40,47 +40,52 @@
 
 namespace ElVis
 {
-    // Assumes SampleBuffer has been populated with values.
-    // Defines the color map itself
-    // Outputs to color_buffer and raw_color_buffer.
-    class ColorMapperModule : public RenderModule
+  // Assumes SampleBuffer has been populated with values.
+  // Defines the color map itself
+  // Outputs to color_buffer and raw_color_buffer.
+  class ColorMapperModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT ColorMapperModule();
+    ELVIS_EXPORT virtual ~ColorMapperModule() {}
+
+    ELVIS_EXPORT void SetColorMap(boost::shared_ptr<ColorMap> map);
+
+    ELVIS_EXPORT boost::shared_ptr<ColorMap> GetColorMap()
     {
-        public:
-            ELVIS_EXPORT ColorMapperModule();
-            ELVIS_EXPORT virtual ~ColorMapperModule() {}
+      return m_colorMap;
+    }
 
-            ELVIS_EXPORT void SetColorMap(boost::shared_ptr<ColorMap> map);
+  protected:
+    ELVIS_EXPORT virtual void DoSetup(SceneView* view);
+    ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
+    ELVIS_EXPORT virtual void DoRender(SceneView* view);
 
-            ELVIS_EXPORT boost::shared_ptr<ColorMap> GetColorMap() { return m_colorMap; }
+    virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
+    virtual std::string DoGetName() const { return "Color Mapper"; }
 
-        protected:
-            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
-            ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
-            ELVIS_EXPORT virtual void DoRender(SceneView* view); 
+    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const override;
+    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) override;
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
-            virtual std::string DoGetName() const { return "Color Mapper"; }
+  private:
+    ColorMapperModule(const ColorMapperModule& rhs);
+    ColorMapperModule& operator=(const ColorMapperModule& rhs);
 
-        private:
-            ColorMapperModule(const ColorMapperModule& rhs);
-            ColorMapperModule& operator=(const ColorMapperModule& rhs);
+    void HandleMinOrMaxChanged(float value);
+    void HandleColorMapChanged(const ColorMap& rhs);
 
-            void HandleMinOrMaxChanged(float value);
-            void HandleColorMapChanged(const ColorMap& rhs);
-
-            boost::shared_ptr<ColorMap> m_colorMap;
-            RayGeneratorProgram m_program;
-            optixu::Buffer m_data;
-            optixu::TextureSampler m_textureSampler;
-            unsigned int m_size;
-            float m_min;
-            float m_max;
-            bool m_dirty;
-            boost::signals2::connection m_minConnection;
-            boost::signals2::connection m_maxConnection;
-            boost::signals2::connection m_changedConnection;
-    };
+    boost::shared_ptr<ColorMap> m_colorMap;
+    RayGeneratorProgram m_program;
+    optixu::Buffer m_data;
+    optixu::TextureSampler m_textureSampler;
+    unsigned int m_size;
+    float m_min;
+    float m_max;
+    bool m_dirty;
+    boost::signals2::connection m_minConnection;
+    boost::signals2::connection m_maxConnection;
+    boost::signals2::connection m_changedConnection;
+  };
 }
 
-
-#endif 
+#endif

@@ -47,153 +47,97 @@
 
 namespace ElVis
 {
-    class SceneView;
+  class SceneView;
 
-    // an interface to color maps on [0,1]
-    class ColorMap
+  /// \brief A node in the piecewise-linear color map defined by the ColorMap
+  /// class.
+  struct ColorMapBreakpoint
+  {
+    friend class boost::serialization::access;
+    ElVis::Color Col;
+    ElVisFloat Scalar;
+
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
-        public:
-            friend class boost::serialization::access;
-            ELVIS_EXPORT ColorMap();
-            ELVIS_EXPORT virtual ~ColorMap() {}
+      ar& BOOST_SERIALIZATION_NVP(Col);
+      ar& BOOST_SERIALIZATION_NVP(Scalar);
+    }
+  };
 
-            ELVIS_EXPORT void PopulateTexture(optixu::Buffer& buffer) { return DoPopulateTexture(buffer); }
+  /// \brief A piecewise-linear color map consisting of breakpoints on [0,1]
+  /// with an associated color.  Samples falling between breakpoints are
+  /// linearly interpolated, while samples falling outside the range are
+  /// clamped.
+  ///
+  /// Breakpoints are specified on [0,1], but the color map can be scaled
+  /// to any scalar range using SetMin and SetMax.
+  class ColorMap
+  {
+  public:
+    friend class boost::serialization::access;
+    ELVIS_EXPORT ColorMap();
+    ELVIS_EXPORT ~ColorMap() {}
 
-            ELVIS_EXPORT void SetMin(float value);
-            ELVIS_EXPORT void SetMax(float value);
-            ELVIS_EXPORT float GetMin() const { return m_min; }
-            ELVIS_EXPORT float GetMax() const { return m_max; }
+    /// \brief Sets the minimum scalar value for the color map.
+    ELVIS_EXPORT void SetMin(float value);
 
-            boost::signals2::signal<void (float)> OnMinChanged;
-            boost::signals2::signal<void (float)> OnMaxChanged;
-            boost::signals2::signal<void (const ColorMap&)> OnColorMapChanged;
+    /// \brief Sets the maximum scalar value for the color map.
+    ELVIS_EXPORT void SetMax(float value);
 
-        protected:
-            virtual void DoPopulateTexture(optixu::Buffer& buffer) = 0;
+    /// \brief Returns the minimum scalar value.
+    ELVIS_EXPORT float GetMin() const { return m_min; }
 
-        private:
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
-            {
-                ar & BOOST_SERIALIZATION_NVP(m_min);
-                ar & BOOST_SERIALIZATION_NVP(m_max);
-            }
-            float m_min;
-            float m_max;
-    };
+    /// \brief Returns the maximum scalar value.
+    ELVIS_EXPORT float GetMax() const { return m_max; }
 
-  
-    /// \brief A color map formed by directly reading a block of color values.
-    class TextureColorMap : public ColorMap
+    /// \brief Sets a breakpoint.
+    /// \param[in] value The scalar value of the breakpoint on [0,1]
+    /// \param[in] c The breakpoint's color.
+    /// \returns An iterator to the breakpoint.  If value is outside the
+    ///          range of [0,1], then this will be an invalid iterator.
+    /// TODO - Why are we exposing internals?  The gui uses it, but why?
+    ELVIS_EXPORT std::map<ElVisFloat, ColorMapBreakpoint>::iterator
+      SetBreakpoint(ElVisFloat value, const Color& c);
+
+    /// Returns the breakpoint collection.
+    ELVIS_EXPORT const std::map<ElVisFloat, ColorMapBreakpoint>&
+    GetBreakpoints() const
     {
-        public:
-            ELVIS_EXPORT TextureColorMap() {}
-            ELVIS_EXPORT TextureColorMap(const std::string& fileName);
-            
-//            template<typename FuncType>
-//            void GenerateEqualizedColorMapFromSamples(const std::vector<float>& samples, FuncType& f, unsigned int newSize)
-//            {
-//                m_size = newSize;
-//                m_localData.resize(4*newSize);
-                
-//                std::cout << "Sample range is " << samples.front() << " - " << samples.back() << std::endl;
-//                float range = samples.back() - samples.front();
-//                float min = samples.front();
-//                for(int i = 0; i < m_size; ++i)
-//                {
-//                    float percentOfColorRange = (float)i/(float)m_size;
-                    
-//                    // Say percetn of ColorRange is 10%.  Then 10% of all samples should map to this
-//                    // color, even if the 10% value is 50% of the total scalar range.
-//                    float sample = percentOfColorRange*range + min;
-                    
-//                    std::cout << "Sample # " << i << " = " << sample << std::endl;
-                    
-//                    std::vector<float>::const_iterator found = std::lower_bound(samples.begin(), samples.end(), sample);
-//                    int diff = abs(std::distance(samples.begin(), found));
-//                    float p = static_cast<float>(diff)/static_cast<float>(samples.size() );
-//                    std::cout << "Percent of Color Range = " << percentOfColorRange << std::endl;
-//                    std::cout << "p = " << p << std::endl;
-                    
-//                    float3 color = f(p);
-//                    std::cout << "Color = (" << color.x << ", " << color.y << ", " << color.z << std::endl;
-                      
-//                    m_localData[4*i] = color.x;
-//                    m_localData[4*i+1] = color.y;
-//                    m_localData[4*i+2] = color.z;
-//                    m_localData[4*i+3] = 1.0;
-//                }
-//                SetMin(samples.front());
-//                SetMax(samples.back());
-//            }
-                    
-            ELVIS_EXPORT void Read(const std::string& fileName);
-//            ELVIS_EXPORT void Write(const std::string& fileName);
-//            ELVIS_EXPORT void WriteVTK(const std::string& fileName);
-        protected:
-            virtual void DoPopulateTexture(optixu::Buffer& buffer);
+      return m_breakpoints;
+    }
 
-        private:
-            TextureColorMap(const TextureColorMap&);
-            std::vector<float> m_localData;
-    };
-    
-    struct ColorMapBreakpoint
+    /// Removes the given breakpoint from the color map.
+    ELVIS_EXPORT void RemoveBreakpoint(
+      const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator iter);
+    ELVIS_EXPORT Color Sample(const ElVisFloat& value) const;
+
+    ELVIS_EXPORT bool IsValid() const { return m_breakpoints.size() >= 2; }
+
+
+    boost::signals2::signal<void(float)> OnMinChanged;
+    boost::signals2::signal<void(float)> OnMaxChanged;
+    boost::signals2::signal<void(const ColorMap&)> OnColorMapChanged;
+
+    ELVIS_EXPORT void PopulateTexture(optixu::Buffer& buffer);
+
+  private:
+    ColorMap(const ColorMap& rhs);
+    ColorMap& operator=(const ColorMap& rhs);
+
+
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
-        friend class boost::serialization::access;
-        ElVis::Color Col;
-        ElVisFloat Scalar;
-    private:
-        template<typename Archive>
-        void serialize(Archive& ar, const unsigned int version)
-        {
-            ar & BOOST_SERIALIZATION_NVP(Col);
-            ar & BOOST_SERIALIZATION_NVP(Scalar);
-        }
-    };
+      ar& BOOST_SERIALIZATION_NVP(m_min);
+      ar& BOOST_SERIALIZATION_NVP(m_max);
+      ar& BOOST_SERIALIZATION_NVP(m_breakpoints);
+    }
+    float m_min;
+    float m_max;
 
-    /// \brief Provides a color map with linear interpolation between points.
-    ///
-    /// This produces a color map that is slower than texture based color maps,
-    /// but is potentially more accurate since the calculated color is not based
-    /// on a discretization into a texture.
-    class PiecewiseLinearColorMap : public ColorMap
-    {
-        public:
-            friend class boost::serialization::access;
-            ELVIS_EXPORT PiecewiseLinearColorMap();
-            ELVIS_EXPORT virtual ~PiecewiseLinearColorMap() {}
-
-            ELVIS_EXPORT void SetBreakpoint(ElVisFloat value, const Color& c);
-            ELVIS_EXPORT void SetBreakpoint(const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator& iter, const Color& c);
-
-            ELVIS_EXPORT const std::map<ElVisFloat, ColorMapBreakpoint>& GetBreakpoints() const { return m_breakpoints; }
-            ELVIS_EXPORT void RemoveBreakpoint(const std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator iter);
-            ELVIS_EXPORT Color Sample(const ElVisFloat& value) const;
-
-            ELVIS_EXPORT std::map<ElVisFloat, ColorMapBreakpoint>::iterator InsertBreakpoint(ElVisFloat value, const Color& c);
-
-            ELVIS_EXPORT bool IsValid() const { return m_breakpoints.size() >= 2; }
-
-
-        protected:
-            virtual void DoPopulateTexture(optixu::Buffer& buffer);
-
-        private:
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
-            {
-                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ColorMap);
-                ar & BOOST_SERIALIZATION_NVP(m_breakpoints);
-            }
-
-            PiecewiseLinearColorMap(const PiecewiseLinearColorMap& rhs);
-            PiecewiseLinearColorMap& operator=(const PiecewiseLinearColorMap& rhs);
-
-            std::map<ElVisFloat, ColorMapBreakpoint> m_breakpoints;
-    };
-
+    std::map<ElVisFloat, ColorMapBreakpoint> m_breakpoints;
+  };
 }
 
-#endif //COLOR_MAP_H
-
+#endif // COLOR_MAP_H

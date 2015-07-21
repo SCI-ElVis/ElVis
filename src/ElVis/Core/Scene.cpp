@@ -27,8 +27,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <ElVis/Core/Scene.h>
-#include <ElVis/Core/DirectionalLight.h>
-#include <ElVis/Core/PointLight.h>
+#include <ElVis/Core/Light.h>
 #include <ElVis/Core/Model.h>
 #include <ElVis/Core/PtxManager.h>
 #include <ElVis/Core/Util.hpp>
@@ -76,8 +75,9 @@ namespace ElVis
   {
     m_ambientLightColor = value;
     if (!m_context.get()) return;
-    m_context["ambientColor"]->setFloat(
-      m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
+    m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(),
+                                        m_ambientLightColor.Green(),
+                                        m_ambientLightColor.Blue());
   }
 
   void Scene::SetOptixStackSize(int size)
@@ -94,7 +94,8 @@ namespace ElVis
 
   optixu::Context Scene::GetContext()
   {
-    // Context is not valid without a model, as we don't know which extension specific code to load until
+    // Context is not valid without a model, as we don't know which extension
+    // specific code to load until
     // the model is selected.
     if (!m_model) return m_context;
     try
@@ -104,7 +105,8 @@ namespace ElVis
         GLenum err = glewInit();
         if (GLEW_OK != err)
         {
-          std::cout << "Error initializing GLEW: " << glewGetErrorString(err) << std::endl;
+          std::cout << "Error initializing GLEW: " << glewGetErrorString(err)
+                    << std::endl;
         }
 
         unsigned int deviceCount = 0;
@@ -120,54 +122,61 @@ namespace ElVis
 
         // Ray Type 0 - Primary rays that intersect actual geometry.  Closest
         // hit programs determine exactly how the geometry is handled.
-        // Ray Type 1 - Rays that find the current element and evaluate the scalar
+        // Ray Type 1 - Rays that find the current element and evaluate the
+        // scalar
         // value at a point.
         // Ray Type 2 - Rays that perform volume rendering.
         m_context->setRayTypeCount(3);
 
         // Setup Lighting
         // TODO - Move this into the base
-        // Overall goal will be to have an OptixScene, which handles setting up the
-        // context and the lighting.  OptixSceneViews will allow different access to the
+        // Overall goal will be to have an OptixScene, which handles setting up
+        // the
+        // context and the lighting.  OptixSceneViews will allow different
+        // access to the
         // same scene.
-        m_context["ambientColor"]->setFloat(
-          m_ambientLightColor.Red(), m_ambientLightColor.Green(), m_ambientLightColor.Blue());
+        m_context["ambientColor"]->setFloat(m_ambientLightColor.Red(),
+                                            m_ambientLightColor.Green(),
+                                            m_ambientLightColor.Blue());
 
-        std::list<boost::shared_ptr<DirectionalLight>> allDirectionalLights;
-        std::list<boost::shared_ptr<PointLight>> allPointLights;
-        std::cout << "Total Lights: " << m_allLights.size() << std::endl;
-        for (std::list<boost::shared_ptr<Light>>::iterator iter = m_allLights.begin(); iter != m_allLights.end();
-             ++iter)
-        {
-          auto asDirectional = boost::dynamic_pointer_cast<DirectionalLight>(*iter);
-          auto asPointLight = boost::dynamic_pointer_cast<PointLight>(*iter);
+//        std::list<boost::shared_ptr<DirectionalLight>> allDirectionalLights;
+//        std::list<boost::shared_ptr<PointLight>> allPointLights;
+//        std::cout << "Total Lights: " << m_allLights.size() << std::endl;
+//        for (std::list<boost::shared_ptr<Light>>::iterator iter =
+//               m_allLights.begin();
+//             iter != m_allLights.end(); ++iter)
+//        {
+//          auto asDirectional =
+//            boost::dynamic_pointer_cast<DirectionalLight>(*iter);
+//          auto asPointLight = boost::dynamic_pointer_cast<PointLight>(*iter);
 
-          if (asDirectional)
-          {
-            allDirectionalLights.push_back(asDirectional);
-          }
-          else if (asPointLight)
-          {
-            allPointLights.push_back(asPointLight);
-          }
-        }
+//          if (asDirectional)
+//          {
+//            allDirectionalLights.push_back(asDirectional);
+//          }
+//          else if (asPointLight)
+//          {
+//            allPointLights.push_back(asPointLight);
+//          }
+//        }
 
         // Setup Directional Lights.
 
         // Setup Point Lights.
-        optixu::Buffer lightPositionBuffer =
-          m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT, allPointLights.size() * 3);
+        optixu::Buffer lightPositionBuffer = m_context->createBuffer(
+          RT_BUFFER_INPUT, RT_FORMAT_FLOAT, m_allLights.size() * 3);
         m_context["lightPosition"]->set(lightPositionBuffer);
         float* positionData = static_cast<float*>(lightPositionBuffer->map());
 
-        optixu::Buffer lightColorBuffer =
-          m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT, allPointLights.size() * 3);
+        optixu::Buffer lightColorBuffer = m_context->createBuffer(
+          RT_BUFFER_INPUT, RT_FORMAT_FLOAT, m_allLights.size() * 3);
         m_context["lightColor"]->set(lightColorBuffer);
         float* colorData = static_cast<float*>(lightColorBuffer->map());
 
         int i = 0;
-        for (std::list<boost::shared_ptr<PointLight>>::const_iterator iter = allPointLights.begin();
-             iter != allPointLights.end(); ++iter)
+        for (std::list<boost::shared_ptr<Light>>::const_iterator iter =
+               m_allLights.begin();
+             iter != m_allLights.end(); ++iter)
         {
           positionData[i] = static_cast<float>((*iter)->Position().x());
           positionData[i + 1] = static_cast<float>((*iter)->Position().y());
@@ -198,7 +207,8 @@ namespace ElVis
         m_context->setPrintLaunchIndex(-1, -1, -1);
 
         //// Miss program
-        // m_context->setMissProgram( 0, PtxManager::LoadProgram(m_context, "ElVis.cu.ptx", "miss" ) );
+        // m_context->setMissProgram( 0, PtxManager::LoadProgram(m_context,
+        // "ElVis.cu.ptx", "miss" ) );
         // m_context["bg_color"]->setFloat( 1.0f, 1.0f, 1.0f );
 
         m_optixDataDirty = true;
@@ -220,39 +230,46 @@ namespace ElVis
     if (!m_context) return;
     if (!m_optixDataDirty) return;
 
-    // std::cout << "PrintEnabled " << (m_context->getPrintEnabled() ? "true" : "false") << " m_enableOptiXTrace " <<
+    // std::cout << "PrintEnabled " << (m_context->getPrintEnabled() ? "true" :
+    // "false") << " m_enableOptiXTrace " <<
     // (m_enableOptiXTrace ? "true" : "false")<< std::endl;
     if (m_context->getPrintEnabled() != m_enableOptiXTrace)
     {
       m_context->setPrintEnabled(m_enableOptiXTrace);
     }
 
-    // std::cout << "PrintBufferSize " << m_context->getPrintBufferSize() << " ElVis size " << m_optiXTraceBufferSize <<
+    // std::cout << "PrintBufferSize " << m_context->getPrintBufferSize() << "
+    // ElVis size " << m_optiXTraceBufferSize <<
     // std::endl;
     if ((int)m_context->getPrintBufferSize() != m_optiXTraceBufferSize)
     {
       m_context->setPrintBufferSize(m_optiXTraceBufferSize);
     }
 
-    // std::cout << "m_tracePixelDirty " << (m_tracePixelDirty ? "true" : "false") << std::endl;
+    // std::cout << "m_tracePixelDirty " << (m_tracePixelDirty ? "true" :
+    // "false") << std::endl;
     if (m_tracePixelDirty)
     {
-      m_context["TracePixel"]->setInt(m_optixTraceIndex.x(), m_optixTraceIndex.y());
+      m_context["TracePixel"]->setInt(
+        m_optixTraceIndex.x(), m_optixTraceIndex.y());
       m_tracePixelDirty = false;
     }
 
-    // std::cout << "m_enableTraceDirty " << (m_enableTraceDirty ? "true" : "false") << std::endl;
+    // std::cout << "m_enableTraceDirty " << (m_enableTraceDirty ? "true" :
+    // "false") << std::endl;
     if (m_enableTraceDirty)
     {
       m_context["EnableTrace"]->setInt((m_enableOptiXTrace ? 1 : 0));
       m_enableTraceDirty = false;
     }
 
-    // std::cout << "m_optixDataDirty is " << (m_optixDataDirty ? "true" : "false") << std::endl;
+    // std::cout << "m_optixDataDirty is " << (m_optixDataDirty ? "true" :
+    // "false") << std::endl;
     m_optixDataDirty = false;
   }
 
-  boost::shared_ptr<ColorMap> Scene::LoadColorMap(const boost::filesystem::path& p)
+  boost::shared_ptr<ColorMap> Scene::LoadColorMap(
+    const boost::filesystem::path& p)
   {
     boost::shared_ptr<ColorMap> result;
     if (p.extension() != ".xml")
@@ -298,11 +315,13 @@ namespace ElVis
     }
 
     ColorMapInfo info;
-    info.Map = boost::shared_ptr<PiecewiseLinearColorMap>(new PiecewiseLinearColorMap());
+    info.Map =
+      boost::shared_ptr<ColorMap>(new ColorMap());
     info.Path = p;
     info.Name = colorMapName;
 
-    tinyxml::TiXmlElement* pointElement = rootElement->FirstChildElement("Point");
+    tinyxml::TiXmlElement* pointElement =
+      rootElement->FirstChildElement("Point");
 
     while (pointElement)
     {
@@ -313,8 +332,11 @@ namespace ElVis
       int bResult = pointElement->QueryFloatAttribute("b", &b);
       int oResult = pointElement->QueryFloatAttribute("o", &o);
 
-      if (rResult == tinyxml::TIXML_SUCCESS && gResult == tinyxml::TIXML_SUCCESS && bResult == tinyxml::TIXML_SUCCESS &&
-          oResult == tinyxml::TIXML_SUCCESS && scalarResult == tinyxml::TIXML_SUCCESS)
+      if (rResult == tinyxml::TIXML_SUCCESS &&
+          gResult == tinyxml::TIXML_SUCCESS &&
+          bResult == tinyxml::TIXML_SUCCESS &&
+          oResult == tinyxml::TIXML_SUCCESS &&
+          scalarResult == tinyxml::TIXML_SUCCESS)
       {
         Color c(r, g, b, o);
         info.Map->SetBreakpoint(scalar, c);
@@ -336,9 +358,13 @@ namespace ElVis
 
   Scene::ColorMapInfo::ColorMapInfo() : Map(), Path(), Name() {}
 
-  Scene::ColorMapInfo::ColorMapInfo(const Scene::ColorMapInfo& rhs) : Map(rhs.Map), Path(rhs.Path), Name(rhs.Name) {}
+  Scene::ColorMapInfo::ColorMapInfo(const Scene::ColorMapInfo& rhs)
+    : Map(rhs.Map), Path(rhs.Path), Name(rhs.Name)
+  {
+  }
 
-  Scene::ColorMapInfo& Scene::ColorMapInfo::operator=(const Scene::ColorMapInfo& rhs)
+  Scene::ColorMapInfo& Scene::ColorMapInfo::operator=(
+    const Scene::ColorMapInfo& rhs)
   {
     Map = rhs.Map;
     Path = rhs.Path;
@@ -346,16 +372,18 @@ namespace ElVis
     return *this;
   }
 
-  boost::shared_ptr<PiecewiseLinearColorMap> Scene::GetColorMap(const std::string& name) const
+  boost::shared_ptr<ColorMap> Scene::GetColorMap(
+    const std::string& name) const
   {
-    std::map<std::string, ColorMapInfo>::const_iterator found = m_colorMaps.find(name);
+    std::map<std::string, ColorMapInfo>::const_iterator found =
+      m_colorMaps.find(name);
     if (found != m_colorMaps.end())
     {
       return (*found).second.Map;
     }
     else
     {
-      return boost::shared_ptr<PiecewiseLinearColorMap>();
+      return boost::shared_ptr<ColorMap>();
     }
   }
 

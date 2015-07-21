@@ -29,7 +29,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVIS_CORE_DYNAMIC_LIB_H
 #define ELVIS_CORE_DYNAMIC_LIB_H
 
@@ -41,64 +40,64 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 
 #ifdef WIN32
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 
 namespace ElVis
 {
-    class UnableToLoadDynamicLibException : public std::runtime_error
+  class UnableToLoadDynamicLibException : public std::runtime_error
+  {
+  public:
+    ELVIS_EXPORT UnableToLoadDynamicLibException(const std::string& error);
+  };
+
+  /// \brief A cross-platorm interface for loading shared libraries.
+  class DynamicLib
+  {
+  public:
+    /// \brief Load the dynamic library at the given location.
+    /// \throw UnableToLoadDynamicLibException If the file can't be loaded.
+    ELVIS_EXPORT explicit DynamicLib(const boost::filesystem::path& path);
+    ELVIS_EXPORT ~DynamicLib();
+
+    /// \brief Gets a pointer to an exported function with the given name.
+    ///
+    /// \param funcName The name of the function to load.
+    /// \return The function pointer cast to FuncType, NULL if the function is
+    /// not found.
+    ///
+    /// This method finds a function with the name funcName in the shared
+    /// library.
+    /// The intended use is to look up functions with C linkage, so there is no
+    /// parameter information available.  Therefore, the user is responsible
+    /// for providing this information in the template parameter.
+    ///
+    /// Example:
+    /// DynamicLib* library;
+    /// typedef const float (*FunctionPtr)(int a, float b);
+    /// FunctionPtr func = library->GetFunction<FunctionPtr>("FuncName");
+    template <typename FuncType>
+    FuncType GetFunction(const std::string& funcName)
     {
-        public:
-            ELVIS_EXPORT UnableToLoadDynamicLibException(const std::string& error);
-    };
+      void* aPtr = NULL;
+#ifdef WIN32
+      aPtr = GetProcAddress((HMODULE)m_handle, funcName.c_str());
+#else
+      aPtr = dlsym(m_handle, funcName.c_str());
+#endif
+      return (FuncType)aPtr;
+    }
 
-    /// \brief A cross-platorm interface for loading shared libraries.
-    class DynamicLib
-    {
-        public:
-            /// \brief Load the dynamic library at the given location.
-            /// \throw UnableToLoadDynamicLibException If the file can't be loaded.
-            ELVIS_EXPORT explicit DynamicLib(const boost::filesystem::path& path);
-            ELVIS_EXPORT ~DynamicLib();
+  private:
+    // The name of the library.
+    boost::filesystem::path m_libraryName;
 
-            /// \brief Gets a pointer to an exported function with the given name.
-            ///
-            /// \param funcName The name of the function to load.
-            /// \return The function pointer cast to FuncType, NULL if the function is not found.
-            ///
-            /// This method finds a function with the name funcName in the shared library.
-            /// The intended use is to look up functions with C linkage, so there is no
-            /// parameter information available.  Therefore, the user is responsible
-            /// for providing this information in the template parameter.
-            ///
-            /// Example:
-            /// DynamicLib* library;
-            /// typedef const float (*FunctionPtr)(int a, float b);
-            /// FunctionPtr func = library->GetFunction<FunctionPtr>("FuncName");
-            template<typename FuncType>
-            FuncType GetFunction(const std::string& funcName)
-            {
-                void* aPtr = NULL;
-                 #ifdef WIN32
-                        aPtr = GetProcAddress((HMODULE)m_handle, funcName.c_str());
-                 #else
-                        aPtr = dlsym(m_handle, funcName.c_str());
-                #endif
-                return (FuncType)aPtr;
-            }
-
-        private:
-            // The name of the library.
-            boost::filesystem::path m_libraryName;
-
-            // A pointer to the library.  We use this
-            // to gain access to the functions in the dll.
-            void* m_handle;
-    };
+    // A pointer to the library.  We use this
+    // to gain access to the functions in the dll.
+    void* m_handle;
+  };
 }
 
 #endif
-
-

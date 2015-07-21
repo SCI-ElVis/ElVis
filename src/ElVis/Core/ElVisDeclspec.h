@@ -39,5 +39,4 @@
 #define ELVIS_EXPORT
 #endif
 
-#endif //ELVIS_DECLSPEC_H
-
+#endif // ELVIS_DECLSPEC_H

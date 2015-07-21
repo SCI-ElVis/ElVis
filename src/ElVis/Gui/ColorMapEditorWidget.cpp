@@ -57,7 +57,7 @@ namespace ElVis
         {
         }
 
-        void ColorMapEditorWidget::HandleColorMapSelectionChanged(boost::shared_ptr<PiecewiseLinearColorMap> value)
+        void ColorMapEditorWidget::HandleColorMapSelectionChanged(boost::shared_ptr<ColorMap> value)
         {
             m_rect->SetTransferFunction(value);
             HandleColorMapChanged();   

@@ -53,8 +53,8 @@ namespace ElVis
                 ColorMapRect();
                 virtual ~ColorMapRect() {}
 
-                void SetTransferFunction(boost::shared_ptr<PiecewiseLinearColorMap> value);
-                boost::shared_ptr<PiecewiseLinearColorMap> GetTransferFunction() const;
+                void SetTransferFunction(boost::shared_ptr<ColorMap> value);
+                boost::shared_ptr<ColorMap> GetTransferFunction() const;
 
                 std::map<ElVisFloat, ColorMapBreakpoint>::const_iterator GetSelectedBreakpoint() const;
 
@@ -79,7 +79,7 @@ namespace ElVis
                 void GenerateShade();
                 QImage m_shade;
 
-                boost::shared_ptr<PiecewiseLinearColorMap> m_colorMap;
+                boost::shared_ptr<ColorMap> m_colorMap;
                 Breakpoints* m_hoverPoints;
         };
 

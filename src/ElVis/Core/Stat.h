@@ -37,104 +37,97 @@
 
 namespace ElVis
 {
-    class Stat
+  class Stat
+  {
+  public:
+    Stat()
+      : Mean(0.0),
+        StdDev(0.0),
+        Min(std::numeric_limits<double>::max()),
+        Max(-std::numeric_limits<double>::max()){};
+
+    Stat(const Stat& rhs)
+      : Mean(rhs.Mean), StdDev(rhs.StdDev), Min(rhs.Min), Max(rhs.Max)
     {
-        public:
+    }
 
-            Stat() :
-                Mean(0.0),
-                StdDev(0.0),
-                Min(std::numeric_limits<double>::max()),
-                Max(-std::numeric_limits<double>::max())
-            {
-            };
+    Stat& operator=(const Stat& rhs)
+    {
+      Mean = rhs.Mean;
+      StdDev = rhs.StdDev;
+      Min = rhs.Min;
+      Max = rhs.Max;
+      return *this;
+    }
 
-            Stat(const Stat& rhs) :
-                Mean(rhs.Mean),
-                StdDev(rhs.StdDev),
-                Min(rhs.Min),
-                Max(rhs.Max) {}
+    Stat(const double* samples,
+         double cutoff,
+         int sampleSize,
+         double confidence)
+      : Mean(0.0), HalfWidth(0.0), Confidence(confidence), StdDev(0.0)
+    {
+      Calculate(samples, cutoff, sampleSize);
+    }
 
-            Stat& operator=(const Stat& rhs)
-            {
-                Mean = rhs.Mean;
-                StdDev = rhs.StdDev;
-                Min = rhs.Min;
-                Max = rhs.Max;
-                return *this;
-            }
+    Stat(const double* samples, double cutoff, int sampleSize)
+      : Mean(0.0), HalfWidth(0.0), Confidence(.95), StdDev(0.0)
+    {
+      Calculate(samples, cutoff, sampleSize);
+    }
 
+    bool Overlaps(const Stat& other)
+    {
+      return (Low() >= other.Low() && Low() <= other.High()) ||
+             (High() >= other.Low() && High() <= other.High());
+    }
 
-            Stat(const double* samples, double cutoff, int sampleSize, double confidence) :
-                Mean(0.0),
-                HalfWidth(0.0),
-                Confidence(confidence),
-                StdDev(0.0)
-            {
-                Calculate(samples, cutoff, sampleSize);
-            }
+    double Low() const { return Mean - HalfWidth; }
+    double High() const { return Mean + HalfWidth; }
+    double Mean;
+    double HalfWidth;
+    double Confidence;
+    double StdDev;
+    double Min;
+    double Max;
 
-            Stat(const double* samples, double cutoff, int sampleSize) :
-                Mean(0.0),
-                HalfWidth(0.0),
-                Confidence(.95),
-                StdDev(0.0)
-            {
-                Calculate(samples, cutoff, sampleSize);
-            }
+  private:
+    void Calculate(const double* samples, double cutoff, int sampleSize)
+    {
+      double sum = 0.0;
+      int numValidSamples = 0;
+      for (int i = 0; i < sampleSize; ++i)
+      {
+        if (samples[i] < cutoff)
+        {
+          sum += samples[i];
+          ++numValidSamples;
 
-            bool Overlaps(const Stat& other)
-            {
-                return (Low() >= other.Low() && Low() <= other.High()) ||
-                    (High() >= other.Low() && High() <= other.High());
-            }
+          Min = std::min(Min, samples[i]);
+          Max = std::max(Max, samples[i]);
+        }
+      }
+      Mean = sum / (double)numValidSamples;
 
-            double Low() const { return Mean - HalfWidth; }
-            double High() const { return Mean + HalfWidth; }
-            double Mean;
-            double HalfWidth;
-            double Confidence;
-            double StdDev;
-            double Min;
-            double Max;
+      StdDev = 0.0;
+      for (int i = 0; i < sampleSize; ++i)
+      {
+        if (samples[i] < cutoff)
+        {
+          StdDev += (samples[i] - Mean) * (samples[i] - Mean);
+        }
+      }
 
-        private:
-            void Calculate(const double* samples, double cutoff, int sampleSize)
-            {
-                double sum = 0.0;
-                int numValidSamples = 0;
-                for(int i = 0; i < sampleSize; ++i)
-                {
-                    if( samples[i] < cutoff )
-                    {
-                        sum += samples[i];
-                        ++numValidSamples;
+      if (numValidSamples > 1)
+      {
+        StdDev = sqrt(StdDev / (numValidSamples - 1));
+      }
 
-                        Min = std::min(Min, samples[i]);
-                        Max = std::max(Max, samples[i]);
-                    }
-                }
-                Mean = sum/(double)numValidSamples;
-
-                StdDev = 0.0;
-                for(int i = 0; i < sampleSize; ++i)
-                {
-                    if( samples[i] < cutoff )
-                    {
-                        StdDev += (samples[i] - Mean)*(samples[i]-Mean);
-                    }
-                }
-
-                if( numValidSamples > 1 )
-                {
-                    StdDev = sqrt(StdDev/(numValidSamples-1));
-                }
-
-                boost::math::students_t dist(sampleSize);
-                double T = boost::math::quantile(boost::math::complement(dist, (1.0-Confidence)/2.0));
-                HalfWidth = T*StdDev/sqrt(static_cast<double>(sampleSize));
-            }
-    };
+      boost::math::students_t dist(sampleSize);
+      double T = boost::math::quantile(
+        boost::math::complement(dist, (1.0 - Confidence) / 2.0));
+      HalfWidth = T * StdDev / sqrt(static_cast<double>(sampleSize));
+    }
+  };
 }
 
 #endif

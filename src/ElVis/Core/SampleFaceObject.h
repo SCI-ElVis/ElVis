@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVISNATIVE_ELEMENT_FACE_RENDERING_OBJECT
 #define ELVISNATIVE_ELEMENT_FACE_RENDERING_OBJECT
 
@@ -39,32 +38,33 @@
 
 namespace ElVis
 {
-    class SampleFaceObject : public PrimaryRayObject
-    {
-        public:
-            ELVIS_EXPORT SampleFaceObject();
-            ELVIS_EXPORT explicit SampleFaceObject(boost::shared_ptr<FaceObject> obj);
-            ELVIS_EXPORT virtual ~SampleFaceObject() {}
+  class SampleFaceObject : public PrimaryRayObject
+  {
+  public:
+    ELVIS_EXPORT SampleFaceObject();
+    ELVIS_EXPORT explicit SampleFaceObject(boost::shared_ptr<FaceObject> obj);
+    ELVIS_EXPORT virtual ~SampleFaceObject() {}
 
-            ELVIS_EXPORT void EnableFace(int faceId);
-            ELVIS_EXPORT void DisableFace(int faceId);
+    ELVIS_EXPORT void EnableFace(int faceId);
+    ELVIS_EXPORT void DisableFace(int faceId);
 
-            ELVIS_EXPORT void SetFaces(const std::vector<int>& ids, bool flag);
+    ELVIS_EXPORT void SetFaces(const std::vector<int>& ids, bool flag);
 
-        protected:
-            virtual optixu::Material GetMaterial(SceneView* view);
+  protected:
+    virtual optixu::Material GetMaterial(SceneView* view);
 
-        private:
-            SampleFaceObject& operator=(const SampleFaceObject& rhs);
-            ELVIS_EXPORT SampleFaceObject(const SampleFaceObject& rhs);
+  private:
+    SampleFaceObject& operator=(const SampleFaceObject& rhs);
+    ELVIS_EXPORT SampleFaceObject(const SampleFaceObject& rhs);
 
-            static bool Initialized;
-            static bool InitializeStatic();
-            static void LoadPrograms(const std::string& prefix, optixu::Context context);
+    static bool Initialized;
+    static bool InitializeStatic();
+    static void LoadPrograms(const std::string& prefix,
+                             optixu::Context context);
 
-            static optixu::Material Material;
-            static optixu::Program ClosestHitProgram;
-    };
+    static optixu::Material Material;
+    static optixu::Program ClosestHitProgram;
+  };
 }
 
 #endif

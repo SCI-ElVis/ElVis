@@ -1,4 +1,3 @@
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 // The MIT License
@@ -27,36 +26,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVIS_ELVIS_POINT_LIGHT_H
-#define ELVIS_ELVIS_POINT_LIGHT_H
+#ifndef ELVIS_CLI_VIEW_SETTINGS_RENDERING
+#define ELVIS_CLI_VIEW_SETTINGS_RENDERING
 
-#include <ElVis/Core/Color.h>
-#include <ElVis/Core/Light.h>
-#include <ElVis/Core/ElVisDeclspec.h>
-#include <ElVis/Core/Point.hpp>
+/// \brief Renders a scene using the given view settings file.
+int ViewSettingsRendering(int argc,
+                        char** argv,
+                        boost::shared_ptr<ElVis::Scene> scene,
+                        boost::shared_ptr<ElVis::Model> model,
+                        unsigned int width,
+                        unsigned int height,
+                        const std::string& outFilePath);
 
-namespace ElVis
-{
-    class PointLight : public Light
-    {
-        public:
-            ELVIS_EXPORT PointLight();
-            ELVIS_EXPORT PointLight(const PointLight& rhs);
-            ELVIS_EXPORT virtual ~PointLight() {}
-
-            ELVIS_EXPORT const WorldPoint& Position() const { return m_location; }
-            ELVIS_EXPORT void SetPosition(const WorldPoint& value) { m_location = value; }
-
-            ELVIS_EXPORT const Color& GetColor() const { return m_color; }
-            ELVIS_EXPORT void SetColor(const Color& rhs) { m_color = rhs; }
-
-        private:
-            PointLight& operator=(const PointLight& rhs);
-
-            Color m_color;
-            WorldPoint m_location;
-    };
-}
-
-#endif //ELVIS_ELVIS_POINT_LIGHT_H
-
+#endif

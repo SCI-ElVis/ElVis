@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/VolumeRenderingModule.h>
 #include <ElVis/Core/VolumeRenderingIntegrationCategory.h>
 #include <ElVis/Core/SceneView.h>
@@ -46,224 +45,222 @@
 #include <boost/gil/gil_all.hpp>
 #include <boost/gil/extension/io/png_io.hpp>
 
-#define png_infopp_NULL (png_infopp)NULL
+#define png_infopp_NULL (png_infopp) NULL
 #ifndef int_p_NULL
-#define int_p_NULL (int*)NULL
+#define int_p_NULL (int*) NULL
 #endif
 
 namespace ElVis
 {
-    RayGeneratorProgram VolumeRenderingModule::m_PerformVolumeRendering;
+  RayGeneratorProgram VolumeRenderingModule::m_PerformVolumeRendering;
 
-    VolumeRenderingModule::VolumeRenderingModule() :
-        RenderModule()
-        ,DensityBreakpoints("DensityBreakpoints")
-        ,RedBreakpoints("RedBreakpoints")
-        ,GreenBreakpoints("GreenBreakpoints")
-        ,BlueBreakpoints("BlueBreakpoints")
-        ,DensityValues("DensityValues")
-        ,RedValues("RedValues")
-        ,GreenValues("GreenValues")
-        ,BlueValues("BlueValues"),
-        m_segmentIntegrationType(eRiemann_SingleThreadPerRay),
-        m_enableSampleTracking(false),
-        m_transferFunction(new HostTransferFunction()),
-        m_compositingStepSize(.01),
-        m_epsilon(.001),
-        m_renderIntegrationType(false),
-        m_enableEmptySpaceSkipping(true),
-        m_initializationComplete(false)
+  VolumeRenderingModule::VolumeRenderingModule()
+    : RenderModule(),
+      DensityBreakpoints("DensityBreakpoints"),
+      RedBreakpoints("RedBreakpoints"),
+      GreenBreakpoints("GreenBreakpoints"),
+      BlueBreakpoints("BlueBreakpoints"),
+      DensityValues("DensityValues"),
+      RedValues("RedValues"),
+      GreenValues("GreenValues"),
+      BlueValues("BlueValues"),
+      m_segmentIntegrationType(eRiemann_SingleThreadPerRay),
+      m_enableSampleTracking(false),
+      m_transferFunction(new HostTransferFunction()),
+      m_compositingStepSize(.01),
+      m_epsilon(.001),
+      m_renderIntegrationType(false),
+      m_enableEmptySpaceSkipping(true),
+      m_initializationComplete(false)
+  {
+    m_transferFunction->OnTransferFunctionChanged.connect(
+      boost::bind(&VolumeRenderingModule::HandleTransferFunctionChanged, this));
+  }
+
+  void VolumeRenderingModule::DoRender(SceneView* view)
+  {
+    std::cout << "Volume render." << std::endl;
+    try
     {
-        m_transferFunction->OnTransferFunctionChanged.connect(boost::bind(&VolumeRenderingModule::HandleTransferFunctionChanged, this));
+      std::cout << "Volume Rendering Element Traversal." << std::endl;
+      optixu::Context context = view->GetContext();
+
+      if (m_transferFunction->Dirty())
+      {
+        std::cout << "Updating transfer function." << std::endl;
+        m_transferFunction->CopyToOptix(
+          context, DensityBreakpoints, DensityValues, eDensity);
+        m_transferFunction->CopyToOptix(
+          context, RedBreakpoints, RedValues, eRed);
+        m_transferFunction->CopyToOptix(
+          context, GreenBreakpoints, GreenValues, eGreen);
+        m_transferFunction->CopyToOptix(
+          context, BlueBreakpoints, BlueValues, eBlue);
+        m_transferFunction->Dirty() = true;
+      }
+      SetFloat(context["desiredH"], m_compositingStepSize);
+      context->launch(
+        m_PerformVolumeRendering.Index, view->GetWidth(), view->GetHeight());
     }
-  
-    void VolumeRenderingModule::DoRender(SceneView* view)
+    catch (optixu::Exception& e)
     {
-        std::cout << "Volume render." << std::endl;
-        try
-        {
-          std::cout << "Volume Rendering Element Traversal." << std::endl;
-          optixu::Context context = view->GetContext();
-
-          if( m_transferFunction->Dirty() )
-          {
-              std::cout << "Updating transfer function." << std::endl;
-              m_transferFunction->CopyToOptix(context, DensityBreakpoints, DensityValues, eDensity);
-              m_transferFunction->CopyToOptix(context, RedBreakpoints, RedValues, eRed);
-              m_transferFunction->CopyToOptix(context, GreenBreakpoints, GreenValues, eGreen);
-              m_transferFunction->CopyToOptix(context, BlueBreakpoints, BlueValues, eBlue);
-              m_transferFunction->Dirty() = true;
-          }
-          SetFloat(context["desiredH"], m_compositingStepSize);
-          context->launch(m_PerformVolumeRendering.Index, view->GetWidth(), view->GetHeight());
-        }
-        catch(optixu::Exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cerr << e.getErrorString() << std::endl;
-            std::cout << e.getErrorString().c_str() << std::endl;
-        }
-        catch(std::exception& e)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-            std::cout << e.what() << std::endl;
-        }
-        catch(...)
-        {
-            std::cout << "Exception encountered rendering primary rays." << std::endl;
-        }
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cerr << e.getErrorString() << std::endl;
+      std::cout << e.getErrorString().c_str() << std::endl;
     }
-
-    void VolumeRenderingModule::SetIntegrationType(VolumeRenderingIntegrationType type)
+    catch (std::exception& e)
     {
-        if( m_segmentIntegrationType == type ) return;
-
-        m_segmentIntegrationType = type;
-        OnModuleChanged(*this);
-        OnIntegrationTypeChanged(*this, type);
-        SetRenderRequired();
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
+      std::cout << e.what() << std::endl;
     }
-
-    void VolumeRenderingModule::DoEvaluateSegment(SceneView* view)
+    catch (...)
     {
+      std::cout << "Exception encountered rendering primary rays." << std::endl;
     }
+  }
 
-    void VolumeRenderingModule::WriteAccumulatedDensityBuffer(const std::string& fileName, SceneView* view)
+  void VolumeRenderingModule::SetIntegrationType(
+    VolumeRenderingIntegrationType type)
+  {
+    if (m_segmentIntegrationType == type) return;
+
+    m_segmentIntegrationType = type;
+    OnModuleChanged(*this);
+    OnIntegrationTypeChanged(*this, type);
+    SetRenderRequired();
+  }
+
+  void VolumeRenderingModule::DoEvaluateSegment(SceneView* view) {}
+
+  void VolumeRenderingModule::WriteAccumulatedDensityBuffer(
+    const std::string& fileName, SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::IntegrateSegment(SceneView* view)
+  {
+    switch (m_segmentIntegrationType)
     {
-    }
+      case eRiemann_SingleThreadPerRay:
+      {
+        IntegrateSegmentSingleThreadPerRayRiemann(view);
+        break;
+      }
 
+      case eTrapezoidal_SingleThreadPerRay:
+      {
+        IntegrateTrapezoidal_SingleThreadPerRay(view);
+        break;
+      }
 
-    void VolumeRenderingModule::IntegrateSegment(SceneView* view)
+      case eIntegrateSegment_FullAlgorithm:
+      {
+        IntegrateSegmentSingleThreadPerRay(view);
+        break;
+      }
+
+      default:
+        std::cout << "Unknown integration type." << std::endl;
+    };
+  }
+
+  void VolumeRenderingModule::IntegrateTrapezoidal_SingleThreadPerRay(
+    SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::IntegrateSegmentSingleThreadPerRayRiemann(
+    SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::IntegrateSingleThreadPerRayFull(SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::IntegrateSingleWarpPerSegmentFull(SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::IntegrateGKOnly(SceneView* view) {}
+
+  void VolumeRenderingModule::IntegrateSegmentSingleThreadPerRay(
+    SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::
+    IntegrateDensity_AdaptiveTrapezoidal_SingleBlockPerRay(SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::
+    IntegrateDensity_NonAdaptiveTrapezoidal_SingleBlockPerRay(SceneView* view)
+  {
+  }
+
+  void VolumeRenderingModule::DoSetup(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+
+    if (!m_initializationComplete)
     {
-        switch( m_segmentIntegrationType )
-        {
-            case eRiemann_SingleThreadPerRay:
-            {
-                IntegrateSegmentSingleThreadPerRayRiemann(view);
-                break;
-            }
 
-            case eTrapezoidal_SingleThreadPerRay:
-            {
-                IntegrateTrapezoidal_SingleThreadPerRay(view);
-                break;
-            }
-
-
-            case eIntegrateSegment_FullAlgorithm:
-            {
-                IntegrateSegmentSingleThreadPerRay(view);
-                break;
-            }
-
-            default:
-                std::cout << "Unknown integration type." << std::endl;
-        };
-    }
-
-
-
-
-    void VolumeRenderingModule::IntegrateTrapezoidal_SingleThreadPerRay(SceneView* view)
-    {
-
-    }
-
-    void VolumeRenderingModule::IntegrateSegmentSingleThreadPerRayRiemann(SceneView* view)
-    {
- 
-    }
-
-
-    void VolumeRenderingModule::IntegrateSingleThreadPerRayFull(SceneView* view)
-    {
-
-    }
-
-    void VolumeRenderingModule::IntegrateSingleWarpPerSegmentFull(SceneView* view)
-    {
-
-    }
-
-    void VolumeRenderingModule::IntegrateGKOnly(SceneView* view)
-    {
-
-    }
-
-    void VolumeRenderingModule::IntegrateSegmentSingleThreadPerRay(SceneView* view)
-    {
-
-    }
-
-    void VolumeRenderingModule::IntegrateDensity_AdaptiveTrapezoidal_SingleBlockPerRay(SceneView* view)
-    {
-    }
-
-    void VolumeRenderingModule::IntegrateDensity_NonAdaptiveTrapezoidal_SingleBlockPerRay(SceneView* view)
-    {
-    }
-
-
-    void VolumeRenderingModule::DoSetup(SceneView* view)
-    {
+      if (!m_PerformVolumeRendering.IsValid())
+      {
+        m_PerformVolumeRendering =
+          view->AddRayGenerationProgram("PerformVolumeRendering");
+      }
+      if (m_transferFunction->Dirty())
+      {
         optixu::Context context = view->GetContext();
-
-        if( !m_initializationComplete )
-        {
-
-            if( !m_PerformVolumeRendering.IsValid() )
-            {
-              m_PerformVolumeRendering = view->AddRayGenerationProgram("PerformVolumeRendering");
-            }
-            if( m_transferFunction->Dirty() )
-            {
-                optixu::Context context = view->GetContext();
-                m_transferFunction->CopyToOptix(context, DensityBreakpoints, DensityValues, eDensity);
-                m_transferFunction->CopyToOptix(context, RedBreakpoints, RedValues, eRed);
-                m_transferFunction->CopyToOptix(context, GreenBreakpoints, GreenValues, eGreen);
-                m_transferFunction->CopyToOptix(context, BlueBreakpoints, BlueValues, eBlue);
-                m_transferFunction->Dirty() = true;
-            }
-            m_initializationComplete = true;
-        }
+        m_transferFunction->CopyToOptix(
+          context, DensityBreakpoints, DensityValues, eDensity);
+        m_transferFunction->CopyToOptix(
+          context, RedBreakpoints, RedValues, eRed);
+        m_transferFunction->CopyToOptix(
+          context, GreenBreakpoints, GreenValues, eGreen);
+        m_transferFunction->CopyToOptix(
+          context, BlueBreakpoints, BlueValues, eBlue);
+        m_transferFunction->Dirty() = true;
+      }
+      m_initializationComplete = true;
     }
+  }
 
-    void VolumeRenderingModule::SetTrackNumberOfSamples(bool value)
+  void VolumeRenderingModule::SetTrackNumberOfSamples(bool value)
+  {
+    m_enableSampleTracking = value;
+    ResetSampleCount();
+    SetRenderRequired();
+    OnModuleChanged(*this);
+  }
+
+  void VolumeRenderingModule::ResetSampleCount() {}
+
+  void VolumeRenderingModule::SetCompositingStepSize(ElVisFloat value)
+  {
+    if (value > 0.0 && value != m_compositingStepSize)
     {
-        m_enableSampleTracking = value;
-        ResetSampleCount();
-        SetRenderRequired();
-        OnModuleChanged(*this);
+      m_compositingStepSize = value;
+      SetRenderRequired();
+      OnModuleChanged(*this);
     }
+  }
 
-    void VolumeRenderingModule::ResetSampleCount()
+  void VolumeRenderingModule::SetEpsilon(ElVisFloat value)
+  {
+    if (value > 0.0 && value != m_epsilon)
     {
+      m_epsilon = value;
+      SetRenderRequired();
+      OnModuleChanged(*this);
     }
+  }
 
-    void VolumeRenderingModule::SetCompositingStepSize(ElVisFloat value)
-    {
-        if( value > 0.0 && value != m_compositingStepSize)
-        {
-            m_compositingStepSize = value;
-            SetRenderRequired();
-            OnModuleChanged(*this);
-        }
-    }
-
-    void VolumeRenderingModule::SetEpsilon(ElVisFloat value)
-    {
-        if( value > 0.0 && value != m_epsilon )
-        {
-            m_epsilon = value;
-            SetRenderRequired();
-            OnModuleChanged(*this);
-        }
-    }
-
-    void VolumeRenderingModule::HandleTransferFunctionChanged()
-    {
-        SetSyncAndRenderRequired();
-        OnModuleChanged(*this);
-    }
+  void VolumeRenderingModule::HandleTransferFunctionChanged()
+  {
+    SetSyncAndRenderRequired();
+    OnModuleChanged(*this);
+  }
 }
-

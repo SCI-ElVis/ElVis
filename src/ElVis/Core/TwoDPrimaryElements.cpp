@@ -45,136 +45,135 @@
 namespace ElVis
 {
 
-    TwoDPrimaryElements::TwoDPrimaryElements(boost::shared_ptr<Scene> m) :
-        Object(),
-        m_group(0),
-        m_curvedFaceInstance(0),
-        m_planarFaceInstance(0),
-        m_transform(0),
-        m_curvedDeviceFlags(0),
-        m_planarDeviceFlags(0),
-        m_material(0),
-        m_scene(m),
-        m_faceIds(),
-        m_curvedFaceFlags(),
-        m_planarFaceFlags(),
-        m_facesEnabledBuffer()
+  TwoDPrimaryElements::TwoDPrimaryElements(boost::shared_ptr<Scene> m)
+    : Object(),
+      m_group(0),
+      m_curvedFaceInstance(0),
+      m_planarFaceInstance(0),
+      m_transform(0),
+      m_curvedDeviceFlags(0),
+      m_planarDeviceFlags(0),
+      m_material(0),
+      m_scene(m),
+      m_faceIds(),
+      m_curvedFaceFlags(),
+      m_planarFaceFlags(),
+      m_facesEnabledBuffer()
+  {
+    SetupSubscriptions();
+
+    if (m_scene->GetModel())
     {
-        SetupSubscriptions();
-
-        if( m_scene->GetModel() )
-        {
-            Initialize();
-        }
-
-        //// Query the model to see if there are any 2D elements that are not 
-        //// embedded in 3D space.  If so, create a node that can be used by 
-        //// the primary ray module to render them.
-        //BOOST_AUTO(model, m->GetModel());
-        //if( model->Has2DElementsIn2DSpace() )
-        //{
-        //    int numberOf2DElementTypes = model->GetNumberOf2DElementTypesIn2DSpace();
-
-        //    for(int i = 0; i < numberOf2DElementTypes; ++i)
-        //    {
-        //    }
-        //}
+      Initialize();
     }
 
-    void TwoDPrimaryElements::SetupSubscriptions()
+    //// Query the model to see if there are any 2D elements that are not
+    //// embedded in 3D space.  If so, create a node that can be used by
+    //// the primary ray module to render them.
+    // BOOST_AUTO(model, m->GetModel());
+    // if( model->Has2DElementsIn2DSpace() )
+    //{
+    //    int numberOf2DElementTypes =
+    //    model->GetNumberOf2DElementTypesIn2DSpace();
+
+    //    for(int i = 0; i < numberOf2DElementTypes; ++i)
+    //    {
+    //    }
+    //}
+  }
+
+  void TwoDPrimaryElements::SetupSubscriptions()
+  {
+    m_scene->OnModelChanged.connect(
+      boost::bind(&TwoDPrimaryElements::HandleModelChanged, this, _1));
+  }
+
+  void TwoDPrimaryElements::HandleModelChanged(boost::shared_ptr<Model> m)
+  {
+    Initialize();
+  }
+
+  void TwoDPrimaryElements::Initialize() {}
+
+  optixu::Geometry TwoDPrimaryElements::DoCreateOptiXGeometry(SceneView* view)
+  {
+    // TODO - the fact that this should not be called indicates an error in
+    // class structure here.
+    assert(0);
+    return optixu::Geometry();
+  }
+
+  optixu::Material TwoDPrimaryElements::DoCreateMaterial(SceneView* view)
+  {
+    if (!m_material.get())
     {
-        m_scene->OnModelChanged.connect(boost::bind(&TwoDPrimaryElements::HandleModelChanged, this, _1));
+      optixu::Context context = view->GetContext();
+      auto model = m_scene->GetModel();
+      m_material = model->Get2DPrimaryGeometryMaterial(view);
+    }
+    return m_material;
+  }
+
+  void TwoDPrimaryElements::DoCreateNode(SceneView* view,
+                                         optixu::Transform& transform,
+                                         optixu::GeometryGroup& group)
+  {
+    optixu::Context context = view->GetContext();
+    auto model = m_scene->GetModel();
+
+    if (m_group.get())
+    {
+      group = m_group;
+      return;
     }
 
-    void TwoDPrimaryElements::HandleModelChanged(boost::shared_ptr<Model> m)
+    std::vector<optixu::GeometryInstance> twoDGroups =
+      model->Get2DPrimaryGeometry(m_scene, context);
+    if (twoDGroups.empty())
     {
-        Initialize();
+      return;
     }
 
-    void TwoDPrimaryElements::Initialize()
-    {
-    }
+    group = context->createGeometryGroup();
+    int idx = 0;
+    group->setChildCount(static_cast<unsigned int>(twoDGroups.size()));
 
-    optixu::Geometry TwoDPrimaryElements::DoCreateOptiXGeometry(SceneView* view)
-    {
-        // TODO - the fact that this should not be called indicates an error in
-        // class structure here.
-        assert(0);
-        return optixu::Geometry();
-    }
+    boost::for_each(
+      twoDGroups, (boost::lambda::bind(&optixu::GeometryGroupObj::setChild,
+                                       group.get(), idx, boost::lambda::_1),
+                   ++idx));
+    // boost::for_each(twoDGroups, [&](optixu::GeometryInstance childGroup)
+    //{
+    //    group->setChild(idx, childGroup);
+    //    ++idx;
+    //});
 
-    optixu::Material TwoDPrimaryElements::DoCreateMaterial(SceneView* view)
-    {
-        if( !m_material.get() ) 
-        {
-            optixu::Context context = view->GetContext();
-            auto model = m_scene->GetModel();
-            m_material = model->Get2DPrimaryGeometryMaterial(view);
-        }
-        return m_material;
-    }
+    optixu::Acceleration acc = context->createAcceleration("Sbvh", "Bvh");
+    // optixu::Acceleration acc = context->createAcceleration("NoAccel",
+    // "NoAccel");
+    group->setAcceleration(acc);
 
-    void TwoDPrimaryElements::DoCreateNode(SceneView* view,
-                optixu::Transform& transform, optixu::GeometryGroup& group)
-    {
-        optixu::Context context = view->GetContext();
-        auto model = m_scene->GetModel();
+    m_group = group;
+  }
 
-        if( m_group.get() )
-        {
-            group = m_group;
-            return;
-        }
+  void TwoDPrimaryElements::CopyDataToOptiX()
+  {
+    //        if( m_curvedFaceInstance && m_curvedFaceFlags.size() > 0 )
+    //        {
+    //            unsigned char* data = static_cast<unsigned
+    //            char*>(m_curvedDeviceFlags->map());
+    //            std::copy(m_curvedFaceFlags.begin(), m_curvedFaceFlags.end(),
+    //            data);
+    //            m_curvedDeviceFlags->unmap();
+    //        }
 
-
-        std::vector<optixu::GeometryInstance> twoDGroups = model->Get2DPrimaryGeometry(m_scene, context);
-        if( twoDGroups.empty() )
-        {
-            return;
-        }
-
-        group = context->createGeometryGroup();
-        int idx = 0;
-        group->setChildCount(static_cast<unsigned int>(twoDGroups.size()));
-
-        boost::for_each(twoDGroups, 
-          (boost::lambda::bind(&optixu::GeometryGroupObj::setChild, group.get(), idx, boost::lambda::_1), ++idx));
-        //boost::for_each(twoDGroups, [&](optixu::GeometryInstance childGroup)
-        //{
-        //    group->setChild(idx, childGroup);
-        //    ++idx;
-        //});
-        
-        
-        optixu::Acceleration acc = context->createAcceleration("Sbvh","Bvh");
-        //optixu::Acceleration acc = context->createAcceleration("NoAccel", "NoAccel");
-        group->setAcceleration(acc);
-
-        m_group = group;
-        
-        
-       
-    }
-
-    void TwoDPrimaryElements::CopyDataToOptiX()
-    {
-//        if( m_curvedFaceInstance && m_curvedFaceFlags.size() > 0 )
-//        {
-//            unsigned char* data = static_cast<unsigned char*>(m_curvedDeviceFlags->map());
-//            std::copy(m_curvedFaceFlags.begin(), m_curvedFaceFlags.end(), data);
-//            m_curvedDeviceFlags->unmap();
-//        }
-
-//        if( m_planarFaceInstance && m_planarFaceFlags.size() > 0)
-//        {
-//            unsigned char* data = static_cast<unsigned char*>(m_planarDeviceFlags->map());
-//            std::copy(m_planarFaceFlags.begin(), m_planarFaceFlags.end(), data);
-//            m_planarDeviceFlags->unmap();
-//        }
-    }
-
-
-
+    //        if( m_planarFaceInstance && m_planarFaceFlags.size() > 0)
+    //        {
+    //            unsigned char* data = static_cast<unsigned
+    //            char*>(m_planarDeviceFlags->map());
+    //            std::copy(m_planarFaceFlags.begin(), m_planarFaceFlags.end(),
+    //            data);
+    //            m_planarDeviceFlags->unmap();
+    //        }
+  }
 }
-
-

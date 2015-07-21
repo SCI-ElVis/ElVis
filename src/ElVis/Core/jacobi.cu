@@ -41,23 +41,26 @@
 // Reference the book.
 // Note that this file contains mostly generated code and
 // therefore care should be taken if modifications are needed.
-//namespace Jacobi
+// namespace Jacobi
 //{
 //    // Evaluates the nth Jacobi polynomial at point x.
 //    template<typename DataType>
 //    __device__ __forceinline__ DataType Legendre(int n, const DataType& x);
 //
 //    template<typename DataType>
-//    __device__ __forceinline__ DataType P(int n, int a, int b, const DataType& x);
+//    __device__ __forceinline__ DataType P(int n, int a, int b, const DataType&
+//    x);
 //
 //    template<typename DataType>
-//    __device__ __forceinline__ DataType dP(int n, int a, int b, const DataType& x);
+//    __device__ __forceinline__ DataType dP(int n, int a, int b, const
+//    DataType& x);
 //
 //    template<typename DataType>
-//    __device__ __forceinline__ DataType ddP(int n, int a, int b, const DataType& x);
+//    __device__ __forceinline__ DataType ddP(int n, int a, int b, const
+//    DataType& x);
 //}
 //
-//namespace Jacobi
+// namespace Jacobi
 //{
 //    template<typename DataType>
 //    __device__ __forceinline__ DataType Legendre(int n, const DataType& x)
@@ -67,7 +70,8 @@
 //
 //    // Evaluates the nth Jacobi polynomial at point x.
 //    template<typename DataType>
-//    __device__ __forceinline__ DataType P(int n, int a, int b, const DataType& x)
+//    __device__ __forceinline__ DataType P(int n, int a, int b, const DataType&
+//    x)
 //    {
 //        // From spectral methods page 351.
 //        if( n == 0 )
@@ -77,22 +81,29 @@
 //
 //        if( n == 1 )
 //        {
-//            return .5*((ElVisFloat)a-(ElVisFloat)b+((ElVisFloat)a+(ElVisFloat)b+MAKE_FLOAT(2.0))*x);
+//            return
+//            .5*((ElVisFloat)a-(ElVisFloat)b+((ElVisFloat)a+(ElVisFloat)b+MAKE_FLOAT(2.0))*x);
 //        }
 //
 //        DataType result = DataType(MAKE_FLOAT(0.0));
 //        ElVisFloat   apb = a + b;
 //
 //        DataType polyn2 = DataType(MAKE_FLOAT(1.0));
-//        DataType polyn1 = MAKE_FLOAT(0.5)*( static_cast<ElVisFloat>(a - b) + (a + b + MAKE_FLOAT(2.0))*x);
+//        DataType polyn1 = MAKE_FLOAT(0.5)*( static_cast<ElVisFloat>(a - b) +
+//        (a + b + MAKE_FLOAT(2.0))*x);
 //        ElVisFloat alpha = a;
 //        ElVisFloat beta = b;
 //        for(int k = 2; k <= n; ++k)
 //        {
-//            ElVisFloat a1 = MAKE_FLOAT(2.0)*k*(k + apb)*(MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(2.0));
-//            ElVisFloat a2 = (MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(1.0))*(alpha*alpha - beta*beta);
-//            ElVisFloat a3 = (MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(2.0))*(MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
-//            ElVisFloat a4 = MAKE_FLOAT(2.0)*(k + alpha - MAKE_FLOAT(1.0))*(k + beta - MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
+//            ElVisFloat a1 = MAKE_FLOAT(2.0)*k*(k + apb)*(MAKE_FLOAT(2.0)*k +
+//            apb - MAKE_FLOAT(2.0));
+//            ElVisFloat a2 = (MAKE_FLOAT(2.0)*k + apb -
+//            MAKE_FLOAT(1.0))*(alpha*alpha - beta*beta);
+//            ElVisFloat a3 = (MAKE_FLOAT(2.0)*k + apb -
+//            MAKE_FLOAT(2.0))*(MAKE_FLOAT(2.0)*k + apb -
+//            MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
+//            ElVisFloat a4 = MAKE_FLOAT(2.0)*(k + alpha - MAKE_FLOAT(1.0))*(k +
+//            beta - MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
 //
 //            a2 /= a1;
 //            a3 /= a1;
@@ -110,25 +121,32 @@
 //    }
 //
 //    template<typename DataType>
-//    __device__ __forceinline__ void P(int n, int a, int b, const DataType& x, DataType* out)
+//    __device__ __forceinline__ void P(int n, int a, int b, const DataType& x,
+//    DataType* out)
 //    {
 //        // From spectral methods page 351.
 //        out[0] = DataType(1.0);
 //
 //        if( n >= 1 )
 //        {
-//            out[1] = .5*((ElVisFloat)a-(ElVisFloat)b+((ElVisFloat)a+(ElVisFloat)b+MAKE_FLOAT(2.0))*x);
+//            out[1] =
+//            .5*((ElVisFloat)a-(ElVisFloat)b+((ElVisFloat)a+(ElVisFloat)b+MAKE_FLOAT(2.0))*x);
 //        }
-//        
+//
 //        ElVisFloat apb = a+b;
 //        ElVisFloat alpha = a;
 //        ElVisFloat beta = b;
 //        for(int k = 2; k <= n; ++k)
 //        {
-//            ElVisFloat a1 = MAKE_FLOAT(2.0)*k*(k + apb)*(MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(2.0));
-//            ElVisFloat a2 = (MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(1.0))*(alpha*alpha - beta*beta);
-//            ElVisFloat a3 = (MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(2.0))*(MAKE_FLOAT(2.0)*k + apb - MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
-//            ElVisFloat a4 = MAKE_FLOAT(2.0)*(k + alpha - MAKE_FLOAT(1.0))*(k + beta - MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
+//            ElVisFloat a1 = MAKE_FLOAT(2.0)*k*(k + apb)*(MAKE_FLOAT(2.0)*k +
+//            apb - MAKE_FLOAT(2.0));
+//            ElVisFloat a2 = (MAKE_FLOAT(2.0)*k + apb -
+//            MAKE_FLOAT(1.0))*(alpha*alpha - beta*beta);
+//            ElVisFloat a3 = (MAKE_FLOAT(2.0)*k + apb -
+//            MAKE_FLOAT(2.0))*(MAKE_FLOAT(2.0)*k + apb -
+//            MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
+//            ElVisFloat a4 = MAKE_FLOAT(2.0)*(k + alpha - MAKE_FLOAT(1.0))*(k +
+//            beta - MAKE_FLOAT(1.0))*(MAKE_FLOAT(2.0)*k + apb);
 //
 //            a2 /= a1;
 //            a3 /= a1;
@@ -139,7 +157,8 @@
 //    }
 //
 //    template<typename DataType>
-//    __device__ __forceinline__ DataType dP(int n, int a, int b, const DataType& x)
+//    __device__ __forceinline__ DataType dP(int n, int a, int b, const
+//    DataType& x)
 //    {
 //        if( n != 0 )
 //        {
@@ -149,7 +168,8 @@
 //    }
 //
 //    template<typename DataType>
-//    __device__ __forceinline__ DataType ddP(int n, int a, int b, const DataType& x)
+//    __device__ __forceinline__ DataType ddP(int n, int a, int b, const
+//    DataType& x)
 //    {
 //        if( n >= 2 )
 //        {
@@ -159,4 +179,4 @@
 //    }
 //}
 
-#endif //ELVIS_JACOBI_CU
+#endif // ELVIS_JACOBI_CU

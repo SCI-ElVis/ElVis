@@ -33,36 +33,28 @@
 
 namespace ElVis
 {
-    /// \brief This class contains information about a scalar field.
-    struct FieldInfo
+  /// \brief This class contains information about a scalar field.
+  struct FieldInfo
+  {
+    FieldInfo() : Name(), Id(0), Shortcut() {}
+
+    FieldInfo(const FieldInfo& rhs)
+      : Name(rhs.Name), Id(rhs.Id), Shortcut(rhs.Shortcut)
     {
-        FieldInfo() :
-            Name(),
-            Id(0),
-            Shortcut()
-        {
-        }
+    }
 
-        FieldInfo(const FieldInfo& rhs) :
-            Name(rhs.Name),
-            Id(rhs.Id),
-            Shortcut(rhs.Shortcut)
-        {
-        }
+    FieldInfo& operator=(const FieldInfo& rhs)
+    {
+      Name = rhs.Name;
+      Id = rhs.Id;
+      Shortcut = rhs.Shortcut;
+      return *this;
+    }
 
-        FieldInfo& operator=(const FieldInfo& rhs)
-        {
-            Name = rhs.Name;
-            Id = rhs.Id;
-            Shortcut = rhs.Shortcut;
-            return *this;
-        }
-
-
-        std::string Name;
-        int Id;
-        std::string Shortcut;
-    };
+    std::string Name;
+    int Id;
+    std::string Shortcut;
+  };
 }
 
 #endif

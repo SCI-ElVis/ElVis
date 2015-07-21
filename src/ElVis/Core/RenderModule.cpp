@@ -28,112 +28,131 @@
 
 #include <ElVis/Core/RenderModule.h>
 #include <string>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 namespace ElVis
 {
-    RenderModule::RenderModule() :
-        m_flags(),
-        m_enabled(true)
+  // Serialization keys.
+  namespace
+  {
+    const std::string ENABLED_KEY_NAME("Enabled");
+  }
+
+  RenderModule::RenderModule() : m_flags(), m_enabled(true)
+  {
+    m_flags.set(eSetupRequired);
+    m_flags.set(eRenderRequired);
+    m_flags.set(eSyncRequired);
+  }
+
+  /// \brief Prepares the module for rendering.  This method is only
+  /// called once and is always called before Render is called.
+  void RenderModule::Setup(SceneView* view)
+  {
+    if (m_flags.test(eSetupRequired))
     {
-        m_flags.set(eSetupRequired);
+      DoSetup(view);
+      m_flags.reset(eSetupRequired);
+    }
+  }
+
+  void RenderModule::Render(SceneView* view)
+  {
+    Setup(view);
+    Synchronize(view);
+
+    if (m_flags.test(eRenderRequired))
+    {
+      DoRender(view);
+      m_flags.reset(eRenderRequired);
+    }
+  }
+
+  void RenderModule::Synchronize(SceneView* view)
+  {
+    if (m_flags.test(eSyncRequired))
+    {
+      DoSynchronize(view);
+      m_flags.reset(eSyncRequired);
+    }
+  }
+
+  void RenderModule::SetEnabled(bool value)
+  {
+    if (value != m_enabled)
+    {
+      m_enabled = value;
+
+      if (m_enabled)
+      {
+        // We expect all modules, even if they are disabled, to keep track
+        // of if they need to be setup or synchronized.
         m_flags.set(eRenderRequired);
-        m_flags.set(eSyncRequired);
-    }
+      }
+      else
+      {
+        // Disabling the module turns off the rendering, but we still need
+        // to keep track of outstanding synchronization.
+        m_flags.reset(eRenderRequired);
+      }
 
-    /// \brief Prepares the module for rendering.  This method is only
-    /// called once and is always called before Render is called.
-    void RenderModule::Setup(SceneView* view)
+      OnRenderFlagsChanged(*this, m_flags);
+      OnModuleChanged(*this);
+      OnEnabledChanged(*this, value);
+    }
+  }
+
+  void RenderModule::SetSyncAndRenderRequired()
+  {
+    if (!m_flags.test(eRenderRequired) || !m_flags.test(eSyncRequired))
     {
-        if( m_flags.test(eSetupRequired) )
-        {
-            DoSetup(view);
-            m_flags.reset(eSetupRequired);
-        }
+      m_flags.set(eRenderRequired);
+      m_flags.set(eSyncRequired);
+      OnRenderFlagsChanged(*this, m_flags);
     }
+  }
 
-    void RenderModule::Render(SceneView* view)
+  void RenderModule::SetRenderRequired()
+  {
+    // Don't change the flag if it is setup and render required.
+    if (!m_flags.test(eRenderRequired))
     {
-        Setup(view);
-        Synchronize(view);
-
-        if( m_flags.test(eRenderRequired) )
-        {
-            DoRender(view);
-            m_flags.reset(eRenderRequired);
-        }
+      m_flags.set(eRenderRequired);
+      OnRenderFlagsChanged(*this, m_flags);
     }
+  }
 
-    void RenderModule::Synchronize(SceneView* view)
-    {
-        if( m_flags.test(eSyncRequired) )
-        {
-            DoSynchronize(view);
-            m_flags.reset(eSyncRequired);
-        }
-    }
+  bool RenderModule::GetRenderRequired() const
+  {
+    return m_flags.test(eRenderRequired);
+  }
+  void RenderModule::DoSynchronize(SceneView* view) {}
 
-    void RenderModule::SetEnabled(bool value)
-    {
-        if( value != m_enabled )
-        {
-            m_enabled = value;
+  void RenderModule::DoResize(unsigned int newWidth, unsigned int newHeight) {}
 
-            if( m_enabled )
-            {
-                // We expect all modules, even if they are disabled, to keep track
-                // of if they need to be setup or synchronized.
-                m_flags.set(eRenderRequired);
-            }
-            else
-            {
-                // Disabling the module turns off the rendering, but we still need
-                // to keep track of outstanding synchronization.
-                m_flags.reset(eRenderRequired);
-            }
+  void RenderModule::Resize(unsigned int newWidth, unsigned int newHeight)
+  {
+    DoResize(newWidth, newHeight);
+  }
 
-            OnRenderFlagsChanged(*this, m_flags);
-            OnModuleChanged(*this);
-            OnEnabledChanged(*this,value);
-        }
-    }
+  template <typename Archive>
+  void RenderModule::save(Archive& ar, const unsigned int version) const
+  {
+    ar & boost::serialization::make_nvp(ENABLED_KEY_NAME.c_str(), m_enabled);
+    serialize(ar, version);
+  }
 
+  template <typename Archive>
+  void RenderModule::load(Archive& ar, const unsigned int version)
+  {
+    ar & boost::serialization::make_nvp(ENABLED_KEY_NAME.c_str(), m_enabled);
+    deserialize(ar, version);
+  }
 
-    void RenderModule::SetSyncAndRenderRequired()
-    {
-        if( !m_flags.test(eRenderRequired)  ||
-            !m_flags.test(eSyncRequired) )
-        {
-            m_flags.set(eRenderRequired);
-            m_flags.set(eSyncRequired);
-            OnRenderFlagsChanged(*this, m_flags);
-        }
-    }
+  template void RenderModule::save(boost::archive::xml_oarchive&,
+                                const unsigned int) const;
 
-    void RenderModule::SetRenderRequired()
-    {
-        // Don't change the flag if it is setup and render required.
-        if( !m_flags.test(eRenderRequired) )
-        {
-            m_flags.set(eRenderRequired);
-            OnRenderFlagsChanged(*this, m_flags);
-        }
-    }
-
-    bool RenderModule::GetRenderRequired() const
-    {
-        return m_flags.test(eRenderRequired);
-    }
-    void RenderModule::DoSynchronize(SceneView* view)
-    {
-    }
-
-    void RenderModule::DoResize(unsigned int newWidth, unsigned int newHeight)
-    {
-    }
-
-    void RenderModule::Resize(unsigned int newWidth, unsigned int newHeight)
-    {
-        DoResize(newWidth, newHeight);
-    }
-
+  template void RenderModule::load(boost::archive::xml_iarchive&,
+                                const unsigned int);
 }

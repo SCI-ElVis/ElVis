@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/CutSurfaceContourModule.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
@@ -36,146 +35,164 @@
 
 namespace ElVis
 {
-    const std::string CutSurfaceContourModule::ReferencePointAtIntersectionBufferName("ReferencePointAtIntersectionBuffer");
+  const std::string CutSurfaceContourModule::
+    ReferencePointAtIntersectionBufferName(
+      "ReferencePointAtIntersectionBuffer");
 
-    CutSurfaceContourModule::CutSurfaceContourModule() :
-        m_contourSampleBuffer("ContourSampleBuffer"),
-        m_isovalueBuffer("Isovalues"),
-        m_referencePointAtIntersectionBuffer(ReferencePointAtIntersectionBufferName),
-        m_dirty(true),
-        m_treatElementBoundariesAsDiscontinuous(false),
-        m_matchVisual3Contours(false)
-    {}
+  CutSurfaceContourModule::CutSurfaceContourModule()
+    : m_contourSampleBuffer("ContourSampleBuffer"),
+      m_isovalueBuffer("Isovalues"),
+      m_referencePointAtIntersectionBuffer(
+        ReferencePointAtIntersectionBufferName),
+      m_dirty(true),
+      m_treatElementBoundariesAsDiscontinuous(false),
+      m_matchVisual3Contours(false)
+  {
+  }
 
-    void CutSurfaceContourModule::DoSetup(SceneView* view)
+  void CutSurfaceContourModule::DoSetup(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    assert(context);
+
+    m_contourSampleBuffer.SetContext(context);
+    m_contourSampleBuffer.SetDimensions(
+      view->GetWidth() + 1, view->GetHeight() + 1);
+
+    m_isovalueBuffer.SetContext(context);
+    m_isovalueBuffer.SetDimensions(m_isovalues.size());
+
+    m_elementIdAtIntersectionBuffer =
+      context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT,
+                            view->GetWidth() + 1, view->GetHeight() + 1);
+    context["ElementIdAtIntersectionBuffer"]->set(
+      m_elementIdAtIntersectionBuffer);
+
+    m_elementTypeAtIntersectionBuffer =
+      context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT,
+                            view->GetWidth() + 1, view->GetHeight() + 1);
+    context["ElementTypeAtIntersectionBuffer"]->set(
+      m_elementTypeAtIntersectionBuffer);
+
+    m_referencePointAtIntersectionBuffer.SetContext(context);
+    m_referencePointAtIntersectionBuffer.SetDimensions(
+      view->GetWidth() + 1, view->GetHeight() + 1);
+
+    m_sampleRayProgram = view->AddRayGenerationProgram(
+      "SamplePixelCornersRayGeneratorForCategorization");
+    m_markPixelProgram =
+      view->AddRayGenerationProgram("CategorizeContourPixels");
+
+    context->setMissProgram(
+      2, PtxManager::LoadProgram(context, view->GetPTXPrefix(), "ContourMiss"));
+  }
+
+  void CutSurfaceContourModule::DoSynchronize(SceneView* view)
+  {
+    if (m_dirty)
     {
-        optixu::Context context = view->GetContext();
-        assert(context);
+      m_isovalueBuffer.SetDimensions(m_isovalues.size());
+      auto isovalueData = m_isovalueBuffer.Map();
+      int index = 0;
+      for (std::set<ElVisFloat>::iterator iter = m_isovalues.begin();
+           iter != m_isovalues.end(); ++iter)
+      {
+        isovalueData[index] = *iter;
+        ++index;
+      }
 
-        m_contourSampleBuffer.SetContext(context);
-        m_contourSampleBuffer.SetDimensions(view->GetWidth()+1, view->GetHeight()+1);
-        
-        m_isovalueBuffer.SetContext(context);
-        m_isovalueBuffer.SetDimensions(m_isovalues.size());
+      optixu::Context context = view->GetContext();
+      context["TreatElementBoundariesAsDiscontinuous"]->setInt(
+        m_treatElementBoundariesAsDiscontinuous ? 1 : 0);
+      context["MatchVisual3Contours"]->setInt(m_matchVisual3Contours ? 1 : 0);
 
-        m_elementIdAtIntersectionBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, view->GetWidth()+1, view->GetHeight()+1);
-        context["ElementIdAtIntersectionBuffer"]->set(m_elementIdAtIntersectionBuffer);
-
-        m_elementTypeAtIntersectionBuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, view->GetWidth()+1, view->GetHeight()+1);
-        context["ElementTypeAtIntersectionBuffer"]->set(m_elementTypeAtIntersectionBuffer);
-
-        m_referencePointAtIntersectionBuffer.SetContext(context);
-        m_referencePointAtIntersectionBuffer.SetDimensions(view->GetWidth()+1, view->GetHeight()+1);
-
-        m_sampleRayProgram = view->AddRayGenerationProgram("SamplePixelCornersRayGeneratorForCategorization");
-        m_markPixelProgram = view->AddRayGenerationProgram("CategorizeContourPixels");
-
-        context->setMissProgram(2, PtxManager::LoadProgram(context, view->GetPTXPrefix(), "ContourMiss"));
+      m_dirty = false;
     }
+  }
 
-    void CutSurfaceContourModule::DoSynchronize(SceneView* view)
+  void CutSurfaceContourModule::DoRender(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+
+    context->launch(
+      m_sampleRayProgram.Index, view->GetWidth() + 1, view->GetHeight() + 1);
+    context->launch(
+      m_markPixelProgram.Index, view->GetWidth(), view->GetHeight());
+  }
+
+  void CutSurfaceContourModule::DoResize(unsigned int newWidth,
+                                         unsigned int newHeight)
+  {
+    if (m_contourSampleBuffer.Initialized())
     {
-        if( m_dirty )
-        {
-            m_isovalueBuffer.SetDimensions(m_isovalues.size());
-            auto isovalueData = m_isovalueBuffer.Map();
-            int index = 0;
-            for(std::set<ElVisFloat>::iterator iter = m_isovalues.begin(); iter != m_isovalues.end(); ++iter)
-            {
-                isovalueData[index] = *iter;
-                ++index;
-            }
-
-            optixu::Context context = view->GetContext();
-            context["TreatElementBoundariesAsDiscontinuous"]->setInt(m_treatElementBoundariesAsDiscontinuous ? 1 : 0);
-            context["MatchVisual3Contours"]->setInt(m_matchVisual3Contours ? 1 : 0);
-
-            m_dirty = false;
-        }
+      m_contourSampleBuffer.SetDimensions(newWidth + 1, newHeight + 1);
+      m_elementIdAtIntersectionBuffer->setSize(newWidth + 1, newHeight + 1);
+      m_elementTypeAtIntersectionBuffer->setSize(newWidth + 1, newHeight + 1);
+      m_referencePointAtIntersectionBuffer.SetDimensions(
+        newWidth + 1, newHeight + 1);
     }
+  }
 
-    void CutSurfaceContourModule::DoRender(SceneView* view)
+  std::string CutSurfaceContourModule::DoGetName() const
+  {
+    return "Cut-Surface Contour";
+  }
+
+  void CutSurfaceContourModule::AddIsovalue(ElVisFloat newVal)
+  {
+    if (m_isovalues.find(newVal) == m_isovalues.end())
     {
-        optixu::Context context = view->GetContext();
-        
-        context->launch(m_sampleRayProgram.Index, view->GetWidth()+1, view->GetHeight()+1);
-        context->launch(m_markPixelProgram.Index, view->GetWidth(), view->GetHeight());
+      m_isovalues.insert(newVal);
+      SetSyncAndRenderRequired();
+      m_dirty = true;
+      OnIsovalueAdded(newVal);
+      OnModuleChanged(*this);
     }
+  }
 
-
-        
-    void CutSurfaceContourModule::DoResize(unsigned int newWidth, unsigned int newHeight)
+  void CutSurfaceContourModule::RemoveIsovalue(ElVisFloat newVal)
+  {
+    std::set<ElVisFloat>::iterator found = m_isovalues.find(newVal);
+    if (found != m_isovalues.end())
     {
-        if( m_contourSampleBuffer.Initialized() )
-        {
-            m_contourSampleBuffer.SetDimensions(newWidth+1, newHeight+1);
-            m_elementIdAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
-            m_elementTypeAtIntersectionBuffer->setSize(newWidth+1, newHeight+1);
-            m_referencePointAtIntersectionBuffer.SetDimensions(newWidth+1, newHeight+1);
-        }
+      m_isovalues.erase(found);
+      SetSyncAndRenderRequired();
+      m_dirty = true;
+      OnIsovalueRemoved(newVal);
+      OnModuleChanged(*this);
     }
+  }
 
-    std::string CutSurfaceContourModule::DoGetName() const
+  bool CutSurfaceContourModule::GetTreatElementBoundariesAsDiscontinuous() const
+  {
+    return m_treatElementBoundariesAsDiscontinuous;
+  }
+
+  void CutSurfaceContourModule::SetTreatElementBoundariesAsDiscontinuous(
+    bool value)
+  {
+    if (m_treatElementBoundariesAsDiscontinuous != value)
     {
-        return "Cut-Surface Contour";
+      m_treatElementBoundariesAsDiscontinuous = value;
+      SetSyncAndRenderRequired();
+      m_dirty = true;
+      OnModuleChanged(*this);
     }
+  }
 
-    void CutSurfaceContourModule::AddIsovalue(ElVisFloat newVal)
+  bool CutSurfaceContourModule::GetMatchVisual3Contours() const
+  {
+    return m_matchVisual3Contours;
+  }
+
+  void CutSurfaceContourModule::SetMatchVisual3Contours(bool newValue)
+  {
+    if (m_matchVisual3Contours != newValue)
     {
-        if( m_isovalues.find(newVal) == m_isovalues.end() )
-        {
-            m_isovalues.insert(newVal);
-            SetSyncAndRenderRequired();
-            m_dirty = true;
-            OnIsovalueAdded(newVal);
-            OnModuleChanged(*this);
-        }
+      m_matchVisual3Contours = newValue;
+      SetSyncAndRenderRequired();
+      m_dirty = true;
+      OnModuleChanged(*this);
     }
-
-    void CutSurfaceContourModule::RemoveIsovalue(ElVisFloat newVal)
-    {
-        std::set<ElVisFloat>::iterator found = m_isovalues.find(newVal);
-        if( found != m_isovalues.end() )
-        {
-            m_isovalues.erase(found);
-            SetSyncAndRenderRequired();
-            m_dirty = true;
-            OnIsovalueRemoved(newVal);
-            OnModuleChanged(*this);
-        }
-    }
-
-    bool CutSurfaceContourModule::GetTreatElementBoundariesAsDiscontinuous() const
-    {
-        return m_treatElementBoundariesAsDiscontinuous;
-    }
-
-    void CutSurfaceContourModule::SetTreatElementBoundariesAsDiscontinuous(bool value)
-    {
-        if( m_treatElementBoundariesAsDiscontinuous != value )
-        {
-            m_treatElementBoundariesAsDiscontinuous = value;
-            SetSyncAndRenderRequired();
-            m_dirty = true;
-            OnModuleChanged(*this);
-        }
-    }
-
-    bool CutSurfaceContourModule::GetMatchVisual3Contours() const
-    {
-        return m_matchVisual3Contours;
-    }
-
-    void CutSurfaceContourModule::SetMatchVisual3Contours(bool newValue)
-    {
-        if( m_matchVisual3Contours != newValue)
-        {
-            m_matchVisual3Contours = newValue;
-            SetSyncAndRenderRequired();
-            m_dirty = true;
-            OnModuleChanged(*this);
-        }
-    }
-
+  }
 }
-
