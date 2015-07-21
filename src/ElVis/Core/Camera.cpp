@@ -45,7 +45,7 @@ namespace ElVis
       m_u(-1, 0, 0),
       m_v(0, 1, 0),
       m_w(0, 0, -1),
-      m_fieldOfView(30.0),
+      m_fieldOfView(60.0),
       m_aspectRatio(1.0),
       m_near(.1),
         m_far(10000.0),
