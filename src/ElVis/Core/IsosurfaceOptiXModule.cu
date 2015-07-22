@@ -531,10 +531,10 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg,
             requiredOrder = RequiredOrder[0];
     }
 
-    ElVisFloat epsilon = MAKE_FLOAT(1e-4);
+    ElVisFloat epsilon = MAKE_FLOAT(1e-8);
     if( Epsilon.size() == 1 )
     {
-        if( epsilon >= MAKE_FLOAT(1e-16) )
+        if( Epsilon[0] >= MAKE_FLOAT(1e-16) )
             epsilon = Epsilon[0];
     }
 

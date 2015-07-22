@@ -72,7 +72,7 @@ namespace ElVis
             public Q_SLOTS:
                 void HandleEnabledChanged(const RenderModule& module, bool newValue);
                 void HandleEnabledStateChangedInGui(int state);
-                void HandleIsovaluesChanged(ElVisFloat newValue);
+                void HandleIsovaluesChanged();
                 void HandleAddContourButtonPressed();
                 void HandleRequiredOrderChangedInGui(void);
                 void HandleEpsilonChangedInGui(void);

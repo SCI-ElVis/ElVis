@@ -78,7 +78,7 @@ namespace ElVis
                 m_enabledCheckBox->setChecked(false);
 
                 m_epsilonSpinBox->setMinimum(-16);
-                m_epsilonSpinBox->setValue(-4);
+                m_epsilonSpinBox->setValue(-8);
 
                 m_requiredOrderSpinBox->setMinimum(0);
                 m_requiredOrderSpinBox->setMaximum(19);
@@ -100,7 +100,7 @@ namespace ElVis
                 connect(m_enabledCheckBox, SIGNAL(stateChanged(int)), this, SLOT(HandleEnabledStateChangedInGui(int)));
                 m_appData->GetIsosurfaceModule()->OnEnabledChanged.connect(boost::bind(&IsosurfaceDockWidget::HandleEnabledChanged, this, _1, _2));
                 connect(m_addContourButton, SIGNAL(clicked()), this, SLOT(HandleAddContourButtonPressed()));
-                m_appData->GetIsosurfaceModule()->OnIsovaluesChanged.connect(boost::bind(&IsosurfaceDockWidget::HandleIsovaluesChanged, this, _1));
+                m_appData->GetIsosurfaceModule()->OnIsovaluesChanged.connect(boost::bind(&IsosurfaceDockWidget::HandleIsovaluesChanged, this));
                 connect(m_requiredOrderSpinBox, SIGNAL(valueChanged(int)), this, SLOT(HandleRequiredOrderChangedInGui()));
                 connect(m_epsilonSpinBox, SIGNAL(valueChanged(int)), this, SLOT(HandleEpsilonChangedInGui()));
 //                //////////////////////////////////////
@@ -154,7 +154,7 @@ namespace ElVis
             m_appData->GetIsosurfaceModule()->SetEpsilon(m_epsilonSpinBox->value());
         }
 
-        void IsosurfaceDockWidget::HandleIsovaluesChanged(ElVisFloat newValue)
+        void IsosurfaceDockWidget::HandleIsovaluesChanged()
         {
             PopulateListWidget();
         }
