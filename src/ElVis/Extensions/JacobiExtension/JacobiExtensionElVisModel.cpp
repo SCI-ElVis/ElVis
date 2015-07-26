@@ -135,6 +135,16 @@ namespace ElVis
               face.info.widenExtents();
               m_faces.push_back(face);
             }
+
+            int numFacesToIterate = m_faces.size();
+
+            m_elementFacesMapping (m_volume->numElements, std::vector<int>);
+            int matchingElement;
+            for (int i = 0; i < numFacesToIterate; ++i)
+            {
+                matchingElement = Model::DoGetFaceDefinition(i).CommonElements[0].Id;
+                m_elementFacesMapping[matchingElement].push_back(i);
+            }
         }
 
         void JacobiExtensionModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)

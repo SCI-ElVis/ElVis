@@ -65,7 +65,8 @@ namespace ElVis
       m_planarFaceGeometry(),
       m_curvedFaceGeometry(),
       m_planarFacesEnabledBuffer(),
-      m_curvedFacesEnabledBuffer()
+      m_curvedFacesEnabledBuffer(),
+      m_elementFacesMapping()
   {
   }
 
