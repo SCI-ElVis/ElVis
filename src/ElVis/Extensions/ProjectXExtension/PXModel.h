@@ -145,6 +145,7 @@ namespace ElVis
     PX_All *m_pxa;
     unsigned int m_numFieldsToPlot;
     char m_cutCellFlag; //1 if cut cells are present
+    void PopulateElementToFacesMap(void);
   };
 }
 

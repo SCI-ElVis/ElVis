@@ -161,6 +161,13 @@ namespace ElVis
       return m_curvedFaceGeometry;
     }
 
+    /// \brief Returns the faces numbers that belong to a given element.
+    ///
+    /// This method returns a vector containing the face numbers that belong
+    /// to the specified element.
+    ELVIS_EXPORT virtual vector<int> GetFacesBelongingToElement(
+      unsigned int elementNum) const;
+
   protected:
     void SetMinExtent(const WorldPoint& min) { m_minExtent = min; }
     void SetMaxExtent(const WorldPoint& max) { m_maxExtent = max; }
@@ -303,12 +310,6 @@ namespace ElVis
     ELVIS_EXPORT virtual void DoCopyExtensionSpecificDataToOptiX(
       optixu::Context context) = 0;
 
-    /// \brief Returns the faces numbers that belong to a given element.
-    ///
-    /// This method returns a vector containing the face numbers that belong
-    /// to the specified element.
-    ELVIS_EXPORT virtual vector<int> DoGetFacesBelongingToElement(
-      int elementNum) = 0;
 
   private:
     Model& operator=(const Model& rhs);
@@ -359,7 +360,7 @@ namespace ElVis
     optixu::Buffer m_planarFacesEnabledBuffer;
     optixu::Buffer m_curvedFacesEnabledBuffer;
 
-    std::vector<std::vector<int> > m_elementFacesMapping;
+    std::vector<int>** m_elementFacesMapping;
   };
 }
 

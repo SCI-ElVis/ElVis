@@ -83,7 +83,9 @@ namespace ElVis
                 QGridLayout* m_rightLayout;
                 QWidget* m_leftWidget;
                 QWidget* m_rightWidget;
+                QPushButton* m_addFaceIdButton;
                 QPushButton* m_addElementIdButton;
+                QSpinBox* m_faceId;
                 QSpinBox* m_elementId;
                 QtBoolPropertyManager* m_boolPropertyManager;
                 QtCheckBoxFactory* m_checkBoxFactory;

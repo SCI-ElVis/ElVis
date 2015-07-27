@@ -991,8 +991,31 @@ namespace ElVis
       }
     }
 
+    PopulateElementToFacesMap();
   }
 
+  void PXModel::PopulateElementToFacesMap()
+  {
+    int numElements = DoGetNumberOfFaces();
+    m_elementFacesMapping = new std::vector<int>* [numElements];
+    for (int i = 0; i < numElements; ++i)
+      m_elementFacesMapping[i] = new std::vector<int>;
+
+    int matchingElement = 0;
+    int numFacesToIterate = m_faces.size();
+    for (int i = 0; i < numFacesToIterate; ++i)
+    {
+      matchingElement = Model::DoGetFaceDefinition(i).CommonElements[0].Id;
+      m_elementFacesMapping[matchingElement]->push_back(i);
+    }
+  }
+
+  std::vector<int> PXModel::GetFacesBelongingToElement(unsigned int elementNum) const
+  {
+    if( (DoGetNumberOfElements() - 1) < elementNum )
+      elementNum = DoGetNumberOfElements() - 1;
+    return m_elementFacesMapping[elementNum];
+  }
 
 /*
   std::vector<optixu::GeometryGroup> PXModel::DoGetPointLocationGeometry(Scene* scene, optixu::Context context)

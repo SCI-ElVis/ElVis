@@ -133,19 +133,34 @@ namespace ElVis
             {
               auto face = (*iter).second;
               face.info.widenExtents();
-              m_faces.push_back(face);
+              m_faces.planarInfoush_back(face);
             }
 
-            int numFacesToIterate = m_faces.size();
+            PopulateElementToFacesMap();
+        }
 
-            m_elementFacesMapping (m_volume->numElements, std::vector<int>);
-            int matchingElement;
+        void JacobiExtensionModel::PopulateElementToFacesMap()
+        {
+            int numElements = DoGetNumberOfFaces();
+            m_elementFacesMapping = new std::vector<int>* [numElements];
+            for (int i = 0; i < numElements; ++i)
+            	m_elementFacesMapping[i] = new std::vector<int>;
+
+            int matchingElement = 0;
+            int numFacesToIterate = m_faces.size();
             for (int i = 0; i < numFacesToIterate; ++i)
             {
                 matchingElement = Model::DoGetFaceDefinition(i).CommonElements[0].Id;
-                m_elementFacesMapping[matchingElement].push_back(i);
+                m_elementFacesMapping[matchingElement]->push_back(i);
             }
         }
+
+        std::vector<int> JacobiExtensionModel::GetFacesBelongingToElement(unsigned int elementNum) const
+        {
+        	if( (DoGetNumberOfElements() - 1) < elementNum )
+        		elementNum = DoGetNumberOfElements() - 1;
+            return m_elementFacesMapping[elementNum];
+		}
 
         void JacobiExtensionModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
         {

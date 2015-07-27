@@ -112,6 +112,8 @@ namespace NektarPlusPlusExtension
         std::vector<WorldPoint> m_planarVerts;
 
         std::vector<WorldVector> m_planarFaceNormals;
+
+        void PopulateElementToFacesMap(void);
     };
 }
 }

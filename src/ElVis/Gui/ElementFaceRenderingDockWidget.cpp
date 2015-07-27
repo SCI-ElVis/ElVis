@@ -44,7 +44,9 @@ namespace ElVis
             m_rightLayout(0),
             m_leftWidget(new QWidget()),
             m_rightWidget(new QWidget()),
+            m_addFaceIdButton(new QPushButton("Add Face")),
             m_addElementIdButton(new QPushButton("Add Element")),
+            m_faceId(new QSpinBox()),
             m_elementId(new QSpinBox()),
             m_boolPropertyManager(new QtBoolPropertyManager()),
             m_checkBoxFactory(new QtCheckBoxFactory()),
@@ -74,12 +76,17 @@ namespace ElVis
             m_layout = new QGridLayout(widget);
             m_layout->addWidget(m_list, 0, 0, 1, 2);
 
+            m_faceId->setMinimum(-1);
+            m_faceId->setMaximum(-1);
+            m_faceId->setSingleStep(1);
             m_elementId->setMinimum(-1);
             m_elementId->setMaximum(-1);
             m_elementId->setSingleStep(1);
 
-            m_layout->addWidget(m_elementId, 1, 0);
-            m_layout->addWidget(m_addElementIdButton, 1, 1);
+            m_layout->addWidget(m_faceId, 1, 0);
+            m_layout->addWidget(m_addFaceIdButton, 1, 1);
+            m_layout->addWidget(m_elementId, 3, 0);
+            m_layout->addWidget(m_addElementIdButton, 3, 1);
 
             m_layout->addWidget(m_browser, 0, 2, 1, 2);
             m_layout->addWidget(label, 1, 2);
@@ -90,7 +97,8 @@ namespace ElVis
 
             m_appData->GetScene()->OnModelChanged.connect(boost::bind(&ElementFaceRenderingDockWidget::HandleModelChanged, this, _1));
             m_appData->GetScene()->OnSceneInitialized.connect(boost::bind(&ElementFaceRenderingDockWidget::HandleSceneInitialized, this, _1));
-            connect(m_addElementIdButton, SIGNAL(clicked()), this, SLOT(HandleAddButtonPressed()));
+            connect(m_addFaceIdButton, SIGNAL(clicked()), this, SLOT(HandleAddFaceButtonPressed()));
+            connect(m_addElementIdButton, SIGNAL(clicked()), this, SLOT(HandleAddElementButtonPressed()));
             connect(m_boolPropertyManager, SIGNAL(valueChanged(QtProperty*,bool)), this, SLOT(HandleGeometryFaceMapSelected(QtProperty*,bool)));
             connect(m_toleranceSpinBox, SIGNAL(valueChanged(double)), this, SLOT(HandleToleranceChanged(double)));
         }
@@ -105,6 +113,7 @@ namespace ElVis
             m_list->clear();
             m_shownFaces.clear();
 
+            m_faceId->setMinimum(0);
             m_elementId->setMinimum(0);
             //m_elementId->setMaximum(model->GetNumberOfElements());
 
@@ -137,20 +146,39 @@ namespace ElVis
 
         void ElementFaceRenderingDockWidget::HandleSceneInitialized(const Scene& s)
         {
-            m_elementId->setMaximum(
+            m_faceId->setMaximum(
               static_cast<int>(m_appData->GetScene()->GetModel()->GetNumberOfFaces()));
         }
 
-        void ElementFaceRenderingDockWidget::HandleAddButtonPressed()
+        void ElementFaceRenderingDockWidget::HandleAddFaceButtonPressed()
         {
             // Add to the model, and rely on the update to change the list widget.
-            int elementId = m_elementId->value();
-            std::cout << "Enabling face " << elementId << std::endl;
-            m_appData->GetFaceSampler()->EnableFace(elementId);
+            int faceId = m_faceId->value();
+            std::cout << "Enabling face " << faceId << std::endl;
+            m_appData->GetFaceSampler()->EnableFace(faceId);
             QListWidgetItem* item = new QListWidgetItem();
-            item->setData(Qt::DisplayRole, elementId);
+            item->setData(Qt::DisplayRole, faceId);
             m_list->addItem(item);
-            m_shownFaces[item] = elementId;
+            m_shownFaces[item] = faceId;
+        }
+
+        void ElementFaceRenderingDockWidget::HandleAddFaceButtonPressed()
+        {
+            // Add to the model, and rely on the update to change the list widget.
+            int elemId = m_elementId->value();
+            vector<int> facesMatched = m_appData->GetScene()->GetModel()->GetFacesBelongingToElement(elemId);
+
+            std::cout << "Enabling faces ";
+            for (int v : facesMatched)
+            {
+                m_appData->GetFaceSampler()->EnableFace(v);
+                std::cout << v;
+                QListWidgetItem* item = new QListWidgetItem();
+                item->setData(Qt::DisplayRole, v);
+                m_list->addItem(item);
+                m_shownFaces[item] = v;
+            }
+            std::cout << std::endl;
         }
 
         void ElementFaceRenderingDockWidget::keyPressEvent(QKeyEvent* event)

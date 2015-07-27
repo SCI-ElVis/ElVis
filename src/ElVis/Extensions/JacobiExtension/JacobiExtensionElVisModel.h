@@ -349,6 +349,8 @@ namespace ElVis
         ElVis::OptiXBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Hexahedron>();
         template<>
         ElVis::OptiXBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Prism>();
+
+        void PopulateElementToFacesMap(void);
     }
 }
 

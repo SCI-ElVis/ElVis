@@ -281,6 +281,8 @@ namespace NektarPlusPlusExtension
             extentMaxZ = std::max(maxZ, extentMaxZ);
         }
 
+        PopulateElementToFacesMap();
+
         m_extentMin = WorldPoint(extentMinX, extentMinY, extentMinZ);
         m_extentMax = WorldPoint(extentMaxX, extentMaxY, extentMaxZ);
 
@@ -290,6 +292,30 @@ namespace NektarPlusPlusExtension
              << extentMaxX << ", " << extentMaxY << ", " << extentMaxZ << "]" << endl;
         cout << "Mesh has " << m_planarFaces.size() << " planar face(s)" << endl;
     }
+
+    void NektarModel::PopulateElementToFacesMap()
+    {
+        int numElements = m_fields[0]->GetExpSize();
+        m_elementFacesMapping = new std::vector<int>* [numElements];
+        for (int i = 0; i < numElements; ++i)
+        	m_elementFacesMapping[i] = new std::vector<int>;
+
+        int matchingElement = 0;
+        int numFacesToIterate = m_faces.size();
+        for (int i = 0; i < numFacesToIterate; ++i)
+        {
+            matchingElement = Model::DoGetFaceDefinition(i).CommonElements[0].Id;
+            m_elementFacesMapping[matchingElement]->push_back(i);
+        }
+    }
+
+    std::vector<int> NektarModel::GetFacesBelongingToElement(unsigned int elementNum)
+	{
+        int numElements = m_fields[0]->GetExpSize();
+        if( (numElements - 1) < elementNum )
+            elementNum = numElements - 1;
+        return m_elementFacesMapping[elementNum];
+	}
 
     void NektarModel::LoadFields(const boost::filesystem::path& fieldFile)
     {
