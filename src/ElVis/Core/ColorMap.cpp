@@ -35,6 +35,14 @@
 
 #include <boost/filesystem.hpp>
 
+// Serialization keys
+namespace
+{
+  const std::string MIN_KEY_NAME("Min");
+  const std::string MAX_KEY_NAME("Max");
+  const std::string BREAKPOINTS_KEY_NAME("Breakpoints");
+}
+
 namespace ElVis
 {
   ColorMap::ColorMap() : m_min(0.0f), m_max(1.0f) , m_breakpoints(){}
@@ -139,4 +147,33 @@ namespace ElVis
     }
     buffer->unmap();
   }
+
+  /// \brief Serializes a camera to an archive.
+  /// \param ar The serialization destination.
+  template <typename Archive>
+  void ColorMap::save(Archive& ar, const unsigned int /*version*/) const
+  {
+    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
+    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
+    ar & boost::serialization::make_nvp(BREAKPOINTS_KEY_NAME.c_str(), m_breakpoints);
+  }
+
+  /// \brief Deserializes a camera from an archive.
+  /// \param ar The serialization source.
+  template <typename Archive>
+  void ColorMap::load(Archive& ar, const unsigned int /*version*/)
+  {
+    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
+    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
+    ar & boost::serialization::make_nvp(BREAKPOINTS_KEY_NAME.c_str(), m_breakpoints);
+  }
+
+  template void ColorMap::save(boost::archive::xml_oarchive&,
+                                const unsigned int) const;
+
+  template void ColorMap::load(boost::archive::xml_iarchive&,
+                                const unsigned int);
 }
+
+
+
