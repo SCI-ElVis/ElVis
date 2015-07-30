@@ -162,11 +162,11 @@ namespace ElVis
             m_shownFaces[item] = faceId;
         }
 
-        void ElementFaceRenderingDockWidget::HandleAddFaceButtonPressed()
+        void ElementFaceRenderingDockWidget::HandleAddElementButtonPressed()
         {
             // Add to the model, and rely on the update to change the list widget.
-            int elemId = m_elementId->value();
-            vector<int> facesMatched = m_appData->GetScene()->GetModel()->GetFacesBelongingToElement(elemId);
+            unsigned int elemId = m_elementId->value();
+            std::vector<unsigned int> facesMatched = m_appData->GetScene()->GetModel()->GetFacesBelongingToElement(elemId);
 
             std::cout << "Enabling faces ";
             for (int v : facesMatched)

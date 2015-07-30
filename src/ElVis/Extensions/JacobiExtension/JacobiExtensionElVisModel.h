@@ -101,6 +101,8 @@ namespace ElVis
 
             virtual WorldVector DoGetPlanarFaceNormal(size_t localFaceIdx) const;
 
+            virtual std::vector<unsigned int> DoGetFacesBelongingToElement(unsigned int elementNum) const;
+
             template<typename T>
             int NumCoefficientsForElementType(unsigned int alignment) const 
             {
@@ -332,6 +334,8 @@ namespace ElVis
 
             ElVis::OptiXBuffer<ElVisFloat4> HexPlaneBuffer;
             ElVis::OptiXBuffer<ElVisFloat4> PrismPlaneBuffer;
+
+            void PopulateElementToFacesMap(void);
         };
 
         template<>
@@ -350,7 +354,6 @@ namespace ElVis
         template<>
         ElVis::OptiXBuffer<ElVisFloat4>& JacobiExtensionModel::GetPlaneBuffer<Prism>();
 
-        void PopulateElementToFacesMap(void);
     }
 }
 

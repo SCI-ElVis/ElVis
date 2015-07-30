@@ -133,7 +133,7 @@ namespace ElVis
             {
               auto face = (*iter).second;
               face.info.widenExtents();
-              m_faces.planarInfoush_back(face);
+              m_faces.push_back(face);
             }
 
             PopulateElementToFacesMap();
@@ -155,7 +155,7 @@ namespace ElVis
             }
         }
 
-        std::vector<int> JacobiExtensionModel::GetFacesBelongingToElement(unsigned int elementNum) const
+        std::vector<unsigned int> JacobiExtensionModel::DoGetFacesBelongingToElement(unsigned int elementNum) const
         {
         	if( (DoGetNumberOfElements() - 1) < elementNum )
         		elementNum = DoGetNumberOfElements() - 1;

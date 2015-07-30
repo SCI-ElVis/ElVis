@@ -165,7 +165,7 @@ namespace ElVis
     ///
     /// This method returns a vector containing the face numbers that belong
     /// to the specified element.
-    ELVIS_EXPORT virtual vector<int> GetFacesBelongingToElement(
+    ELVIS_EXPORT virtual std::vector<unsigned int> GetFacesBelongingToElement(
       unsigned int elementNum) const;
 
   protected:
@@ -310,6 +310,15 @@ namespace ElVis
     ELVIS_EXPORT virtual void DoCopyExtensionSpecificDataToOptiX(
       optixu::Context context) = 0;
 
+    /// \brief Returns the faces numbers that belong to a given element.
+    ///
+    /// This method returns a vector containing the face numbers that belong
+    /// to the specified element.
+    ELVIS_EXPORT virtual std::vector<unsigned int> DoGetFacesBelongingToElement(
+      unsigned int elementNum) const = 0;
+
+    std::vector<unsigned int>** m_elementFacesMapping;
+
 
   private:
     Model& operator=(const Model& rhs);
@@ -359,8 +368,6 @@ namespace ElVis
 
     optixu::Buffer m_planarFacesEnabledBuffer;
     optixu::Buffer m_curvedFacesEnabledBuffer;
-
-    std::vector<int>** m_elementFacesMapping;
   };
 }
 

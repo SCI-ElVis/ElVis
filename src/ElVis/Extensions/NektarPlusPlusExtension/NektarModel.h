@@ -114,6 +114,8 @@ namespace NektarPlusPlusExtension
         std::vector<WorldVector> m_planarFaceNormals;
 
         void PopulateElementToFacesMap(void);
+
+        virtual std::vector<unsigned int> DoGetFacesBelongingToElement(unsigned int elementNum) const;
     };
 }
 }

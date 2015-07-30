@@ -309,7 +309,7 @@ namespace NektarPlusPlusExtension
         }
     }
 
-    std::vector<int> NektarModel::GetFacesBelongingToElement(unsigned int elementNum)
+    std::vector<unsigned int> NektarModel::DoGetFacesBelongingToElement(unsigned int elementNum)
 	{
         int numElements = m_fields[0]->GetExpSize();
         if( (numElements - 1) < elementNum )

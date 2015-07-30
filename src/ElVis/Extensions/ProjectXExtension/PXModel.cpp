@@ -1010,7 +1010,7 @@ namespace ElVis
     }
   }
 
-  std::vector<int> PXModel::GetFacesBelongingToElement(unsigned int elementNum) const
+  std::vector<unsigned int> PXModel::DoGetFacesBelongingToElement(unsigned int elementNum) const
   {
     if( (DoGetNumberOfElements() - 1) < elementNum )
       elementNum = DoGetNumberOfElements() - 1;

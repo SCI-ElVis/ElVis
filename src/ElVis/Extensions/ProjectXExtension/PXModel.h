@@ -146,6 +146,8 @@ namespace ElVis
     unsigned int m_numFieldsToPlot;
     char m_cutCellFlag; //1 if cut cells are present
     void PopulateElementToFacesMap(void);
+
+    std::vector<unsigned int> PXModel::DoGetFacesBelongingToElement(unsigned int elementNum) const;
   };
 }
 

@@ -434,4 +434,10 @@ namespace ElVis
   {
     DoCopyExtensionSpecificDataToOptiX(context);
   }
+
+  std::vector<unsigned int> Model::GetFacesBelongingToElement(
+	      unsigned int elementNum) const
+  {
+	return DoGetFacesBelongingToElement(elementNum);
+  }
 }

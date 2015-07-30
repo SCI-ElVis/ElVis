@@ -64,7 +64,8 @@ namespace ElVis
 
             public Q_SLOTS:
                 void HandleModelChanged(boost::shared_ptr<Model>);
-                void HandleAddButtonPressed();
+                void HandleAddFaceButtonPressed();
+                void HandleAddElementButtonPressed();
                 void HandleSceneInitialized(const Scene& s);
                 void HandleGeometryFaceMapSelected(QtProperty* p, bool v);
                 void HandleToleranceChanged(double x);
