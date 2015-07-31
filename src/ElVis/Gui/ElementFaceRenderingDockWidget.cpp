@@ -148,6 +148,8 @@ namespace ElVis
         {
             m_faceId->setMaximum(
               static_cast<int>(m_appData->GetScene()->GetModel()->GetNumberOfFaces()));
+            m_elementId->setMaximum(
+              static_cast<int>(m_appData->GetScene()->GetModel()->GetNumberOfElements()));
         }
 
         void ElementFaceRenderingDockWidget::HandleAddFaceButtonPressed()
@@ -168,17 +170,28 @@ namespace ElVis
             unsigned int elemId = m_elementId->value();
             std::vector<unsigned int> facesMatched = m_appData->GetScene()->GetModel()->GetFacesBelongingToElement(elemId);
 
-            std::cout << "Enabling faces ";
-            for (int v : facesMatched)
+            if( facesMatched.size() != 0 )
             {
-                m_appData->GetFaceSampler()->EnableFace(v);
-                std::cout << v;
-                QListWidgetItem* item = new QListWidgetItem();
-                item->setData(Qt::DisplayRole, v);
-                m_list->addItem(item);
-                m_shownFaces[item] = v;
+                if( facesMatched.size() > 1 )
+                    std::cout << "Enabling faces ";
+                else
+                    std::cout << "Enabling face ";
+
+                unsigned int listedFaces = 0;
+                for (int v : facesMatched)
+                {
+                    m_appData->GetFaceSampler()->EnableFace(v);
+                    std::cout << v;
+                    listedFaces++;
+                    if( listedFaces < facesMatched.size() )
+                        std::cout << ", ";
+                    QListWidgetItem* item = new QListWidgetItem();
+                    item->setData(Qt::DisplayRole, v);
+                    m_list->addItem(item);
+                    m_shownFaces[item] = v;
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
 
         void ElementFaceRenderingDockWidget::keyPressEvent(QKeyEvent* event)

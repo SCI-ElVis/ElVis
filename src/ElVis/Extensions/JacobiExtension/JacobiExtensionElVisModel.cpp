@@ -141,17 +141,18 @@ namespace ElVis
 
         void JacobiExtensionModel::PopulateElementToFacesMap()
         {
-            int numElements = DoGetNumberOfFaces();
-            m_elementFacesMapping = new std::vector<int>* [numElements];
-            for (int i = 0; i < numElements; ++i)
-            	m_elementFacesMapping[i] = new std::vector<int>;
+            unsigned int numElements = DoGetNumberOfFaces();
+            m_elementFacesMapping = new std::vector<unsigned int>* [numElements];
+            for (unsigned int i = 0; i < numElements; ++i)
+            	m_elementFacesMapping[i] = new std::vector<unsigned int>;
 
-            int matchingElement = 0;
-            int numFacesToIterate = m_faces.size();
-            for (int i = 0; i < numFacesToIterate; ++i)
+            unsigned int matchingElement = 0;
+            unsigned int numFacesToIterate = m_faces.size();
+            for (unsigned int i = 0; i < numFacesToIterate; ++i)
             {
-                matchingElement = Model::DoGetFaceDefinition(i).CommonElements[0].Id;
-                m_elementFacesMapping[matchingElement]->push_back(i);
+                matchingElement = JacobiExtensionModel::DoGetFaceDefinition(i).CommonElements[0].Id;
+                if( matchingElement < numElements )
+                    m_elementFacesMapping[matchingElement]->push_back(i);
             }
         }
 
@@ -159,7 +160,7 @@ namespace ElVis
         {
         	if( (DoGetNumberOfElements() - 1) < elementNum )
         		elementNum = DoGetNumberOfElements() - 1;
-            return m_elementFacesMapping[elementNum];
+            return *m_elementFacesMapping[elementNum];
 		}
 
         void JacobiExtensionModel::DoCalculateExtents(WorldPoint& min, WorldPoint& max)
