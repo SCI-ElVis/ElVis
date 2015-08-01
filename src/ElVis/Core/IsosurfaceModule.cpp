@@ -56,6 +56,8 @@ namespace ElVis
       m_isovalueBuffer("SurfaceIsovalues"),
       m_gaussLegendreNodesBuffer("Nodes"),
       m_gaussLegendreWeightsBuffer("Weights"),
+      m_requiredOrderBuffer("RequiredOrder"),
+      m_epsilonBuffer("Epsilon"),
       m_monomialConversionTableBuffer("MonomialConversionTable")
   {
   }
@@ -83,6 +85,53 @@ namespace ElVis
       OnIsovaluesChanged();
       OnModuleChanged(*this);
     }
+  }
+
+  void IsosurfaceModule::SetRequiredOrder(int newValue)
+  {
+	  bool change = false;
+
+	  if( m_requiredOrder.size() != 0 )
+	  {
+		  if( newValue != m_requiredOrder[0] )
+		      change = true;
+	  }
+	  else
+	  {
+		  change = true;
+	  }
+
+	  if( change )
+	  {
+		  m_requiredOrder.clear();
+          m_requiredOrder.push_back(newValue);
+		  SetSyncAndRenderRequired();
+          OnModuleChanged(*this);
+	  }
+  }
+
+  void IsosurfaceModule::SetEpsilon(int newValue)
+  {
+	  bool change = false;
+	  double newValueD = pow(10, newValue);
+
+	  if( m_epsilon.size() != 0 )
+	  {
+		  if( newValueD != m_epsilon[0] )
+		      change = true;
+	  }
+	  else
+	  {
+		  change = true;
+	  }
+
+	  if( change )
+	  {
+		  m_epsilon.clear();
+		  m_epsilon.push_back(newValueD);
+		  SetSyncAndRenderRequired();
+          OnModuleChanged(*this);
+	  }
   }
 
   void IsosurfaceModule::DoRender(SceneView* view)
@@ -157,6 +206,10 @@ namespace ElVis
       }
       m_isovalueBuffer.SetContext(context);
       m_isovalueBuffer.SetDimensions(0);
+      m_requiredOrderBuffer.SetContext(context);
+      m_requiredOrderBuffer.SetDimensions(0);
+      m_epsilonBuffer.SetContext(context);
+      m_epsilonBuffer.SetDimensions(0);
     }
     catch (optixu::Exception& e)
     {
@@ -185,6 +238,20 @@ namespace ElVis
       {
         auto isovalueData = m_isovalueBuffer.Map();
         std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
+      }
+
+      if( ! m_requiredOrder.empty() )
+      {
+          m_requiredOrderBuffer.SetDimensions(m_requiredOrder.size());
+          auto requiredOrderData = m_requiredOrderBuffer.Map();
+          std::copy(m_requiredOrder.begin(), m_requiredOrder.end(), requiredOrderData.get());
+      }
+
+      if( ! m_epsilon.empty() )
+      {
+          m_epsilonBuffer.SetDimensions(m_epsilon.size());
+          auto epsilonData = m_epsilonBuffer.Map();
+          std::copy(m_epsilon.begin(), m_epsilon.end(), epsilonData.get());
       }
       m_dirty = true;
     }

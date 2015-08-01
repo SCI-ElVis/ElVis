@@ -24,9 +24,9 @@ if [[ $buildnode == "oci-ubuntu"* ]]; then
   /usr/bin/vglrun make regcheck CTESTARGS="-T Test"
 fi
 
-if [[ $buildnode == "Mac_node"* ]]; then
-  make regcheck CTESTARGS="-T Test"
-fi
+#if [[ $buildnode == "Mac_node"* ]]; then
+#  make regcheck CTESTARGS="-T Test"
+#fi
 
 if [[ $builddir == *"coverage"* ]]; then
   make coverage_info

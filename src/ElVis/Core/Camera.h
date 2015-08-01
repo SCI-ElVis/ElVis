@@ -33,6 +33,7 @@
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Vector.hpp>
 #include <ElVis/Core/matrix.cu>
+#include <ElVis/Core/SceneViewProjection.h>
 
 #include <boost/signals2.hpp>
 
@@ -142,6 +143,7 @@ namespace ElVis
     ELVIS_EXPORT WorldVector GetNormalizedW() const;
 
     ELVIS_EXPORT void SetupOpenGLPerspective();
+    ELVIS_EXPORT void SetupOpenGLOrtho();
 
     /// \brief Serializes a camera to an archive.
     /// \param ar The serialization destination.
@@ -218,6 +220,13 @@ namespace ElVis
     double m_aspectRatio;
     float m_near;
     float m_far;
+
+    float m_orthoBorder;
+    bool m_perspectiveMode;
+
+    const float EYE_INIT_X = 0;
+    const float EYE_INIT_Y = 0;
+    const float EYE_INIT_Z = 5;
   };
 
   ELVIS_EXPORT bool operator==(const Camera& lhs, const Camera& rhs);
