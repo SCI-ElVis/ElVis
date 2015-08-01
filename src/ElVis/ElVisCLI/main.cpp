@@ -233,11 +233,6 @@ int main(int argc, char** argv)
   }
   else if( testName == "ViewSettings")
   {
-    if( !colorMap )
-    {
-      std::cout << "Error: color map is a required parameter." << std::endl;
-      return 1;
-    }
     result = ViewSettingsRendering(
       argc, argv, scene, model, width, height, outFilePath);
   }

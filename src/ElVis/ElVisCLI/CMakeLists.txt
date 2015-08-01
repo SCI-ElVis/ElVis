@@ -254,6 +254,20 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/IsosurfaceBullet1Baseline"
     )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure6B
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure6B
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_6b.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure6BBaseline"
+    )
+
+
+
+
 ENDIF()
 
 IF( ELVIS_ENABLE_ProjectX_EXTENSION )

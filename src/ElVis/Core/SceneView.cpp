@@ -376,8 +376,9 @@ namespace ElVis
         GetWidth(), GetHeight(), (boost::gil::rgba8_pixel_t*)colorBuffer.get(),
         4 * GetWidth()),
       boost::gil::view(forPng));
+    auto flippedView = boost::gil::flipped_up_down_view(boost::gil::const_view(forPng));
     boost::gil::png_write_view(
-      fileName + ".png", boost::gil::const_view(forPng));
+      fileName + ".png", flippedView);
 
     std::cout << "Done writing images." << std::endl;
   }
