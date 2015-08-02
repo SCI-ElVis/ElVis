@@ -44,6 +44,8 @@ namespace ElVis
   namespace
   {
     const std::string ISOVALUE_KEY_NAME("Isovalues");
+    const std::string EPSILON_KEY_NAME("Epsilon");
+    const std::string PROJECTION_ORDER_KEY_NAME("ProjectionOrder");
   }
 
   RayGeneratorProgram IsosurfaceModule::m_FindIsosurface;
@@ -53,11 +55,11 @@ namespace ElVis
       OnIsovaluesChanged(),
       m_isovalues(),
       m_dirty(true),
+      m_epsilonExponent(-5),
+      m_projectionOrder(6),
       m_isovalueBuffer("SurfaceIsovalues"),
       m_gaussLegendreNodesBuffer("Nodes"),
       m_gaussLegendreWeightsBuffer("Weights"),
-      m_requiredOrderBuffer("RequiredOrder"),
-      m_epsilonBuffer("Epsilon"),
       m_monomialConversionTableBuffer("MonomialConversionTable")
   {
   }
@@ -87,51 +89,26 @@ namespace ElVis
     }
   }
 
-  void IsosurfaceModule::SetRequiredOrder(int newValue)
+  void IsosurfaceModule::SetProjectionOrder(int newValue)
   {
-	  bool change = false;
-
-	  if( m_requiredOrder.size() != 0 )
-	  {
-		  if( newValue != m_requiredOrder[0] )
-		      change = true;
-	  }
-	  else
-	  {
-		  change = true;
-	  }
-
-	  if( change )
-	  {
-		  m_requiredOrder.clear();
-          m_requiredOrder.push_back(newValue);
-		  SetSyncAndRenderRequired();
-          OnModuleChanged(*this);
-	  }
+    if( m_projectionOrder != newValue && newValue < 19)
+    {
+      m_projectionOrder = newValue;
+      m_dirty = true;
+      SetSyncAndRenderRequired();
+      OnModuleChanged(*this);
+    }
   }
 
   void IsosurfaceModule::SetEpsilon(int newValue)
-  {
-	  bool change = false;
-	  double newValueD = pow(10, newValue);
-
-	  if( m_epsilon.size() != 0 )
-	  {
-		  if( newValueD != m_epsilon[0] )
-		      change = true;
-	  }
-	  else
-	  {
-		  change = true;
-	  }
-
-	  if( change )
-	  {
-		  m_epsilon.clear();
-		  m_epsilon.push_back(newValueD);
-		  SetSyncAndRenderRequired();
-          OnModuleChanged(*this);
-	  }
+  { 
+    if( m_epsilonExponent != newValue && newValue < 0)
+    {
+      m_epsilonExponent = newValue;
+      m_dirty = true;
+      SetSyncAndRenderRequired();
+      OnModuleChanged(*this);
+    }
   }
 
   void IsosurfaceModule::DoRender(SceneView* view)
@@ -206,10 +183,8 @@ namespace ElVis
       }
       m_isovalueBuffer.SetContext(context);
       m_isovalueBuffer.SetDimensions(0);
-      m_requiredOrderBuffer.SetContext(context);
-      m_requiredOrderBuffer.SetDimensions(0);
-      m_epsilonBuffer.SetContext(context);
-      m_epsilonBuffer.SetDimensions(0);
+      Synchronize(view);
+
     }
     catch (optixu::Exception& e)
     {
@@ -232,6 +207,7 @@ namespace ElVis
   {
     if( m_dirty )
     {
+      optixu::Context context = view->GetContext();
       m_isovalueBuffer.SetDimensions(m_isovalues.size());
 
       if (!m_isovalues.empty())
@@ -240,20 +216,10 @@ namespace ElVis
         std::copy(m_isovalues.begin(), m_isovalues.end(), isovalueData.get());
       }
 
-      if( ! m_requiredOrder.empty() )
-      {
-          m_requiredOrderBuffer.SetDimensions(m_requiredOrder.size());
-          auto requiredOrderData = m_requiredOrderBuffer.Map();
-          std::copy(m_requiredOrder.begin(), m_requiredOrder.end(), requiredOrderData.get());
-      }
+      context["isosurfaceProjectionOrder"]->setInt(m_projectionOrder);
+      SetFloat(context["isosurfaceEpsilon"], GetEpsilon());
 
-      if( ! m_epsilon.empty() )
-      {
-          m_epsilonBuffer.SetDimensions(m_epsilon.size());
-          auto epsilonData = m_epsilonBuffer.Map();
-          std::copy(m_epsilon.begin(), m_epsilon.end(), epsilonData.get());
-      }
-      m_dirty = true;
+      m_dirty = false;
     }
   }
 
@@ -287,11 +253,15 @@ namespace ElVis
   void IsosurfaceModule::serialize(boost::archive::xml_oarchive& ar, unsigned int version) const
   {
     ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
+    ar & boost::serialization::make_nvp(EPSILON_KEY_NAME.c_str(), m_epsilonExponent);
+    ar & boost::serialization::make_nvp(PROJECTION_ORDER_KEY_NAME.c_str(), m_projectionOrder);
   }
 
   void IsosurfaceModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
   {
     ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
+    //ar & boost::serialization::make_nvp(EPSILON_KEY_NAME.c_str(), m_epsilonExponent);
+    //ar & boost::serialization::make_nvp(PROJECTION_ORDER_KEY_NAME.c_str(), m_projectionOrder);
     m_dirty = true;
     OnIsovaluesChanged();
     SetSyncAndRenderRequired();

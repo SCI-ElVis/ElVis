@@ -61,10 +61,11 @@ namespace ElVis
             m_list->setSelectionMode(QAbstractItemView::SingleSelection);
             setObjectName("IsosurfaceDockWidget");
             //QScrollArea* m_scrollArea = new QScrollArea();
-            QLabel* labelRo = new QLabel("Required Order:");
+            QLabel* labelRo = new QLabel("Projection Order:");
             QLabel* labelEp = new QLabel("Epsilon: 1 x 10^");
 
-            if (m_appData->GetIsosurfaceModule() )
+            auto pModule = m_appData->GetIsosurfaceModule();
+            if (pModule)
             {
                 QWidget* widget = new QWidget();
 
@@ -78,11 +79,11 @@ namespace ElVis
                 m_enabledCheckBox->setChecked(false);
 
                 m_epsilonSpinBox->setMinimum(-16);
-                m_epsilonSpinBox->setValue(-8);
+                m_epsilonSpinBox->setValue(pModule->GetEpsilonExponent());
 
                 m_requiredOrderSpinBox->setMinimum(0);
                 m_requiredOrderSpinBox->setMaximum(19);
-                m_requiredOrderSpinBox->setValue(8);
+                m_requiredOrderSpinBox->setValue(pModule->GetProjectionOrder());
 
                 m_layout->addWidget(m_contourSpinBox, 1, 0);
                 m_layout->addWidget(m_addContourButton, 1, 1);
@@ -146,7 +147,7 @@ namespace ElVis
 
         void IsosurfaceDockWidget::HandleRequiredOrderChangedInGui(void)
         {
-            m_appData->GetIsosurfaceModule()->SetRequiredOrder(m_requiredOrderSpinBox->value());
+            m_appData->GetIsosurfaceModule()->SetProjectionOrder(m_requiredOrderSpinBox->value());
         }
 
         void IsosurfaceDockWidget::HandleEpsilonChangedInGui(void)
