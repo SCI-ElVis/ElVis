@@ -25,5 +25,8 @@ if [[ $buildnode == "Mac_node"* ]]; then
   make regcheck CTESTARGS="-T Test"
 fi
 
+git config --global user.email "jenkins@sci.utah.edu"
+git config --global user.name "Jenkins"
+
 git add $WORKSPACE/Testing/double/`uname`/
 git commit -a -m "Updated regression testing images"
