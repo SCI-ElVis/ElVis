@@ -126,13 +126,21 @@ namespace ElVis
     ColorMap& operator=(const ColorMap& rhs);
 
 
+    /// \brief Serializes a camera to an archive.
+    /// \param ar The serialization destination.
     template <typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-      ar& BOOST_SERIALIZATION_NVP(m_min);
-      ar& BOOST_SERIALIZATION_NVP(m_max);
-      ar& BOOST_SERIALIZATION_NVP(m_breakpoints);
-    }
+    void save(Archive& ar, const unsigned int /*version*/) const;
+
+    /// \brief Deserializes a camera from an archive.
+    /// \param ar The serialization source.
+    template <typename Archive>
+    void load(Archive& ar, const unsigned int /*version*/);
+
+    /// This macro is required to support the save/load interface above.
+    /// Without it, serialization and deserialization are performed by
+    /// the same function.
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
+
     float m_min;
     float m_max;
 

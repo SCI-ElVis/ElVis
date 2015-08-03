@@ -35,6 +35,7 @@
 
 #include <boost/timer.hpp>
 #include <boost/bind.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 
 // Serialization keys
 namespace
@@ -42,6 +43,7 @@ namespace
   const std::string MIN_KEY_NAME("Min");
   const std::string MAX_KEY_NAME("Max");
   const std::string SIZE_KEY_NAME("Size");
+  const std::string COLOR_MAP_KEY_NAME("ColorMap");
 }
 namespace ElVis
 {
@@ -140,7 +142,7 @@ namespace ElVis
     ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
     ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
     ar & boost::serialization::make_nvp(SIZE_KEY_NAME.c_str(), m_size);
-
+    ar & boost::serialization::make_nvp(COLOR_MAP_KEY_NAME.c_str(), m_colorMap);
   }
 
   void ColorMapperModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
@@ -148,5 +150,8 @@ namespace ElVis
     ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
     ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
     ar & boost::serialization::make_nvp(SIZE_KEY_NAME.c_str(), m_size);
+    boost::shared_ptr<ColorMap> map;
+    ar & boost::serialization::make_nvp(COLOR_MAP_KEY_NAME.c_str(), map);
+    SetColorMap(map);
   }
 }
