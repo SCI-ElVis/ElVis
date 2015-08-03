@@ -99,22 +99,6 @@ __device__ void GenerateLeastSquaresPolynomialProjection(
   }
 }
 
-template <typename FuncType>
-__device__ void GenerateLeastSquaresPolynomialProjectionParallel(
-  unsigned int order,
-  const ElVisFloat* __restrict__ allNodes,
-  const ElVisFloat* __restrict__ allWeights,
-  const FuncType& f,
-  ElVisFloat* workspace,
-  ElVisFloat* coeffs)
-{
-}
-
-__device__ ElVisFloat& AccessArray(ElVisFloat* a, int i, int j, int n)
-{
-  return a[i * n + j];
-}
-
 template <typename T1, typename T2>
 __device__ T1 SIGN(const T1& a, const T2& b)
 {
@@ -350,6 +334,27 @@ public:
   {
   }
 
+
+  // Some versions of OptiX don't support constructors with parameters,
+  // so we use two stage initialization.
+  __device__ void initialize(const ElVisFloat3& origin,
+                             const ElVisFloat3& direction,
+                             ElVisFloat segmentStartT,
+                             ElVisFloat segmentEndT,
+                             unsigned int elementId,
+                             unsigned int elementType,
+                             int fieldId)
+  {
+    Origin = origin;
+    Direction = direction;
+    A = segmentStartT;
+    B = segmentEndT;
+    ElementId = elementId;
+    ElementType = elementType;
+    FieldId = fieldId;
+  }
+
+
   __device__ ElVisFloat operator()(const ElVisFloat& t) const
   {
     // Incoming t is [-1..1], we need to scale to [A,B]
@@ -428,10 +433,6 @@ __device__ void ConvertToMonomial(unsigned int order,
     for (unsigned int legCoeffIndex = 0; legCoeffIndex <= order;
          ++legCoeffIndex)
     {
-      // ElVisFloat multiplier =
-      // AccessArray(buffer,legCoeffIndex,coeffIndex,order+1);
-      // ELVIS_PRINTF("Legendre Coeff %2.15f, multiplier %2.15f\n",
-      // legendreCoeffs[legCoeffIndex], multiplier);
       monomialCoeffs[coeffIndex] +=
         legendreCoeffs[legCoeffIndex] * m(legCoeffIndex, coeffIndex);
     }
@@ -440,14 +441,14 @@ __device__ void ConvertToMonomial(unsigned int order,
 
 __device__ void PrintMatrix(SquareMatrix& m)
 {
-  //  for(unsigned int row = 0; row < m.GetSize(); ++row)
-  //  {
-  //    for(unsigned int column = 0; column < m.GetSize(); ++column)
-  //    {
-  //      ELVIS_PRINTF("%2.15f, ", m(row, column));
-  //    }
-  //    ELVIS_PRINTF("\n");
-  //  }
+    for(unsigned int row = 0; row < m.GetSize(); ++row)
+    {
+      for(unsigned int column = 0; column < m.GetSize(); ++column)
+      {
+        ELVIS_PRINTF("%2.15f, ", m(row, column));
+      }
+      ELVIS_PRINTF("\n");
+    }
 }
 
 rtDeclareVariable(uint, NumIsosurfaces, , );
@@ -458,13 +459,27 @@ rtBuffer<ElVisFloat> Nodes;
 rtBuffer<ElVisFloat> Weights;
 rtBuffer<ElVisFloat> MonomialConversionTable;
 
+#define WORKSPACE_SIZE 32
+
 __device__ bool FindIsosurfaceInSegment(const Segment& seg,
                                         const ElVisFloat3& origin)
 {
+  bool result = false;
+
   // ELVIS_PRINTF("Find Isosurface in Segment\n");
   ELVIS_PRINTF("FindIsosurfaceInSegment: Projection Order %d\n", isosurfaceProjectionOrder);
   ELVIS_PRINTF("FindIsosurfaceInSegment: Epsilon %f\n", isosurfaceEpsilon);
-  optix::size_t2 screen = color_buffer.size();
+
+  // TRICKY - We can't use dynamic memory allocation in OptiX, and we can't
+  // allocate per-launch index memory from the CPU, so the temporary
+  // workspace required by isosurface must be allocated statically.  Currently
+  // the highest supported projection order is 20, which would required 21
+  // coefficients.  We allocate space for 32 coefficients here to allow for
+  // some growth in allowed order, and to improve memory alignment.
+  if( isosurfaceProjectionOrder+1 >= WORKSPACE_SIZE )
+  {
+    rtThrow(RT_EXCEPTION_USER + eRequestedIsosurfaceOrderTooLarge);
+  }
 
   int elementId = seg.ElementId;
   int elementTypeId = seg.ElementTypeId;
@@ -473,164 +488,145 @@ __device__ bool FindIsosurfaceInSegment(const Segment& seg,
   ElVisFloat b = seg.End;
   ElVisFloat3 rayDirection = seg.RayDirection;
 
-  ElVisFloat3 p0 = origin + a * rayDirection;
-  ElVisFloat3 p1 = origin + b * rayDirection;
-
   ElVisFloat bestDepth = depth_buffer[launch_index];
 
   unsigned int numIsosurfaces = SurfaceIsovalues.size();
 
-  bool result = false;
-//  for (unsigned int isosurfaceId = 0; isosurfaceId < numIsosurfaces; ++isosurfaceId)
-//  {
-//    // Project onto a polynomial along the ray.
-//    // Generate an nth order polynomial projection.
-//    // First pass, create an mth element local array to store the value, and
-//    // exit out if the required order is
-//    // too large.
-//    ElVisFloat polynomialCoefficients[32];
-//    ElVisFloat monomialCoefficients[32];
-//    ElVisFloat workspace[32];
-//    ElVisFloat h_data[10 * 10];
+  for (unsigned int isosurfaceId = 0; isosurfaceId < numIsosurfaces; ++isosurfaceId)
+  {
+    // Step 1 - project the function along the current segment onto a
+    // polynomial with a user-defined order.  The user can increase the order
+    // to increase the accuracy of the approximation (within reason, increasing
+    // the order too high will also increase floating point errors).
 
-//    for (int i = 0; i < 32; ++i)
-//    {
-//      polynomialCoefficients[i] = -73.45;
-//      workspace[i] = -73.45;
-//      monomialCoefficients[i] = -73.45;
-//    }
+    // The coefficients for the approximating polynomial using the legendre
+    // basis.
+    ElVisFloat legendrePolynomialCoefficients[WORKSPACE_SIZE];
 
-//    IsosurfaceFieldEvaluator f;
-//    f.Origin = origin;
-//    f.Direction = rayDirection;
-//    f.ElementId = elementId;
-//    f.ElementType = elementTypeId;
-//    f.A = a;
-//    f.B = b;
-//    f.FieldId = FieldId;
+    ElVisFloat workspace[32];
 
-//    GenerateLeastSquaresPolynomialProjection(isosurfaceProjectionOrder, &Nodes[0],
-//                                             &Weights[0], f, workspace,
-//                                             polynomialCoefficients);
+    IsosurfaceFieldEvaluator f;
+    f.initialize(origin,rayDirection, a, b, elementId, elementTypeId, FieldId);
 
-//    // Fix up the polynomial order if we requested higher than necessary.
-//    int reducedOrder = isosurfaceProjectionOrder;
+    GenerateLeastSquaresPolynomialProjection(isosurfaceProjectionOrder, &Nodes[0],
+                                             &Weights[0], f, workspace,
+                                             legendrePolynomialCoefficients);
+    ELVIS_PRINTF("FindIsosurfaceInSegment: First coefficient: %f\n", legendrePolynomialCoefficients[0]);
 
-//    for (int i = isosurfaceProjectionOrder; i >= 1; --i)
-//    {
-//      if (Fabsf(polynomialCoefficients[i]) > isosurfaceEpsilon)
-//      {
-//        reducedOrder = i;
-//        break;
-//      }
-//    }
+    // In some cases, the coefficients for the larger orders are very small,
+    // which can indicate that we didn't need to project onto a polynomial
+    // of such high order.  In this case, evaluating these terms can introduce
+    // error into the final calculation, so we filter out all higher order
+    // coefficients that don't fall within a user-specified epsilon.
 
-//    // ELVIS_PRINTF("Reduced order %d\n", reducedOrder );
+    int reducedOrder = isosurfaceProjectionOrder;
 
-//    ConvertToMonomial(reducedOrder, &MonomialConversionTable[0],
-//                      polynomialCoefficients, monomialCoefficients);
+    for (int i = isosurfaceProjectionOrder; i >= 1; --i)
+    {
+      if (Fabsf(legendrePolynomialCoefficients[i]) > isosurfaceEpsilon)
+      {
+        reducedOrder = i;
+        break;
+      }
+    }
 
-//    //    ELVIS_PRINTF("Monomial %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f,
-//    //    %2.15f\n",
-//    //      monomialCoefficients[0],
-//    //      monomialCoefficients[1],
-//    //      monomialCoefficients[2],
-//    //      monomialCoefficients[3],
-//    //      monomialCoefficients[4],
-//    //      monomialCoefficients[5],
-//    //      monomialCoefficients[6],
-//    //      monomialCoefficients[7],
-//    //      monomialCoefficients[8]);
+    ELVIS_PRINTF("FindIsosurfaceInSegment: Reduced order %d\n", reducedOrder );
 
-//    monomialCoefficients[0] -= SurfaceIsovalues[isosurfaceId];
+    ElVisFloat monomialCoefficients[32];
+    ConvertToMonomial(reducedOrder, &MonomialConversionTable[0],
+                      legendrePolynomialCoefficients, monomialCoefficients);
 
-//    SquareMatrix h(h_data, reducedOrder);
-//    GenerateRowMajorHessenbergMatrix(monomialCoefficients, reducedOrder, h);
+    ELVIS_PRINTF("Monomial %f, %f, %f, %f, %f, %f, %f, %f, %f\n",
+      monomialCoefficients[0],
+      monomialCoefficients[1],
+      monomialCoefficients[2],
+      monomialCoefficients[3],
+      monomialCoefficients[4],
+      monomialCoefficients[5],
+      monomialCoefficients[6],
+      monomialCoefficients[7],
+      monomialCoefficients[8]);
 
-//    // ELVIS_PRINTF("Before balancing.\n");
-//    ////PrintMatrix(h);
+    monomialCoefficients[0] -= SurfaceIsovalues[isosurfaceId];
 
-//    balance(h);
+    ElVisFloat h_data[WORKSPACE_SIZE * WORKSPACE_SIZE];
 
-//    // ELVIS_PRINTF("After balancing.\n");
-//    // PrintMatrix(h);
+    SquareMatrix h(h_data, reducedOrder);
+    GenerateRowMajorHessenbergMatrix(monomialCoefficients, reducedOrder, h);
 
-//    ElVisFloat roots[8];
-//    for (int i = 0; i < 8; ++i)
-//    {
-//      roots[i] = -4582.23;
-//    }
+    ELVIS_PRINTF("Before balancing.\n");
+    PrintMatrix(h);
 
-//    hqr(h, reducedOrder, roots);
+    balance(h);
 
-//    //    ELVIS_PRINTF("Roots %2.15f, %2.15f, %2.15f, %2.15f, %2.15f, %2.15f\n",
-//    //      roots[0],
-//    //      roots[1],
-//    //      roots[2],
-//    //      roots[3],
-//    //      roots[4],
-//    //      roots[5]);
+    ELVIS_PRINTF("After balancing.\n");
+    PrintMatrix(h);
 
-//    ElVisFloat foundRoot = ELVIS_FLOAT_MAX;
-//    for (int i = 0; i < reducedOrder; ++i)
-//    {
-//      ElVisFloat root = roots[i];
-//      if (root >= MAKE_FLOAT(-1.0) && root <= MAKE_FLOAT(1.0) &&
-//          root <= foundRoot)
-//      {
-//        ElVisFloat foundT =
-//          (root + MAKE_FLOAT(1.0)) / MAKE_FLOAT(2.0) * (f.B - f.A) + f.A;
-//        if (foundT < bestDepth)
-//        {
-//          foundRoot = root;
-//        }
-//      }
-//    }
+    ElVisFloat roots[WORKSPACE_SIZE];
+    hqr(h, reducedOrder, roots);
 
-//    if (foundRoot != ELVIS_FLOAT_MAX)
-//    {
+    ELVIS_PRINTF("Roots %f, %f, %f, %f, %f, %f\n",
+      roots[0],
+      roots[1],
+      roots[2],
+      roots[3],
+      roots[4],
+      roots[5]);
 
-//      ElVisFloat foundT =
-//        (foundRoot + MAKE_FLOAT(1.0)) / MAKE_FLOAT(2.0) * (f.B - f.A) + f.A;
+    ElVisFloat foundRoot = ELVIS_FLOAT_MAX;
+    for (int i = 0; i < reducedOrder; ++i)
+    {
+      ElVisFloat root = roots[i];
+      if (root >= MAKE_FLOAT(-1.0) && root <= MAKE_FLOAT(1.0) &&
+          root <= foundRoot)
+      {
+        ElVisFloat foundT =
+          (root + MAKE_FLOAT(1.0)) / MAKE_FLOAT(2.0) * (f.B - f.A) + f.A;
+        if (foundT < bestDepth)
+        {
+          foundRoot = root;
+        }
+      }
+    }
 
-//      ElVisFloat3 foundIntersectionPoint = origin + foundT * rayDirection;
+    if (foundRoot != ELVIS_FLOAT_MAX)
+    {
+      ElVisFloat foundT =
+        (foundRoot + MAKE_FLOAT(1.0)) / MAKE_FLOAT(2.0) * (f.B - f.A) + f.A;
 
-//      intersection_buffer[launch_index] = foundIntersectionPoint;
-//      SampleBuffer[launch_index] = EvaluateFieldOptiX(
-//        elementId, elementTypeId, FieldId, foundIntersectionPoint);
+      ElVisFloat3 foundIntersectionPoint = origin + foundT * rayDirection;
 
-//      ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found "
-//                   "root %2.15f, in world %2.15f with value %f \n",
-//                   foundRoot, foundT, SampleBuffer[launch_index]);
+      intersection_buffer[launch_index] = foundIntersectionPoint;
+      SampleBuffer[launch_index] = EvaluateFieldOptiX(
+        elementId, elementTypeId, FieldId, foundIntersectionPoint);
 
-//      EvaluateNormalOptiX(elementId, elementTypeId, FieldId,
-//                          foundIntersectionPoint, normal_buffer[launch_index]);
-//      depth_buffer[launch_index] = foundT;
-//      bestDepth = foundT;
-//      result = true;
-//      ////        // This depth buffer is wrong, need accumulated.
-//      ////        depth_buffer[launch_index] = (far+near)/(far-near) -
-//      ///2.0f/foundT * far*near/(far-near);
-//      ////        depth_buffer[launch_index] =
-//      ///(depth_buffer[launch_index]+1.0)/2.0;
-//    }
-//    else
-//    {
-//      ELVIS_PRINTF("FindIsosurfaceInSegment: No root found\n");
-//      for (int i = 0; i < reducedOrder; ++i)
-//      {
-//        ElVisFloat root = roots[i];
-//        if (root >= MAKE_FLOAT(-1.0) && root <= MAKE_FLOAT(1.0))
-//        {
-//          ElVisFloat foundT =
-//            (root + MAKE_FLOAT(1.0)) / MAKE_FLOAT(2.0) * (f.B - f.A) + f.A;
-//          ELVIS_PRINTF("FindIsosurfaceInSegment: root[%d] = %2.15f, foundT = "
-//                       "%2.15f, bestDepth = %2.15f\n",
-//                       i, root, foundT, bestDepth);
-//        }
-//      }
-//    }
-//  }
+      ELVIS_PRINTF("FindIsosurfaceInSegment: ######################## Found "
+                   "root %2.15f, in world %2.15f with value %f \n",
+                   foundRoot, foundT, SampleBuffer[launch_index]);
+
+      EvaluateNormalOptiX(elementId, elementTypeId, FieldId,
+                          foundIntersectionPoint, normal_buffer[launch_index]);
+      depth_buffer[launch_index] = foundT;
+      bestDepth = foundT;
+      result = true;
+    }
+    else
+    {
+      ELVIS_PRINTF("FindIsosurfaceInSegment: No root found\n");
+      for (int i = 0; i < reducedOrder; ++i)
+      {
+        ElVisFloat root = roots[i];
+        if (root >= MAKE_FLOAT(-1.0) && root <= MAKE_FLOAT(1.0))
+        {
+          ElVisFloat foundT =
+            (root + MAKE_FLOAT(1.0)) / MAKE_FLOAT(2.0) * (f.B - f.A) + f.A;
+          ELVIS_PRINTF("FindIsosurfaceInSegment: root[%d] = %2.15f, foundT = "
+                       "%2.15f, bestDepth = %2.15f\n",
+                       i, root, foundT, bestDepth);
+        }
+      }
+    }
+  }
   return result;
 }
 

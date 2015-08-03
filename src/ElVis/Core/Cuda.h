@@ -54,7 +54,9 @@ enum ElVisError
   eFieldNotDefinedOnFace,
 
   // Other failures.
-  eConvergenceFailure
+  eConvergenceFailure,
+
+  eRequestedIsosurfaceOrderTooLarge
 };
 
 #define checkElVisError(x)                                                     \

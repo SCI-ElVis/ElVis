@@ -66,6 +66,7 @@ namespace
   const std::string RENDER_MODULES_KEY_NAME("RenderModules");
   const std::string RENDER_MODULE_KEY_NAME("RenderModule");
   const std::string RENDER_MODULE_NAMES_KEY_NAME("RenderModuleNames");
+  const std::string OPTIX_STACK_SIZE_KEY_NAME("StackSize");
 }
 
 // Custom serialization of the render module list.
@@ -79,6 +80,7 @@ namespace boost
               const std::list<boost::shared_ptr<ElVis::RenderModule>>& modules,
               const unsigned int version)
     {
+
       // Write all of the module names, then serialize the modules.  This is
       // a workaround for the difficulty we fond in getting the boost
       // serialization library to correctly handle derived classes.
@@ -175,7 +177,8 @@ namespace ElVis
       // m_backgroundColor(0.0, 0.0, 0.0)
       m_backgroundColor(1.0, 1.0, 1.0),
       m_backgroundColorIsDirty(true),
-      m_projectionType(ePerspective)
+      m_projectionType(ePerspective),
+      m_optixStackSize(18000)
   {
     m_projectionType.OnDirtyFlagChanged.connect(boost::bind(
       &SceneView::HandleSynchedObjectChanged<SceneViewProjection>, this, _1));
@@ -660,6 +663,20 @@ namespace ElVis
     return m_sampleBuffer(pixel_x, m_height - pixel_y - 1);
   }
 
+  void SceneView::SetOptixStackSize(int size)
+  {
+    if (size <= 0) return;
+    m_optixStackSize = size;
+
+    auto context = GetContext();
+    if (context)
+    {
+      context->setStackSize(m_optixStackSize);
+      OnSceneViewChanged(*this);
+    }
+  }
+
+
   void SceneView::PrepareForDisplay()
   {
     if (m_colorBuffer.Initialized())
@@ -671,6 +688,8 @@ namespace ElVis
     try
     {
       optixu::Context m_context = GetScene()->GetContext();
+      m_context->setStackSize(m_optixStackSize);
+
       // Ray Type 0 - Primary rays that intersect actual geometry.  Closest
       // hit programs determine exactly how the geometry is handled.
       // Ray Type 1 - Rays that find the current element and evaluate the scalar
@@ -879,6 +898,8 @@ namespace ElVis
   template <typename Archive>
   void SceneView::save(Archive& ar, const unsigned int version) const
   {
+    ar& boost::serialization::make_nvp(OPTIX_STACK_SIZE_KEY_NAME.c_str(),
+                                       m_optixStackSize);
     ar& boost::serialization::make_nvp(
       VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
     ar& boost::serialization::make_nvp(
@@ -888,6 +909,8 @@ namespace ElVis
   template <typename Archive>
   void SceneView::load(Archive& ar, const unsigned int version)
   {
+    ar& boost::serialization::make_nvp(OPTIX_STACK_SIZE_KEY_NAME.c_str(),
+                                       m_optixStackSize);
     ar& boost::serialization::make_nvp(
       VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
     ar& boost::serialization::make_nvp(

@@ -2,6 +2,7 @@
 <!DOCTYPE boost_serialization>
 <boost_serialization signature="serialization::archive" version="10">
 <SceneView class_id="0" tracking_level="0" version="0">
+	<StackSize>18000</StackSize>
 	<ViewSettings class_id="1" tracking_level="0" version="0">
 		<m_fieldOfView>60</m_fieldOfView>
 		<m_aspectRatio>1.1518796992481204</m_aspectRatio>
@@ -18,7 +19,7 @@
 		<m_lookAt>
 			<Values>
 				<count>3</count>
-				<item>-5.7271895559374286e-15</item>
+				<item>-5.7271896e-15</item>
 				<item>0</item>
 				<item>1</item>
 			</Values>
@@ -36,25 +37,25 @@
 			<m_data>
 				<count>3</count>
 				<item_version>0</item_version>
-				<item>1.456354399561087</item>
+				<item>1.4563544</item>
 				<item>0</item>
-				<item>-1.3107189596049826</item>
+				<item>-1.3107189</item>
 			</m_data>
 		</m_u>
 		<m_v>
 			<m_data>
 				<count>3</count>
 				<item_version>0</item_version>
-				<item>-0.46347236145670534</item>
-				<item>1.5534906930308083</item>
-				<item>-0.51496929050744866</item>
+				<item>-0.46347246</item>
+				<item>1.5534908</item>
+				<item>-0.51496935</item>
 			</m_data>
 		</m_v>
 		<m_w>
 			<m_data>
 				<count>3</count>
 				<item_version>0</item_version>
-				<item>-1.8000000000000058</item>
+				<item>-1.8</item>
 				<item>-1.2</item>
 				<item>-2</item>
 			</m_data>
@@ -88,6 +89,8 @@
 				<item_version>0</item_version>
 				<item>0</item>
 			</Isovalues>
+			<Epsilon>-8</Epsilon>
+			<ProjectionOrder>8</ProjectionOrder>
 		</RenderModule>
 		<RenderModule>
 			<Enabled>1</Enabled>

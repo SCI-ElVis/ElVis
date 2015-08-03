@@ -260,8 +260,8 @@ namespace ElVis
   void IsosurfaceModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
   {
     ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
-    //ar & boost::serialization::make_nvp(EPSILON_KEY_NAME.c_str(), m_epsilonExponent);
-    //ar & boost::serialization::make_nvp(PROJECTION_ORDER_KEY_NAME.c_str(), m_projectionOrder);
+    ar & boost::serialization::make_nvp(EPSILON_KEY_NAME.c_str(), m_epsilonExponent);
+    ar & boost::serialization::make_nvp(PROJECTION_ORDER_KEY_NAME.c_str(), m_projectionOrder);
     m_dirty = true;
     OnIsovaluesChanged();
     SetSyncAndRenderRequired();

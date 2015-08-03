@@ -217,6 +217,9 @@ namespace ElVis
     boost::signals2::signal<void(int w, int h)> OnWindowSizeChanged;
     boost::signals2::signal<void(const SceneView&)> OnNeedsRedraw;
 
+    ELVIS_EXPORT void SetOptixStackSize(int size);
+    ELVIS_EXPORT int GetOptixStackSize() const { return m_optixStackSize; }
+
   protected:
     virtual void DoWindowSizeHasChanged() {}
     virtual void DoPrepareForDisplay() {}
@@ -294,6 +297,7 @@ namespace ElVis
     Color m_backgroundColor;
     bool m_backgroundColorIsDirty;
     SynchedObject<SceneViewProjection> m_projectionType;
+    int m_optixStackSize;
   };
 }
 

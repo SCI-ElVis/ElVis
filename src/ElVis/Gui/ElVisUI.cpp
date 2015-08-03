@@ -370,7 +370,7 @@ namespace ElVis
       }
 
       m_settings->beginGroup("OptiX");
-      m_settings->setValue(OptixStackSize, m_appData->GetScene()->GetOptixStackSize());
+      m_settings->setValue(OptixStackSize, m_appData->GetSurfaceSceneView()->GetOptixStackSize());
       m_settings->endGroup();
 
       m_settings->setValue(WindowsSettings, saveState());
@@ -397,8 +397,8 @@ namespace ElVis
       UpdateRecentFileActions();
 
       m_settings->beginGroup("OptiX");
-      m_appData->GetScene()->SetOptixStackSize(
-        m_settings->value(OptixStackSize, m_appData->GetScene()->GetOptixStackSize()).toInt());
+      m_appData->GetSurfaceSceneView()->SetOptixStackSize(
+        m_settings->value(OptixStackSize, m_appData->GetSurfaceSceneView()->GetOptixStackSize()).toInt());
       m_settings->endGroup();
     }
 
