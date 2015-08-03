@@ -19,9 +19,9 @@ make install
 
 if [[ $builddir == *"debug"* ]]; then
   #This will check both dynamic and static memory
-  make MemAndStackCheck CTESTARGS="-T Test"
+#  make MemAndStackCheck CTESTARGS="-T Test"
 else
   #This will check dynamic memory
-  make memcheck CTESTARGS="-T Test"
+#  make memcheck CTESTARGS="-T Test"
 fi
 
