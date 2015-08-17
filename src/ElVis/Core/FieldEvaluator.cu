@@ -33,55 +33,56 @@
 
 struct FieldEvaluator
 {
-    ELVIS_DEVICE FieldEvaluator() :
-      Origin(),
+  ELVIS_DEVICE FieldEvaluator()
+    : Origin(),
       Direction(),
       ElementId(0),
       ElementType(0),
       FieldId(0),
       sampleCount(0)
-    {
-    }
+  {
+  }
 
-    ELVIS_DEVICE ElVisFloat operator()(const ElVisFloat& t) const
-    {
-        ElVisFloat3 p = Origin + t*Direction;
+  ELVIS_DEVICE ElVisFloat operator()(const ElVisFloat& t) const
+  {
+    ElVisFloat3 p = Origin + t * Direction;
 #ifdef ELVIS_OPTIX_MODULE
-        ElVisFloat s = EvaluateFieldOptiX(ElementId, ElementType, FieldId, p);
+    ElVisFloat s = EvaluateFieldOptiX(ElementId, ElementType, FieldId, p);
 #else
-        ElVisFloat s = EvaluateFieldCuda(ElementId, ElementType, FieldId, p);
+    ElVisFloat s = EvaluateFieldCuda(ElementId, ElementType, FieldId, p);
 #endif
 
-        if( sampleCount )
-        {
-            atomicAdd(sampleCount, 1);
-        }
-        return s;
-    }
-
-    ELVIS_DEVICE ElVis::Interval<ElVisFloat> EstimateRange(const ElVisFloat& t0, const ElVisFloat& t1) const
+    if (sampleCount)
     {
-        //ElVisFloat3 p0 = Origin + t0*Direction;
-        //ElVisFloat3 p1 = Origin + t1*Direction;
-        ElVis::Interval<ElVisFloat> result;
-        //::EstimateRangeOptiX(ElementId, ElementType, FieldId, p0, p1, result);
-        return result;
+      atomicAdd(sampleCount, 1);
     }
+    return s;
+  }
 
-    ELVIS_DEVICE void AdjustSampleCount(int value)
+  ELVIS_DEVICE ElVis::Interval<ElVisFloat> EstimateRange(
+    const ElVisFloat& t0, const ElVisFloat& t1) const
+  {
+    // ElVisFloat3 p0 = Origin + t0*Direction;
+    // ElVisFloat3 p1 = Origin + t1*Direction;
+    ElVis::Interval<ElVisFloat> result;
+    //::EstimateRangeOptiX(ElementId, ElementType, FieldId, p0, p1, result);
+    return result;
+  }
+
+  ELVIS_DEVICE void AdjustSampleCount(int value)
+  {
+    if (sampleCount)
     {
-        if( sampleCount )
-        {
-            atomicAdd(sampleCount, value);
-        }
+      atomicAdd(sampleCount, value);
     }
+  }
 
-    ElVisFloat3 Origin;
-    ElVisFloat3 Direction;
-    unsigned int ElementId;
-    unsigned int ElementType;
-    int FieldId;
-    int* sampleCount;
+  ElVisFloat3 Origin;
+  ElVisFloat3 Direction;
+  unsigned int ElementId;
+  unsigned int ElementType;
+  int FieldId;
+  int* sampleCount;
 };
 
-#endif //ELVIS_CORE_FIELD_EVALUATOR_CU
+#endif // ELVIS_CORE_FIELD_EVALUATOR_CU

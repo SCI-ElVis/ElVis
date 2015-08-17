@@ -38,16 +38,16 @@ INCLUDE_DIRECTORIES(
 add_definitions(-DQT_NO_KEYWORDS)
 
 SET(HEADERS
-    Nektar++Models.h
-    NewApproachCanister.h
-    VolumeRendering.h
+  NewApproachCanister.h
+  ViewSettingsRendering.h
+  VolumeRendering.h
 ) 
 
 SET(SOURCES
   main.cpp
-  Nektar++Models.cpp
   NewApproachCanister.cpp
-    VolumeRendering.cpp
+  ViewSettingsRendering.cpp
+  VolumeRendering.cpp
 )
 
 
@@ -169,6 +169,9 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1000
         --Height 1000
         --OutFile BulletCutSurfaceP2
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml"
+        --ColorMapMin -0.12
+        --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/BulletCutSurfaceP2Baseline"
     ) 
 
@@ -196,6 +199,9 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1000
         --Height 1000
         --OutFile BulletCutSurfaceP3
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml"
+        --ColorMapMin -0.12
+        --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/BulletCutSurfaceP3Baseline"
     )
 
@@ -243,6 +249,9 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Eye 3 .1 1.5 --Up 0 1 0 --At 0 0 1.5
         --OutFile IsosurfaceBullet1
         --Isovalues 0.0
+        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml"
+        --ColorMapMin -0.12
+        --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/IsosurfaceBullet1Baseline"
     )
 ENDIF()
@@ -251,19 +260,57 @@ IF( ELVIS_ENABLE_ProjectX_EXTENSION )
     #GET_PROPERTY(PXExtensionPath TARGET ProjectXExtension PROPERTY RELEASE_LOCATION)
     SET( PXExtensionPath $<TARGET_FILE:ProjectXExtension> )
     
-    ADD_ELVIS_REGTEST(OneraWingSurface 
+#    ADD_ELVIS_REGTEST(OneraWingSurface 
+#        --TestName Generic
+#        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Onera_wing_M0p84_AA3p06_Euler_P2_100000DOF_P2_a06_Primal_3.pxa"
+#        --Module ${PXExtensionPath}
+#        --Width 785
+#        --Height 535
+#        --Eye 0.2 0.7 1.9 --Up 0 1 0 --At 0.8 0.0 0.4
+#        --BoundarySurfaces 1 2 3 4 5
+#        --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml"
+#        --ColorMapMin 0.0
+#        --ColorMapMax 1.0
+#        --OutFile OneraWingSurface
+#        --CompareFile "${BaselineDir}/OneraWingSurface"
+#    )
+
+    FOREACH( P 0 1 2 )
+        ADD_ELVIS_REGTEST(naca_Euler2d_Q2_P${P}
+            --TestName Generic
+            --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/naca_Euler2d_TEST_P${P}_Primal_0.pxa"
+            --Module ${PXExtensionPath}
+            --Width 785
+            --Height 535
+            --Eye 0.5 0.0 2.0 --At 0.5 0.0 0.0 --Up 0.0 1.0 0.0
+            --Field 0
+            --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml"
+            --ColorMapMin 0.98
+            --ColorMapMax 1.04
+            --CutPlaneNormal 0.0 0.0 1.0
+            --CutPlanePoint 0.0 0.0 0.0
+            #--EnableTrace 1 --TraceX 100 --TraceY 100 #Used to debug with ELVIS_PRINTF
+            --OutFile naca_Euler2d_Q2_P${P}
+            --CompareFile "${BaselineDir}/naca_Euler2d_Q2_P${P}_Baseline"
+        )
+    ENDFOREACH()
+
+    ADD_ELVIS_REGTEST(naca_Euler2d_CurvedAdapt_Q3_P2
         --TestName Generic
-        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/Onera_wing_M0p84_AA3p06_Euler_P2_100000DOF_P2_a06_Primal_3.pxa"
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/naca_Euler2d_CurvedAdapt_TEST_P2_a02_Primal_1.pxa"
         --Module ${PXExtensionPath}
         --Width 785
         --Height 535
-        --Eye 0.2 0.7 1.9 --Up 0 1 0 --At 0.8 0.0 0.4
-        --BoundarySurfaces 1 2 3 4 5
+        --Eye 0.5 0.0 2.0 --At 0.5 0.0 0.0 --Up 0.0 1.0 0.0
+        --Field 0
         --ColorMap "${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml"
-        --ColorMapMin 0.0
-        --ColorMapMax 1.0
-        --OutFile OneraWingSurface
-        --CompareFile "${BaselineDir}/OneraWingSurface"
+        --ColorMapMin 0.98
+        --ColorMapMax 1.04
+        --CutPlaneNormal 0.0 0.0 1.0
+        --CutPlanePoint 0.0 0.0 0.0
+        #--EnableTrace 1 --TraceX 100 --TraceY 100 #Used to debug with ELVIS_PRINTF
+        --OutFile naca_Euler2d_CurvedAdapt_Q3_P2
+        --CompareFile "${BaselineDir}/naca_Euler2d_CurvedAdapt_Q3_P2_Baseline"
     )
 ENDIF()
 

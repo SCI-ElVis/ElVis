@@ -32,33 +32,31 @@
 
 namespace ElVis
 {
-	optixu::Material SurfaceObject::Material;
+  optixu::Material SurfaceObject::Material;
 
-    SurfaceObject::SurfaceObject() 
+  SurfaceObject::SurfaceObject() {}
+
+  SurfaceObject::SurfaceObject(boost::shared_ptr<Object> obj)
+    : PrimaryRayObject(obj)
+  {
+  }
+
+  //    SurfaceObject::SurfaceObject(const SurfaceObject& rhs)
+  //    {
+  //    }
+
+  SurfaceObject::~SurfaceObject() {}
+
+  optixu::Material SurfaceObject::GetMaterial(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    if (!Material.get())
     {
+      Material = context->createMaterial();
+      Material->setClosestHitProgram(
+        0, PtxManager::LoadProgram(
+             context, view->GetPTXPrefix(), "SurfaceObjectClosestHit"));
     }
-
-    SurfaceObject::SurfaceObject(boost::shared_ptr<Object> obj) :
-        PrimaryRayObject(obj)
-    {
-    }
-
-//    SurfaceObject::SurfaceObject(const SurfaceObject& rhs)
-//    {
-//    }
-
-    SurfaceObject::~SurfaceObject() {}
-            
-    optixu::Material SurfaceObject::GetMaterial(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        if( !Material.get() )
-        {
-            Material = context->createMaterial();
-            Material->setClosestHitProgram(0, PtxManager::LoadProgram(context, view->GetPTXPrefix(), "SurfaceObjectClosestHit"));
-        }
-        return Material;
-    }
-
+    return Material;
+  }
 }
-

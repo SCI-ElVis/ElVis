@@ -41,23 +41,23 @@
 
 namespace ElVis
 {
-    class SampleOntoNrrd
-    {
-        public:
-            ELVIS_EXPORT SampleOntoNrrd();
-            ELVIS_EXPORT virtual ~SampleOntoNrrd() {}
+  class SampleOntoNrrd
+  {
+  public:
+    ELVIS_EXPORT SampleOntoNrrd();
+    ELVIS_EXPORT virtual ~SampleOntoNrrd() {}
 
-            ELVIS_EXPORT void Sample(boost::shared_ptr<SceneView> view, const std::string& fileName, ElVisFloat h);
+    ELVIS_EXPORT void Sample(boost::shared_ptr<SceneView> view,
+                             const std::string& fileName,
+                             ElVisFloat h);
 
-        protected:
+  protected:
+  private:
+    SampleOntoNrrd& operator=(const SampleOntoNrrd& rhs);
+    SampleOntoNrrd(const SampleOntoNrrd& rhs);
 
-        private:
-            SampleOntoNrrd& operator=(const SampleOntoNrrd& rhs);
-            SampleOntoNrrd(const SampleOntoNrrd& rhs);
-
-            static RayGeneratorProgram Program;
-    };
+    static RayGeneratorProgram Program;
+  };
 }
-
 
 #endif

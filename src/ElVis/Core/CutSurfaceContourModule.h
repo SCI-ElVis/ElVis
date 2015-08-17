@@ -43,56 +43,58 @@
 
 namespace ElVis
 {
-    class CutSurfaceContourModule : public RenderModule
+  class CutSurfaceContourModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT CutSurfaceContourModule();
+    ELVIS_EXPORT virtual ~CutSurfaceContourModule() {}
+
+    ELVIS_EXPORT void AddObject(boost::shared_ptr<PrimaryRayObject> obj)
     {
-        public:
-            ELVIS_EXPORT CutSurfaceContourModule();
-            ELVIS_EXPORT virtual ~CutSurfaceContourModule() {}
+      m_objects.push_back(obj);
+    }
 
-            ELVIS_EXPORT void AddObject(boost::shared_ptr<PrimaryRayObject> obj) { m_objects.push_back(obj); }
+    ELVIS_EXPORT void AddIsovalue(ElVisFloat newVal);
+    ELVIS_EXPORT void RemoveIsovalue(ElVisFloat newVal);
 
-            ELVIS_EXPORT void AddIsovalue(ElVisFloat newVal);
-            ELVIS_EXPORT void RemoveIsovalue(ElVisFloat newVal);
+    ELVIS_EXPORT bool GetTreatElementBoundariesAsDiscontinuous() const;
+    ELVIS_EXPORT void SetTreatElementBoundariesAsDiscontinuous(bool value);
 
-            ELVIS_EXPORT bool GetTreatElementBoundariesAsDiscontinuous() const;
-            ELVIS_EXPORT void SetTreatElementBoundariesAsDiscontinuous(bool value);
+    ELVIS_EXPORT bool GetMatchVisual3Contours() const;
+    ELVIS_EXPORT void SetMatchVisual3Contours(bool newValue);
 
-            ELVIS_EXPORT bool GetMatchVisual3Contours() const;
-            ELVIS_EXPORT void SetMatchVisual3Contours(bool newValue);
+    boost::signals2::signal<void(ElVisFloat)> OnIsovalueAdded;
+    boost::signals2::signal<void(ElVisFloat)> OnIsovalueRemoved;
 
-            boost::signals2::signal<void (ElVisFloat)> OnIsovalueAdded;
-            boost::signals2::signal<void (ElVisFloat)> OnIsovalueRemoved;
+  protected:
+    ELVIS_EXPORT virtual void DoSetup(SceneView* view);
+    ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
+    ELVIS_EXPORT virtual void DoRender(SceneView* view);
 
-        protected:
-            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
-            ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
-            ELVIS_EXPORT virtual void DoRender(SceneView* view);
+    virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
+    ELVIS_EXPORT virtual void DoResize(unsigned int newWidth,
+                                       unsigned int newHeight);
+    virtual std::string DoGetName() const;
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
-            ELVIS_EXPORT virtual void DoResize(unsigned int newWidth, unsigned int newHeight);
-            virtual std::string DoGetName() const;
+  private:
+    CutSurfaceContourModule(const CutSurfaceContourModule& rhs);
+    CutSurfaceContourModule& operator=(const CutSurfaceContourModule& rhs);
 
-        private:
-            CutSurfaceContourModule(const CutSurfaceContourModule& rhs);
-            CutSurfaceContourModule& operator=(const CutSurfaceContourModule& rhs);
+    static const std::string ReferencePointAtIntersectionBufferName;
 
-            static const std::string ReferencePointAtIntersectionBufferName;
-
-            OptiXBuffer<ElVisFloat> m_contourSampleBuffer;
-            OptiXBuffer<ElVisFloat> m_isovalueBuffer;
-            OptiXBuffer<ElVisFloat3> m_referencePointAtIntersectionBuffer;
-            optixu::Buffer m_elementIdAtIntersectionBuffer;
-            optixu::Buffer m_elementTypeAtIntersectionBuffer;
-            std::vector<boost::shared_ptr<PrimaryRayObject> > m_objects;
-            std::set<ElVisFloat> m_isovalues;
-            RayGeneratorProgram m_sampleRayProgram;
-            RayGeneratorProgram m_markPixelProgram;
-            bool m_dirty;
-            bool m_treatElementBoundariesAsDiscontinuous;
-            bool m_matchVisual3Contours;
-
-    };
+    OptiXBuffer<ElVisFloat> m_contourSampleBuffer;
+    OptiXBuffer<ElVisFloat> m_isovalueBuffer;
+    OptiXBuffer<ElVisFloat3> m_referencePointAtIntersectionBuffer;
+    optixu::Buffer m_elementIdAtIntersectionBuffer;
+    optixu::Buffer m_elementTypeAtIntersectionBuffer;
+    std::vector<boost::shared_ptr<PrimaryRayObject>> m_objects;
+    std::set<ElVisFloat> m_isovalues;
+    RayGeneratorProgram m_sampleRayProgram;
+    RayGeneratorProgram m_markPixelProgram;
+    bool m_dirty;
+    bool m_treatElementBoundariesAsDiscontinuous;
+    bool m_matchVisual3Contours;
+  };
 }
 
-
-#endif 
+#endif

@@ -31,38 +31,35 @@
 
 #ifdef ELVIS_OPTIX_MODULE
 
-    #ifdef ELVIS_ENABLE_PRINTF
-        #include <ElVis/Core/OptixVariables.cu>
+#ifdef ELVIS_ENABLE_PRINTF
+#include <ElVis/Core/OptixVariables.cu>
 
-        #define ELVIS_PRINTF(...) \
-            if( EnableTrace ) \
-            { \
-                if( (TracePixel.x == -1 || TracePixel.x == launch_index.x) && \
-                    (TracePixel.y == -1 || TracePixel.y == (color_buffer.size().y - launch_index.y -1) ) ) \
-                { \
-                    rtPrintf(__VA_ARGS__); \
-                }\
-             }
-    #else
-        #define ELVIS_PRINTF(...)
-    #endif
+#define ELVIS_PRINTF(...)                                                      \
+  if (EnableTrace)                                                             \
+  {                                                                            \
+    if ((TracePixel.x == -1 || TracePixel.x == launch_index.x) &&              \
+        (TracePixel.y == -1 ||                                                 \
+         TracePixel.y == (color_buffer.size().y - launch_index.y - 1)))        \
+    {                                                                          \
+      rtPrintf(__VA_ARGS__);                                                   \
+    }                                                                          \
+  }
+#else
+#define ELVIS_PRINTF(...)
+#endif
 
 #else
 
 #include <ElVis/Core/Cuda.h>
 
-
-//The macro CUPRINTF is defined for architectures
-//with different compute capabilities.
-#if __CUDA_ARCH__ < 200 	//Compute capability 1.x architectures
+// The macro CUPRINTF is defined for architectures
+// with different compute capabilities.
+#if __CUDA_ARCH__ < 200 // Compute capability 1.x architectures
 #define ELVIS_PRINTF(fmt, ...) ;
-#else						//Compute capability 2.x architectures
+#else // Compute capability 2.x architectures
 #define ELVIS_PRINTF printf
 #endif
 
-
 #endif
 
-#endif //ELVIS_CORE_PRINTF_CU
-
-
+#endif // ELVIS_CORE_PRINTF_CU

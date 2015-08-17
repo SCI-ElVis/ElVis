@@ -40,40 +40,42 @@
 
 namespace ElVis
 {
-    class PrimaryRayModule : public RenderModule
+  class PrimaryRayModule : public RenderModule
+  {
+  public:
+    ELVIS_EXPORT PrimaryRayModule();
+    ELVIS_EXPORT virtual ~PrimaryRayModule() {}
+
+    ELVIS_EXPORT void AddObject(boost::shared_ptr<PrimaryRayObject> obj);
+    ELVIS_EXPORT boost::shared_ptr<PrimaryRayObject> GetObject(int i)
     {
-        public:
-            ELVIS_EXPORT PrimaryRayModule();
-            ELVIS_EXPORT virtual ~PrimaryRayModule() {}
+      return m_objects[i];
+    }
+    ELVIS_EXPORT size_t NumberOfObjects() { return m_objects.size(); }
 
-            ELVIS_EXPORT void AddObject(boost::shared_ptr<PrimaryRayObject> obj);
-            ELVIS_EXPORT boost::shared_ptr<PrimaryRayObject> GetObject(int i) { return m_objects[i]; }
-            ELVIS_EXPORT size_t NumberOfObjects() { return m_objects.size(); }
+    boost::signals2::signal<void(boost::shared_ptr<PrimaryRayObject>)>
+      OnObjectAdded;
+    boost::signals2::signal<void(const PrimaryRayObject&)> OnObjectChanged;
 
-            boost::signals2::signal< void (boost::shared_ptr<PrimaryRayObject>) > OnObjectAdded;
-            boost::signals2::signal< void (const PrimaryRayObject&)> OnObjectChanged;
+  protected:
+    ELVIS_EXPORT virtual void DoSetup(SceneView* view);
+    ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
+    ELVIS_EXPORT virtual void DoRender(SceneView* view);
 
-        protected:
-            ELVIS_EXPORT virtual void DoSetup(SceneView* view);
-            ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
-            ELVIS_EXPORT virtual void DoRender(SceneView* view); 
+    virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
+    virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
+    virtual std::string DoGetName() const { return "Surface Rendering"; }
 
+  private:
+    PrimaryRayModule& operator=(const PrimaryRayModule& rhs);
+    PrimaryRayModule(const PrimaryRayModule& rhs);
 
-            virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
-            virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
-            virtual std::string DoGetName() const { return "Surface Rendering"; }
+    void HandleObjectChanged(const PrimaryRayObject&);
 
-        private:
-            PrimaryRayModule& operator=(const PrimaryRayModule& rhs);
-            PrimaryRayModule(const PrimaryRayModule& rhs);
-
-            void HandleObjectChanged(const PrimaryRayObject&);
-
-            std::vector<boost::shared_ptr<PrimaryRayObject> > m_objects;
-            RayGeneratorProgram m_program;
-            optixu::Group m_group;
-    };
+    std::vector<boost::shared_ptr<PrimaryRayObject>> m_objects;
+    RayGeneratorProgram m_program;
+    optixu::Group m_group;
+  };
 }
 
-
-#endif 
+#endif

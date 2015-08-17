@@ -72,8 +72,10 @@ namespace ElVis
             public Q_SLOTS:
                 void HandleEnabledChanged(const RenderModule& module, bool newValue);
                 void HandleEnabledStateChangedInGui(int state);
-                void HandleIsovalueAdded(ElVisFloat newValue);
+                void HandleIsovaluesChanged();
                 void HandleAddContourButtonPressed();
+                void HandleRequiredOrderChangedInGui(void);
+                void HandleEpsilonChangedInGui(void);
 
             protected:
                 virtual void keyPressEvent(QKeyEvent *);
@@ -87,6 +89,8 @@ namespace ElVis
                 QPushButton* m_addContourButton;
                 QDoubleSpinBox* m_contourSpinBox;
                 QCheckBox* m_enabledCheckBox;
+                QSpinBox* m_requiredOrderSpinBox;
+                QSpinBox* m_epsilonSpinBox;
                 std::map<QListWidgetItem*, ElVisFloat> m_values;
 
         };

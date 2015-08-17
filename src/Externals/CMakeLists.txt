@@ -60,6 +60,9 @@ ADD_SUBDIRECTORY(tinyxml)
 # Adding BOOST
 ##################################################
 
+#MESSAGE(STATUS "Configuring boost")
+#ADD_SUBDIRECTORY(boost)
+
 MESSAGE(STATUS "Configuring boost")
 FIND_PACKAGE( Boost COMPONENTS unit_test_framework system filesystem serialization thread program_options )
 IF( Boost_FOUND )
@@ -97,6 +100,8 @@ ELSE()
 
   ADD_SUBDIRECTORY(boost)
 ENDIF()
+
+MESSAGE( STATUS "Boost Include ${Boost_INCLUDE_DIR}" )
 
 ##################################################
 # ADDING OptiX

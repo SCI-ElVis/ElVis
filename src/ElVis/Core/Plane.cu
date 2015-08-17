@@ -33,49 +33,49 @@
 #include <ElVis/Core/DiffuseLighting.cu>
 #include <ElVis/Core/OptixVariables.cu>
 
-
 rtDeclareVariable(ElVisFloat4, PlaneNormal, , );
 rtDeclareVariable(ElVisFloat3, PlanePoint, , );
 
-
-RT_PROGRAM void Plane_intersect( int primIdx )
+RT_PROGRAM void Plane_intersect(int primIdx)
 {
-    ElVisFloat t;
-    FindPlaneIntersection(ray, PlaneNormal, t);
+  ElVisFloat t;
+  FindPlaneIntersection(ray, PlaneNormal, t);
 
-    ELVIS_PRINTF("Eye (%f, %f, %f), Dir (%f, %f, %f)\n",
-        ray.origin.x, ray.origin.y, ray.origin.z,
-        ray.direction.x, ray.direction.y, ray.direction.z);
-    ELVIS_PRINTF("Plane intersection with normal (%f, %f, %f, %f) and point (%f, %f, %f) is %f\n",
-        PlaneNormal.x,
-        PlaneNormal.y,
-        PlaneNormal.z,
-        PlaneNormal.w,
-        PlanePoint.x,
-        PlanePoint.y,
-        PlanePoint.z,
-        t);
+  //    ELVIS_PRINTF("Eye (%f, %f, %f), Dir (%f, %f, %f)\n",
+  //        ray.origin.x, ray.origin.y, ray.origin.z,
+  //        ray.direction.x, ray.direction.y, ray.direction.z);
+  //    ELVIS_PRINTF("Plane intersection with normal (%f, %f, %f, %f) and point
+  //    (%f, %f, %f) is %f\n",
+  //        PlaneNormal.x,
+  //        PlaneNormal.y,
+  //        PlaneNormal.z,
+  //        PlaneNormal.w,
+  //        PlanePoint.x,
+  //        PlanePoint.y,
+  //        PlanePoint.z,
+  //        t);
 
-    if(  rtPotentialIntersection( t ) )
-    {
-        ELVIS_PRINTF("Plane_intersect: Closest intersection found at %f\n", t);
-        normal.x = PlaneNormal.x;
-        normal.y = PlaneNormal.y;
-        normal.z = PlaneNormal.z;
-        rtReportIntersection(0);
-    }
+  if (rtPotentialIntersection(t))
+  {
+    // ELVIS_PRINTF("Plane_intersect: Closest intersection found at %f\n", t);
+    normal.x = PlaneNormal.x;
+    normal.y = PlaneNormal.y;
+    normal.z = PlaneNormal.z;
+    rtReportIntersection(0);
+  }
 }
 
-RT_PROGRAM void Plane_bounding (int, float result[6])
+RT_PROGRAM void Plane_bounding(int, float result[6])
 {
-    ELVIS_PRINTF("Plane Bounding.\n");
-    optix::Aabb* aabb = (optix::Aabb*)result;
-//    ElVisFloat3 u, v;
-//    ElVisFloat3 w = MakeFloat3(Plane);
-//    GenerateUVWCoordinateSystem(w, u, v);
-    //aabb->m_min = fminf( fminf( ConvertToFloat3(p0), ConvertToFloat3(p1)), ConvertToFloat3(p2) );
-    //aabb->m_max = fmaxf( fmaxf( ConvertToFloat3(p0), ConvertToFloat3(p1)), ConvertToFloat3(p2) );
-    aabb->m_min = make_float3(-100000.0f, -100000.0f, -100000.0f);
-    aabb->m_max = make_float3(100000.0f, 100000.0f, 100000.0f);
+  // ELVIS_PRINTF("Plane Bounding.\n");
+  optix::Aabb* aabb = (optix::Aabb*)result;
+  //    ElVisFloat3 u, v;
+  //    ElVisFloat3 w = MakeFloat3(Plane);
+  //    GenerateUVWCoordinateSystem(w, u, v);
+  // aabb->m_min = fminf( fminf( ConvertToFloat3(p0), ConvertToFloat3(p1)),
+  // ConvertToFloat3(p2) );
+  // aabb->m_max = fmaxf( fmaxf( ConvertToFloat3(p0), ConvertToFloat3(p1)),
+  // ConvertToFloat3(p2) );
+  aabb->m_min = make_float3(-100000.0f, -100000.0f, -100000.0f);
+  aabb->m_max = make_float3(100000.0f, 100000.0f, 100000.0f);
 }
-

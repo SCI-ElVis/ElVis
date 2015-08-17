@@ -64,7 +64,7 @@ namespace ElVis
             m_toleranceSpinBox->setMaximum(10);
             m_toleranceSpinBox->setDecimals(8);
             m_toleranceSpinBox->setValue(m_appData->GetSurfaceSceneView()->GetFaceIntersectionTolerance());
-            QLabel* label = new QLabel("Tolerance");
+            QLabel* label = new QLabel("Face Intersection Tolerance");
 
             /////////////////////////////////////////
             // Combine it all
@@ -92,10 +92,10 @@ namespace ElVis
             m_appData->GetScene()->OnSceneInitialized.connect(boost::bind(&ElementFaceRenderingDockWidget::HandleSceneInitialized, this, _1));
             connect(m_addElementIdButton, SIGNAL(clicked()), this, SLOT(HandleAddButtonPressed()));
             connect(m_boolPropertyManager, SIGNAL(valueChanged(QtProperty*,bool)), this, SLOT(HandleGeometryFaceMapSelected(QtProperty*,bool)));
-            connect(m_toleranceSpinBox, SIGNAL(editingFinished()), this, SLOT(HandleToleranceChanged()));
+            connect(m_toleranceSpinBox, SIGNAL(valueChanged(double)), this, SLOT(HandleToleranceChanged(double)));
         }
 
-        void ElementFaceRenderingDockWidget::HandleToleranceChanged()
+        void ElementFaceRenderingDockWidget::HandleToleranceChanged(double x)
         {
             m_appData->GetSurfaceSceneView()->SetFaceIntersectionTolerance(m_toleranceSpinBox->value());
         }

@@ -8,6 +8,4 @@
 #include <ElVis/Core/Vector.hpp>
 #include <ElVis/Core/Float.h>
 
-
-
-#endif 
+#endif

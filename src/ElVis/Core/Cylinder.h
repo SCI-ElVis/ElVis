@@ -40,51 +40,54 @@
 
 namespace ElVis
 {
-    class Cylinder : public Object
+  class Cylinder : public Object
+  {
+  public:
+    friend class boost::serialization::access;
+    ELVIS_EXPORT Cylinder();
+    ELVIS_EXPORT virtual ~Cylinder() {}
+
+    ELVIS_EXPORT optix::Matrix<4, 4>& GetTransformationMatrix()
     {
-        public:
-            friend class boost::serialization::access;
-            ELVIS_EXPORT Cylinder();
-            ELVIS_EXPORT virtual ~Cylinder() {}
+      return m_transformationMatrix;
+    }
 
-            ELVIS_EXPORT optix::Matrix<4,4>& GetTransformationMatrix() { return m_transformationMatrix; }
+    ELVIS_EXPORT void SetTransformationMatrixEntry(int index, float value)
+    {
+      m_transformationMatrix[index] = value;
+      if (m_transform.get())
+      {
+        m_transform->setMatrix(false, m_transformationMatrix.getData(), 0);
+      }
+    }
 
-            ELVIS_EXPORT void SetTransformationMatrixEntry(int index, float value)
-            {
-                m_transformationMatrix[index] = value;
-                if( m_transform.get() )
-                {
-                    m_transform->setMatrix(false, m_transformationMatrix.getData(), 0);
-                }
-            }
-            
-            ELVIS_EXPORT float GetTransformationMatrixEntry(int index)
-            {       
-                return m_transformationMatrix[index];
-            }
-            
-        protected:
-            
-            virtual optixu::Geometry DoCreateOptiXGeometry(SceneView* view);
-            virtual optixu::Material DoCreateMaterial(SceneView* view);
-            virtual void DoCreateNode(SceneView* view, 
-                optixu::Transform& transform, optixu::GeometryGroup& group);
+    ELVIS_EXPORT float GetTransformationMatrixEntry(int index)
+    {
+      return m_transformationMatrix[index];
+    }
 
-        private:
-            ELVIS_EXPORT Cylinder(const Cylinder& rhs);
-            Cylinder& operator=(const Cylinder& rhs);
+  protected:
+    virtual optixu::Geometry DoCreateOptiXGeometry(SceneView* view);
+    virtual optixu::Material DoCreateMaterial(SceneView* view);
+    virtual void DoCreateNode(SceneView* view,
+                              optixu::Transform& transform,
+                              optixu::GeometryGroup& group);
 
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
-            {
-                ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Object);
-            }
+  private:
+    ELVIS_EXPORT Cylinder(const Cylinder& rhs);
+    Cylinder& operator=(const Cylinder& rhs);
 
-            optixu::GeometryGroup m_group;
-            optixu::GeometryInstance m_instance;
-            optixu::Transform m_transform;
-            optix::Matrix<4,4> m_transformationMatrix;
-    };
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+      ar& BOOST_SERIALIZATION_BASE_OBJECT_NVP(Object);
+    }
+
+    optixu::GeometryGroup m_group;
+    optixu::GeometryInstance m_instance;
+    optixu::Transform m_transform;
+    optix::Matrix<4, 4> m_transformationMatrix;
+  };
 }
 
-#endif //ELVIS_ELVISNATIVE_CYLINDER_H
+#endif // ELVIS_ELVISNATIVE_CYLINDER_H

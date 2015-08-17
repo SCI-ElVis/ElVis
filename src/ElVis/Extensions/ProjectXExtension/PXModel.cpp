@@ -39,6 +39,7 @@
 
 
 #include <ElVis/Extensions/ProjectXExtension/PXStructDefinitions.h>
+#include <ElVis/Extensions/ProjectXExtension/PXShape_USE.h>
 
 extern "C"{
 #include <Fundamentals/PX.h>
@@ -71,9 +72,9 @@ extern "C"{
 
 extern "C"{
   void PadBoundingBox(int dim, ElVisFloat padFactor, ElVisFloat* bBox);
-  std::string GetPluginName();
+  const char* GetPluginName();
   ElVis::Model* LoadModel(const char* path);
-  std::string GetVolumeFileFilter();
+  const char* GetVolumeFileFilter();
   bool CanLoadModel(const char* path);
 
   void PadBoundingBox(int dim, ElVisFloat padFactor, ElVisFloat* bBox){
@@ -103,9 +104,9 @@ extern "C"{
   }
 }
 
-std::string GetPluginName()
+const char* GetPluginName()
 {
-  std::string pluginName("ProjectXPlugin");
+  static const char* pluginName = "ProjectXPlugin";
   return pluginName;
 }
 
@@ -116,9 +117,9 @@ ElVis::Model* LoadModel(const char* path)
   return result;
 }
 
-std::string GetVolumeFileFilter()
+const char* GetVolumeFileFilter()
 {
-  std::string fileExtension("ProjectX PXA (*.pxa)");
+  static const char* fileExtension = "ProjectX PXA (*.pxa)";
   return fileExtension;
 }
 
@@ -555,8 +556,8 @@ namespace ElVis
         }
 
 
-        // pick the element with lowest Q
-        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+        // pick the element with highest Q
+        if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
           lface = pg->FaceGroup[fgrp].FaceL[face].Face;
         }
@@ -611,8 +612,8 @@ namespace ElVis
         }
 
 
-        // pick the element with lowest Q
-        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+        // pick the element with highest Q
+        if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
           elem  = pg->FaceGroup[fgrp].FaceL[face].Element;
           lface = pg->FaceGroup[fgrp].FaceL[face].Face;
@@ -751,6 +752,64 @@ namespace ElVis
     printf("StateRank = %d\n", StateRank);
     m_numFieldsToPlot = StateRank ; //+ 7;
 
+    int porder, qorder;
+    for(int egrp = 0; egrp<pg->nElementGroup; egrp++){
+      PXError( PXOrder2porder(State->order[egrp], &porder));
+      PXError( PXType2qorder(pg->ElementGroup[egrp].type, &qorder) );
+
+      bool validq = false;
+#if GEOM_USE_P0
+      if ( qorder == 0 ) validq = true;
+#endif
+#if GEOM_USE_P1
+      if ( qorder == 1 ) validq = true;
+#endif
+#if GEOM_USE_P2
+      if ( qorder == 2 ) validq = true;
+#endif
+#if GEOM_USE_P3
+      if ( qorder == 3 ) validq = true;
+#endif
+#if GEOM_USE_P4
+      if ( qorder == 4 ) validq = true;
+#endif
+#if GEOM_USE_P5
+      if ( qorder == 5 ) validq = true;
+#endif
+      if (!validq)
+      {
+        std::cout << " *** ElVis is not compiled to use q = " << qorder << " *** " << std::endl;
+        std::cout << " *** Please recompile with #define GEOM_USE_P" << qorder << " 1 in PXShape_USE.h *** " << std::endl;
+        return;
+      }
+
+      bool validp = false;
+#if SOLN_USE_P0
+      if ( porder == 0 ) validp = true;
+#endif
+#if SOLN_USE_P1
+      if ( porder == 1 ) validp = true;
+#endif
+#if SOLN_USE_P2
+      if ( porder == 2 ) validp = true;
+#endif
+#if SOLN_USE_P3
+      if ( porder == 3 ) validp = true;
+#endif
+#if SOLN_USE_P4
+      if ( porder == 4 ) validp = true;
+#endif
+#if SOLN_USE_P5
+      if ( porder == 5 ) validp = true;
+#endif
+      if (!validp)
+      {
+        std::cout << " *** ElVis is not compiled to use p = " << porder << " *** "<< std::endl;
+        std::cout << " *** Please recompile with #define SOLN_USE_P" << porder << " 1 in PXShape_USE.h *** " << std::endl;
+        return;
+      }
+
+    }
 
     printf("00000000000\n");
 
@@ -768,7 +827,6 @@ namespace ElVis
     int egrpL;
     int egrpR;
     int i;
-    int qorder;
 
     int d;
     int Dim = pg->Dim;
@@ -805,8 +863,8 @@ namespace ElVis
         }
 
 
-        // pick the element with lowest Q
-        if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+        // pick the element with highest Q
+        if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
           egrp  = pg->FaceGroup[fgrp].FaceL[face].ElementGroup;
           elem  = pg->FaceGroup[fgrp].FaceL[face].Element;
           lface = pg->FaceGroup[fgrp].FaceL[face].Face;
@@ -892,7 +950,7 @@ namespace ElVis
         if ( (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_BoundaryFG)&& (pg->FaceGroup[fgrp].FaceGroupFlag!=PXE_EmbeddedBoundaryFG) )
         {
           //Make sure to swap L and R appropriately
-          if (pg->ElementGroup[egrpL].type<=pg->ElementGroup[egrpR].type){
+          if (pg->ElementGroup[egrpL].type>=pg->ElementGroup[egrpR].type){
             egrp  = pg->FaceGroup[fgrp].FaceR[face].ElementGroup;
             elem  = pg->FaceGroup[fgrp].FaceR[face].Element;
           }
@@ -921,7 +979,7 @@ namespace ElVis
 
           WorldVector normal(nvec[0], nvec[1], nvec[2]);
 
-          if (pg->ElementGroup[egrpL].type > pg->ElementGroup[egrpR].type)
+          if (pg->ElementGroup[egrpL].type < pg->ElementGroup[egrpR].type)
             for( d=0; d<3; d++)
               nvec[d] = -nvec[d];
 

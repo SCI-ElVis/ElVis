@@ -36,120 +36,119 @@
 
 namespace ElVis
 {
-    bool Plane::Initialized = Plane::InitializeStatic();
-    optixu::Program Plane::IntersectionProgram;
-    optixu::Program Plane::BoundingProgram;
+  bool Plane::Initialized = Plane::InitializeStatic();
+  optixu::Program Plane::IntersectionProgram;
+  optixu::Program Plane::BoundingProgram;
 
-    Plane::Plane() :
-        Object(),
-        m_normal(1.0, 0.0, 0.0),
-        m_point(0.0, 0.0, 0.0)
+  Plane::Plane() : Object(), m_normal(1.0, 0.0, 0.0), m_point(0.0, 0.0, 0.0)
+  {
+    SetupSubscriptions();
+  }
+
+  Plane::Plane(const WorldPoint& normal, const WorldPoint& p)
+    : Object(), m_normal(normal), m_point(p)
+  {
+    SetupSubscriptions();
+  }
+
+  void Plane::SetupSubscriptions()
+  {
+    m_normal.OnPointChanged.connect(
+      boost::bind(&Plane::HandlePointChanged, this, _1));
+    m_point.OnPointChanged.connect(
+      boost::bind(&Plane::HandlePointChanged, this, _1));
+  }
+
+  void Plane::HandlePointChanged(const WorldPoint& p)
+  {
+    CopyDataToOptiX();
+    OnObjectChanged(*this);
+  }
+
+  optixu::Geometry Plane::DoCreateOptiXGeometry(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    optixu::Geometry result = context->createGeometry();
+    result->setPrimitiveCount(1u);
+
+    result->setBoundingBoxProgram(BoundingProgram);
+    result->setIntersectionProgram(IntersectionProgram);
+    //        result->setBoundingBoxProgram( PtxManager::LoadProgram(context,
+    //        view->GetPTXPrefix(), "Plane_bounding") );
+    //        result->setIntersectionProgram( PtxManager::LoadProgram(context,
+    //        view->GetPTXPrefix(), "Plane_intersect") );
+    return result;
+  }
+
+  optixu::Material Plane::DoCreateMaterial(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    m_material = context->createMaterial();
+    // This material and ray type 0 uses the cut surface closest hit program.
+    optixu::Program closestHit =
+      PtxManager::LoadProgram(context, view->GetPTXPrefix(), "PlaneClosestHit");
+    m_material->setClosestHitProgram(0, closestHit);
+    // m_material["ObjectLightingType"]->setInt(static_cast<int>(GetLightingType()));
+    return m_material;
+  }
+
+  void Plane::DoCreateNode(SceneView* view,
+                           optixu::Transform& transform,
+                           optixu::GeometryGroup& group)
+  {
+    optixu::Context context = view->GetContext();
+
+    if (m_group.get())
     {
-        SetupSubscriptions();
+      group = m_group;
+      return;
     }
 
-    Plane::Plane(const WorldPoint& normal, const WorldPoint& p) :
-        Object(),
-        m_normal(normal),
-        m_point(p)
+    group = context->createGeometryGroup();
+    group->setAcceleration(context->createAcceleration("NoAccel", "NoAccel"));
+
+    group->setChildCount(1);
+    optixu::GeometryInstance instance = context->createGeometryInstance();
+    optixu::Geometry geom = CreateOptiXGeometry(view);
+    instance->setGeometry(geom);
+
+    m_group = group;
+    m_instance = instance;
+
+    CopyDataToOptiX();
+
+    group->setChild(0, instance);
+  }
+
+  void Plane::CopyDataToOptiX()
+  {
+    if (m_instance)
     {
-        SetupSubscriptions();
+      ElVisFloat D = -m_normal.x() * m_point.x() - m_normal.y() * m_point.y() -
+                     m_normal.z() * m_point.z();
+      SetFloat(
+        m_instance["PlaneNormal"], m_normal.x(), m_normal.y(), m_normal.z(), D);
+      SetFloat(m_instance["PlanePoint"], m_point.x(), m_point.y(), m_point.z());
     }
+  }
 
-    void Plane::SetupSubscriptions()
-    {
-        m_normal.OnPointChanged.connect(boost::bind(&Plane::HandlePointChanged, this, _1));
-        m_point.OnPointChanged.connect(boost::bind(&Plane::HandlePointChanged, this, _1));
-    }
+  std::ostream& operator<<(std::ostream& os, const Plane& obj)
+  {
+    os << "Normal: " << obj.GetNormal() << std::endl;
+    os << "Point: " << obj.GetPoint() << std::endl;
+    return os;
+  }
 
-    void Plane::HandlePointChanged(const WorldPoint& p)
-    {
-        CopyDataToOptiX();
-        OnObjectChanged(*this);
-    }
+  bool Plane::InitializeStatic()
+  {
+    PtxManager::GetOnPtxLoaded().connect(
+      boost::bind(&Plane::LoadPrograms, _1, _2));
+    return true;
+  }
 
-
-    optixu::Geometry Plane::DoCreateOptiXGeometry(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        optixu::Geometry result = context->createGeometry();
-        result->setPrimitiveCount(1u);
-
-        result->setBoundingBoxProgram(BoundingProgram);
-        result->setIntersectionProgram(IntersectionProgram);
-//        result->setBoundingBoxProgram( PtxManager::LoadProgram(context, view->GetPTXPrefix(), "Plane_bounding") );
-//        result->setIntersectionProgram( PtxManager::LoadProgram(context, view->GetPTXPrefix(), "Plane_intersect") );
-        return result;
-    }
-
-    optixu::Material Plane::DoCreateMaterial(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        m_material = context->createMaterial();
-        // This material and ray type 0 uses the cut surface closest hit program.
-        optixu::Program closestHit = PtxManager::LoadProgram(context, view->GetPTXPrefix(), "PlaneClosestHit");
-        m_material->setClosestHitProgram(0, closestHit);
-        //m_material["ObjectLightingType"]->setInt(static_cast<int>(GetLightingType()));
-        return m_material;
-    }
-
-    void Plane::DoCreateNode(SceneView* view,
-                optixu::Transform& transform, optixu::GeometryGroup& group)
-    {
-        optixu::Context context = view->GetContext();
-
-        if( m_group.get() )
-        {
-            group = m_group;
-            return;
-        }
-
-        group = context->createGeometryGroup();
-        group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
-
-        group->setChildCount(1);
-        optixu::GeometryInstance instance = context->createGeometryInstance();
-        optixu::Geometry geom = CreateOptiXGeometry(view);
-        instance->setGeometry(geom);
-
-        m_group = group;
-        m_instance = instance;
-
-        CopyDataToOptiX();
-
-        group->setChild(0, instance);
-
-    }
-
-    void Plane::CopyDataToOptiX()
-    {
-        if( m_instance )
-        {
-            ElVisFloat D = -m_normal.x()*m_point.x() - m_normal.y()*m_point.y() - m_normal.z()*m_point.z();
-            SetFloat(m_instance["PlaneNormal"], m_normal.x(), m_normal.y(), m_normal.z(), D);
-            SetFloat(m_instance["PlanePoint"], m_point.x(), m_point.y(), m_point.z());
-        }
-    }
-
-
-    std::ostream& operator<<(std::ostream& os, const Plane& obj)
-    {
-        os << "Normal: " << obj.GetNormal() << std::endl;
-        os << "Point: " << obj.GetPoint() << std::endl;
-        return os;
-    }
-
-    bool Plane::InitializeStatic()
-    {
-        PtxManager::GetOnPtxLoaded().connect(boost::bind(&Plane::LoadPrograms, _1, _2));
-        return true;
-    }
-
-    void Plane::LoadPrograms(const std::string& prefix, optixu::Context context)
-    {
-        BoundingProgram = PtxManager::LoadProgram(prefix, "Plane_bounding");
-        IntersectionProgram = PtxManager::LoadProgram(prefix, "Plane_intersect");
-    }
+  void Plane::LoadPrograms(const std::string& prefix, optixu::Context context)
+  {
+    BoundingProgram = PtxManager::LoadProgram(prefix, "Plane_bounding");
+    IntersectionProgram = PtxManager::LoadProgram(prefix, "Plane_intersect");
+  }
 }
-
-

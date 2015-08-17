@@ -31,11 +31,11 @@
 
 namespace ElVis
 {
-    enum SceneViewProjection
-    {
-        ePerspective,
-        eOrthographic
-    };
+  enum SceneViewProjection
+  {
+    ePerspective,
+    eOrthographic
+  };
 }
 
 #endif

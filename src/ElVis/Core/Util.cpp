@@ -32,46 +32,49 @@
 
 namespace ElVis
 {
-    ElVisFloat3 MakeFloat3(const WorldPoint& p)
-    {
-        return ::MakeFloat3((ElVisFloat)p.x(), (ElVisFloat)p.y(), (ElVisFloat)p.z());
-    }
+  ElVisFloat3 MakeFloat3(const WorldPoint& p)
+  {
+    return ::MakeFloat3(
+      (ElVisFloat)p.x(), (ElVisFloat)p.y(), (ElVisFloat)p.z());
+  }
 
-    ElVisFloat3 MakeFloat3(const WorldVector& v)
-    {
-        return ::MakeFloat3((ElVisFloat)v.x(), (ElVisFloat)v.y(), (ElVisFloat)v.z());
-    }
+  ElVisFloat3 MakeFloat3(const WorldVector& v)
+  {
+    return ::MakeFloat3(
+      (ElVisFloat)v.x(), (ElVisFloat)v.y(), (ElVisFloat)v.z());
+  }
 
-    ElVisFloat4 MakeFloat4(const WorldPoint& p)
-    {
-        return ::MakeFloat4((ElVisFloat)p.x(), (ElVisFloat)p.y(), (ElVisFloat)p.z(), 1.0);
-    }
+  ElVisFloat4 MakeFloat4(const WorldPoint& p)
+  {
+    return ::MakeFloat4(
+      (ElVisFloat)p.x(), (ElVisFloat)p.y(), (ElVisFloat)p.z(), 1.0);
+  }
 
-    ElVisFloat4 MakeFloat4(const WorldVector& v)
-    {
-        return ::MakeFloat4((ElVisFloat)v.x(), (ElVisFloat)v.y(), (ElVisFloat)v.z(), 0.0);
-    }
+  ElVisFloat4 MakeFloat4(const WorldVector& v)
+  {
+    return ::MakeFloat4(
+      (ElVisFloat)v.x(), (ElVisFloat)v.y(), (ElVisFloat)v.z(), 0.0);
+  }
 
-	void Min(WorldPoint& lhs, const WorldPoint& rhs)
+  void Min(WorldPoint& lhs, const WorldPoint& rhs)
+  {
+    for (int i = 0; i < 3; ++i)
     {
-        for(int i = 0; i < 3; ++i)
-        {
-            if( rhs[i] < lhs[i] )
-            {
-                lhs.SetValue(i, rhs[i]);
-            }
-        }
+      if (rhs[i] < lhs[i])
+      {
+        lhs.SetValue(i, rhs[i]);
+      }
     }
+  }
 
-    void Max(WorldPoint& lhs, const WorldPoint& rhs)
+  void Max(WorldPoint& lhs, const WorldPoint& rhs)
+  {
+    for (int i = 0; i < 3; ++i)
     {
-        for(int i = 0; i < 3; ++i)
-        {
-            if( rhs[i] > lhs[i] )
-            {
-                lhs.SetValue(i, rhs[i]);
-            }
-        }
+      if (rhs[i] > lhs[i])
+      {
+        lhs.SetValue(i, rhs[i]);
+      }
     }
-
+  }
 }

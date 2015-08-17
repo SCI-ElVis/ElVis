@@ -29,37 +29,47 @@
 #ifndef ELVIS_CORE_FACE_INTERSECTION_CU
 #define ELVIS_CORE_FACE_INTERSECTION_CU
 
-__device__ VolumeRenderingPayload FindNextFaceIntersection(const ElVisFloat3& origin, 
-           const ElVisFloat3& rayDirection)
+__device__ VolumeRenderingPayload
+FindNextFaceIntersection(const ElVisFloat3& origin,
+                         const ElVisFloat3& rayDirection,
+                         const ElVisFloat tmin)
 {
   VolumeRenderingPayload payload;
   payload.Initialize();
 
-  optix::Ray ray = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, RT_DEFAULT_MAX);
+  optix::Ray ray =
+    optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2,
+                    tmin, RT_DEFAULT_MAX);
 
-  // do linear faces first, since they are fast.  Intersections with linear 
+  // do linear faces first, since they are fast.  Intersections with linear
   // faces may help weed out bad curved matches.
-  //ELVIS_PRINTF("FindNextFaceIntersection: Planar faces.\n");
+  // ELVIS_PRINTF("FindNextFaceIntersection: Planar faces.\n");
   rtTrace(PlanarFaceGroup, ray, payload);
-  //ELVIS_PRINTF("FindNextFaceIntersection (Planar): Found %d Face Id %d T %f\n", payload.FoundIntersection, payload.FaceId.Value, payload.IntersectionT);
-  optix::Ray curvedRay = optix::make_Ray(ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, 1e-3, payload.FoundIntersection ? payload.IntersectionT : RT_DEFAULT_MAX);
+  // ELVIS_PRINTF("FindNextFaceIntersection (Planar): Found %d Face Id %d T
+  // %f\n", payload.FoundIntersection, payload.FaceId.Value,
+  // payload.IntersectionT);
+  optix::Ray curvedRay = optix::make_Ray(
+    ConvertToFloat3(origin), ConvertToFloat3(rayDirection), 2, tmin,
+    payload.FoundIntersection ? payload.IntersectionT : RT_DEFAULT_MAX);
   rtTrace(CurvedFaceGroup, curvedRay, payload);
-  //ELVIS_PRINTF("FindNextFaceIntersection (Curved): Found %d Face Id %d T %f\n", payload.FoundIntersection, payload.FaceId.Value, payload.IntersectionT);
+  // ELVIS_PRINTF("FindNextFaceIntersection (Curved): Found %d Face Id %d T
+  // %f\n", payload.FoundIntersection, payload.FaceId.Value,
+  // payload.IntersectionT);
 
   return payload;
 }
 
 __device__ void FaceBoundingBox(int globalFaceIdx, float result[6])
 {
-    optix::Aabb* aabb = (optix::Aabb*)result;
+  optix::Aabb* aabb = (optix::Aabb*)result;
 
-    ElVisFloat3 p0 = FaceInfoBuffer[globalFaceIdx].MinExtent;
-    ElVisFloat3 p1 = FaceInfoBuffer[globalFaceIdx].MaxExtent;
+  ElVisFloat3 p0 = FaceInfoBuffer[globalFaceIdx].MinExtent;
+  ElVisFloat3 p1 = FaceInfoBuffer[globalFaceIdx].MaxExtent;
 
-    //rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n",
-    //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
-    aabb->m_min = make_float3(p0.x, p0.y, p0.z);
-    aabb->m_max = make_float3(p1.x, p1.y, p1.z);
+  // rtPrintf("FaceBoundingBoxProgram: (%f, %f, %f) - (%f, %f, %f)\n",
+  //  p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
+  aabb->m_min = make_float3(p0.x, p0.y, p0.z);
+  aabb->m_max = make_float3(p1.x, p1.y, p1.z);
 }
 
 RT_PROGRAM void PlanarFaceBoundingBoxProgram(int primitiveId, float result[6])

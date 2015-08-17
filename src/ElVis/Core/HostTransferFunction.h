@@ -37,56 +37,60 @@
 
 namespace ElVis
 {
-    struct Breakpoint
+  struct Breakpoint
+  {
+    ElVis::Color Col;
+    ElVisFloat Density;
+    ElVisFloat Scalar;
+  };
+
+  class HostTransferFunction
+  {
+  public:
+    ELVIS_EXPORT HostTransferFunction();
+    ELVIS_EXPORT TransferFunction GetOptixObject();
+
+    ELVIS_EXPORT void SetBreakpoint(double s, const Color& c);
+    ELVIS_EXPORT void SetBreakpoint(double s,
+                                    const Color& c,
+                                    const ElVisFloat& density);
+
+    ELVIS_EXPORT bool IsValid() const { return m_breakpoints.size() >= 2; }
+
+    ELVIS_EXPORT const std::map<double, Breakpoint>& GetBreakpoints() const
     {
-        ElVis::Color Col;
-        ElVisFloat Density;
-        ElVisFloat Scalar;
-    };
-    
-    class HostTransferFunction
-    {
-        public:
-            ELVIS_EXPORT HostTransferFunction();
-            ELVIS_EXPORT TransferFunction GetOptixObject();
+      return m_breakpoints;
+    }
 
-            ELVIS_EXPORT void SetBreakpoint(double s, const Color& c);
-            ELVIS_EXPORT void SetBreakpoint(double s, const Color& c, const ElVisFloat& density);
+    ELVIS_EXPORT void Clear();
 
-            ELVIS_EXPORT bool IsValid() const
-            {
-                return m_breakpoints.size() >= 2;
-            }
+    ELVIS_EXPORT void CopyToOptix(optixu::Context context,
+                                  OptiXBuffer<ElVisFloat>& buffer,
+                                  OptiXBuffer<ElVisFloat>& values,
+                                  TransferFunctionChannel channel);
 
-            ELVIS_EXPORT const std::map<double, Breakpoint>& GetBreakpoints() const { return m_breakpoints; }
+    boost::signals2::signal<void(void)> OnTransferFunctionChanged;
 
-            ELVIS_EXPORT void Clear();
+    bool& Dirty() { return m_dirty; }
 
-            ELVIS_EXPORT void CopyToOptix(optixu::Context context, OptiXBuffer<ElVisFloat>& buffer, OptiXBuffer<ElVisFloat>& values, TransferFunctionChannel channel);
+  protected:
+  private:
+    HostTransferFunction(const HostTransferFunction&);
+    HostTransferFunction& operator=(const HostTransferFunction&);
 
-            boost::signals2::signal<void (void)> OnTransferFunctionChanged;
+    void UpdateBreakpoints(std::map<double, double>& container);
 
-            bool& Dirty() { return m_dirty; }
+    void SynchronizeDeviceIfNeeded();
+    void SynchronizeOptiXIfNeeded();
+    void FreeDeviceMemory();
+    void AllocateDeviceMemory();
+    void CopyToDeviceMemory();
 
-        protected:
+    std::map<double, Breakpoint> m_breakpoints;
 
-        private:
-            HostTransferFunction(const HostTransferFunction&);
-            HostTransferFunction& operator=(const HostTransferFunction&);
-
-            void UpdateBreakpoints(std::map<double, double>& container);
-
-            void SynchronizeDeviceIfNeeded();
-            void SynchronizeOptiXIfNeeded();
-            void FreeDeviceMemory();
-            void AllocateDeviceMemory();
-            void CopyToDeviceMemory();
-
-            std::map<double, Breakpoint> m_breakpoints;
-
-            TransferFunction m_localDeviceTransferFunction;
-            bool m_dirty;
-    };
+    TransferFunction m_localDeviceTransferFunction;
+    bool m_dirty;
+  };
 }
 
 #endif

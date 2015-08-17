@@ -1,3 +1,5 @@
+INCLUDE( CMake/SetCompiler.cmake )
+
 IF( APPLE )
   CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
 ELSE()
@@ -13,6 +15,10 @@ cmake_policy(VERSION 2.6)
 IF ( APPLE )
     SET(CMAKE_CXX_COMPILER clang++)
     SET(CMAKE_C_COMPILER clang)
+    SET(CUDA_HOST_COMPILER clang)
+    SET(Boost_NO_BOOST_CMAKE ON CACHE INTERNAL "Defaults to ON so ElVis' included Boost is used rather than installed version.")
+    SET(Boost_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/Externals/boost CACHE PATH "Path to ElVis boost includes")
+    SET(Boost_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/Externals/boost/libs CACHE PATH "Path to ElVis boost libs")
 ENDIF ()
 
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -254,7 +260,7 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/../ColorMaps/Grayscale.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/BlueToYellow.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/BlackBody.xml
               ${CMAKE_SOURCE_DIR}/../ColorMaps/Rainbow.xml
-              ${CMAKE_SOURCE_DIR}/../ColorMaps/diverging257.cmap
+              ${CMAKE_SOURCE_DIR}/../ColorMaps/diverging.xml
               DESTINATION ${ELVIS_COLOR_MAP_DIR})
 
 IF(WIN32)

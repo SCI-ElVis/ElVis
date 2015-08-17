@@ -42,103 +42,98 @@ using std::endl;
 namespace ElVis
 {
 
-    UnableToLoadDynamicLibException::UnableToLoadDynamicLibException(const std::string& error) :
-        std::runtime_error(error)
+  UnableToLoadDynamicLibException::UnableToLoadDynamicLibException(
+    const std::string& error)
+    : std::runtime_error(error)
+  {
+  }
+
+  DynamicLib::DynamicLib(const boost::filesystem::path& path)
+    : m_libraryName(path), m_handle(0)
+  {
+
+    std::string actualDllName(path.string());
+    boost::filesystem::path realPath(actualDllName);
+
+    boost::filesystem::path currentDirectory(boost::filesystem::initial_path());
+    std::string fullPath =
+      boost::filesystem::system_complete(realPath).string();
+
+#ifdef WIN32
+
+    // First, try to get the handle without loading the library.
+    // If we can get a handle then it is already loaded.
+    HMODULE mod = GetModuleHandle(fullPath.c_str());
+    if (mod)
     {
+      m_handle = mod;
+      return;
     }
 
-
-    DynamicLib::DynamicLib(const boost::filesystem::path& path) :
-        m_libraryName(path), 
-        m_handle(0)
+    m_handle = LoadLibrary(fullPath.c_str());
+    if (!m_handle)
     {
+      std::stringstream str;
+      str << "ERROR loading dll " << fullPath << " ";
+      switch (GetLastError())
+      {
+        case ERROR_MOD_NOT_FOUND:
+          str << "The specified DLL could not be found ";
+          str << "(" << (long)ERROR_MOD_NOT_FOUND << ").";
+          str << "A common reason for this is if the plugin has an implicit ";
+          str << "DLL requirement that can't be found.";
+          break;
 
-        std::string actualDllName(path.string());
-        boost::filesystem::path realPath(actualDllName);
+        case ERROR_INVALID_MODULETYPE:
+          str << "The operating system cannot run the specified module ";
+          str << "(" << (long)ERROR_INVALID_MODULETYPE << ").";
+          break;
 
-        boost::filesystem::path currentDirectory(boost::filesystem::initial_path());
-        std::string fullPath = boost::filesystem::system_complete(realPath).string();
+        case ERROR_TOO_MANY_MODULES:
+          str << "Too many dynamic-link modules are attached to this program "
+                 "or dynamic-link module ";
+          str << "(" << (long)ERROR_TOO_MANY_MODULES << ").";
+          break;
 
-        #ifdef WIN32
+        case ERROR_DLL_INIT_FAILED:
+          str << "Dynamic link library (DLL) initialization routine failed ";
+          str << "(" << (long)ERROR_DLL_INIT_FAILED << ").";
+          break;
 
-            // First, try to get the handle without loading the library.
-            // If we can get a handle then it is already loaded.
-            HMODULE mod = GetModuleHandle(fullPath.c_str());
-            if( mod )
-            {
-                m_handle = mod;
-                return;
-            }
+        case ERROR_DLL_NOT_FOUND:
+          str << "The library file cannot be found ";
+          str << "(" << (long)ERROR_DLL_NOT_FOUND << ").";
+          break;
 
-            m_handle = LoadLibrary(fullPath.c_str());
-            if( !m_handle )
-            {
-                std::stringstream str;
-                str << "ERROR loading dll " << fullPath << " ";
-                switch(GetLastError())
-                {
-                    case ERROR_MOD_NOT_FOUND:
-                        str << "The specified DLL could not be found ";
-                        str << "(" << (long)ERROR_MOD_NOT_FOUND << ").";
-                        str << "A common reason for this is if the plugin has an implicit ";
-                        str << "DLL requirement that can't be found.";
-                        break;
+        case ERROR_INVALID_DLL:
+          str << "The library file is damaged ";
+          str << "(" << (long)ERROR_INVALID_DLL << ").";
+          break;
 
-                    case ERROR_INVALID_MODULETYPE:
-                        str << "The operating system cannot run the specified module ";
-                        str << "(" << (long)ERROR_INVALID_MODULETYPE << ").";
-                        break;
-
-                    case ERROR_TOO_MANY_MODULES:
-                        str << "Too many dynamic-link modules are attached to this program or dynamic-link module ";
-                        str << "(" << (long)ERROR_TOO_MANY_MODULES << ").";
-                        break;
-
-                    case ERROR_DLL_INIT_FAILED:
-                        str << "Dynamic link library (DLL) initialization routine failed ";
-                        str << "(" << (long)ERROR_DLL_INIT_FAILED << ").";
-                        break;
-
-                    case ERROR_DLL_NOT_FOUND:
-                        str << "The library file cannot be found ";
-                        str << "(" << (long)ERROR_DLL_NOT_FOUND << ").";
-                        break;
-
-                    case ERROR_INVALID_DLL:
-                        str << "The library file is damaged ";
-                        str << "(" << (long)ERROR_INVALID_DLL << ").";
-                        break;
-
-                    default:
-                       str << "\tERROR NUMBER = " << GetLastError();
-                        break;
-                }
-                throw UnableToLoadDynamicLibException(str.str());
-            }
-        #else
-
-            m_handle = dlopen(actualDllName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-            if( !m_handle )
-            {
-                char* error = dlerror();
-                std::string strError(error);
-                throw UnableToLoadDynamicLibException(strError);
-            }
-        #endif
-
+        default:
+          str << "\tERROR NUMBER = " << GetLastError();
+          break;
+      }
+      throw UnableToLoadDynamicLibException(str.str());
     }
+#else
 
-    DynamicLib::~DynamicLib()
+    m_handle = dlopen(actualDllName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+    if (!m_handle)
     {
-        #ifdef WIN32
-            FreeLibrary((HMODULE)m_handle);
-        #else
-            dlclose(m_handle);
-        #endif
+      char* error = dlerror();
+      std::string strError(error);
+      throw UnableToLoadDynamicLibException(strError);
     }
+#endif
+  }
 
-
-
+  DynamicLib::~DynamicLib()
+  {
+#ifdef WIN32
+    FreeLibrary((HMODULE)m_handle);
+#else
+    dlclose(m_handle);
+#endif
+  }
 }
-
-

@@ -35,108 +35,120 @@
 namespace ElVis
 {
 
-    Triangle::Triangle() :
-        Object()
+  Triangle::Triangle() : Object() {}
+
+  //    Triangle::Triangle(const Triangle& rhs) :
+  //        Object(rhs)
+  //    {
+  //    }
+
+  optixu::Geometry Triangle::DoCreateOptiXGeometry(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    optixu::Geometry result = context->createGeometry();
+    result->setPrimitiveCount(1u);
+
+    result->setBoundingBoxProgram(PtxManager::LoadProgram(
+      context, view->GetPTXPrefix(), "triangle_bounding"));
+    result->setIntersectionProgram(PtxManager::LoadProgram(
+      context, view->GetPTXPrefix(), "triangle_intersect"));
+    return result;
+  }
+
+  optixu::Material Triangle::DoCreateMaterial(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    m_material = context->createMaterial();
+    // This material and ray type 0 uses the cut surface closest hit program.
+    optixu::Program closestHit = PtxManager::LoadProgram(
+      context, view->GetPTXPrefix(), "TriangleClosestHit");
+    m_material->setClosestHitProgram(0, closestHit);
+    // m_material["ObjectLightingType"]->setInt(static_cast<int>(GetLightingType()));
+    return m_material;
+  }
+
+  void Triangle::DoCreateNode(SceneView* view,
+                              optixu::Transform& transform,
+                              optixu::GeometryGroup& group)
+  {
+    optixu::Context context = view->GetContext();
+    if (m_group.get())
     {
+      group = m_group;
+      return;
     }
 
-//    Triangle::Triangle(const Triangle& rhs) :
-//        Object(rhs)
-//    {
-//    }
+    group = context->createGeometryGroup();
+    group->setAcceleration(context->createAcceleration("NoAccel", "NoAccel"));
 
+    group->setChildCount(1);
+    optixu::GeometryInstance instance = context->createGeometryInstance();
+    optixu::Geometry geom = CreateOptiXGeometry(view);
+    instance->setGeometry(geom);
 
-    optixu::Geometry Triangle::DoCreateOptiXGeometry(SceneView* view)
+    SetFloat(instance["TriangleVertex0"], static_cast<ElVisFloat>(m_p0.x()),
+             static_cast<ElVisFloat>(m_p0.y()),
+             static_cast<ElVisFloat>(m_p0.z()));
+    SetFloat(instance["TriangleVertex1"], static_cast<ElVisFloat>(m_p1.x()),
+             static_cast<ElVisFloat>(m_p1.y()),
+             static_cast<ElVisFloat>(m_p1.z()));
+    SetFloat(instance["TriangleVertex2"], static_cast<ElVisFloat>(m_p2.x()),
+             static_cast<ElVisFloat>(m_p2.y()),
+             static_cast<ElVisFloat>(m_p2.z()));
+    instance["s0"]->setFloat(m_scalar0);
+    instance["s1"]->setFloat(m_scalar1);
+    instance["s2"]->setFloat(m_scalar2);
+    group->setChild(0, instance);
+
+    m_group = group;
+    m_instance = instance;
+  }
+
+  void Triangle::SetP0(const WorldPoint& value)
+  {
+    m_p0 = value;
+    if (m_instance.get())
     {
-        optixu::Context context = view->GetContext();
-        optixu::Geometry result = context->createGeometry();
-        result->setPrimitiveCount(1u);
-
-        result->setBoundingBoxProgram( PtxManager::LoadProgram(context, view->GetPTXPrefix(), "triangle_bounding") );
-        result->setIntersectionProgram( PtxManager::LoadProgram(context, view->GetPTXPrefix(), "triangle_intersect") );
-        return result;
+      SetFloat(m_instance["p0"], static_cast<ElVisFloat>(m_p0.x()),
+               static_cast<ElVisFloat>(m_p0.y()),
+               static_cast<ElVisFloat>(m_p0.z()));
     }
-
-    optixu::Material Triangle::DoCreateMaterial(SceneView* view)
+  }
+  void Triangle::SetP1(const WorldPoint& value)
+  {
+    m_p1 = value;
+    if (m_instance.get())
     {
-        optixu::Context context = view->GetContext();
-        m_material = context->createMaterial();
-        // This material and ray type 0 uses the cut surface closest hit program.
-        optixu::Program closestHit = PtxManager::LoadProgram(context, view->GetPTXPrefix(), "TriangleClosestHit");
-        m_material->setClosestHitProgram(0, closestHit);
-        //m_material["ObjectLightingType"]->setInt(static_cast<int>(GetLightingType()));
-        return m_material;
+      SetFloat(m_instance["p1"], static_cast<ElVisFloat>(m_p1.x()),
+               static_cast<ElVisFloat>(m_p1.y()),
+               static_cast<ElVisFloat>(m_p1.z()));
     }
-
-    void Triangle::DoCreateNode(SceneView* view, 
-                optixu::Transform& transform, optixu::GeometryGroup& group)
+  }
+  void Triangle::SetP2(const WorldPoint& value)
+  {
+    m_p2 = value;
+    if (m_instance.get())
     {
-        optixu::Context context = view->GetContext();
-        if( m_group.get() )
-        {
-            group = m_group;
-            return;
-        }
-        
-        group = context->createGeometryGroup();
-        group->setAcceleration( context->createAcceleration("NoAccel","NoAccel") );
+      SetFloat(m_instance["p2"], static_cast<ElVisFloat>(m_p2.x()),
+               static_cast<ElVisFloat>(m_p2.y()),
+               static_cast<ElVisFloat>(m_p2.z()));
+    }
+  }
 
-        group->setChildCount(1);
-        optixu::GeometryInstance instance = context->createGeometryInstance();
-        optixu::Geometry geom = CreateOptiXGeometry(view);
-        instance->setGeometry(geom);
+  void Triangle::SetPoints(const WorldPoint& p0,
+                           const WorldPoint& p1,
+                           const WorldPoint& p2)
+  {
+    SetP0(p0);
+    SetP1(p1);
+    SetP2(p2);
+  }
 
-        SetFloat(instance["TriangleVertex0"], static_cast<ElVisFloat>(m_p0.x()), static_cast<ElVisFloat>(m_p0.y()), static_cast<ElVisFloat>(m_p0.z()));
-        SetFloat(instance["TriangleVertex1"], static_cast<ElVisFloat>(m_p1.x()), static_cast<ElVisFloat>(m_p1.y()), static_cast<ElVisFloat>(m_p1.z()));
-        SetFloat(instance["TriangleVertex2"], static_cast<ElVisFloat>(m_p2.x()), static_cast<ElVisFloat>(m_p2.y()), static_cast<ElVisFloat>(m_p2.z()));
-        instance["s0"]->setFloat(m_scalar0);
-        instance["s1"]->setFloat(m_scalar1);
-        instance["s2"]->setFloat(m_scalar2);
-        group->setChild(0, instance);
-
-        m_group = group;
-        m_instance = instance;
-    }
-    
-    void Triangle::SetP0(const WorldPoint& value) 
-    { 
-        m_p0 = value; 
-        if( m_instance.get() )
-        {
-            SetFloat(m_instance["p0"], static_cast<ElVisFloat>(m_p0.x()), static_cast<ElVisFloat>(m_p0.y()), static_cast<ElVisFloat>(m_p0.z()));
-        }
-    }
-    void Triangle::SetP1(const WorldPoint& value) 
-    { 
-        m_p1 = value; 
-        if( m_instance.get() )
-        {
-            SetFloat(m_instance["p1"], static_cast<ElVisFloat>(m_p1.x()), static_cast<ElVisFloat>(m_p1.y()), static_cast<ElVisFloat>(m_p1.z()));
-        }
-    }
-    void Triangle::SetP2(const WorldPoint& value) 
-    { 
-        m_p2 = value; 
-        if( m_instance.get() )
-        {
-            SetFloat(m_instance["p2"], static_cast<ElVisFloat>(m_p2.x()), static_cast<ElVisFloat>(m_p2.y()), static_cast<ElVisFloat>(m_p2.z()));
-        }
-    }
-
-    void Triangle::SetPoints(const WorldPoint& p0, const WorldPoint& p1, const WorldPoint& p2) 
-    {
-        SetP0(p0);
-        SetP1(p1);
-        SetP2(p2);
-    }
-
-    std::ostream& operator<<(std::ostream& os, const Triangle& tri)
-    {
-        os << "P0: " << tri.GetP0() << std::endl;
-        os << "P1: " << tri.GetP1() << std::endl;
-        os << "P2: " << tri.GetP2() << std::endl;
-        return os;
-    }
+  std::ostream& operator<<(std::ostream& os, const Triangle& tri)
+  {
+    os << "P0: " << tri.GetP0() << std::endl;
+    os << "P1: " << tri.GetP1() << std::endl;
+    os << "P2: " << tri.GetP2() << std::endl;
+    return os;
+  }
 }
-
-

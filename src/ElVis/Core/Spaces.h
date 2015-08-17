@@ -31,29 +31,36 @@
 
 namespace ElVis
 {
-    struct DefaultSpace {};
-    struct WorldSpace {};
-    struct ReferenceSpace {};
-    struct TensorSpace {};
-    
-    struct OneD
-    {
-        static const unsigned int Value = 1;
-    };
-    struct TwoD
-    {
-        static const unsigned int Value = 2;
-    };
-    struct ThreeD
-    {
-        static const unsigned int Value = 3;
-    };
+  struct DefaultSpace
+  {
+  };
+  struct WorldSpace
+  {
+  };
+  struct ReferenceSpace
+  {
+  };
+  struct TensorSpace
+  {
+  };
 
-    struct FourD
-    {
-        static const unsigned int Value = 4;
-    };
-    
+  struct OneD
+  {
+    static const unsigned int Value = 1;
+  };
+  struct TwoD
+  {
+    static const unsigned int Value = 2;
+  };
+  struct ThreeD
+  {
+    static const unsigned int Value = 3;
+  };
+
+  struct FourD
+  {
+    static const unsigned int Value = 4;
+  };
 }
 
 #endif // SPACES_H

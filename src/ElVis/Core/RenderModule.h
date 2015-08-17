@@ -31,87 +31,111 @@
 
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <boost/signals2.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/split_member.hpp>
 #include <bitset>
-
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 namespace ElVis
 {
-    class SceneView;
+  class SceneView;
 
-    enum RenderModuleFlags
+  enum RenderModuleFlags
+  {
+    eNoChangesNecessary,
+
+    // The module should be rendered, all setup and
+    // syncing with the GPU has alrady been done.
+    eRenderRequired,
+
+    // The module needs to be initialized.
+    eSetupRequired,
+
+    // some local data has been updated but not synchronized
+    // with the GPU.
+    eSyncRequired,
+
+    eRenderSetupAndSyncRequired,
+
+    eNumRenderModuleFlags
+  };
+
+  class RenderModule
+  {
+  public:
+    friend class boost::serialization::access;
+
+  public:
+    ELVIS_EXPORT explicit RenderModule();
+    ELVIS_EXPORT virtual ~RenderModule() {}
+
+    /// \brief Prepares the module for rendering.  This method is only
+    /// called once and is always called before Render is called.
+    ELVIS_EXPORT void Setup(SceneView* view);
+    ELVIS_EXPORT void Synchronize(SceneView* view);
+    ELVIS_EXPORT void Render(SceneView* view);
+
+    ELVIS_EXPORT void Resize(unsigned int newWidth, unsigned int newHeight);
+
+    ELVIS_EXPORT int GetNumberOfRequiredEntryPoints()
     {
-        eNoChangesNecessary,
+      return DoGetNumberOfRequiredEntryPoints();
+    }
 
-        // The module should be rendered, all setup and
-        // syncing with the GPU has alrady been done.
-        eRenderRequired,
+    ELVIS_EXPORT bool GetEnabled() const { return m_enabled; }
+    ELVIS_EXPORT void SetEnabled(bool value);
+    ELVIS_EXPORT std::string GetName() const { return DoGetName(); }
 
-        // The module needs to be initialized.
-        eSetupRequired,
+    // Handlers
+    ELVIS_EXPORT void SetSyncAndRenderRequired();
+    ELVIS_EXPORT void SetRenderRequired();
+    ELVIS_EXPORT bool GetRenderRequired() const;
+    // Signals
+    boost::signals2::signal<void(const RenderModule&)> OnModuleChanged;
+    boost::signals2::signal<void(const RenderModule&, bool)> OnEnabledChanged;
+    boost::signals2::signal<void(
+      const RenderModule&, const std::bitset<eNumRenderModuleFlags>&)>
+      OnRenderFlagsChanged;
 
-        // some local data has been updated but not synchronized
-        // with the GPU.
-        eSyncRequired,
+  protected:
+    virtual void DoSetup(SceneView* view) = 0;
+    virtual void DoSynchronize(SceneView* view);
+    virtual void DoRender(SceneView* view) = 0;
 
-        eRenderSetupAndSyncRequired,
+    virtual void DoUpdateBeforeRender(SceneView* view) {}
 
-        eNumRenderModuleFlags
-    };
+    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const {}
+    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) {}
 
-    class RenderModule
-    {
-        public:
-            ELVIS_EXPORT explicit RenderModule();
-            ELVIS_EXPORT virtual ~RenderModule() {}
+    virtual int DoGetNumberOfRequiredEntryPoints() = 0;
+    virtual std::string DoGetName() const = 0;
 
-            /// \brief Prepares the module for rendering.  This method is only 
-            /// called once and is always called before Render is called.
-            ELVIS_EXPORT void Setup(SceneView* view);
-            ELVIS_EXPORT void Synchronize(SceneView* view);
-            ELVIS_EXPORT void Render(SceneView* view);
+    virtual void DoResize(unsigned int newWidth, unsigned int newHeight);
 
+  private:
+    /// \brief Serializes this to an archive.
+    /// \param ar The serialization destination.
+    template <typename Archive>
+    void save(Archive& ar, const unsigned int version) const;
 
-            ELVIS_EXPORT void Resize(unsigned int newWidth, unsigned int newHeight);
-            
-            ELVIS_EXPORT int GetNumberOfRequiredEntryPoints()
-            {
-                return DoGetNumberOfRequiredEntryPoints();
-            }
+    /// \brief Deserializes this from an archive.
+    /// \param ar The serialization source.
+    template <typename Archive>
+    void load(Archive& ar, const unsigned int version);
 
-            ELVIS_EXPORT bool GetEnabled() const { return m_enabled; }
-            ELVIS_EXPORT void SetEnabled(bool value);
-            ELVIS_EXPORT std::string GetName() const { return DoGetName(); }
+    /// This macro is required to support the save/load interface above.
+    /// Without it, serialization and deserialization are performed by
+    /// the same function.
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
-            // Handlers
-            ELVIS_EXPORT void SetSyncAndRenderRequired();
-            ELVIS_EXPORT void SetRenderRequired();
-            ELVIS_EXPORT bool GetRenderRequired() const;
-            // Signals
-            boost::signals2::signal<void (const RenderModule&)> OnModuleChanged;
-            boost::signals2::signal<void (const RenderModule&, bool)> OnEnabledChanged;
-            boost::signals2::signal<void (const RenderModule&, const std::bitset<eNumRenderModuleFlags>& )> OnRenderFlagsChanged;
+    RenderModule& operator=(const RenderModule& rhs);
+    RenderModule(const RenderModule& rhs);
 
-        protected:
-            virtual void DoSetup(SceneView* view) = 0;
-            virtual void DoSynchronize(SceneView* view);
-            virtual void DoRender(SceneView* view) = 0;
-
-            virtual void DoUpdateBeforeRender(SceneView* view) {}
-
-            virtual int DoGetNumberOfRequiredEntryPoints() = 0;
-            virtual std::string DoGetName() const = 0;
-
-            virtual void DoResize(unsigned int newWidth, unsigned int newHeight);
-
-
-
-        private:
-            RenderModule& operator=(const RenderModule& rhs);
-            RenderModule(const RenderModule& rhs);
-
-            std::bitset<eNumRenderModuleFlags> m_flags;
-            bool m_enabled;
-    };
+    std::bitset<eNumRenderModuleFlags> m_flags;
+    bool m_enabled;
+  };
 }
 
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(ElVis::RenderModule)
 
-#endif //ELVIS_RENDER_MODULE_H
+#endif // ELVIS_RENDER_MODULE_H

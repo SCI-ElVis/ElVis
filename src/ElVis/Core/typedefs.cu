@@ -31,12 +31,11 @@
 
 #include <ElVis/Core/Float.cu>
 
-// When dealing with points, it is useful to label them based on what space they 
+// When dealing with points, it is useful to label them based on what space they
 // are in, even though the compiler does not enforce consistency.
 
 typedef ElVisFloat3 WorldPoint;
 typedef ElVisFloat3 ReferencePoint;
 typedef ElVisFloat2 FaceReferencePoint;
 
-
-#endif //ELVIS_TYPEDEFS_CU
+#endif // ELVIS_TYPEDEFS_CU

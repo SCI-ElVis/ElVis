@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVISNATIVE_TWOD_PRIMARY_ELEMENTS_PRIMARY_OBJECT_H
 #define ELVISNATIVE_TWOD_PRIMARY_ELEMENTS_PRIMARY_OBJECT_H
 
@@ -39,20 +38,23 @@
 
 namespace ElVis
 {
-    class TwoDPrimaryElementsPrimaryObject : public PrimaryRayObject
-    {
-        public:
-            ELVIS_EXPORT TwoDPrimaryElementsPrimaryObject();
-            ELVIS_EXPORT explicit TwoDPrimaryElementsPrimaryObject(boost::shared_ptr<TwoDPrimaryElements> obj);
-            ELVIS_EXPORT virtual ~TwoDPrimaryElementsPrimaryObject() {}
+  class TwoDPrimaryElementsPrimaryObject : public PrimaryRayObject
+  {
+  public:
+    ELVIS_EXPORT TwoDPrimaryElementsPrimaryObject();
+    ELVIS_EXPORT explicit TwoDPrimaryElementsPrimaryObject(
+      boost::shared_ptr<TwoDPrimaryElements> obj);
+    ELVIS_EXPORT virtual ~TwoDPrimaryElementsPrimaryObject() {}
 
-        protected:
-            virtual optixu::Material GetMaterial(SceneView* view);
+  protected:
+    virtual optixu::Material GetMaterial(SceneView* view);
 
-        private:
-            TwoDPrimaryElementsPrimaryObject& operator=(const TwoDPrimaryElementsPrimaryObject& rhs);
-            ELVIS_EXPORT TwoDPrimaryElementsPrimaryObject(const TwoDPrimaryElementsPrimaryObject& rhs);
-    };
+  private:
+    TwoDPrimaryElementsPrimaryObject& operator=(
+      const TwoDPrimaryElementsPrimaryObject& rhs);
+    ELVIS_EXPORT TwoDPrimaryElementsPrimaryObject(
+      const TwoDPrimaryElementsPrimaryObject& rhs);
+  };
 }
 
 #endif

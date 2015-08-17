@@ -9,7 +9,7 @@ FIND_PACKAGE(LEDA)
 FIND_PACKAGE( LAPACK REQUIRED )
 
 IF(PROJECTX_FOUND)
-  INCLUDE_DIRECTORIES( ${PROJECTX_INCLUDE_DIR} ${PROJECTX_INCLUDE_DIR}/Fundamentals ${PROJECTX_INCLUDE_DIR}/Reference ${PROJECTX_INCLUDE_DIR}/Grid ${PROJECTX_INCLUDE_DIR}/Grid/CutCell3D ${PROJECTX_INCLUDE_DIR}/Compressible ${LEDA_INCLUDE_DIR})
+  INCLUDE_DIRECTORIES( ${PROJECTX_INCLUDE_DIR} ${PROJECTX_INCLUDE_DIR}/Fundamentals ${PROJECTX_INCLUDE_DIR}/Reference ${PROJECTX_INCLUDE_DIR}/Grid ${PROJECTX_INCLUDE_DIR}/Grid/CutCell3D ${PROJECTX_INCLUDE_DIR}/Compressible )
 ENDIF(PROJECTX_FOUND)
 
 ADD_DEFINITIONS(-DELVIS_USE_PROJECTX)
@@ -25,9 +25,6 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ExtensionPTXConfig.h.in
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisOptiX.cu.in
                ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisOptiX.cu
                @ONLY)
-#               CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/ElVisCuda.cu.in
-#               ${CMAKE_BINARY_DIR}/ElVis/${ProjectName}/Core/ElVisCuda.cu
-#               @ONLY)
 
 #################################
 # PX Extension Source

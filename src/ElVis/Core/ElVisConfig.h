@@ -34,8 +34,8 @@
 
 namespace ElVis
 {
-    ELVIS_EXPORT const std::string& GetPtxPath();
-    ELVIS_EXPORT const std::string& GetColorMapPath();
+  ELVIS_EXPORT const std::string& GetPtxPath();
+  ELVIS_EXPORT const std::string& GetColorMapPath();
 }
 
-#endif //ELVIS_CONFIG_H
+#endif // ELVIS_CONFIG_H

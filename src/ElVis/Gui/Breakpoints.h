@@ -93,7 +93,7 @@ namespace ElVis
                 QPen m_selectedPointPen;
                 QBrush m_pointBrush;
                 QPen m_connectionPen;
-                boost::shared_ptr<PiecewiseLinearColorMap> m_model;
+                boost::shared_ptr<ColorMap> m_model;
                 ElVis::HostTransferFunction* m_hostTransferFunction;
         };
 

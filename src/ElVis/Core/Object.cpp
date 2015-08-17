@@ -32,20 +32,20 @@
 
 namespace ElVis
 {
-    optixu::Geometry Object::CreateOptiXGeometry(SceneView* view)
-    {
-        return DoCreateOptiXGeometry(view);
-    }
+  optixu::Geometry Object::CreateOptiXGeometry(SceneView* view)
+  {
+    return DoCreateOptiXGeometry(view);
+  }
 
-    optixu::Material Object::CreateMaterial(SceneView* view)
-    {
-        return DoCreateMaterial(view);
-    }
+  optixu::Material Object::CreateMaterial(SceneView* view)
+  {
+    return DoCreateMaterial(view);
+  }
 
-    void Object::CreateNode(SceneView* view, 
-                optixu::Transform& transform, optixu::GeometryGroup& group)
-    {
-        DoCreateNode(view, transform, group);
-    }
-
+  void Object::CreateNode(SceneView* view,
+                          optixu::Transform& transform,
+                          optixu::GeometryGroup& group)
+  {
+    DoCreateNode(view, transform, group);
+  }
 }

@@ -30,39 +30,38 @@
 #define ELVIS_CORE_CUDA_H
 
 #if defined(ELVIS_OPTIX_MODULE)
-    #define ELVIS_DEVICE __device__ __forceinline__
+#define ELVIS_DEVICE __device__ __forceinline__
 #elif defined(__CUDACC__)
-    #define ELVIS_DEVICE __device__
+#define ELVIS_DEVICE __device__
 #else
-    #define ELVIS_DEVICE
+#define ELVIS_DEVICE
 #endif
 
 enum ElVisError
 {
-    // Conversion succeeds.
-    eNoError,
+  // Conversion succeeds.
+  eNoError,
 
-    // Conversion fails because the world point lies outside the element.
-    ePointOutsideElement,
+  // Conversion fails because the world point lies outside the element.
+  ePointOutsideElement,
 
-    eInvalidElementId,
+  eInvalidElementId,
 
-    eInvalidElementType,
+  eInvalidElementType,
 
-    eInvalidFaceId,
+  eInvalidFaceId,
 
-    eFieldNotDefinedOnFace,
+  eFieldNotDefinedOnFace,
 
-    // Other failures.
-    eConvergenceFailure
+  // Other failures.
+  eConvergenceFailure
 };
 
-#define checkElVisError(x) ( \
-{ \
-  ElVisError r = (x); \
-  if( r != eNoError) rtThrow(RT_EXCEPTION_USER + r); \
-})
+#define checkElVisError(x)                                                     \
+  (                                                                            \
+    {                                                                          \
+    ElVisError r = (x);                                                        \
+    if (r != eNoError) rtThrow(RT_EXCEPTION_USER + r);                         \
+    })
 
-#endif //ELVIS_CORE_CUDA_H
-
-
+#endif // ELVIS_CORE_CUDA_H

@@ -37,19 +37,18 @@
 #include <ElVis/Core/Float.cu>
 #include <ElVis/Core/OptixVariables.cu>
 
-
 RT_PROGRAM void SurfaceObjectClosestHit()
 {
-    payload.isValid = true;
+  payload.isValid = true;
 
-    ElVisFloat3 color = MakeFloat3(MAKE_FLOAT(1.0), MAKE_FLOAT(1.0), MAKE_FLOAT(1.0));
-    payload.result = color;
-    payload.Normal = normal;
-    payload.Color = color;
-    payload.IntersectionPoint = MakeFloat3(ray.origin) + closest_t * MakeFloat3(ray.direction);
-    payload.IntersectionT = closest_t;
-
+  ElVisFloat3 color =
+    MakeFloat3(MAKE_FLOAT(1.0), MAKE_FLOAT(1.0), MAKE_FLOAT(1.0));
+  payload.result = color;
+  payload.Normal = normal;
+  payload.Color = color;
+  payload.IntersectionPoint =
+    MakeFloat3(ray.origin) + closest_t * MakeFloat3(ray.direction);
+  payload.IntersectionT = closest_t;
 }
-
 
 #endif

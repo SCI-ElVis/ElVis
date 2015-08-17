@@ -38,163 +38,166 @@
 namespace ElVis
 {
 
-    FaceObject::FaceObject(boost::shared_ptr<Scene> m) :
-        Object(),
-        m_group(0),
-        m_curvedFaceInstance(0),
-        m_planarFaceInstance(0),
-        m_transform(0),
-        m_curvedDeviceFlags(0),
-        m_planarDeviceFlags(0),
-        m_material(0),
-        m_scene(m),
-        m_faceIds(),
-        m_curvedFaceFlags(),
-        m_planarFaceFlags(),
-        m_facesEnabledBuffer()
+  FaceObject::FaceObject(boost::shared_ptr<Scene> m)
+    : Object(),
+      m_group(0),
+      m_curvedFaceInstance(0),
+      m_planarFaceInstance(0),
+      m_transform(0),
+      m_curvedDeviceFlags(0),
+      m_planarDeviceFlags(0),
+      m_material(0),
+      m_scene(m),
+      m_faceIds(),
+      m_curvedFaceFlags(),
+      m_planarFaceFlags(),
+      m_facesEnabledBuffer()
+  {
+    SetupSubscriptions();
+  }
+
+  void FaceObject::SetupSubscriptions() {}
+
+  optixu::Geometry FaceObject::DoCreateOptiXGeometry(SceneView* view)
+  {
+    // TODO - the fact that this should not be called indicates an error in
+    // class structure here.
+    assert(0);
+    return optixu::Geometry();
+  }
+
+  optixu::Material FaceObject::DoCreateMaterial(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    m_material = context->createMaterial();
+    // This material and ray type 0 uses the cut surface closest hit program.
+    //        optixu::Program closestHit = PtxManager::LoadProgram(context,
+    //        view->GetPTXPrefix(), "FaceObjectClosestHit");
+    //        m_material->setClosestHitProgram(0, closestHit);
+    return m_material;
+  }
+
+  void FaceObject::EnableFace(int faceId)
+  {
+    if (m_faceIds.find(faceId) != m_faceIds.end())
     {
-        SetupSubscriptions();
+      return;
+    }
+    m_faceIds.insert(faceId);
+
+    if (!m_facesEnabledBuffer.get())
+    {
+      return;
     }
 
-    void FaceObject::SetupSubscriptions()
+    RTsize bufSize;
+    m_facesEnabledBuffer->getSize(bufSize);
+
+    if (faceId >= (int)bufSize)
     {
+      std::cout << "Face id " << faceId << " is not in range " << bufSize
+                << std::endl;
     }
 
+    unsigned char* data =
+      static_cast<unsigned char*>(m_facesEnabledBuffer->map());
+    data[faceId] = 1;
+    m_facesEnabledBuffer->unmap();
+    m_group->getAcceleration()->markDirty();
+    this->OnObjectChanged(*this);
+  }
 
-    optixu::Geometry FaceObject::DoCreateOptiXGeometry(SceneView* view)
+  void FaceObject::DisableFace(int faceId)
+  {
+    m_faceIds.erase(faceId);
+
+    if (!m_facesEnabledBuffer.get()) return;
+
+    RTsize bufSize;
+    m_facesEnabledBuffer->getSize(bufSize);
+
+    if (faceId >= (int)bufSize)
     {
-        // TODO - the fact that this should not be called indicates an error in
-        // class structure here.
-        assert(0);
-        return optixu::Geometry();
+      std::cout << "Face id " << faceId << " is not in range " << bufSize
+                << std::endl;
     }
 
-    optixu::Material FaceObject::DoCreateMaterial(SceneView* view)
+    unsigned char* data =
+      static_cast<unsigned char*>(m_facesEnabledBuffer->map());
+    data[faceId] = 0;
+    m_facesEnabledBuffer->unmap();
+    m_group->getAcceleration()->markDirty();
+    this->OnObjectChanged(*this);
+  }
+
+  void FaceObject::DoCreateNode(SceneView* view,
+                                optixu::Transform& transform,
+                                optixu::GeometryGroup& group)
+  {
+    optixu::Context context = view->GetContext();
+    if (m_group.get())
     {
-        optixu::Context context = view->GetContext();
-        m_material = context->createMaterial();
-        // This material and ray type 0 uses the cut surface closest hit program.
-//        optixu::Program closestHit = PtxManager::LoadProgram(context, view->GetPTXPrefix(), "FaceObjectClosestHit");
-//        m_material->setClosestHitProgram(0, closestHit);
-        return m_material;
+      group = m_group;
+      return;
     }
 
-    void FaceObject::EnableFace(int faceId)
+    auto model = view->GetScene()->GetModel();
+
+    group = context->createGeometryGroup();
+
+    m_curvedFaceInstance = context->createGeometryInstance();
+    m_planarFaceInstance = context->createGeometryInstance();
+
+    optixu::Geometry curvedGeometry = model->GetPlanarFaceGeometry();
+    optixu::Geometry planarGeometry = model->GetCurvedFaceGeometry();
+
+    m_planarFaceInstance->setGeometry(planarGeometry);
+    m_curvedFaceInstance->setGeometry(curvedGeometry);
+
+    m_group = group;
+
+    group->setChildCount(2);
+    group->setChild(0, m_planarFaceInstance);
+    group->setChild(1, m_curvedFaceInstance);
+
+    // Somehow sharing the acceleration structure didnt' work.  Revisit if
+    // performance indicates.
+    m_group->setAcceleration(context->createAcceleration("Sbvh", "Bvh"));
+    m_facesEnabledBuffer =
+      view->GetScene()->GetModel()->GetFacesEnabledBuffer();
+
+    std::vector<int> temp(m_faceIds.begin(), m_faceIds.end());
+    SetFaces(temp, true);
+  }
+
+  void FaceObject::SetFaces(const std::vector<int>& ids, bool flag)
+  {
+    if (!m_facesEnabledBuffer.get())
     {
-        if( m_faceIds.find(faceId) != m_faceIds.end() )
-        {
-            return;
-        }
-        m_faceIds.insert(faceId);
-
-        if( !m_facesEnabledBuffer.get() )
-        {
-            return;
-        }
-
-        RTsize bufSize;
-        m_facesEnabledBuffer->getSize(bufSize);
-
-        if( faceId >= (int)bufSize )
-        {
-            std::cout << "Face id " << faceId << " is not in range " << bufSize << std::endl;
-        }
-
-        unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
-        data[faceId] = 1;
-        m_facesEnabledBuffer->unmap();
-        m_group->getAcceleration()->markDirty();
-        this->OnObjectChanged(*this);
+      std::cout << "Enable buffer not valid." << std::endl;
+      return;
     }
 
-    void FaceObject::DisableFace(int faceId)
+    RTsize bufSize;
+    m_facesEnabledBuffer->getSize(bufSize);
+    std::cout << "Face buffer size: " << bufSize << std::endl;
+
+    unsigned char* data =
+      static_cast<unsigned char*>(m_facesEnabledBuffer->map());
+    for (std::size_t i = 0; i < ids.size(); ++i)
     {
-        m_faceIds.erase(faceId);
-
-        if( !m_facesEnabledBuffer.get() ) return;
-
-        RTsize bufSize;
-        m_facesEnabledBuffer->getSize(bufSize);
-
-        if( faceId >= (int)bufSize )
-        {
-            std::cout << "Face id " << faceId << " is not in range " << bufSize << std::endl;
-        }
-
-        unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
-        data[faceId] = 0;
-        m_facesEnabledBuffer->unmap();
-        m_group->getAcceleration()->markDirty();
-        this->OnObjectChanged(*this);
+      if (ids[i] < (int)bufSize)
+      {
+        data[ids[i]] = flag;
+      }
+      else
+      {
+        std::cout << "Face id " << ids[i] << " is not in range " << bufSize
+                  << std::endl;
+      }
     }
-
-
-    void FaceObject::DoCreateNode(SceneView* view,
-                optixu::Transform& transform, optixu::GeometryGroup& group)
-    {
-        optixu::Context context = view->GetContext();
-        if( m_group.get() )
-        {
-            group = m_group;
-            return;
-        }
-
-        auto model = view->GetScene()->GetModel();
-
-        group = context->createGeometryGroup();
-
-        m_curvedFaceInstance = context->createGeometryInstance();
-        m_planarFaceInstance = context->createGeometryInstance();
-
-        optixu::Geometry curvedGeometry = model->GetPlanarFaceGeometry();
-        optixu::Geometry planarGeometry = model->GetCurvedFaceGeometry();
-
-        m_planarFaceInstance->setGeometry(planarGeometry);
-        m_curvedFaceInstance->setGeometry(curvedGeometry);
-
-        m_group = group;
-
-        group->setChildCount(2);
-        group->setChild(0, m_planarFaceInstance);
-        group->setChild(1, m_curvedFaceInstance);
-
-        // Somehow sharing the acceleration structure didnt' work.  Revisit if performance indicates.
-        m_group->setAcceleration( context->createAcceleration("Sbvh","Bvh") );
-        m_facesEnabledBuffer = view->GetScene()->GetModel()->GetFacesEnabledBuffer();
-
-        std::vector<int> temp(m_faceIds.begin(), m_faceIds.end());
-        SetFaces(temp, true);
-    }
-
-    void FaceObject::SetFaces(const std::vector<int>& ids, bool flag)
-    {
-        if( !m_facesEnabledBuffer.get() )
-        {
-            std::cout << "Enable buffer not valid." << std::endl;
-            return;
-        }
-
-        RTsize bufSize;
-        m_facesEnabledBuffer->getSize(bufSize);
-        std::cout << "Face buffer size: " << bufSize << std::endl;
-
-        unsigned char* data = static_cast<unsigned char*>(m_facesEnabledBuffer->map());
-        for(std::size_t i = 0; i < ids.size(); ++i)
-        {
-            if( ids[i] < (int)bufSize )
-            {
-                data[ids[i]] = flag;
-            }
-            else
-            {
-                std::cout << "Face id " << ids[i] << " is not in range " << bufSize << std::endl;
-            }
-        }
-        m_facesEnabledBuffer->unmap();
-        m_group->getAcceleration()->markDirty();
-        this->OnObjectChanged(*this);
-    }
-
+    m_facesEnabledBuffer->unmap();
+    m_group->getAcceleration()->markDirty();
+    this->OnObjectChanged(*this);
+  }
 }
-
-

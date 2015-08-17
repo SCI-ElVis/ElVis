@@ -38,51 +38,53 @@
 
 namespace ElVis
 {
-    class SceneView;
-    class Object
+  class SceneView;
+  class Object
+  {
+  public:
+    friend class boost::serialization::access;
+    Object() {}
+
+    virtual ~Object() {}
+
+    ELVIS_EXPORT optixu::Geometry CreateOptiXGeometry(SceneView* view);
+    ELVIS_EXPORT optixu::Material CreateMaterial(SceneView* view);
+
+    // Creates a single branch in the tree for this object.  The return is
+    // anticipated
+    // to be either the group or the transform, and will be added to an
+    // optixu::Group
+    // as a child.
+    ELVIS_EXPORT void CreateNode(SceneView* view,
+                                 optixu::Transform& transform,
+                                 optixu::GeometryGroup& group);
+
+    boost::signals2::signal<void(const Object&)> OnObjectChanged;
+
+  protected:
+    Object(const Object& rhs);
+    Object& operator=(const Object&);
+
+    // Deprecated
+    ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(
+      SceneView* view) = 0;
+
+    // Deprecated
+    ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view) = 0;
+
+    // Creates the geometry and instances required for this object to enter
+    // the scene graph.  Subclasses can fill in a default geometry if desired,
+    // but callers may replace it.
+    ELVIS_EXPORT virtual void DoCreateNode(SceneView* view,
+                                           optixu::Transform& transform,
+                                           optixu::GeometryGroup& group) = 0;
+
+  private:
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
-        public:
-            friend class boost::serialization::access;
-            Object()
-            {
-            }
-
-            virtual ~Object() {}
-
-            ELVIS_EXPORT optixu::Geometry CreateOptiXGeometry(SceneView* view);
-            ELVIS_EXPORT optixu::Material CreateMaterial(SceneView* view);
-
-            // Creates a single branch in the tree for this object.  The return is anticipated
-            // to be either the group or the transform, and will be added to an optixu::Group
-            // as a child.
-            ELVIS_EXPORT void CreateNode(SceneView* view, 
-                optixu::Transform& transform, optixu::GeometryGroup& group);
-
-            boost::signals2::signal<void (const Object&)> OnObjectChanged;
-
-        protected:
-            Object(const Object& rhs);
-            Object& operator=(const Object&);
-
-            // Deprecated
-            ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(SceneView* view) = 0;
-
-            // Deprecated
-            ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view) = 0;
-
-            // Creates the geometry and instances required for this object to enter 
-            // the scene graph.  Subclasses can fill in a default geometry if desired, 
-            // but callers may replace it.
-            ELVIS_EXPORT virtual void DoCreateNode(SceneView* view, 
-                optixu::Transform& transform, optixu::GeometryGroup& group) = 0;
-
-
-        private:
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version)
-            {
-            }
-    };
+    }
+  };
 }
 
-#endif //ELVIS_ELVISNATIVE_OBJECT_H
+#endif // ELVIS_ELVISNATIVE_OBJECT_H

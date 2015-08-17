@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef ELVISNATIVE_SURFACE_OBJECT_H
 #define ELVISNATIVE_SURFACE_OBJECT_H
 
@@ -41,23 +40,22 @@
 
 namespace ElVis
 {
-	class SurfaceObject : public PrimaryRayObject
-    {
-        public:
-            ELVIS_EXPORT SurfaceObject();
-            ELVIS_EXPORT explicit SurfaceObject(boost::shared_ptr<Object> obj);
-            ELVIS_EXPORT virtual ~SurfaceObject();
-            
-        protected:
-            virtual optixu::Material GetMaterial(SceneView* view);
+  class SurfaceObject : public PrimaryRayObject
+  {
+  public:
+    ELVIS_EXPORT SurfaceObject();
+    ELVIS_EXPORT explicit SurfaceObject(boost::shared_ptr<Object> obj);
+    ELVIS_EXPORT virtual ~SurfaceObject();
 
-        private:
-            SurfaceObject& operator=(const SurfaceObject& rhs);
-            ELVIS_EXPORT SurfaceObject(const SurfaceObject& rhs);
+  protected:
+    virtual optixu::Material GetMaterial(SceneView* view);
 
-			static optixu::Material Material;
-    };
+  private:
+    SurfaceObject& operator=(const SurfaceObject& rhs);
+    ELVIS_EXPORT SurfaceObject(const SurfaceObject& rhs);
 
+    static optixu::Material Material;
+  };
 }
 
 #endif

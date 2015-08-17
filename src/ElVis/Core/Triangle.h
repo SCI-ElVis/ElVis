@@ -39,55 +39,58 @@
 
 namespace ElVis
 {
-    class Triangle : public Object
+  class Triangle : public Object
+  {
+  public:
+    ELVIS_EXPORT Triangle();
+    ELVIS_EXPORT virtual ~Triangle() {}
+
+    ELVIS_EXPORT const WorldPoint& GetP0() const { return m_p0; }
+    ELVIS_EXPORT const WorldPoint& GetP1() const { return m_p1; }
+    ELVIS_EXPORT const WorldPoint& GetP2() const { return m_p2; }
+
+    ELVIS_EXPORT void SetP0(const WorldPoint& value);
+    ELVIS_EXPORT void SetP1(const WorldPoint& value);
+    ELVIS_EXPORT void SetP2(const WorldPoint& value);
+
+    ELVIS_EXPORT void SetPoints(const WorldPoint& p0,
+                                const WorldPoint& p1,
+                                const WorldPoint& p2);
+
+    ELVIS_EXPORT void SetScalars(float s0, float s1, float s2)
     {
-        public:
-            ELVIS_EXPORT Triangle();
-            ELVIS_EXPORT virtual ~Triangle() {}
+      m_scalar0 = s0;
+      m_scalar1 = s1;
+      m_scalar2 = s2;
+    }
 
-            ELVIS_EXPORT const WorldPoint& GetP0() const { return m_p0; }
-            ELVIS_EXPORT const WorldPoint& GetP1() const { return m_p1; }
-            ELVIS_EXPORT const WorldPoint& GetP2() const { return m_p2; }
+  protected:
+    ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(
+      SceneView* view);
+    ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view);
+    ELVIS_EXPORT virtual void DoCreateNode(SceneView* view,
+                                           optixu::Transform& transform,
+                                           optixu::GeometryGroup& group);
 
-            ELVIS_EXPORT void SetP0(const WorldPoint& value);
-            ELVIS_EXPORT void SetP1(const WorldPoint& value);
-            ELVIS_EXPORT void SetP2(const WorldPoint& value);
+  private:
+    Triangle& operator=(const Triangle& rhs);
+    ELVIS_EXPORT Triangle(const Triangle& rhs);
 
-            ELVIS_EXPORT void SetPoints(const WorldPoint& p0, const WorldPoint& p1, const WorldPoint& p2);
+    optixu::GeometryGroup m_group;
+    optixu::GeometryInstance m_instance;
+    optixu::Transform m_transform;
 
-            ELVIS_EXPORT void SetScalars(float s0, float s1, float s2)
-            {
-                m_scalar0 = s0;
-                m_scalar1 = s1;
-                m_scalar2 = s2;
-            }
+    optixu::Material m_material;
+    WorldPoint m_p0;
+    WorldPoint m_p1;
+    WorldPoint m_p2;
 
-        protected:
-            
-            ELVIS_EXPORT virtual optixu::Geometry DoCreateOptiXGeometry(SceneView* view);
-            ELVIS_EXPORT virtual optixu::Material DoCreateMaterial(SceneView* view);
-            ELVIS_EXPORT virtual void DoCreateNode(SceneView* view, 
-                optixu::Transform& transform, optixu::GeometryGroup& group);
+    float m_scalar0;
+    float m_scalar1;
+    float m_scalar2;
+  };
 
-        private:
-            Triangle& operator=(const Triangle& rhs);
-            ELVIS_EXPORT Triangle(const Triangle& rhs);
-
-            optixu::GeometryGroup m_group;
-            optixu::GeometryInstance m_instance;
-            optixu::Transform m_transform;
-            
-            optixu::Material m_material;
-            WorldPoint m_p0;
-            WorldPoint m_p1;
-            WorldPoint m_p2;
-
-            float m_scalar0;
-            float m_scalar1;
-            float m_scalar2;
-    };
-
-    ELVIS_EXPORT std::ostream& operator<<(std::ostream& os, const Triangle& tri);
+  ELVIS_EXPORT std::ostream& operator<<(std::ostream& os, const Triangle& tri);
 }
 
-#endif 
+#endif

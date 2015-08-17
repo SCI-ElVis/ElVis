@@ -14,6 +14,7 @@ IF (APPLE) #set the env vars to use the cuda path
     SET(ENV_DYLD $ENV{DYLD_LIBRARY_PATH})
     SET(ENV{PATH} ${CUDA_TOOLKIT_ROOT_DIR}/bin)
     SET(ENV{DYLD_LIBRARY_PATH} ${CUDA_TOOLKIT_ROOT_DIR}/lib)
+    SET(Boost_NO_BOOST_CMAKE ON CACHE INTERNAL "Defaults to ON so ElVis' included Boost is used rather than installed version.")
 ENDIF()
 
 #############################
@@ -118,7 +119,6 @@ SET(ELVIS_HEADERS
     CutSurfaceContourModule.h
     CutSurfaceMeshModule.h
     Cylinder.h
-    DirectionalLight.h
     DynamicLib.h
     ElementId.h
     ElVisConfig.h
@@ -143,7 +143,6 @@ SET(ELVIS_HEADERS
     OptiXSynchedObject.hpp
     Plugin.h
     Point.hpp
-    PointLight.h
     PtxManager.h
     RayGeneratorProgram.h
     ReferencePointParameter.h
@@ -179,14 +178,12 @@ SET(ELVIS_SOURCES
     CutSurfaceContourModule.cpp
     CutSurfaceMeshModule.cpp
     Cylinder.cpp
-    DirectionalLight.cpp
     DynamicLib.cpp
     ${CMAKE_BINARY_DIR}/ElVis/Core/ElVisConfig.cpp
     FaceObject.cpp
     Light.cpp
     Model.cpp
     Plugin.cpp
-    PointLight.cpp
     PtxManager.cpp
     Scene.cpp
     SceneView.cpp

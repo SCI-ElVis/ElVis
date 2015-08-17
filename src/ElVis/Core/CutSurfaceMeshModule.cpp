@@ -26,7 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include <ElVis/Core/CutSurfaceMeshModule.h>
 #include <ElVis/Core/SceneView.h>
 #include <ElVis/Core/PtxManager.h>
@@ -36,35 +35,38 @@
 
 namespace ElVis
 {
-    const std::string CutSurfaceMeshModule::ProgramName("SamplePixelCornersRayGeneratorForCategorization");
-    const std::string CutSurfaceMeshModule::CategorizeProgramName("CategorizeMeshPixels");
+  const std::string CutSurfaceMeshModule::ProgramName(
+    "SamplePixelCornersRayGeneratorForCategorization");
+  const std::string CutSurfaceMeshModule::CategorizeProgramName(
+    "CategorizeMeshPixels");
 
-    CutSurfaceMeshModule::CutSurfaceMeshModule() :
-        m_program(),
-        m_categorizeProgram()
-    {
-    }
+  CutSurfaceMeshModule::CutSurfaceMeshModule()
+    : m_program(), m_categorizeProgram()
+  {
+  }
 
-    void CutSurfaceMeshModule::DoSetup(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
-        assert(context);
+  void CutSurfaceMeshModule::DoSetup(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
+    assert(context);
 
-        m_program = view->AddRayGenerationProgram(ProgramName.c_str());
-        m_categorizeProgram = view->AddRayGenerationProgram(CategorizeProgramName.c_str());
-    }
+    m_program = view->AddRayGenerationProgram(ProgramName.c_str());
+    m_categorizeProgram =
+      view->AddRayGenerationProgram(CategorizeProgramName.c_str());
+  }
 
-    void CutSurfaceMeshModule::DoRender(SceneView* view)
-    {
-        optixu::Context context = view->GetContext();
+  void CutSurfaceMeshModule::DoRender(SceneView* view)
+  {
+    optixu::Context context = view->GetContext();
 
-        context->launch(m_program.Index, view->GetWidth()+1, view->GetHeight()+1);
-        context->launch(m_categorizeProgram.Index, view->GetWidth(), view->GetHeight());
-    }
+    context->launch(
+      m_program.Index, view->GetWidth() + 1, view->GetHeight() + 1);
+    context->launch(
+      m_categorizeProgram.Index, view->GetWidth(), view->GetHeight());
+  }
 
-    std::string CutSurfaceMeshModule::DoGetName() const
-    {
-        return "Cut-Surface Mesh";
-    }
+  std::string CutSurfaceMeshModule::DoGetName() const
+  {
+    return "Cut-Surface Mesh";
+  }
 }
-

@@ -33,7 +33,7 @@
 
 #include <ElVis/Extensions/ProjectXExtension/PXStructDefinitions.h>
 
-#define LEDA_EXACT
+//#define LEDA_EXACT
 #include <Grid/CutCell3D/PXNumberType.h>
 #include <Grid/CutCell3D/PXCutCell3d.h>
 #include <Grid/CutCell3D/PXConicStruct.h>

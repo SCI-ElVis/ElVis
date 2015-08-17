@@ -35,131 +35,129 @@
 
 struct IntervalPoint
 {
-    ELVIS_DEVICE IntervalPoint() {}
+  ELVIS_DEVICE IntervalPoint() {}
 
-    ELVIS_DEVICE IntervalPoint(const ElVis::Interval<ElVisFloat>& xParam,
-                               const ElVis::Interval<ElVisFloat>& yParam,
-                               const ElVis::Interval<ElVisFloat>& zParam) :
-        x(xParam),
-        y(yParam),
-        z(zParam)
+  ELVIS_DEVICE IntervalPoint(const ElVis::Interval<ElVisFloat>& xParam,
+                             const ElVis::Interval<ElVisFloat>& yParam,
+                             const ElVis::Interval<ElVisFloat>& zParam)
+    : x(xParam), y(yParam), z(zParam)
+  {
+  }
+
+  ELVIS_DEVICE
+  IntervalPoint(const ElVisFloat3& p0, const ElVisFloat3& p1)
+    : x(fminf(p0.x, p1.x), fmaxf(p0.x, p1.x)),
+      y(fminf(p0.y, p1.y), fmaxf(p0.y, p1.y)),
+      z(fminf(p0.z, p1.z), fmaxf(p0.z, p1.z))
+  {
+  }
+
+  ELVIS_DEVICE
+  IntervalPoint(const IntervalPoint& rhs) : x(rhs.x), y(rhs.y), z(rhs.z) {}
+
+  ELVIS_DEVICE
+  IntervalPoint& operator=(const IntervalPoint& rhs)
+  {
+    x = rhs.x;
+    y = rhs.y;
+    z = rhs.z;
+    return *this;
+  }
+
+  ELVIS_DEVICE bool IsEmpty() const
+  {
+    bool result = x.IsEmpty();
+    result |= y.IsEmpty();
+    result |= z.IsEmpty();
+    return result;
+  }
+
+  ELVIS_DEVICE ElVisFloat3 GetMidpoint() const
+  {
+    ElVisFloat3 result;
+    result.x = x.GetMidpoint();
+    result.y = y.GetMidpoint();
+    result.z = z.GetMidpoint();
+    return result;
+  }
+
+  ELVIS_DEVICE double GetWidth()
+  {
+    if (IsEmpty())
     {
+      return 0.0;
     }
-
-    ELVIS_DEVICE
-    IntervalPoint(const ElVisFloat3& p0, const ElVisFloat3& p1) 
-    :
-        x(fminf(p0.x, p1.x), fmaxf(p0.x, p1.x)),
-        y(fminf(p0.y, p1.y), fmaxf(p0.y, p1.y)),
-        z(fminf(p0.z, p1.z), fmaxf(p0.z, p1.z))
+    else
     {
+      return fmaxf(x.GetWidth(), fmaxf(y.GetWidth(), z.GetWidth()));
     }
+  }
 
-    ELVIS_DEVICE
-    IntervalPoint(const IntervalPoint& rhs) :
-        x(rhs.x),
-        y(rhs.y),
-        z(rhs.z)
-    {
-    }
+  ELVIS_DEVICE const ElVis::Interval<ElVisFloat>& operator[](int index) const
+  {
+    if (index == 0) return x;
+    if (index == 1) return y;
+    return z;
+  }
 
-    ELVIS_DEVICE
-    IntervalPoint& operator=(const IntervalPoint& rhs)
-    {
-        x = rhs.x;
-        y = rhs.y;
-        z = rhs.z;
-        return *this;
-    }
+  ELVIS_DEVICE ElVis::Interval<ElVisFloat>& operator[](int index)
+  {
+    if (index == 0) return x;
+    if (index == 1) return y;
+    return z;
+  }
 
-    ELVIS_DEVICE bool IsEmpty() const
-    {
-        bool result = x.IsEmpty();
-        result |= y.IsEmpty();
-        result |= z.IsEmpty();
-        return result;
-    }
-
-    ELVIS_DEVICE ElVisFloat3 GetMidpoint() const
-    {
-        ElVisFloat3 result;
-        result.x = x.GetMidpoint();
-        result.y = y.GetMidpoint();
-        result.z = z.GetMidpoint();
-        return result;
-    }
-
-    ELVIS_DEVICE double GetWidth()
-    {
-        if( IsEmpty() )
-        {
-            return 0.0;
-        }
-        else
-        {
-            return fmaxf(x.GetWidth(), fmaxf(y.GetWidth(), z.GetWidth()));
-        }
-    }
-
-
-    ELVIS_DEVICE const ElVis::Interval<ElVisFloat>& operator[](int index) const
-    {
-        if( index == 0 ) return x;
-        if( index == 1 ) return y;
-        return z;
-    }
-
-    ELVIS_DEVICE ElVis::Interval<ElVisFloat>& operator[](int index)
-    {
-        if( index == 0 ) return x;
-        if( index == 1 ) return y;
-        return z;
-    }
-
-    ElVis::Interval<ElVisFloat> x;
-    ElVis::Interval<ElVisFloat> y;
-    ElVis::Interval<ElVisFloat> z;
+  ElVis::Interval<ElVisFloat> x;
+  ElVis::Interval<ElVisFloat> y;
+  ElVis::Interval<ElVisFloat> z;
 };
 
 ELVIS_DEVICE bool Subset(const IntervalPoint& a, const IntervalPoint& b)
 {
-    return Subset(a.x, b.x) && Subset(a.y, b.y) && Subset(a.z, b.z);
+  return Subset(a.x, b.x) && Subset(a.y, b.y) && Subset(a.z, b.z);
 }
 
-ELVIS_DEVICE IntervalPoint operator+(const IntervalPoint& lhs, const IntervalPoint& rhs)
+ELVIS_DEVICE IntervalPoint
+operator+(const IntervalPoint& lhs, const IntervalPoint& rhs)
 {
-    IntervalPoint result(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z+rhs.z);
-    return result;
+  IntervalPoint result(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+  return result;
 }
 
-ELVIS_DEVICE IntervalPoint operator+(const ElVisFloat3& lhs, const IntervalPoint& rhs)
+ELVIS_DEVICE IntervalPoint
+operator+(const ElVisFloat3& lhs, const IntervalPoint& rhs)
 {
-    IntervalPoint result(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z+rhs.z);
-    return result;
+  IntervalPoint result(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+  return result;
 }
 
-ELVIS_DEVICE IntervalPoint operator+(const IntervalPoint& lhs, const ElVisFloat3& rhs)
+ELVIS_DEVICE IntervalPoint
+operator+(const IntervalPoint& lhs, const ElVisFloat3& rhs)
 {
-    IntervalPoint result(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z+rhs.z);
-    return result;
+  IntervalPoint result(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+  return result;
 }
 
-ELVIS_DEVICE IntervalPoint operator-(const IntervalPoint& lhs, const IntervalPoint& rhs)
+ELVIS_DEVICE IntervalPoint
+operator-(const IntervalPoint& lhs, const IntervalPoint& rhs)
 {
-    IntervalPoint result(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
-    return result;
+  IntervalPoint result(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
+  return result;
 }
 
-ELVIS_DEVICE IntervalPoint operator-(const IntervalPoint& lhs, const ElVisFloat3& rhs)
+ELVIS_DEVICE IntervalPoint
+operator-(const IntervalPoint& lhs, const ElVisFloat3& rhs)
 {
-    IntervalPoint result(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
-    return result;
+  IntervalPoint result(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
+  return result;
 }
 
-ELVIS_DEVICE IntervalPoint Intersection(const IntervalPoint& lhs, const IntervalPoint& rhs)
+ELVIS_DEVICE IntervalPoint
+Intersection(const IntervalPoint& lhs, const IntervalPoint& rhs)
 {
-    IntervalPoint result(Intersection(lhs.x, rhs.x), Intersection(lhs.y, rhs.y), Intersection(lhs.z, rhs.z));
-    return result;
+  IntervalPoint result(Intersection(lhs.x, rhs.x), Intersection(lhs.y, rhs.y),
+                       Intersection(lhs.z, rhs.z));
+  return result;
 }
 
 #endif

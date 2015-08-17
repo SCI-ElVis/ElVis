@@ -121,7 +121,7 @@ namespace ElVis
                 // Sets up default viewing parameters for the initial view of a loaded model.
                 void SetupDefaultModelView();
             private:
-                void SetupPerspective();
+                void SetupProjection();
                 SceneViewWidget(const SceneViewWidget& rhs);
                 SceneViewWidget& operator=(const SceneViewWidget& rhs);
 

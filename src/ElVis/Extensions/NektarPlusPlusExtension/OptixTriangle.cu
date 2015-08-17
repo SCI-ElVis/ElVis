@@ -71,22 +71,22 @@ RT_PROGRAM void TwoDClosestHitProgram()
     ElVisFloat result = MAKE_FLOAT(0.0);
     ElVisFloat3& refPoint = payload.ReferenceIntersectionPoint;
 
-    ELVIS_PRINTF("TwoDClosestHitProgram: Element %d RefPoint (%2.15f, %2.15f)\n", payload.elementId, refPoint.x, refPoint.y);
+    //ELVIS_PRINTF("TwoDClosestHitProgram: Element %d RefPoint (%2.15f, %2.15f)\n", payload.elementId, refPoint.x, refPoint.y);
 
     for(int i = 0; i < modes.x; ++i)
     {
         for(int j = 0; j < modes.y - i; ++j)
         {
-            ELVIS_PRINTF("TwoDClosestHitProgram: Coefficient %2.15f\n", *coeffs);
+            //ELVIS_PRINTF("TwoDClosestHitProgram: Coefficient %2.15f\n", *coeffs);
             ElVisFloat firstTerm = ModifiedA(i, refPoint.x);
             ElVisFloat secondTerm = ModifiedB(i,j, refPoint.y);
-            ELVIS_PRINTF("TwoDClosestHitProgram: Term (%d, %d): A (%2.15f) B(%2.15f)\n",
-                i, j, firstTerm, secondTerm);
+            //ELVIS_PRINTF("TwoDClosestHitProgram: Term (%d, %d): A (%2.15f) B(%2.15f)\n",
+            //    i, j, firstTerm, secondTerm);
             result += (*coeffs) *
                 ModifiedA(i, refPoint.x) *
                 ModifiedB(i, j, refPoint.y);
             ++coeffs;
-            ELVIS_PRINTF("TwoDClosestHitProgram: Result (%2.15f)\n", result);
+            //ELVIS_PRINTF("TwoDClosestHitProgram: Result (%2.15f)\n", result);
         }
     }
 
@@ -332,7 +332,7 @@ RT_PROGRAM void NektarTriangleIntersection(int elementId)
     //Triangle2DIntersection(elementId, MakeFloat3(GetTriangleVertex(elementId, 0)), 
     //    MakeFloat3(GetTriangleVertex(elementId, 1)), 
     //    MakeFloat3(GetTriangleVertex(elementId, 2)));
-    ELVIS_PRINTF("NektarTriangleIntersection: Element id %d\n", elementId);
+    //ELVIS_PRINTF("NektarTriangleIntersection: Element id %d\n", elementId);
     // Assume xy plane.
     ElVisFloat4 plane = MakeFloat4(MAKE_FLOAT(0.0), MAKE_FLOAT(0.0), MAKE_FLOAT(1.0), MAKE_FLOAT(0.0));
     ElVisFloat t;

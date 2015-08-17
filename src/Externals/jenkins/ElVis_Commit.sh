@@ -16,11 +16,17 @@ make unit_build
 
 make check CTESTARGS="-T Test"
 
-if [[ $buildnode == "cleopatra.sci.utah.edu" ]]; then
+if [[ $buildnode == "cleopatra"* ]]; then
   /usr/local/VirtualGL/bin/vglrun make regcheck CTESTARGS="-T Test"
-elif [[ $buildnode == "colossus.sci.utah.edu" ]]; then
-  make regcheck CTESTARGS="-T Test"
 fi
+
+if [[ $buildnode == "oci-ubuntu"* ]]; then
+  /usr/bin/vglrun make regcheck CTESTARGS="-T Test"
+fi
+
+#if [[ $buildnode == "Mac_node"* ]]; then
+#  make regcheck CTESTARGS="-T Test"
+#fi
 
 if [[ $builddir == *"coverage"* ]]; then
   make coverage_info

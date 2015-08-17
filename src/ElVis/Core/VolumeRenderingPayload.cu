@@ -37,26 +37,26 @@
 
 struct VolumeRenderingPayload
 {
-    ELVIS_DEVICE void Initialize()
-    {
-        FoundIntersection = false;
-        ElementId = 0;
-        ElementTypeId = 0;
-        IntersectionT = MAKE_FLOAT(-1.0);
-        FaceId.Value = -1;
-        FaceReferecePointIsValid = false;
-    }
+  ELVIS_DEVICE void Initialize()
+  {
+    FoundIntersection = false;
+    ElementId = 0;
+    ElementTypeId = 0;
+    IntersectionT = MAKE_FLOAT(-1.0);
+    FaceId.Value = -1;
+    FaceReferencePoint = MakeFloat2(ELVIS_FLOAT_MAX, ELVIS_FLOAT_MAX);
+    FaceReferecePointIsValid = false;
+  }
 
-    bool FoundIntersection;
-    unsigned int ElementId;
-    unsigned int ElementTypeId;
-    ElVisFloat IntersectionT;
-    GlobalFaceIdx FaceId;
-    ElVisFloat2 FaceReferencePoint;
-    bool FaceReferecePointIsValid;
-
+  bool FoundIntersection;
+  unsigned int ElementId;
+  unsigned int ElementTypeId;
+  ElVisFloat IntersectionT;
+  GlobalFaceIdx FaceId;
+  ElVisFloat2 FaceReferencePoint;
+  bool FaceReferecePointIsValid;
 };
 
 rtDeclareVariable(VolumeRenderingPayload, volumePayload, rtPayload, );
 
-#endif //ELVIS_VOLUME_RENDERING_PAYLOAD_CU
+#endif // ELVIS_VOLUME_RENDERING_PAYLOAD_CU

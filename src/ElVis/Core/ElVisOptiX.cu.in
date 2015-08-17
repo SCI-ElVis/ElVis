@@ -181,9 +181,11 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
     //ELVIS_PRINTF("EvaluateFieldOptiX 1\n");
     if( referenceType != ElVis::eReferencePointIsValid )
     {
+        //ELVIS_PRINTF("EvaluateFieldOptiX: ConvertWorldToReferenceSpaceOptiX\n");
         ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, referenceType, referencePoint);
     }
     ElVisFloat result = MAKE_FLOAT(0.0);
+    //ELVIS_PRINTF("EvaluateFieldOptiX: SampleScalarFieldAtReferencePointOptiX (%2.15f, %2.15f, %2.15f)\n", referencePoint.x, referencePoint.y, referencePoint.z);
     SampleScalarFieldAtReferencePointOptiX(elementId, elementType, fieldId, worldPoint, referencePoint, result);
     return result;
 }
@@ -198,7 +200,7 @@ ELVIS_DEVICE ElVisFloat EvaluateFieldOptiX(unsigned int elementId, unsigned int 
 ELVIS_DEVICE ElVisError EvaluateNormalOptiX(unsigned int elementId, unsigned int elementType, int fieldId,
                                             const ElVisFloat3& worldPoint, ElVisFloat3& normal)
 {
-    ELVIS_PRINTF("EvaluateNormalOptiX\n");
+    //ELVIS_PRINTF("EvaluateNormalOptiX\n");
     ReferencePoint refPoint;
     ElVisError e0 = ConvertWorldToReferenceSpaceOptiX(elementId, elementType, worldPoint, ElVis::eReferencePointIsInvalid, refPoint);
 
