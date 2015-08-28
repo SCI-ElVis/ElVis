@@ -2,7 +2,7 @@
 <!DOCTYPE boost_serialization>
 <boost_serialization signature="serialization::archive" version="10">
 <SceneView class_id="0" tracking_level="0" version="0">
-	<StackSize>30000</StackSize>
+	<StackSize>18000</StackSize>
 	<ViewSettings class_id="1" tracking_level="0" version="0">
 		<m_fieldOfView>60</m_fieldOfView>
 		<m_aspectRatio>1.1518796992481204</m_aspectRatio>
