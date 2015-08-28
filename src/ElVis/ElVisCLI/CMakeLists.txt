@@ -274,6 +274,26 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_6b.xml"
         --CompareFile "${BaselineDir}/IsosurfacePaperFigure6BBaseline"
     )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure9A
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure9A
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9a.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure9ABaseline"
+    )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure9B
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure9B
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9b.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure9BBaseline"
+    )
 ENDIF()
 
 IF( ELVIS_ENABLE_ProjectX_EXTENSION )
