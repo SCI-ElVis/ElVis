@@ -689,6 +689,7 @@ namespace ElVis
     try
     {
       optixu::Context m_context = GetScene()->GetContext();
+      std::cout << "Setting stack size: " << m_optixStackSize << std::endl;
       m_context->setStackSize(m_optixStackSize);
 
       // Ray Type 0 - Primary rays that intersect actual geometry.  Closest
@@ -749,6 +750,14 @@ namespace ElVis
       bgColor.z = m_backgroundColor.Blue();
 
       SetFloat(m_context["BGColor"], bgColor);
+
+      // This was an attempt to fix some issues we were seeing with isosurfaces.
+      // The timeout is executed on the host at a user-defined intervale, which
+      // call allow the host to display progress information.  The theory was
+      // that the OptiX kernel was timing out, but setting this call did not
+      // seem to help.  However, it would be good to integrate this into ElVis for
+      // longer running scenes and user interactivity.
+      // m_context->setTimeoutCallback([]() { return 0; }, .1);
 
       m_passedInitialOptixSetup = true;
     }
@@ -910,12 +919,14 @@ namespace ElVis
   template <typename Archive>
   void SceneView::load(Archive& ar, const unsigned int version)
   {
+    int stackSize = 0;
     ar& boost::serialization::make_nvp(OPTIX_STACK_SIZE_KEY_NAME.c_str(),
-                                       m_optixStackSize);
+                                       stackSize);
     ar& boost::serialization::make_nvp(
       VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
     ar& boost::serialization::make_nvp(
       RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
+    SetOptixStackSize(stackSize);
     OnSceneViewChanged(*this);
   }
 
