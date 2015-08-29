@@ -58,83 +58,20 @@ namespace ElVis
       return P(n, 0, 0, x);
     }
 
-    template <int n>
-    struct EvalJacobiPolynomial;
-
-    template <>
-    struct EvalJacobiPolynomial<0>
-    {
-      template <typename DataType>
-      static ELVIS_DEVICE DataType Evaluate(int a, int b, const DataType& x)
-      {
-        return DataType(MAKE_FLOAT(1.0));
-      }
-    };
-
-    template <>
-    struct EvalJacobiPolynomial<1>
-    {
-      template <typename DataType>
-      static ELVIS_DEVICE DataType Evaluate(int a, int b, const DataType& x)
-      {
-        return MAKE_FLOAT(.5) *
-               ((ElVisFloat)a - (ElVisFloat)b +
-                ((ElVisFloat)a + (ElVisFloat)b + MAKE_FLOAT(2.0)) * x);
-      }
-    };
-
-    template <int n>
-    struct EvalJacobiPolynomial
-    {
-      template <typename DataType>
-      static ELVIS_DEVICE DataType Evaluate(int a, int b, const DataType& x)
-      {
-        ElVisFloat denom = 2 * n * (n + a + b) * (2 * n + a + b - 2);
-        DataType c0 =
-          (2 * n + a + b - 1) *
-          ((2 * n + a + b) * (2 * n + a + b - 2) * x + a * a + b * b);
-        ElVisFloat c1 = 2 * (n + a - 1) * (n + b - 1) * (2 * n + a + b);
-        DataType numerator =
-          c0 * EvalJacobiPolynomial<n - 1>::Evaluate(a, b, x) -
-          c1 * EvalJacobiPolynomial<n - 2>::Evaluate(a, b, x);
-        return numerator / denom;
-      }
-    };
-
     // Evaluates the nth Jacobi polynomial at point x.
     ELVIS_DEVICE ElVisFloat P(int n, int a, int b, const ElVisFloat& x)
     {
       // From spectral methods page 351.
-      switch (n)
+
+      if( n == 0 )
       {
-        case 0:
-          return EvalJacobiPolynomial<0>::Evaluate(a, b, x);
-        case 1:
-          return EvalJacobiPolynomial<1>::Evaluate(a, b, x);
-        case 2:
-          return EvalJacobiPolynomial<2>::Evaluate(a, b, x);
-        case 3:
-          return EvalJacobiPolynomial<3>::Evaluate(a, b, x);
-        case 4:
-          return EvalJacobiPolynomial<4>::Evaluate(a, b, x);
-        case 5:
-          return EvalJacobiPolynomial<5>::Evaluate(a, b, x);
-        case 6:
-          return EvalJacobiPolynomial<6>::Evaluate(a, b, x);
-        case 7:
-          return EvalJacobiPolynomial<7>::Evaluate(a, b, x);
-        case 8:
-          return EvalJacobiPolynomial<8>::Evaluate(a, b, x);
-        case 9:
-          return EvalJacobiPolynomial<9>::Evaluate(a, b, x);
-        case 10:
-          return EvalJacobiPolynomial<10>::Evaluate(a, b, x);
-        case 11:
-          return EvalJacobiPolynomial<11>::Evaluate(a, b, x);
-        default:
-          break;
+        return MAKE_FLOAT(1.0);
       }
 
+      if( n == 1 )
+      {
+        return (a - b + (2 + a + b)*x)/MAKE_FLOAT(2.0);
+      }
       // If we haven't specialized, then default to the original code.
       ElVisFloat result(MAKE_FLOAT(0.0));
       ElVisFloat apb = a + b;
