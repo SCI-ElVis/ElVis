@@ -84,7 +84,7 @@ namespace ElVis
             connect(m_boolPropertyManager, SIGNAL(valueChanged(QtProperty*,bool)), this, SLOT(HandleEnabledChangedByGui(QtProperty*,bool)));
 
             m_stackSizeProperty = m_intPropertyManager->addProperty("Stack Size");
-            m_intPropertyManager->setValue(m_stackSizeProperty, appData->GetScene()->GetOptixStackSize());
+            m_intPropertyManager->setValue(m_stackSizeProperty, appData->GetSurfaceSceneView()->GetOptixStackSize());
             topLevelProperty->addSubProperty(m_stackSizeProperty);
             connect(m_intPropertyManager, SIGNAL(valueChanged(QtProperty*,int)), this, SLOT(HandleStackSizeChanged(QtProperty*,int)));
 
@@ -119,7 +119,7 @@ namespace ElVis
 
         void RenderSettingsDockWidget::HandleStackSizeChanged(QtProperty* property, int newValue)
         {
-            m_appData->GetScene()->SetOptixStackSize(newValue);
+            m_appData->GetSurfaceSceneView()->SetOptixStackSize(newValue);
         }
 
         void RenderSettingsDockWidget::HandleShowLookAtChanged(QtProperty* property, bool newValue)

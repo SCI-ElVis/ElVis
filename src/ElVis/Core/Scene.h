@@ -121,9 +121,6 @@ namespace ElVis
 
     ELVIS_EXPORT optixu::Context GetContext();
 
-    ELVIS_EXPORT void SetOptixStackSize(int size);
-    ELVIS_EXPORT int GetOptixStackSize() const { return m_optixStackSize; }
-
     ELVIS_EXPORT void AddPrimaryRayObject(
       boost::shared_ptr<PrimaryRayObject> value)
     {
@@ -222,7 +219,6 @@ namespace ElVis
       ar& BOOST_SERIALIZATION_NVP(m_allLights);
       ar& BOOST_SERIALIZATION_NVP(m_ambientLightColor);
       ar& BOOST_SERIALIZATION_NVP(m_allPrimaryObjects);
-      ar& BOOST_SERIALIZATION_NVP(m_optixStackSize);
 
       ar& BOOST_SERIALIZATION_NVP(m_colorMaps);
       ar& BOOST_SERIALIZATION_NVP(m_enableOptiXTrace);
@@ -238,8 +234,6 @@ namespace ElVis
     optixu::Context m_context;
 
     std::list<boost::shared_ptr<PrimaryRayObject>> m_allPrimaryObjects;
-
-    int m_optixStackSize;
 
     std::map<std::string, ColorMapInfo> m_colorMaps;
 

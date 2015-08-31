@@ -52,7 +52,6 @@ namespace ElVis
       m_model(),
       m_context(0),
       m_allPrimaryObjects(),
-      m_optixStackSize(10000),
       m_colorMaps(),
       m_enableOptiXTrace(true),
       m_optiXTraceBufferSize(100000),
@@ -80,17 +79,6 @@ namespace ElVis
                                         m_ambientLightColor.Blue());
   }
 
-  void Scene::SetOptixStackSize(int size)
-  {
-    if (size <= 0) return;
-    m_optixStackSize = size;
-
-    if (m_context)
-    {
-      m_context->setStackSize(m_optixStackSize);
-      OnSceneChanged(*this);
-    }
-  }
 
   optixu::Context Scene::GetContext()
   {
@@ -203,7 +191,7 @@ namespace ElVis
           GetModel()->CopyToOptiX(m_context);
         }
 
-        m_context->setStackSize(m_optixStackSize);
+
         m_context->setPrintLaunchIndex(-1, -1, -1);
 
         //// Miss program

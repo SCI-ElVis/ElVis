@@ -113,7 +113,8 @@ int IsosurfaceBullet(int argc,
   {
     isosurfaceModule->AddIsovalue(isovalues[i]);
   }
-
+  isosurfaceModule->SetEpsilon(-8);
+  isosurfaceModule->SetProjectionOrder(8);
   boost::shared_ptr<ElVis::SceneView> view(new ElVis::SceneView());
   view->SetCamera(c);
 

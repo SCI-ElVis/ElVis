@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="10">
+<SceneView class_id="0" tracking_level="0" version="0">
+	<StackSize>18000</StackSize>
+	<ViewSettings class_id="1" tracking_level="0" version="0">
+		<m_fieldOfView>60</m_fieldOfView>
+		<m_aspectRatio>1.1518796992481204</m_aspectRatio>
+		<m_near>0.1</m_near>
+		<m_far>10000</m_far>
+		<m_eye class_id="2" tracking_level="0" version="0">
+			<Values>
+				<count>3</count>
+				<item>-8</item>
+				<item>13</item>
+				<item>15</item>
+			</Values>
+		</m_eye>
+		<m_lookAt>
+			<Values>
+				<count>3</count>
+				<item>5</item>
+				<item>0</item>
+				<item>5</item>
+			</Values>
+		</m_lookAt>
+		<m_up class_id="3" tracking_level="0" version="0">
+			<m_data>
+				<count>3</count>
+				<item_version>0</item_version>
+				<item>0</item>
+				<item>1</item>
+				<item>0</item>
+			</m_data>
+		</m_up>
+		<m_u>
+			<m_data>
+				<count>3</count>
+				<item_version>0</item_version>
+				<item>8.4860856780747262</item>
+				<item>-0</item>
+				<item>11.031911381497142</item>
+			</m_data>
+		</m_u>
+		<m_v>
+			<m_data>
+				<count>3</count>
+				<item_version>0</item_version>
+				<item>5.9490817551840456</item>
+				<item>9.4692484742278591</item>
+				<item>-4.576216734756958</item>
+			</m_data>
+		</m_v>
+		<m_w>
+			<m_data>
+				<count>3</count>
+				<item_version>0</item_version>
+				<item>13</item>
+				<item>-13</item>
+				<item>-10</item>
+			</m_data>
+		</m_w>
+	</ViewSettings>
+	<RenderModules class_id="5" tracking_level="0" version="0">
+		<RenderModuleNames class_id="6" tracking_level="0" version="0">
+			<count>7</count>
+			<item_version>0</item_version>
+			<item>Surface Rendering</item>
+			<item>Cut-Surface Contour</item>
+			<item>Cut-Surface Mesh</item>
+			<item>Isosurface Rendering</item>
+			<item>Color Mapper</item>
+			<item>Lighting Module</item>
+			<item>Volume Rendering</item>
+		</RenderModuleNames>
+		<RenderModule class_id="7" tracking_level="0" version="0">
+			<Enabled>1</Enabled>
+		</RenderModule>
+		<RenderModule>
+			<Enabled>0</Enabled>
+		</RenderModule>
+		<RenderModule>
+			<Enabled>0</Enabled>
+		</RenderModule>
+		<RenderModule>
+			<Enabled>1</Enabled>
+			<Isovalues>
+				<count>1</count>
+				<item_version>0</item_version>
+				<item>-0.10000000000000001</item>
+			</Isovalues>
+			<Epsilon>-11</Epsilon>
+			<ProjectionOrder>10</ProjectionOrder>
+		</RenderModule>
+		<RenderModule>
+			<Enabled>1</Enabled>
+			<Min>0</Min>
+			<Max>1</Max>
+			<Size>1024</Size>
+			<ColorMap class_id="9" tracking_level="0" version="1">
+				<px class_id="10" tracking_level="1" version="0" object_id="_0">
+					<Min>-0.1</Min>
+					<Max>1</Max>
+					<Breakpoints class_id="11" tracking_level="0" version="0">
+						<count>2</count>
+						<item_version>0</item_version>
+						<item class_id="12" tracking_level="0" version="0">
+							<first>0</first>
+							<second class_id="13" tracking_level="0" version="0">
+								<Col class_id="14" tracking_level="0" version="0">
+									<m_red>0</m_red>
+									<m_green>0.90196079</m_green>
+									<m_blue>0.90196079</m_blue>
+									<m_alpha>1</m_alpha>
+								</Col>
+								<Scalar>0</Scalar>
+							</second>
+						</item>
+						<item>
+							<first>1</first>
+							<second>
+								<Col>
+									<m_red>0.94902003</m_red>
+									<m_green>0.94902003</m_green>
+									<m_blue>0.039215699</m_blue>
+									<m_alpha>0.5</m_alpha>
+								</Col>
+								<Scalar>1</Scalar>
+							</second>
+						</item>
+					</Breakpoints>
+				</px>
+			</ColorMap>
+		</RenderModule>
+		<RenderModule>
+			<Enabled>1</Enabled>
+		</RenderModule>
+		<RenderModule>
+			<Enabled>0</Enabled>
+		</RenderModule>
+	</RenderModules>
+</SceneView>

@@ -254,6 +254,67 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --ColorMapMax 0.0
         --CompareFile "${BaselineDir}/IsosurfaceBullet1Baseline"
     )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure4A
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/raySincBox_F4_P4.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure4A
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_4a.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure4ABaseline"
+    )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure5B
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/paddles1H1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure5B
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_5b.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure5BBaseline"
+    )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure6B
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure6B
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_6b.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure6BBaseline"
+    )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure9A
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure9A
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9a.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure9ABaseline"
+    )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure9B
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure9B
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9b.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure9BBaseline"
+    )
+
+    ADD_ELVIS_REGTEST(IsosurfacePaperFigure10B
+        --TestName ViewSettings
+        --ModelPath "${CMAKE_SOURCE_DIR}/../volumes/bulletH1P3.dat"
+        --Width 1024 --Height 1024
+        --OutFile IsosurfacePaperFigure10B
+        --Module ${JacobiExtensionPath}
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_10b.xml"
+        --CompareFile "${BaselineDir}/IsosurfacePaperFigure10BBaseline"
+    )
+
 ENDIF()
 
 IF( ELVIS_ENABLE_ProjectX_EXTENSION )
