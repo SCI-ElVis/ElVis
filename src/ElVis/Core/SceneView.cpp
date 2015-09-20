@@ -910,8 +910,8 @@ namespace ElVis
   {
     ar& boost::serialization::make_nvp(OPTIX_STACK_SIZE_KEY_NAME.c_str(),
                                        m_optixStackSize);
-    ar& boost::serialization::make_nvp(
-      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+//    ar& boost::serialization::make_nvp(
+//      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
     ar& boost::serialization::make_nvp(
       RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
   }
@@ -922,8 +922,8 @@ namespace ElVis
     int stackSize = 0;
     ar& boost::serialization::make_nvp(OPTIX_STACK_SIZE_KEY_NAME.c_str(),
                                        stackSize);
-    ar& boost::serialization::make_nvp(
-      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
+//    ar& boost::serialization::make_nvp(
+//      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
     ar& boost::serialization::make_nvp(
       RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
     SetOptixStackSize(stackSize);
@@ -935,4 +935,9 @@ namespace ElVis
 
   template void SceneView::load(boost::archive::xml_iarchive&,
                                 const unsigned int);
+
+  void SceneView::UpdateCamera(const ElVis::Serialization::Camera& data)
+  {
+    m_viewSettings->Deserialize(data);
+  }
 }

@@ -31,7 +31,6 @@
 
 #include <ElVis/Core/ElementId.h>
 #include <ElVis/Core/Float.h>
-#include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/Float.h>
 
 namespace ElVis

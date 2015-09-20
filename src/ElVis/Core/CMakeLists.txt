@@ -113,6 +113,9 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ElVis/Core/Float.cu.in
 
 SET(ELVIS_HEADERS
     Camera.h
+    Camera.proto
+    Camera.pb.h
+    Camera.pb.cc
     Color.h
     ColorMap.h
     Cuda.h
@@ -143,6 +146,9 @@ SET(ELVIS_HEADERS
     OptiXSynchedObject.hpp
     Plugin.h
     Point.hpp
+    Point.pb.h
+    Point.pb.cc
+    Point.proto
     PtxManager.h
     RayGeneratorProgram.h
     ReferencePointParameter.h
@@ -306,6 +312,7 @@ TARGET_LINK_LIBRARIES(${ProjectName}
     ${PNG_LIBRARY}
     ${TinyXML_Library}
     ${optix_LIBRARY} ${optixu_LIBRARY}
+    /home/bnelson/dev/protobuf/dist/lib/libprotobuf.a
 )
 
 

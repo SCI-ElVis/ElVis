@@ -220,6 +220,8 @@ namespace ElVis
     ELVIS_EXPORT void SetOptixStackSize(int size);
     ELVIS_EXPORT int GetOptixStackSize() const { return m_optixStackSize; }
 
+    ELVIS_EXPORT void UpdateCamera(const ElVis::Serialization::Camera& data);
+
   protected:
     virtual void DoWindowSizeHasChanged() {}
     virtual void DoPrepareForDisplay() {}

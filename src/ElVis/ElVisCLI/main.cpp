@@ -30,6 +30,7 @@
 #include <ElVis/Core/ColorMap.h>
 #include <ElVis/Core/Camera.h>
 #include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/Point.pb.h>
 #include <ElVis/Core/Scene.h>
 #include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>
@@ -88,6 +89,15 @@ namespace
 
 int main(int argc, char** argv)
 {
+  ElVis::WorldPoint p(1.0, 2.0, 3.0);
+  ElVis::Serialization::Point sp;
+  sp.set_x(p.x());
+  sp.set_y(p.y());
+  sp.set_z(p.z());
+  std::ofstream outFile("test.bin");
+  sp.SerializePartialToOstream(&outFile);
+  outFile.close();
+  return 0;
   const char* testNameLabel = "TestName";
   const char* modelPathLabel = "ModelPath";
   const char* widthLabel = "Width";
