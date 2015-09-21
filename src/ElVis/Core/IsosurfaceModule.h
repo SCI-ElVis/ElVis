@@ -29,6 +29,7 @@
 #ifndef ELVIS_ISOSURFACE_MODULE_H
 #define ELVIS_ISOSURFACE_MODULE_H
 
+#include <ElVis/Core/IsosurfaceModule.pb.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
@@ -67,6 +68,9 @@ namespace ElVis
 
     boost::signals2::signal<void()> OnIsovaluesChanged;
 
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::IsosurfaceModule> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::IsosurfaceModule& input);
+
   protected:
     ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
     ELVIS_EXPORT virtual void DoSetup(SceneView* view);
@@ -74,8 +78,7 @@ namespace ElVis
     virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
     virtual std::string DoGetName() const { return "Isosurface Rendering"; }
 
-    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const override;
-    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) override;
+    virtual void DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const;
 
   private:
     /// \brief Reads a vector of floating point value from a file.

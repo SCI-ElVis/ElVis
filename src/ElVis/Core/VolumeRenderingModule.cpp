@@ -263,4 +263,22 @@ namespace ElVis
     SetSyncAndRenderRequired();
     OnModuleChanged(*this);
   }
+
+  void VolumeRenderingModule::DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const
+  {
+    auto pSerializedModule = Serialize();
+    pResult->mutable_concrete_module()->PackFrom(*pSerializedModule);
+  }
+
+  std::unique_ptr<ElVis::Serialization::VolumeRenderingModule> VolumeRenderingModule::Serialize() const
+  {
+    auto pResult = std::unique_ptr<ElVis::Serialization::VolumeRenderingModule>(new ElVis::Serialization::VolumeRenderingModule());
+    return pResult;
+  }
+
+  void VolumeRenderingModule::Deserialize(const ElVis::Serialization::VolumeRenderingModule& input)
+  {
+
+  }
+
 }

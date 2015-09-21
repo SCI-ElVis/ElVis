@@ -106,6 +106,25 @@ namespace ElVis
     OnColorChanged(*this);
   }
 
+  std::unique_ptr<ElVis::Serialization::Color> Color::Serialize() const
+  {
+    auto pResult = std::unique_ptr<ElVis::Serialization::Color>(new ElVis::Serialization::Color());
+    pResult->set_red(m_red);
+    pResult->set_green(m_green);
+    pResult->set_blue(m_blue);
+    pResult->set_alpha(m_alpha);
+    return pResult;
+  }
+
+  void Color::Deserialize(const ElVis::Serialization::Color& input)
+  {
+    m_red = input.red();
+    m_green = input.green();
+    m_blue = input.blue();
+    m_alpha = input.alpha();
+    OnColorChanged(*this);
+  }
+
   Color operator+(const Color& lhs, const Color& rhs)
   {
     Color result(lhs.Red() + rhs.Red(), lhs.Green() + rhs.Green(),

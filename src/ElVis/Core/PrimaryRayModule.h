@@ -29,6 +29,7 @@
 #ifndef ELVIS_PRIMARY_RAY_MODULE_H
 #define ELVIS_PRIMARY_RAY_MODULE_H
 
+#include <ElVis/Core/PrimaryRayModule.pb.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/PrimaryRayObject.h>
@@ -57,6 +58,9 @@ namespace ElVis
       OnObjectAdded;
     boost::signals2::signal<void(const PrimaryRayObject&)> OnObjectChanged;
 
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::PrimaryRayModule> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::PrimaryRayModule& input);
+
   protected:
     ELVIS_EXPORT virtual void DoSetup(SceneView* view);
     ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
@@ -65,6 +69,8 @@ namespace ElVis
     virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
     virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
     virtual std::string DoGetName() const { return "Surface Rendering"; }
+
+    virtual void DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const;
 
   private:
     PrimaryRayModule& operator=(const PrimaryRayModule& rhs);

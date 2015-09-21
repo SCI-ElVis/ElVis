@@ -53,4 +53,21 @@ namespace ElVis
 
     m_program = view->AddRayGenerationProgram("OpenGLLighting");
   }
+
+  void LightingModule::DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const
+  {
+    auto pSerializedModule = Serialize();
+    pResult->mutable_concrete_module()->PackFrom(*pSerializedModule);
+  }
+
+  std::unique_ptr<ElVis::Serialization::LightingModule> LightingModule::Serialize() const
+  {
+    auto pResult = std::unique_ptr<ElVis::Serialization::LightingModule>(new ElVis::Serialization::LightingModule());
+    return pResult;
+  }
+
+  void LightingModule::Deserialize(const ElVis::Serialization::LightingModule& input)
+  {
+
+  }
 }

@@ -117,7 +117,13 @@ SET(ELVIS_HEADERS
     Camera.pb.h
     Camera.pb.cc
     Color.h
+    Color.proto
+    Color.pb.h
+    Color.pb.cc
     ColorMap.h
+    ColorMap.proto
+    ColorMap.pb.h
+    ColorMap.pb.cc
     Cuda.h
     CutSurfaceContourModule.h
     CutSurfaceMeshModule.h
@@ -190,9 +196,14 @@ SET(ELVIS_SOURCES
     Light.cpp
     Model.cpp
     Plugin.cpp
+    RenderModuleFactory.h
+    RenderModuleFactory.cpp
     PtxManager.cpp
     Scene.cpp
     SceneView.cpp
+    SceneView.proto
+    SceneView.pb.h
+    SceneView.pb.cc
     Timer.cpp
     TransferFunction.cpp
     Triangle.cpp
@@ -224,18 +235,36 @@ SET(PrimaryRayObjectFiles
 SET(ModuleFiles
     ColorMapperModule.h
     ColorMapperModule.cpp
+    ColorMapperModule.proto
+    ColorMapperModule.pb.h
+    ColorMapperModule.pb.cc
     IsosurfaceModule.h
     IsosurfaceModule.cpp
+    IsosurfaceModule.proto
+    IsosurfaceModule.pb.h
+    IsosurfaceModule.pb.cc
     LightingModule.h
+    LightingModule.proto
+    LightingModule.pb.h
+    LightingModule.pb.cc
     LightingModule.cpp
+    PrimaryRayModule.proto
+    PrimaryRayModule.pb.h
+    PrimaryRayModule.pb.cc
     PrimaryRayModule.h
     PrimaryRayModule.cpp
     RenderModule.h
+    RenderModule.proto
+    RenderModule.pb.h
+    RenderModule.pb.cc
     RenderModule.cpp
     SampleOntoNrrdModule.h
     SampleOntoNrrdModule.cpp
     VolumeRenderingModule.h
     VolumeRenderingModule.cpp
+    VolumeRenderingModule.proto
+    VolumeRenderingModule.pb.h
+    VolumeRenderingModule.pb.cc
 )
 
 SET(ELVIS_CUDA_HEADERS

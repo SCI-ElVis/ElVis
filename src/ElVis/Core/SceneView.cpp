@@ -26,33 +26,44 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <ElVis/Core/OpenGL.h>
-
-#include <ElVis/Core/SceneView.h>
-#include <ElVis/Core/RenderModule.h>
-#include <ElVis/Core/PtxManager.h>
-#include <ElVis/Core/VolumeRenderingModule.h>
-#include <ElVis/Core/PrimaryRayModule.h>
-#include <ElVis/Core/Plane.h>
-#include <ElVis/Core/SampleVolumeSamplerObject.h>
-#include <ElVis/Core/Stat.h>
-
-#include <boost/timer.hpp>
 #include <boost/bind.hpp>
-
-#include <ElVis/Core/Util.hpp>
-#include <ElVis/Core/Color.h>
-#include <ElVis/Core/Scene.h>
-#include <ElVis/Core/Light.h>
-#include <ElVis/Core/sutil.h>
 #include <boost/foreach.hpp>
+#include <boost/gil/extension/io/png_io.hpp>
+#include <boost/gil/gil_all.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/timer.hpp>
+
+#include <ElVis/Core/Color.h>
+#include <ElVis/Core/Light.h>
+#include <ElVis/Core/OpenGL.h>
+#include <ElVis/Core/Plane.h>
+#include <ElVis/Core/PrimaryRayModule.h>
+#include <ElVis/Core/PtxManager.h>
+#include <ElVis/Core/RenderModuleFactory.h>
+#include <ElVis/Core/RenderModule.h>
+#include <ElVis/Core/SampleVolumeSamplerObject.h>
+#include <ElVis/Core/Scene.h>
+#include <ElVis/Core/SceneView.h>
+#include <ElVis/Core/Stat.h>
+#include <ElVis/Core/sutil.h>
 #include <ElVis/Core/Timer.h>
+#include <ElVis/Core/Util.hpp>
+#include <ElVis/Core/VolumeRenderingModule.h>
+#include <ElVis/Core/RenderModuleFactory.h>
+#include <ElVis/Core/RenderModule.h>
+#include <ElVis/Core/IsosurfaceModule.h>
+#include <ElVis/Core/IsosurfaceModule.pb.h>
+#include <ElVis/Core/PrimaryRayModule.h>
+#include <ElVis/Core/PrimaryRayModule.pb.h>
+#include <ElVis/Core/LightingModule.h>
+#include <ElVis/Core/LightingModule.pb.h>
+#include <ElVis/Core/ColorMapperModule.h>
+#include <ElVis/Core/ColorMapperModule.pb.h>
+#include <ElVis/Core/VolumeRenderingModule.h>
+#include <ElVis/Core/VolumeRenderingModule.pb.h>
+
 #include <stdio.h>
 
-#include <boost/gil/gil_all.hpp>
-#include <boost/gil/extension/io/png_io.hpp>
-
-#include <boost/serialization/vector.hpp>
 
 #define png_infopp_NULL (png_infopp) NULL
 #ifndef int_p_NULL
@@ -905,39 +916,84 @@ namespace ElVis
     return *m_projectionType;
   }
 
-  template <typename Archive>
-  void SceneView::save(Archive& ar, const unsigned int version) const
-  {
-    ar& boost::serialization::make_nvp(OPTIX_STACK_SIZE_KEY_NAME.c_str(),
-                                       m_optixStackSize);
-//    ar& boost::serialization::make_nvp(
-//      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
-    ar& boost::serialization::make_nvp(
-      RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
-  }
-
-  template <typename Archive>
-  void SceneView::load(Archive& ar, const unsigned int version)
-  {
-    int stackSize = 0;
-    ar& boost::serialization::make_nvp(OPTIX_STACK_SIZE_KEY_NAME.c_str(),
-                                       stackSize);
-//    ar& boost::serialization::make_nvp(
-//      VIEW_SETTINGS_KEY_NAME.c_str(), *m_viewSettings);
-    ar& boost::serialization::make_nvp(
-      RENDER_MODULES_KEY_NAME.c_str(), m_allRenderModules);
-    SetOptixStackSize(stackSize);
-    OnSceneViewChanged(*this);
-  }
-
-  template void SceneView::save(boost::archive::xml_oarchive&,
-                                const unsigned int) const;
-
-  template void SceneView::load(boost::archive::xml_iarchive&,
-                                const unsigned int);
-
   void SceneView::UpdateCamera(const ElVis::Serialization::Camera& data)
   {
     m_viewSettings->Deserialize(data);
+  }
+
+  std::unique_ptr<ElVis::Serialization::SceneView> SceneView::Serialize() const
+  {
+    std::unique_ptr<ElVis::Serialization::SceneView> pResult(new ElVis::Serialization::SceneView());
+    pResult->set_stack_size(m_optixStackSize);
+    pResult->set_allocated_view_settings(m_viewSettings->Serialize().release());
+
+    for(const auto& pRenderModule : m_allRenderModules)
+    {
+      auto pNewSerializedModule = pResult->add_render_modules();
+      *pNewSerializedModule = *pRenderModule->Serialize();
+    }
+    return pResult;
+  }
+
+  namespace
+  {
+    template<typename T, typename SerializationType>
+    void DeserializeToExistingRenderModule(
+              std::list<boost::shared_ptr<ElVis::RenderModule>>& modules,
+        const ElVis::Serialization::RenderModule& data)
+    {
+        auto found = std::find_if(
+          modules.begin(), modules.end(),
+          [](boost::shared_ptr<ElVis::RenderModule> pModule) -> bool
+          {
+            return boost::dynamic_pointer_cast<T>(pModule).get() != nullptr;
+          });
+
+        if (found == modules.end()) throw std::runtime_error("Invalid deserialized module.");
+        auto pModule = *found;
+        pModule->Deserialize(data);
+
+        SerializationType moduleData;
+        data.concrete_module().UnpackTo(&moduleData);
+        auto pCastModule = boost::dynamic_pointer_cast<T>(pModule);
+        pCastModule->Deserialize(moduleData);
+    }
+  } // end anonymous namespace
+
+  void SceneView::Deserialize(const ElVis::Serialization::SceneView& input)
+  {
+    SetOptixStackSize(input.stack_size());
+    m_viewSettings->Deserialize(input.view_settings());
+
+    for(int i = 0; i < input.render_modules_size(); ++i)
+    {
+      const auto& renderModuleData = input.render_modules(i);
+
+      if( renderModuleData.concrete_module().Is<ElVis::Serialization::IsosurfaceModule>() )
+      {
+        DeserializeToExistingRenderModule<IsosurfaceModule, ElVis::Serialization::IsosurfaceModule>(this->m_allRenderModules, renderModuleData);
+      }
+
+      if( renderModuleData.concrete_module().Is<ElVis::Serialization::PrimaryRayModule>() )
+      {
+        DeserializeToExistingRenderModule<PrimaryRayModule, ElVis::Serialization::PrimaryRayModule>(this->m_allRenderModules, renderModuleData);
+      }
+
+      if( renderModuleData.concrete_module().Is<ElVis::Serialization::ColorMapperModule>() )
+      {
+        DeserializeToExistingRenderModule<ColorMapperModule, ElVis::Serialization::ColorMapperModule>(this->m_allRenderModules, renderModuleData);
+      }
+
+      if( renderModuleData.concrete_module().Is<ElVis::Serialization::LightingModule>() )
+      {
+        DeserializeToExistingRenderModule<LightingModule, ElVis::Serialization::LightingModule>(this->m_allRenderModules, renderModuleData);
+      }
+
+      if( renderModuleData.concrete_module().Is<ElVis::Serialization::VolumeRenderingModule>() )
+      {
+        DeserializeToExistingRenderModule<VolumeRenderingModule, ElVis::Serialization::VolumeRenderingModule>(this->m_allRenderModules, renderModuleData);
+      }
+    }
+    OnSceneViewChanged(*this);
   }
 }

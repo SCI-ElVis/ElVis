@@ -177,4 +177,22 @@ namespace ElVis
     OnModuleChanged(*this);
     SetSyncAndRenderRequired();
   }
+
+  void PrimaryRayModule::DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const
+  {
+    auto pSerializedModule = Serialize();
+    pResult->mutable_concrete_module()->PackFrom(*pSerializedModule);
+  }
+
+  std::unique_ptr<ElVis::Serialization::PrimaryRayModule> PrimaryRayModule::Serialize() const
+  {
+    auto pResult = std::unique_ptr<ElVis::Serialization::PrimaryRayModule>(new ElVis::Serialization::PrimaryRayModule());
+    return pResult;
+  }
+
+  void PrimaryRayModule::Deserialize(const ElVis::Serialization::PrimaryRayModule& input)
+  {
+
+  }
+
 }

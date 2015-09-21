@@ -29,13 +29,7 @@
 #ifndef ELVIS_SCENE_VIEW_H
 #define ELVIS_SCENE_VIEW_H
 
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/serialization/list.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/shared_ptr.hpp>
-#include <boost/serialization/string.hpp>
+#include "SceneView.pb.h"
 
 #include <ElVis/Core/Model.h>
 #include <ElVis/Core/Point.hpp>
@@ -222,6 +216,9 @@ namespace ElVis
 
     ELVIS_EXPORT void UpdateCamera(const ElVis::Serialization::Camera& data);
 
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::SceneView> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::SceneView& input);
+
   protected:
     virtual void DoWindowSizeHasChanged() {}
     virtual void DoPrepareForDisplay() {}
@@ -251,21 +248,6 @@ namespace ElVis
     void ClearDepthBuffer();
     void ClearColorBuffer();
     void HandleRenderModuleChanged(const RenderModule&);
-
-    /// \brief Serializes this to an archive.
-    /// \param ar The serialization destination.
-    template <typename Archive>
-    void save(Archive& ar, const unsigned int version) const;
-
-    /// \brief Deserializes this from an archive.
-    /// \param ar The serialization source.
-    template <typename Archive>
-    void load(Archive& ar, const unsigned int version);
-
-    /// This macro is required to support the save/load interface above.
-    /// Without it, serialization and deserialization are performed by
-    /// the same function.
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
     boost::shared_ptr<Scene> m_scene;
     unsigned int m_width;

@@ -250,18 +250,36 @@ namespace ElVis
     inFile.close();
   }
 
-  void IsosurfaceModule::serialize(boost::archive::xml_oarchive& ar, unsigned int version) const
+  void IsosurfaceModule::DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const
   {
-    ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
-    ar & boost::serialization::make_nvp(EPSILON_KEY_NAME.c_str(), m_epsilonExponent);
-    ar & boost::serialization::make_nvp(PROJECTION_ORDER_KEY_NAME.c_str(), m_projectionOrder);
+    auto pSerializedModule = Serialize();
+    pResult->mutable_concrete_module()->PackFrom(*pSerializedModule);
   }
 
-  void IsosurfaceModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
+
+  std::unique_ptr<ElVis::Serialization::IsosurfaceModule> IsosurfaceModule::Serialize() const
   {
-    ar & boost::serialization::make_nvp(ISOVALUE_KEY_NAME.c_str(), m_isovalues);
-    ar & boost::serialization::make_nvp(EPSILON_KEY_NAME.c_str(), m_epsilonExponent);
-    ar & boost::serialization::make_nvp(PROJECTION_ORDER_KEY_NAME.c_str(), m_projectionOrder);
+    auto pResult = std::unique_ptr<ElVis::Serialization::IsosurfaceModule>(new ElVis::Serialization::IsosurfaceModule());
+    pResult->set_epsilon_exponent(m_epsilonExponent);
+    pResult->set_projection_order(m_projectionOrder);
+
+    for(const auto& isovalue : m_isovalues)
+    {
+      pResult->add_isovalues(isovalue);
+    }
+    return pResult;
+  }
+
+  void IsosurfaceModule::Deserialize(const ElVis::Serialization::IsosurfaceModule& input)
+  {
+    m_epsilonExponent = input.epsilon_exponent();
+    m_projectionOrder = input.projection_order();
+    m_isovalues.clear();
+    for(int i = 0; i < input.isovalues_size(); ++i)
+    {
+      m_isovalues.insert(input.isovalues(i));
+    }
+
     m_dirty = true;
     OnIsovaluesChanged();
     SetSyncAndRenderRequired();

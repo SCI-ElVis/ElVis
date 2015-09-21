@@ -26,57 +26,45 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <ElVis/Gui/ElVisUI.h>
-
-#include <QDockWidget>
-#include <QFileDialog>
-#include <QStringList>
-#include <QMenuBar>
-
-#include <iostream>
-
+#include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
-
-#include <ElVis/Gui/SceneViewWidget.h>
-#include <ElVis/Gui/DebugSettingsDockWidget.h>
-
-#include <ElVis/Extensions/JacobiExtension/JacobiExtensionElVisModel.h>
-#include <ElVis/Core/Camera.h>
-#include <ElVis/Core/ColorMap.h>
-#include <ElVis/Core/Camera.h>
-#include <ElVis/Core/Point.hpp>
-#include <ElVis/Core/Scene.h>
-#include <ElVis/Core/Light.h>
-#include <ElVis/Core/Color.h>
-#include <ElVis/Core/Light.h>
-#include <ElVis/Core/Triangle.h>
-#include <ElVis/Core/SurfaceObject.h>
-#include <ElVis/Core/Plane.h>
-#include <ElVis/Core/LightingModule.h>
-#include <ElVis/Core/PrimaryRayModule.h>
-#include <ElVis/Core/CutSurfaceContourModule.h>
-#include <ElVis/Core/SurfaceObject.h>
-#include <ElVis/Core/Cylinder.h>
-#include <ElVis/Core/SampleVolumeSamplerObject.h>
-
-#include <string>
-#include <boost/bind.hpp>
-#include <boost/timer.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-
-#include <ElVis/Core/Cylinder.h>
 #include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/timer.hpp>
+
+#include <ElVis/Core/Camera.h>
+#include <ElVis/Core/Color.h>
+#include <ElVis/Core/ColorMap.h>
 #include <ElVis/Core/ColorMapperModule.h>
-#include <ElVis/Core/SampleVolumeSamplerObject.h>
+#include <ElVis/Core/CutSurfaceContourModule.h>
+#include <ElVis/Core/Cylinder.h>
+#include <ElVis/Core/Light.h>
+#include <ElVis/Core/LightingModule.h>
+#include <ElVis/Core/Plane.h>
+#include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/PtxManager.h>
+#include <ElVis/Core/SampleVolumeSamplerObject.h>
+#include <ElVis/Core/Scene.h>
+#include <ElVis/Core/SurfaceObject.h>
+#include <ElVis/Core/Triangle.h>
+//#include <ElVis/Extensions/JacobiExtension/JacobiExtensionElVisModel.h>
+#include <ElVis/Gui/DebugSettingsDockWidget.h>
+#include <ElVis/Gui/ElVisUI.h>
+#include <ElVis/Gui/SceneViewWidget.h>
 
+#include <QDockWidget>
+#include <QFileDialog>
+#include <QMenuBar>
+#include <QStringList>
+
+#include <iostream>
+#include <string>
 #include <tinyxml.h>
+#include <fstream>
 
-#include <boost/serialization/shared_ptr.hpp>
 
 namespace ElVis
 {
@@ -89,7 +77,7 @@ namespace ElVis
     const char* ElVisUI::RECENT_FILE_LIST = "RecentFileList";
     const char* ElVisUI::RECENT_FILE_FILTER = "RecentFileFilter";
 
-    const char* ElVisUI::STATE_SUFFIX = ".xml";
+    const char* ElVisUI::STATE_SUFFIX = ".bin";
 
     const QString ElVisUI::WindowsSettings("WindowsSettings");
     const QString ElVisUI::OptixStackSize("OptixStackSize");
@@ -809,14 +797,9 @@ namespace ElVis
 
       std::ofstream outFile(fileName.toStdString().c_str(), std::ios::binary);
       auto pSceneView = m_appData->GetSurfaceSceneView();
-      auto pCamera = pSceneView->GetViewSettings();
-      auto pSerialized = pCamera->Serialize();
-      pSerialized->SerializeToOstream(&outFile);
+      auto pSerializedView = pSceneView->Serialize();
+      pSerializedView->SerializeToOstream(&outFile);
       outFile.close();
-
-//      boost::archive::xml_oarchive oa(outFile);
-//      oa << boost::serialization::make_nvp(SCENE_VIEW_ELEMENT_NAME.c_str(), *pSceneView);
-//      outFile.close();
 
       QDir CurrentDir;
       m_settings->setValue(DEFAULT_STATE_DIR_SETTING_NAME, CurrentDir.absoluteFilePath(fileName));
@@ -844,13 +827,10 @@ namespace ElVis
 
       std::ifstream inFile(fileName.toStdString(), std::ios::binary);
       auto pSceneView = m_appData->GetSurfaceSceneView();
-      ElVis::Serialization::Camera serializedData;
+      ElVis::Serialization::SceneView serializedData;
       serializedData.ParseFromIstream(&inFile);
       inFile.close();
-      pSceneView->UpdateCamera(serializedData);
-//      boost::archive::xml_iarchive ia(inFile);
-//      ia >> boost::serialization::make_nvp(SCENE_VIEW_ELEMENT_NAME.c_str(), *pSceneView);
-
+      pSceneView->Deserialize(serializedData);
       inFile.close();
 
       QDir CurrentDir;

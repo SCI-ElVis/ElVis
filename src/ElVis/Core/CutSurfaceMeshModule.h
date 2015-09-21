@@ -55,6 +55,8 @@ namespace ElVis
     virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
     virtual std::string DoGetName() const;
 
+    virtual void DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const;
+
   private:
     CutSurfaceMeshModule(const CutSurfaceMeshModule& rhs);
     CutSurfaceMeshModule& operator=(const CutSurfaceMeshModule& rhs);

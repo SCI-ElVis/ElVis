@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package ElVis.Serialization;
+
+message Color {
+  float red = 1;
+  float green = 2;
+  float blue = 3;
+  float alpha = 4;
+}

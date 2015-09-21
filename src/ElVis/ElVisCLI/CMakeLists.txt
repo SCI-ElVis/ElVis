@@ -261,7 +261,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1024 --Height 1024
         --OutFile IsosurfacePaperFigure4A
         --Module ${JacobiExtensionPath}
-        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_4a.xml"
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_4a.bin"
         --CompareFile "${BaselineDir}/IsosurfacePaperFigure4ABaseline"
     )
 

@@ -188,10 +188,11 @@ int ViewSettingsRendering(int argc,
     view->SetScene(scene);
     view->Resize(width, height);
 
-    std::ifstream inFile(settingsPath);
-    boost::archive::xml_iarchive ia(inFile);
-    ia >> boost::serialization::make_nvp("SceneView", *view);
+    std::ifstream inFile(settingsPath, std::ios::binary);
+    ElVis::Serialization::SceneView serializedData;
+    serializedData.ParseFromIstream(&inFile);
     inFile.close();
+    view->Deserialize(serializedData);
 
     // Don't time to take care of initialization artifacts.
     view->Draw();

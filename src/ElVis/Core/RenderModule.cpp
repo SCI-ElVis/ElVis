@@ -33,12 +33,6 @@
 
 namespace ElVis
 {
-  // Serialization keys.
-  namespace
-  {
-    const std::string ENABLED_KEY_NAME("Enabled");
-  }
-
   RenderModule::RenderModule() : m_flags(), m_enabled(true)
   {
     m_flags.set(eSetupRequired);
@@ -136,23 +130,18 @@ namespace ElVis
     DoResize(newWidth, newHeight);
   }
 
-  template <typename Archive>
-  void RenderModule::save(Archive& ar, const unsigned int version) const
+  std::unique_ptr<ElVis::Serialization::RenderModule> RenderModule::Serialize() const
   {
-    ar & boost::serialization::make_nvp(ENABLED_KEY_NAME.c_str(), m_enabled);
-    serialize(ar, version);
+    auto pResult = std::unique_ptr<ElVis::Serialization::RenderModule>(new ElVis::Serialization::RenderModule());
+    pResult->set_enabled(m_enabled);
+    DoSerialize(pResult);
+    return pResult;
   }
 
-  template <typename Archive>
-  void RenderModule::load(Archive& ar, const unsigned int version)
+  void RenderModule::Deserialize(const ElVis::Serialization::RenderModule& input)
   {
-    ar & boost::serialization::make_nvp(ENABLED_KEY_NAME.c_str(), m_enabled);
-    deserialize(ar, version);
+    m_enabled = input.enabled();
+    OnEnabledChanged(*this, m_enabled);
+    OnModuleChanged(*this);
   }
-
-  template void RenderModule::save(boost::archive::xml_oarchive&,
-                                const unsigned int) const;
-
-  template void RenderModule::load(boost::archive::xml_iarchive&,
-                                const unsigned int);
 }

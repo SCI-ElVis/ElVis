@@ -26,51 +26,17 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ELVISNATIVE_PRIMARY_RAY_OBJECT_H
-#define ELVISNATIVE_PRIMARY_RAY_OBJECT_H
+#ifndef ELVIS_RENDER_MODULE_FACTORY_H
+#define ELVIS_RENDER_MODULE_FACTORY_H
 
 #include <boost/shared_ptr.hpp>
-#include <boost/signals2.hpp>
-
-#include <ElVis/Core/ElVisDeclspec.h>
-#include <ElVis/Core/Object.h>
-
-#include <optix_math.h>
-#include <optixu/optixpp.h>
+#include <ElVis/Core/RenderModule.pb.h>
 
 namespace ElVis
 {
-  /// \brief Adapts objects so they can be used by the primary ray module.
-  class PrimaryRayObject
-  {
-  public:
-    ELVIS_EXPORT PrimaryRayObject();
-    ELVIS_EXPORT explicit PrimaryRayObject(boost::shared_ptr<Object> obj);
-    ELVIS_EXPORT virtual ~PrimaryRayObject();
+  class RenderModule;
 
-    ELVIS_EXPORT boost::shared_ptr<Object> GetObject() const
-    {
-      return m_object;
-    }
-
-    ELVIS_EXPORT void CreateNode(SceneView* view,
-                                 optixu::Transform& transform,
-                                 optixu::GeometryGroup& group);
-
-    boost::signals2::signal<void(const PrimaryRayObject&)> OnObjectChanged;
-
-  protected:
-    virtual optixu::Material GetMaterial(SceneView* view) = 0;
-
-  private:
-    PrimaryRayObject& operator=(const PrimaryRayObject& rhs);
-    PrimaryRayObject(const PrimaryRayObject& rhs);
-
-    void HandleObjectChanged(const Object&);
-    void SetupSubscriptions();
-
-    boost::shared_ptr<Object> m_object;
-  };
+  boost::shared_ptr<RenderModule> createRenderModule(const ElVis::Serialization::RenderModule& data);
 }
 
 #endif
