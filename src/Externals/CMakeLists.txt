@@ -103,6 +103,7 @@ ENDIF()
 
 MESSAGE( STATUS "Boost Include ${Boost_INCLUDE_DIR}" )
 
+add_subdirectory(protobuf/cmake)
 ##################################################
 # ADDING OptiX
 ##################################################
