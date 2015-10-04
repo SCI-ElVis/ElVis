@@ -576,15 +576,15 @@ namespace ElVis
   void Camera::Deserialize(const ElVis::Serialization::Camera& input)
   {
     m_fieldOfView = input.field_of_view();
-    m_aspectRatio = input.aspect_ratio();
+    //m_aspectRatio = input.aspect_ratio();
     m_near = input.near();
     m_far = input.far();
     m_eye.Deserialize(input.eye());
     m_lookAt.Deserialize(input.lookat());
     m_up.Deserialize(input.up());
-    m_u.Deserialize(input.u());
-    m_v.Deserialize(input.v());
-    m_w.Deserialize(input.w());
+//    m_u.Deserialize(input.u());
+//    m_v.Deserialize(input.v());
+//    m_w.Deserialize(input.w());
 
     UpdateBasisVectors();
     OnCameraChanged();

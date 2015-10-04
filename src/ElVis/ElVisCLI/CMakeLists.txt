@@ -271,7 +271,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1024 --Height 1024
         --OutFile IsosurfacePaperFigure5B
         --Module ${JacobiExtensionPath}
-        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_5b.xml"
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_5b.bin"
         --CompareFile "${BaselineDir}/IsosurfacePaperFigure5BBaseline"
     )
 
@@ -281,7 +281,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1024 --Height 1024
         --OutFile IsosurfacePaperFigure6B
         --Module ${JacobiExtensionPath}
-        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_6b.xml"
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_6b.bin"
         --CompareFile "${BaselineDir}/IsosurfacePaperFigure6BBaseline"
     )
 
@@ -291,7 +291,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1024 --Height 1024
         --OutFile IsosurfacePaperFigure9A
         --Module ${JacobiExtensionPath}
-        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9a.xml"
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9a.bin"
         --CompareFile "${BaselineDir}/IsosurfacePaperFigure9ABaseline"
     )
 
@@ -301,7 +301,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1024 --Height 1024
         --OutFile IsosurfacePaperFigure9B
         --Module ${JacobiExtensionPath}
-        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9b.xml"
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_9b.bin"
         --CompareFile "${BaselineDir}/IsosurfacePaperFigure9BBaseline"
     )
 
@@ -311,7 +311,7 @@ IF( ELVIS_ENABLE_JACOBI_EXTENSION )
         --Width 1024 --Height 1024
         --OutFile IsosurfacePaperFigure10B
         --Module ${JacobiExtensionPath}
-        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_10b.xml"
+        --Settings "${CMAKE_SOURCE_DIR}/../ViewingParameters/IsosurfacePaper_10b.bin"
         --CompareFile "${BaselineDir}/IsosurfacePaperFigure10BBaseline"
     )
 
