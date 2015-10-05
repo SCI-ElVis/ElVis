@@ -341,7 +341,7 @@ TARGET_LINK_LIBRARIES(${ProjectName}
     ${PNG_LIBRARY}
     ${TinyXML_Library}
     ${optix_LIBRARY} ${optixu_LIBRARY}
-    /home/bnelson/dev/protobuf/dist/lib/libprotobuf.a
+    libprotobuf
 )
 
 

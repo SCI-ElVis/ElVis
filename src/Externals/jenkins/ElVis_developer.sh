@@ -121,6 +121,8 @@ do
     git branch -D $branch || git_error
   fi
 done
+git submodule init || git_error
+git submodule update || git_error
 
 #Add the email address to the list of developer email addresses
 echo

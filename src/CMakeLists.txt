@@ -95,7 +95,7 @@ SET(GLUT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Externals/glut/include)
 # in CVS and should not be put in the src directory.
 INCLUDE_DIRECTORIES( 
   ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/../protobuf/src
+  ${CMAKE_SOURCE_DIR}/Externals/protobuf/src
   ${CMAKE_BINARY_DIR}
   ${Boost_INCLUDE_DIR}
   ${GLEW_INCLUDE}
