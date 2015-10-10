@@ -1,3 +1,3 @@
 [submodule "protobuf"]
 	path = src/Externals/protobuf
-	url = https://github.com:ElVis-SCI/protobuf.git
+	url = https://SCI-ElVis@github.com/ElVis-SCI/protobuf.git
