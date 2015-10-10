@@ -4,7 +4,7 @@ WORKSPACE=$(git rev-parse --show-toplevel)
 
 cmakedir=$WORKSPACE/build/$builddir
 
-git submodule deinit protobuf
+git submodule deinit src/Externals/protobuf
 git submodule init
 git submodule update
 rm -rf $WORKSPACE/build
