@@ -4,6 +4,8 @@ WORKSPACE=$(git rev-parse --show-toplevel)
 
 cmakedir=$WORKSPACE/build/$builddir
 
+git submodule init
+git submodule update
 rm -rf $WORKSPACE/build
 mkdir -p $cmakedir
 cd $cmakedir
