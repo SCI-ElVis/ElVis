@@ -81,6 +81,7 @@ __device__ __forceinline__ const ElVisFloat3& GetVertex(int hexId, int vertexId)
 #include <ElVis/Core/VolumeRenderingPayload.cu>
 #include <ElVis/Core/OptixVariables.cu>
 #include <ElVis/Core/Float.cu>
+#include <vector>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Quadrilateral.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Prism.cu>
 #include <ElVis/Extensions/NektarPlusPlusExtension/Hexahedron.cu>
