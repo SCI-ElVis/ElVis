@@ -69,4 +69,9 @@ namespace ElVis
   {
     return "Cut-Surface Mesh";
   }
+
+  void CutSurfaceMeshModule::DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const
+  {
+
+  }
 }

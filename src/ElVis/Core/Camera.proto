@@ -1,0 +1,17 @@
+syntax = "proto3";
+import "Point.proto";
+
+package ElVis.Serialization;
+
+message Camera {
+  Point eye = 1;
+  Point lookAt = 2;
+  Point up = 3;
+  Point u = 4;
+  Point v = 5;
+  Point w = 6;
+  double field_of_view = 7;
+  double aspect_ratio = 8;
+  float near = 9;
+  float far = 10;
+}

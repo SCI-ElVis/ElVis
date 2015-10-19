@@ -29,17 +29,14 @@
 #ifndef ELVISNATIVE_PRIMARY_RAY_OBJECT_H
 #define ELVISNATIVE_PRIMARY_RAY_OBJECT_H
 
-#include <ElVis/Core/ElVisDeclspec.h>
-#include <ElVis/Core/Object.h>
-#include <optixu/optixpp.h>
-#include <optix_math.h>
-
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/serialization/list.hpp>
+#include <ElVis/Core/ElVisDeclspec.h>
+#include <ElVis/Core/Object.h>
+
+#include <optix_math.h>
+#include <optixu/optixpp.h>
 
 namespace ElVis
 {
@@ -47,7 +44,6 @@ namespace ElVis
   class PrimaryRayObject
   {
   public:
-    friend class boost::serialization::access;
     ELVIS_EXPORT PrimaryRayObject();
     ELVIS_EXPORT explicit PrimaryRayObject(boost::shared_ptr<Object> obj);
     ELVIS_EXPORT virtual ~PrimaryRayObject();
@@ -72,12 +68,6 @@ namespace ElVis
 
     void HandleObjectChanged(const Object&);
     void SetupSubscriptions();
-
-    template <typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-      ar& BOOST_SERIALIZATION_NVP(m_object);
-    }
 
     boost::shared_ptr<Object> m_object;
   };

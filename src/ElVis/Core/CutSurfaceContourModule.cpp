@@ -195,4 +195,10 @@ namespace ElVis
       OnModuleChanged(*this);
     }
   }
+
+  void CutSurfaceContourModule::DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const
+  {
+
+  }
+
 }

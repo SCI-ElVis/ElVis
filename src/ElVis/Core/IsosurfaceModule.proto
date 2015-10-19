@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package ElVis.Serialization;
+
+message IsosurfaceModule {
+  repeated float isovalues = 1;
+  int32 epsilon_exponent = 2;
+  int32 projection_order = 3;
+}

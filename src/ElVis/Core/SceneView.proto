@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "RenderModule.proto";
+import "Camera.proto";
+
+package ElVis.Serialization;
+
+message SceneView {
+    repeated RenderModule render_modules = 1;
+    int32 stack_size = 2;
+    Camera view_settings = 3;
+}

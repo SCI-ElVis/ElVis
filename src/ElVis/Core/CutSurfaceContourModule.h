@@ -76,6 +76,8 @@ namespace ElVis
                                        unsigned int newHeight);
     virtual std::string DoGetName() const;
 
+    virtual void DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const;
+
   private:
     CutSurfaceContourModule(const CutSurfaceContourModule& rhs);
     CutSurfaceContourModule& operator=(const CutSurfaceContourModule& rhs);

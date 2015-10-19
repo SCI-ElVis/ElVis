@@ -29,6 +29,7 @@
 #ifndef ELVIS_COLOR_MAPPER_MODULE_H
 #define ELVIS_COLOR_MAPPER_MODULE_H
 
+#include <ElVis/Core/ColorMapperModule.pb.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/PrimaryRayObject.h>
@@ -56,6 +57,9 @@ namespace ElVis
       return m_colorMap;
     }
 
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::ColorMapperModule> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::ColorMapperModule& input);
+
   protected:
     ELVIS_EXPORT virtual void DoSetup(SceneView* view);
     ELVIS_EXPORT virtual void DoSynchronize(SceneView* view);
@@ -64,8 +68,7 @@ namespace ElVis
     virtual int DoGetNumberOfRequiredEntryPoints() { return 1; }
     virtual std::string DoGetName() const { return "Color Mapper"; }
 
-    virtual void serialize(boost::archive::xml_oarchive&, unsigned int version) const override;
-    virtual void deserialize(boost::archive::xml_iarchive&, unsigned int version) override;
+    virtual void DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const;
 
   private:
     ColorMapperModule(const ColorMapperModule& rhs);
@@ -79,8 +82,6 @@ namespace ElVis
     optixu::Buffer m_data;
     optixu::TextureSampler m_textureSampler;
     unsigned int m_size;
-    float m_min;
-    float m_max;
     bool m_dirty;
     boost::signals2::connection m_minConnection;
     boost::signals2::connection m_maxConnection;

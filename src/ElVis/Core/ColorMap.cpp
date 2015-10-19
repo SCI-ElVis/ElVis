@@ -45,6 +45,20 @@ namespace
 
 namespace ElVis
 {
+  std::unique_ptr<ElVis::Serialization::ColorMapBreakpoint> ColorMapBreakpoint::Serialize() const
+  {
+    auto pResult = std::unique_ptr<ElVis::Serialization::ColorMapBreakpoint>(new ElVis::Serialization::ColorMapBreakpoint());
+    pResult->set_scalar(Scalar);
+    pResult->set_allocated_color(Col.Serialize().release());
+    return pResult;
+  }
+
+  void ColorMapBreakpoint::Deserialize(const ElVis::Serialization::ColorMapBreakpoint& input)
+  {
+    Scalar = input.scalar();
+    Col.Deserialize(input.color());
+  }
+
   ColorMap::ColorMap() : m_min(0.0f), m_max(1.0f) , m_breakpoints(){}
 
   void ColorMap::SetMin(float value)
@@ -148,31 +162,35 @@ namespace ElVis
     buffer->unmap();
   }
 
-  /// \brief Serializes a camera to an archive.
-  /// \param ar The serialization destination.
-  template <typename Archive>
-  void ColorMap::save(Archive& ar, const unsigned int /*version*/) const
+  std::unique_ptr<ElVis::Serialization::ColorMap> ColorMap::Serialize() const
   {
-    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
-    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
-    ar & boost::serialization::make_nvp(BREAKPOINTS_KEY_NAME.c_str(), m_breakpoints);
+    auto pResult = std::unique_ptr<ElVis::Serialization::ColorMap>(new ElVis::Serialization::ColorMap());
+    pResult->set_min(m_min);
+    pResult->set_max(m_max);
+
+    for(const auto& iter : m_breakpoints)
+    {
+      auto pBreakpoint = pResult->add_breakpoints();
+      *pBreakpoint = *iter.second.Serialize();
+    }
+    return pResult;
   }
 
-  /// \brief Deserializes a camera from an archive.
-  /// \param ar The serialization source.
-  template <typename Archive>
-  void ColorMap::load(Archive& ar, const unsigned int /*version*/)
+  void ColorMap::Deserialize(const ElVis::Serialization::ColorMap& input)
   {
-    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
-    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
-    ar & boost::serialization::make_nvp(BREAKPOINTS_KEY_NAME.c_str(), m_breakpoints);
+    m_min = input.min();
+    m_max = input.max();
+
+    m_breakpoints.clear();
+    for(int i = 0; i < input.breakpoints_size(); ++i)
+    {
+      ColorMapBreakpoint bp;
+      bp.Deserialize(input.breakpoints(i));
+      m_breakpoints[bp.Scalar] = bp;
+    }
+    OnColorMapChanged(*this);
   }
 
-  template void ColorMap::save(boost::archive::xml_oarchive&,
-                                const unsigned int) const;
-
-  template void ColorMap::load(boost::archive::xml_iarchive&,
-                                const unsigned int);
 }
 
 

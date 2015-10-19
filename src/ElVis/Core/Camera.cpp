@@ -555,4 +555,38 @@ namespace ElVis
     std::cout << "Gaze: " << c.GetGaze() << std::endl;
     return os;
   }
+
+  std::unique_ptr<ElVis::Serialization::Camera> Camera::Serialize() const
+  {
+    auto pResult = std::unique_ptr<ElVis::Serialization::Camera>(new ElVis::Serialization::Camera());
+    pResult->set_field_of_view(m_fieldOfView);
+    pResult->set_aspect_ratio(m_aspectRatio);
+    pResult->set_near(m_near);
+    pResult->set_far(m_far);
+    pResult->set_allocated_eye(m_eye.Serialize().release());
+    pResult->set_allocated_lookat(m_lookAt.Serialize().release());
+    pResult->set_allocated_up(m_up.Serialize().release());
+    pResult->set_allocated_u(m_u.Serialize().release());
+    pResult->set_allocated_v(m_v.Serialize().release());
+    pResult->set_allocated_w(m_w.Serialize().release());
+
+    return pResult;
+  }
+
+  void Camera::Deserialize(const ElVis::Serialization::Camera& input)
+  {
+    m_fieldOfView = input.field_of_view();
+    //m_aspectRatio = input.aspect_ratio();
+    m_near = input.near();
+    m_far = input.far();
+    m_eye.Deserialize(input.eye());
+    m_lookAt.Deserialize(input.lookat());
+    m_up.Deserialize(input.up());
+//    m_u.Deserialize(input.u());
+//    m_v.Deserialize(input.v());
+//    m_w.Deserialize(input.w());
+
+    UpdateBasisVectors();
+    OnCameraChanged();
+  }
 }

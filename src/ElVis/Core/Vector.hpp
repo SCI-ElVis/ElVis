@@ -1,6 +1,7 @@
 #ifndef HIGH_ORDER_ISOSURFACE_VECTOR_HPP
 #define HIGH_ORDER_ISOSURFACE_VECTOR_HPP
 
+#include <ElVis/Core/Point.pb.h>
 #include <ElVis/Core/Spaces.h>
 #include <ElVis/Core/Point.hpp>
 #include <ElVis/Core/Float.h>
@@ -196,6 +197,48 @@ namespace ElVis
 
             }
             
+            std::unique_ptr<ElVis::Serialization::Point> Serialize() const
+            {
+              auto pResult = std::unique_ptr<ElVis::Serialization::Point>(new ElVis::Serialization::Point());
+              if (m_data.size() >= 1)
+              {
+                pResult->set_x(m_data[0]);
+              }
+              if (m_data.size() >= 2)
+              {
+                pResult->set_y(m_data[1]);
+              }
+              if (m_data.size() >= 3)
+              {
+                pResult->set_z(m_data[2]);
+              }
+              if (m_data.size() >= 4)
+              {
+                pResult->set_w(m_data[3]);
+              }
+
+              return pResult;
+            }
+
+            void Deserialize(const ElVis::Serialization::Point& input)
+            {
+              if( m_data.size() >= 1 )
+              {
+                m_data[0] = input.x();
+              }
+              if( m_data.size() >= 2 )
+              {
+                m_data[1] = input.y();
+              }
+              if( m_data.size() >= 3 )
+              {
+                m_data[2] = input.z();
+              }
+              if( m_data.size() >= 4 )
+              {
+                m_data[3] = input.w();
+              }
+            }
             
             /// \brief Returns the number of dimensions for the point.
             inline size_t GetDimension() const

@@ -29,6 +29,7 @@
 #ifndef ELVIS_NEKPP_MODEL_H
 #define ELVIS_NEKPP_MODEL_H
 
+#include <vector>
 #include <boost/foreach.hpp>
 #include <boost/utility.hpp>
 #include <boost/filesystem.hpp>

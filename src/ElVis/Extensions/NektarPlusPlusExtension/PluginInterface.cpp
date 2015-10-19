@@ -29,6 +29,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <vector>
 #include <ElVis/Extensions/NektarPlusPlusExtension/PluginInterface.h>
 #include <boost/filesystem.hpp>
 

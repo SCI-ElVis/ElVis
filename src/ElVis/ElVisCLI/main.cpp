@@ -30,6 +30,7 @@
 #include <ElVis/Core/ColorMap.h>
 #include <ElVis/Core/Camera.h>
 #include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/Point.pb.h>
 #include <ElVis/Core/Scene.h>
 #include <ElVis/Core/Light.h>
 #include <ElVis/Core/Color.h>

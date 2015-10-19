@@ -71,22 +71,22 @@ INCLUDE(CMake/UnitTest.cmake)
 ADD_SUBDIRECTORY(Externals)
 
 IF( NOT PASSED_FIRST_CONFIGURE )
-    IF( CUDA_VERSION VERSION_LESS "5.0" )
-      LIST(APPEND CUDA_NVCC_FLAGS_DEBUG "-G0")
-    ENDIF()
-    SET(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  IF( CUDA_VERSION VERSION_LESS "5.0" )
+    LIST(APPEND CUDA_NVCC_FLAGS_DEBUG "-G0")
+  ENDIF()
+  SET(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
     
-    LIST(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
+  LIST(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE LIST "Semi-colon delimit multiple arguments." FORCE)
     
-    SET(CUDA_BUILD_CUBIN ON CACHE BOOL "" FORCE)
+  SET(CUDA_BUILD_CUBIN ON CACHE BOOL "" FORCE)
 ENDIF() 
 
 OPTION(ELVIS_USE_DOUBLE_PRECISION "Use double precision value in GPU code.")
 OPTION(ELVIS_ENABLE_PRINTF "Enable the use of ELVIS_PRINTF in device code.")
 
 IF( ELVIS_ENABLE_PRINTF )
-    ADD_DEFINITIONS(-DELVIS_ENABLE_PRINTF)
+  ADD_DEFINITIONS(-DELVIS_ENABLE_PRINTF)
 ENDIF()
 
 SET(GLUT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Externals/glut/include)
@@ -94,11 +94,12 @@ SET(GLUT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Externals/glut/include)
 # {CMAKE_BINARY_DIR} be included to handle generated files.  These files won't exist 
 # in CVS and should not be put in the src directory.
 INCLUDE_DIRECTORIES( 
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${Boost_INCLUDE_DIR}
-    ${GLEW_INCLUDE}
-    ${GLUT_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/Externals/protobuf/src
+  ${CMAKE_BINARY_DIR}
+  ${Boost_INCLUDE_DIR}
+  ${GLEW_INCLUDE}
+  ${GLUT_INCLUDE_DIR}
   # Cuda includes must appear after other GL includes to prevent accidentally
   # including the versions that ship with cuda.
   ${OptiX_INCLUDE}
@@ -107,9 +108,9 @@ INCLUDE_DIRECTORIES(
 
 
 IF(ELVIS_USE_DOUBLE_PRECISION)
-    SET(ELVIS_FLOAT "double")
+  SET(ELVIS_FLOAT "double")
 ELSE()
-    SET(ELVIS_FLOAT "float")
+  SET(ELVIS_FLOAT "float")
 ENDIF()
 
 

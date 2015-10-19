@@ -26,57 +26,45 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <ElVis/Gui/ElVisUI.h>
-
-#include <QDockWidget>
-#include <QFileDialog>
-#include <QStringList>
-#include <QMenuBar>
-
-#include <iostream>
-
+#include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
-
-#include <ElVis/Gui/SceneViewWidget.h>
-#include <ElVis/Gui/DebugSettingsDockWidget.h>
-
-#include <ElVis/Extensions/JacobiExtension/JacobiExtensionElVisModel.h>
-#include <ElVis/Core/Camera.h>
-#include <ElVis/Core/ColorMap.h>
-#include <ElVis/Core/Camera.h>
-#include <ElVis/Core/Point.hpp>
-#include <ElVis/Core/Scene.h>
-#include <ElVis/Core/Light.h>
-#include <ElVis/Core/Color.h>
-#include <ElVis/Core/Light.h>
-#include <ElVis/Core/Triangle.h>
-#include <ElVis/Core/SurfaceObject.h>
-#include <ElVis/Core/Plane.h>
-#include <ElVis/Core/LightingModule.h>
-#include <ElVis/Core/PrimaryRayModule.h>
-#include <ElVis/Core/CutSurfaceContourModule.h>
-#include <ElVis/Core/SurfaceObject.h>
-#include <ElVis/Core/Cylinder.h>
-#include <ElVis/Core/SampleVolumeSamplerObject.h>
-
-#include <string>
-#include <boost/bind.hpp>
-#include <boost/timer.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-
-#include <ElVis/Core/Cylinder.h>
 #include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/timer.hpp>
+
+#include <ElVis/Core/Camera.h>
+#include <ElVis/Core/Color.h>
+#include <ElVis/Core/ColorMap.h>
 #include <ElVis/Core/ColorMapperModule.h>
-#include <ElVis/Core/SampleVolumeSamplerObject.h>
+#include <ElVis/Core/CutSurfaceContourModule.h>
+#include <ElVis/Core/Cylinder.h>
+#include <ElVis/Core/Light.h>
+#include <ElVis/Core/LightingModule.h>
+#include <ElVis/Core/Plane.h>
+#include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/PrimaryRayModule.h>
 #include <ElVis/Core/PtxManager.h>
+#include <ElVis/Core/SampleVolumeSamplerObject.h>
+#include <ElVis/Core/Scene.h>
+#include <ElVis/Core/SurfaceObject.h>
+#include <ElVis/Core/Triangle.h>
+//#include <ElVis/Extensions/JacobiExtension/JacobiExtensionElVisModel.h>
+#include <ElVis/Gui/DebugSettingsDockWidget.h>
+#include <ElVis/Gui/ElVisUI.h>
+#include <ElVis/Gui/SceneViewWidget.h>
 
+#include <QDockWidget>
+#include <QFileDialog>
+#include <QMenuBar>
+#include <QStringList>
+
+#include <iostream>
+#include <string>
 #include <tinyxml.h>
+#include <fstream>
 
-#include <boost/serialization/shared_ptr.hpp>
 
 namespace ElVis
 {
@@ -89,7 +77,7 @@ namespace ElVis
     const char* ElVisUI::RECENT_FILE_LIST = "RecentFileList";
     const char* ElVisUI::RECENT_FILE_FILTER = "RecentFileFilter";
 
-    const char* ElVisUI::STATE_SUFFIX = ".xml";
+    const char* ElVisUI::STATE_SUFFIX = ".bin";
 
     const QString ElVisUI::WindowsSettings("WindowsSettings");
     const QString ElVisUI::OptixStackSize("OptixStackSize");
@@ -807,41 +795,11 @@ namespace ElVis
       QStringList::Iterator it = list.begin();
       QString fileName = *it;
 
-      auto pScene = m_appData->GetSurfaceSceneView()->GetScene();
-      std::ofstream outFile(fileName.toStdString().c_str());
-      boost::archive::xml_oarchive oa(outFile);
-      // ElVis::Scene& scene = *pScene;
+      std::ofstream outFile(fileName.toStdString().c_str(), std::ios::binary);
       auto pSceneView = m_appData->GetSurfaceSceneView();
-      oa << boost::serialization::make_nvp(SCENE_VIEW_ELEMENT_NAME.c_str(), *pSceneView);
+      auto pSerializedView = pSceneView->Serialize();
+      pSerializedView->SerializeToOstream(&outFile);
       outFile.close();
-
-      // tinyxml::TiXmlDocument doc;
-      // BOOST_AUTO(decl, new tinyxml::TiXmlDeclaration("1.0", "", ""));
-      // doc.LinkEndChild(decl);
-
-      // BOOST_AUTO(settings, new tinyxml::TiXmlElement("ElVisSettings"));
-      // doc.LinkEndChild(settings);
-
-      // BOOST_AUTO(scene, m_appData->GetSurfaceSceneView()->GetScene());
-
-      //// Camera
-      // boost::shared_ptr<Camera> camera = m_appData->GetSurfaceSceneView()->GetViewSettings();
-      // BOOST_AUTO(cameraElement, new tinyxml::TiXmlElement("Camera"));
-      // settings->LinkEndChild(cameraElement);
-      // addElement("EyeX", cameraElement, camera->GetEye().x());
-      // addElement("EyeY", cameraElement, camera->GetEye().y());
-      // addElement("EyeZ", cameraElement, camera->GetEye().z());
-      // addElement("LookAtX", cameraElement, camera->GetLookAt().x());
-      // addElement("LookAtY", cameraElement, camera->GetLookAt().y());
-      // addElement("LookAtZ", cameraElement, camera->GetLookAt().z());
-      // addElement("UpX", cameraElement, camera->GetUp().x());
-      // addElement("UpY", cameraElement, camera->GetUp().y());
-      // addElement("UpZ", cameraElement, camera->GetUp().z());
-      // addElement("FOV", cameraElement, camera->GetFieldOfView());
-      // addElement("Near", cameraElement, camera->GetNear());
-      // addElement("Far", cameraElement, camera->GetFar());
-
-      // doc.SaveFile(fileName.toStdString().c_str());
 
       QDir CurrentDir;
       m_settings->setValue(DEFAULT_STATE_DIR_SETTING_NAME, CurrentDir.absoluteFilePath(fileName));
@@ -867,45 +825,13 @@ namespace ElVis
       QStringList::Iterator it = list.begin();
       QString fileName = *it;
 
-      std::ifstream inFile(fileName.toStdString());
-      boost::archive::xml_iarchive ia(inFile);
+      std::ifstream inFile(fileName.toStdString(), std::ios::binary);
       auto pSceneView = m_appData->GetSurfaceSceneView();
-      ia >> boost::serialization::make_nvp(SCENE_VIEW_ELEMENT_NAME.c_str(), *pSceneView);
+      ElVis::Serialization::SceneView serializedData;
+      serializedData.ParseFromIstream(&inFile);
       inFile.close();
-
-//      tinyxml::TiXmlDocument doc(fileName.toStdString().c_str());
-//      bool loadOkay = doc.LoadFile();
-
-//      if (!loadOkay)
-//      {
-//        throw std::runtime_error("Unable to load file " + fileName.toStdString());
-//      }
-
-//      tinyxml::TiXmlHandle docHandle(&doc);
-//      // tinyxml::TiXmlNode* node = 0;
-//      tinyxml::TiXmlElement* rootElement = doc.FirstChildElement("ElVisSettings");
-
-//      // Camera
-//      auto cameraElement = rootElement->FirstChildElement("Camera");
-//      boost::shared_ptr<Camera> camera = m_appData->GetSurfaceSceneView()->GetViewSettings();
-//      ElVis::WorldPoint eye;
-//      ElVis::WorldPoint lookAt;
-//      ElVis::WorldVector up;
-
-//      eye.SetX(getElement<double>("EyeX", cameraElement));
-//      eye.SetY(getElement<double>("EyeY", cameraElement));
-//      eye.SetZ(getElement<double>("EyeZ", cameraElement));
-//      lookAt.SetX(getElement<double>("LookAtX", cameraElement));
-//      lookAt.SetY(getElement<double>("LookAtY", cameraElement));
-//      lookAt.SetZ(getElement<double>("LookAtZ", cameraElement));
-//      up.SetX(getElement<double>("UpX", cameraElement));
-//      up.SetY(getElement<double>("UpY", cameraElement));
-//      up.SetZ(getElement<double>("UpZ", cameraElement));
-//      double fov = getElement<double>("FOV", cameraElement);
-//      double nearVal = getElement<double>("Near", cameraElement);
-//      double farVal = getElement<double>("Far", cameraElement);
-
-//      camera->SetParameters(eye, lookAt, up, fov, nearVal, farVal);
+      pSceneView->Deserialize(serializedData);
+      inFile.close();
 
       QDir CurrentDir;
       m_settings->setValue(DEFAULT_STATE_DIR_SETTING_NAME, CurrentDir.absoluteFilePath(fileName));

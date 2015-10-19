@@ -30,6 +30,7 @@
 #define ELVIS_CORE_VIEW_SETTINGS_H
 
 #include <ElVis/Core/Point.hpp>
+#include <ElVis/Core/Camera.pb.h>
 #include <ElVis/Core/ElVisDeclspec.h>
 #include <ElVis/Core/Vector.hpp>
 #include <ElVis/Core/matrix.cu>
@@ -39,16 +40,11 @@
 
 #include <iostream>
 
-#include <boost/serialization/split_member.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-
 namespace ElVis
 {
   class Camera
   {
   public:
-    friend class boost::serialization::access;
     boost::signals2::signal<void()> OnCameraChanged;
 
   public:
@@ -145,51 +141,8 @@ namespace ElVis
     ELVIS_EXPORT void SetupOpenGLPerspective();
     ELVIS_EXPORT void SetupOpenGLOrtho();
 
-    /// \brief Serializes a camera to an archive.
-    /// \param ar The serialization destination.
-    template <typename Archive>
-    void save(Archive& ar, const unsigned int /*version*/) const
-    {
-      ar& BOOST_SERIALIZATION_NVP(m_fieldOfView);
-      ar& BOOST_SERIALIZATION_NVP(m_aspectRatio);
-      ar& BOOST_SERIALIZATION_NVP(m_near);
-      ar& BOOST_SERIALIZATION_NVP(m_far);
-
-      ar& BOOST_SERIALIZATION_NVP(m_eye);
-      ar& BOOST_SERIALIZATION_NVP(m_lookAt);
-      ar& BOOST_SERIALIZATION_NVP(m_up);
-
-      ar& BOOST_SERIALIZATION_NVP(m_u);
-      ar& BOOST_SERIALIZATION_NVP(m_v);
-      ar& BOOST_SERIALIZATION_NVP(m_w);
-    }
-
-    /// \brief Deserializes a camera from an archive.
-    /// \param ar The serialization source.
-    template <typename Archive>
-    void load(Archive& ar, const unsigned int /*version*/)
-    {
-      ar& BOOST_SERIALIZATION_NVP(m_fieldOfView);
-      ar& BOOST_SERIALIZATION_NVP(m_aspectRatio);
-      ar& BOOST_SERIALIZATION_NVP(m_near);
-      ar& BOOST_SERIALIZATION_NVP(m_far);
-
-      ar& BOOST_SERIALIZATION_NVP(m_eye);
-      ar& BOOST_SERIALIZATION_NVP(m_lookAt);
-      ar& BOOST_SERIALIZATION_NVP(m_up);
-
-      ar& BOOST_SERIALIZATION_NVP(m_u);
-      ar& BOOST_SERIALIZATION_NVP(m_v);
-      ar& BOOST_SERIALIZATION_NVP(m_w);
-
-      UpdateBasisVectors();
-      OnCameraChanged();
-    }
-
-    /// This macro is required to support the save/load interface above.
-    /// Without it, serialization and deserialization are performed by
-    /// the same function.
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::Camera> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::Camera& input);
 
   private:
     static ElVisFloat3 ProjectToSphere(ElVisFloat x,

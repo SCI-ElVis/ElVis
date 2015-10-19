@@ -37,13 +37,12 @@
 #include <ElVis/Core/RayGeneratorProgram.h>
 #include <ElVis/Core/PtxManager.h>
 #include <ElVis/Core/Float.h>
+#include <ElVis/Core/ColorMap.pb.h>
 
 #include <iostream>
+#include <memory>
 
 #include <boost/signals2.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/serialization/map.hpp>
 
 namespace ElVis
 {
@@ -53,16 +52,11 @@ namespace ElVis
   /// class.
   struct ColorMapBreakpoint
   {
-    friend class boost::serialization::access;
     ElVis::Color Col;
     ElVisFloat Scalar;
 
-    template <typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-      ar& BOOST_SERIALIZATION_NVP(Col);
-      ar& BOOST_SERIALIZATION_NVP(Scalar);
-    }
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::ColorMapBreakpoint> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::ColorMapBreakpoint& input);
   };
 
   /// \brief A piecewise-linear color map consisting of breakpoints on [0,1]
@@ -75,7 +69,6 @@ namespace ElVis
   class ColorMap
   {
   public:
-    friend class boost::serialization::access;
     ELVIS_EXPORT ColorMap();
     ELVIS_EXPORT ~ColorMap() {}
 
@@ -121,25 +114,12 @@ namespace ElVis
 
     ELVIS_EXPORT void PopulateTexture(optixu::Buffer& buffer);
 
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::ColorMap> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::ColorMap& input);
+
   private:
     ColorMap(const ColorMap& rhs);
     ColorMap& operator=(const ColorMap& rhs);
-
-
-    /// \brief Serializes a camera to an archive.
-    /// \param ar The serialization destination.
-    template <typename Archive>
-    void save(Archive& ar, const unsigned int /*version*/) const;
-
-    /// \brief Deserializes a camera from an archive.
-    /// \param ar The serialization source.
-    template <typename Archive>
-    void load(Archive& ar, const unsigned int /*version*/);
-
-    /// This macro is required to support the save/load interface above.
-    /// Without it, serialization and deserialization are performed by
-    /// the same function.
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
     float m_min;
     float m_max;

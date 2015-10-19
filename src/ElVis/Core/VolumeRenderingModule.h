@@ -30,15 +30,16 @@
 #define ELVIS_VOLUME_RENDERING_MODULE_H
 
 #include <ElVis/Core/ElVisDeclspec.h>
-#include <ElVis/Core/RenderModule.h>
-#include <ElVis/Core/RenderModule.h>
+#include <ElVis/Core/Float.h>
+#include <ElVis/Core/HostTransferFunction.h>
+#include <ElVis/Core/OpenGL.h>
+#include <ElVis/Core/OptiXBuffer.hpp>
 #include <ElVis/Core/PrimaryRayObject.h>
 #include <ElVis/Core/RayGeneratorProgram.h>
-#include <ElVis/Core/OpenGL.h>
-#include <ElVis/Core/Float.h>
+#include <ElVis/Core/RenderModule.h>
+#include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/TransferFunction.h>
-#include <ElVis/Core/HostTransferFunction.h>
-#include <ElVis/Core/OptiXBuffer.hpp>
+#include <ElVis/Core/VolumeRenderingModule.pb.h>
 
 #include <vector>
 
@@ -97,6 +98,9 @@ namespace ElVis
       const RenderModule&, VolumeRenderingIntegrationType)>
       OnIntegrationTypeChanged;
 
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::VolumeRenderingModule> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::VolumeRenderingModule& input);
+
   protected:
     ELVIS_EXPORT virtual void DoRender(SceneView* view);
     ELVIS_EXPORT virtual void DoSetup(SceneView* view);
@@ -105,6 +109,8 @@ namespace ElVis
     virtual int DoGetNumberOfRequiredEntryPoints() { return 2; }
     virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
     virtual std::string DoGetName() const { return "Volume Rendering"; }
+
+    virtual void DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const;
 
   private:
     VolumeRenderingModule& operator=(const VolumeRenderingModule& rhs);

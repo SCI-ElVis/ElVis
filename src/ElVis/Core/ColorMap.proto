@@ -1,0 +1,15 @@
+syntax = "proto3";
+import "Color.proto";
+
+package ElVis.Serialization;
+
+message ColorMapBreakpoint {
+  Color color = 1;
+  double scalar = 2;
+}
+
+message ColorMap {
+  float min = 1;
+  float max = 2;
+  repeated ColorMapBreakpoint breakpoints = 3;
+}

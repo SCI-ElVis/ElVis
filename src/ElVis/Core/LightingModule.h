@@ -29,6 +29,7 @@
 #ifndef ELVIS_NATIVE_LIGHTING_MODULE_H
 #define ELVIS_NATIVE_LIGHTING_MODULE_H
 
+#include <ElVis/Core/LightingModule.pb.h>
 #include <ElVis/Core/RenderModule.h>
 #include <ElVis/Core/OpenGL.h>
 #include <ElVis/Core/SceneView.h>
@@ -46,6 +47,9 @@ namespace ElVis
     ELVIS_EXPORT LightingModule();
     ELVIS_EXPORT virtual ~LightingModule();
 
+    ELVIS_EXPORT std::unique_ptr<ElVis::Serialization::LightingModule> Serialize() const;
+    ELVIS_EXPORT void Deserialize(const ElVis::Serialization::LightingModule& input);
+
   protected:
     virtual void DoRender(SceneView* view);
     virtual void DoSetup(SceneView* view);
@@ -57,6 +61,8 @@ namespace ElVis
     }
     virtual void DoResize(unsigned int newWidth, unsigned int newHeight) {}
     virtual std::string DoGetName() const { return "Lighting Module"; }
+
+    virtual void DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const;
 
   private:
     ELVIS_EXPORT LightingModule(const LightingModule& rhs);

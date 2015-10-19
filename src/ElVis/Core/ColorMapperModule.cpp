@@ -36,6 +36,7 @@
 #include <boost/timer.hpp>
 #include <boost/bind.hpp>
 #include <boost/serialization/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 // Serialization keys
 namespace
@@ -53,8 +54,6 @@ namespace ElVis
       m_data(),
       m_textureSampler(),
       m_size(1024),
-      m_min(0.0f),
-      m_max(1.0f),
       m_dirty(true),
       m_minConnection(),
       m_maxConnection(),
@@ -74,8 +73,11 @@ namespace ElVis
 
     context["ColorMapTexture"]->set(m_data);
 
-    context["TextureMaxScalar"]->setFloat(m_min);
-    context["TextureMinScalar"]->setFloat(m_max);
+    if( m_colorMap )
+    {
+      context["TextureMaxScalar"]->setFloat(m_colorMap->GetMax());
+      context["TextureMinScalar"]->setFloat(m_colorMap->GetMin());
+    }
   }
 
   void ColorMapperModule::DoSynchronize(SceneView* view)
@@ -137,21 +139,37 @@ namespace ElVis
     }
   }
 
-  void ColorMapperModule::serialize(boost::archive::xml_oarchive& ar, unsigned int version) const
+  void ColorMapperModule::DoSerialize(std::unique_ptr<ElVis::Serialization::RenderModule>& pResult) const
   {
-    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
-    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
-    ar & boost::serialization::make_nvp(SIZE_KEY_NAME.c_str(), m_size);
-    ar & boost::serialization::make_nvp(COLOR_MAP_KEY_NAME.c_str(), m_colorMap);
+    auto pSerializedModule = Serialize();
+    pResult->mutable_concrete_module()->PackFrom(*pSerializedModule);
   }
 
-  void ColorMapperModule::deserialize(boost::archive::xml_iarchive& ar, unsigned int version)
+  std::unique_ptr<ElVis::Serialization::ColorMapperModule> ColorMapperModule::Serialize() const
   {
-    ar & boost::serialization::make_nvp(MIN_KEY_NAME.c_str(), m_min);
-    ar & boost::serialization::make_nvp(MAX_KEY_NAME.c_str(), m_max);
-    ar & boost::serialization::make_nvp(SIZE_KEY_NAME.c_str(), m_size);
-    boost::shared_ptr<ColorMap> map;
-    ar & boost::serialization::make_nvp(COLOR_MAP_KEY_NAME.c_str(), map);
-    SetColorMap(map);
+    auto pResult = std::unique_ptr<ElVis::Serialization::ColorMapperModule>(new ElVis::Serialization::ColorMapperModule());
+    pResult->set_allocated_color_map(m_colorMap->Serialize().release());
+    pResult->set_size(m_size);
+    return pResult;
   }
+
+  void ColorMapperModule::Deserialize(const ElVis::Serialization::ColorMapperModule& input)
+  {
+    m_size = input.size();
+
+    // TODO - Why don't we just create a default color map up front?
+    if( m_colorMap )
+    {
+      m_colorMap->Deserialize(input.color_map());
+    }
+    else
+    {
+      auto pMap = boost::make_shared<ColorMap>();
+      pMap->Deserialize(input.color_map());
+      SetColorMap(pMap);
+    }
+    m_dirty = true;
+    SetSyncAndRenderRequired();
+  }
+
 }

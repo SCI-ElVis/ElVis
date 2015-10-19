@@ -25,7 +25,7 @@
 // DEALINGS IN THE SOFTWARE.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
+#include <vector>
 #include <ElVis/Extensions/NektarPlusPlusExtension/NektarModel.h>
 
 #include <SpatialDomains/MeshGraph3D.h>

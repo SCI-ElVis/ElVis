@@ -1,16 +1,16 @@
 #ifndef HIGH_ORDER_ISOSURFACE_POINT_HPP
 #define HIGH_ORDER_ISOSURFACE_POINT_HPP
 
+#include <ElVis/Core/Point.pb.h>
 #include <ElVis/Core/Spaces.h>
 #include <ElVis/Core/Float.h>
 #include <boost/static_assert.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/signals2.hpp>
-#include <boost/serialization/split_member.hpp>
-#include <boost/serialization/nvp.hpp>
 #include <string>
 #include <string>
+#include <memory>
 
 namespace ElVis
 {
@@ -106,15 +106,15 @@ namespace ElVis
       {
         m_data[i] = rhs.m_data[i];
       }
-      if (dim::Value <= 1)
+      if (dim::Value >= 1)
       {
         OnXChanged(m_data[0]);
       }
-      if (dim::Value <= 2)
+      if (dim::Value >= 2)
       {
         OnYChanged(m_data[1]);
       }
-      if (dim::Value <= 3)
+      if (dim::Value >= 3)
       {
         OnZChanged(m_data[2]);
       }
@@ -124,6 +124,49 @@ namespace ElVis
 
     /// \brief Returns the number of dimensions for the point.
     static unsigned int dimension() { return dim::Value; }
+
+    std::unique_ptr<ElVis::Serialization::Point> Serialize() const
+    {
+      auto pResult = std::unique_ptr<ElVis::Serialization::Point>(new ElVis::Serialization::Point());
+      if (dim::Value >= 1)
+      {
+        pResult->set_x(m_data[0]);
+      }
+      if (dim::Value >= 2)
+      {
+        pResult->set_y(m_data[1]);
+      }
+      if (dim::Value >= 3)
+      {
+        pResult->set_z(m_data[2]);
+      }
+      if (dim::Value >= 4)
+      {
+        pResult->set_w(m_data[3]);
+      }
+
+      return pResult;
+    }
+
+    void Deserialize(const ElVis::Serialization::Point& input)
+    {
+      if( dim::Value >= 1 )
+      {
+        m_data[0] = input.x();
+      }
+      if( dim::Value >= 2 )
+      {
+        m_data[1] = input.y();
+      }
+      if( dim::Value >= 3 )
+      {
+        m_data[2] = input.z();
+      }
+      if( dim::Value >= 4 )
+      {
+        m_data[3] = input.w();
+      }
+    }
 
     const DataType& operator()(unsigned int i) const { return m_data[i]; }
 
@@ -377,30 +420,6 @@ namespace ElVis
       result += ")";
       return result;
     }
-
-    /// \brief Serializes a point to an archive.
-    /// \param ar The serialization destination.
-    template <typename Archive>
-    void save(Archive& ar, const unsigned int /*version*/) const
-    {
-      ar& boost::serialization::make_nvp(VALUE_KEY_NAME.c_str(), m_data);
-    }
-
-    /// \brief Deserializes a camera from an archive.
-    /// \param ar The serialization source.
-    template <typename Archive>
-    void load(Archive& ar, const unsigned int /*version*/)
-    {
-      ar& boost::serialization::make_nvp(VALUE_KEY_NAME.c_str(), m_data);
-
-      PublishElementChanges();
-      OnPointChanged(*this);
-    }
-
-    /// This macro is required to support the save/load interface above.
-    /// Without it, serialization and deserialization are performed by
-    /// the same function.
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
   private:
     DataType m_data[dim::Value];
